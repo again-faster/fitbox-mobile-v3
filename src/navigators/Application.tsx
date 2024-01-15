@@ -1,4 +1,12 @@
-import { Calendar, Dashboard, Example, Inbox, Menu, Startup } from '@/screens';
+import {
+	Calendar,
+	Dashboard,
+	Example,
+	Inbox,
+	Menu,
+	Startup,
+	Login,
+} from '@/screens';
 import { useTheme } from '@/theme';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
@@ -64,8 +72,12 @@ const ApplicationNavigator = () => {
 
 	return (
 		<NavigationContainer theme={navigationTheme}>
-			<Stack.Navigator key={variant} screenOptions={{ headerShown: false }}>
+			<Stack.Navigator
+				key={variant}
+				screenOptions={{ headerShown: false }}
+			>
 				<Stack.Screen name="Startup" component={Startup} />
+				<Stack.Screen name="Login" component={Login} />
 				<Stack.Screen name="Example" component={Example} />
 				<Stack.Screen name="Main" component={MainTabNavigator} />
 			</Stack.Navigator>

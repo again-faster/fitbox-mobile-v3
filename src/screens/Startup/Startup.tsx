@@ -23,7 +23,7 @@ const Startup = ({ navigation }: ApplicationScreenProps) => {
 	useEffect(() => {
 		navigation.reset({
 			index: 0,
-			routes: [{ name: 'Main' }],
+			routes: [{ name: 'Login' }],
 		});
 	}, [isSuccess]);
 
@@ -39,7 +39,10 @@ const Startup = ({ navigation }: ApplicationScreenProps) => {
 			>
 				<Brand />
 				{isFetching && (
-					<ActivityIndicator size="large" style={[gutters.marginVertical_24]} />
+					<ActivityIndicator
+						size="large"
+						style={[gutters.marginVertical_24]}
+					/>
 				)}
 				{isError && (
 					<Text style={[fonts.size_16, fonts.red500]}>

@@ -4,6 +4,7 @@ export type ApplicationStackParamList = {
 	Example: undefined;
 	Main: undefined;
 	Startup: undefined;
+	Login: undefined;
 };
 
 export type MainTabParamList = {

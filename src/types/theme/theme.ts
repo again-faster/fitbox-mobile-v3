@@ -1,15 +1,17 @@
-import layout from '@/theme/layout';
+import { config } from '@/theme/_config';
 import componentGenerators from '@/theme/components';
-
-import type { Theme as NavigationTheme } from '@react-navigation/native';
+import layout from '@/theme/layout';
 import type { Colors } from '@/types/theme/colors';
-import type { Variant } from './config';
-import type { Gutters } from './gutters';
-import type { Fonts } from './fonts';
+import type { Theme as NavigationTheme } from '@react-navigation/native';
+
 import type { Backgrounds } from './backgrounds';
 import type { Borders } from './borders';
+import type { Variant } from './config';
+import type { Fonts } from './fonts';
+import type { Gutters } from './gutters';
 
 export type Theme = {
+	metrics: typeof config.metrics;
 	colors: Colors;
 	variant: Variant;
 	layout: typeof layout;

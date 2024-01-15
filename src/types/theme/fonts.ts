@@ -5,8 +5,15 @@ import type { ArrayValue, RemoveBeforeSeparator, ToNumber } from './common';
 import type { UnionConfiguration } from './config';
 
 type FontSizesKeys = `size_${ArrayValue<typeof config.fonts.sizes>}`;
+// type FontMetricKeys = ArrayValue<typeof config.fonts.metrics>;
 
 export type FontSizes = {
+	[key in FontSizesKeys]: {
+		fontSize: ToNumber<RemoveBeforeSeparator<key>>;
+	};
+};
+
+export type FontMetrics = {
 	[key in FontSizesKeys]: {
 		fontSize: ToNumber<RemoveBeforeSeparator<key>>;
 	};

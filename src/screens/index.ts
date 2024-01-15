@@ -4,3 +4,4 @@ export { default as Example } from './Example/Example';
 export { default as Inbox } from './Inbox/Inbox';
 export { default as Menu } from './Menu/Menu';
 export { default as Startup } from './Startup/Startup';
+export { default as Login } from './Login/Login';

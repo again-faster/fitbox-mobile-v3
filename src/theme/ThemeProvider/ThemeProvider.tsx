@@ -97,6 +97,7 @@ function ThemeProvider({ children, storage }: Props) {
 
 	const theme = useMemo(() => {
 		return {
+			metrics: fullConfig.metrics,
 			colors: fullConfig.colors,
 			variant,
 			gutters: generateGutters(),
