@@ -4,27 +4,28 @@ import type { ThemeConfiguration } from '@/types/theme/config';
 
 const colors = {
 	brand: '#7775E6',
-	brandAlt: '#5f2260',
+	brandAlt: '#5F2260',
 	success: '#43A047',
-	oceanGreen: '#52b788',
-	danger: '#f44336',
+	oceanGreen: '#52B788',
+	danger: '#F44336',
 	warning: '#FFB300',
 	info: '#0085FF',
-	light: '#fff',
+	light: '#FFFFFF',
 	dark: '#546E7A',
-	black: '#000',
+	black: '#000000',
 	mute: '#757575',
 	purple: '#8E24AA',
 	pink: '#E91E63',
-	gray: '#eee',
+	gray: '#EEEEEE',
 	darkgray: '#595959',
-	lightgrey: '#c4c4c4',
+	lightgrey: '#C4C4C4',
 	orange: '#FFA500',
-	magenta: '#ff0066',
+	magenta: '#FF0066',
 	wellnessPrimary: '#00FF00',
 } as const;
 
 const colorsLight = {
+	...colors,
 	brand: colors.brand,
 	red500: '#C13333',
 	gray800: '#3C3C3C',
@@ -87,8 +88,8 @@ export const config = {
 	backgrounds: colorsLight,
 	navigationColors: {
 		...DarkTheme.colors,
-		background: colorsLight.gray50,
-		card: colorsLight.gray50,
+		background: colorsLight.light,
+		card: colorsLight.light,
 	},
 	variants: {
 		dark: {

@@ -1,22 +1,28 @@
 import { config } from '@/theme/_config';
-import { StyleProp, View, ViewStyle } from 'react-native';
+import { View } from 'react-native';
 import { FontSizeMetrics } from '../Text/Text';
 
+type SpacerSize = FontSizeMetrics | number;
 interface SpacerProps {
-	size?: FontSizeMetrics;
+	size?: SpacerSize;
 	horizontal?: boolean;
 }
 
-const Spacer = ({ size, horizontal }: SpacerProps) => {
-	const useSize = size as FontSizeMetrics;
+const Spacer = ({ size = 'sm', horizontal = false }: SpacerProps) => {
 	const fontMetrics = config.fonts.metrics;
 
-	const viewStyle: StyleProp<ViewStyle> = {
-		height: !horizontal ? fontMetrics[useSize] : 0,
-		width: !horizontal ? 0 : fontMetrics[useSize],
-	};
+	let height: number;
+	let width: number;
 
-	return <View style={viewStyle} />;
+	if (typeof size === 'number') {
+		height = horizontal ? 0 : size;
+		width = horizontal ? size : 0;
+	} else {
+		height = horizontal ? 0 : fontMetrics[size];
+		width = horizontal ? fontMetrics[size] : 0;
+	}
+
+	return <View style={{ height, width }} />;
 };
 
 Spacer.defaultProps = {

@@ -66,7 +66,11 @@ const MainTabNavigator = () => {
 				headerTitleAlign: 'center',
 			})}
 		>
-			<Tab.Screen name="Dashboard" component={Dashboard} />
+			<Tab.Screen
+				name="Dashboard"
+				component={Dashboard}
+				options={{ headerShown: false }}
+			/>
 			<Tab.Screen name="Calendar" component={Calendar} />
 			<Tab.Screen name="Inbox" component={Inbox} />
 			<Tab.Screen name="Menu" component={Menu} />

@@ -7,14 +7,24 @@ type FontColors = keyof typeof config.fonts.colors;
 
 interface TextProps extends ComponentProps<typeof Txt> {
 	size?: FontSizeMetrics;
-	color?: FontSizeMetrics;
+	color?: FontColors;
 	bold?: boolean;
 	center?: boolean;
-	children: string;
+	children: React.ReactNode;
 }
 
-const Text = ({ size, color, bold, center, ...rest }: TextProps) => {
+const Text = ({
+	size,
+	color,
+	bold,
+	center,
+	children,
+	style,
+	...rest
+}: TextProps) => {
 	const customStyle: StyleProp<TextStyle> = {
+		...(style as TextStyle),
+
 		// font size
 		fontSize: config.fonts.metrics[size as FontSizeMetrics],
 
@@ -28,12 +38,16 @@ const Text = ({ size, color, bold, center, ...rest }: TextProps) => {
 		...(center ? { textAlign: 'center' } : {}),
 	};
 
-	return <Txt {...rest} style={customStyle} />;
+	return (
+		<Txt {...rest} style={customStyle}>
+			{children}
+		</Txt>
+	);
 };
 
 Text.defaultProps = {
 	size: 'rg',
-	color: 'black',
+	color: config.fonts.colors.gray800,
 	bold: false,
 	center: false,
 };

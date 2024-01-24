@@ -1,4 +1,4 @@
-import { StyleProp, View, ViewStyle } from 'react-native';
+import { FlexAlignType, StyleProp, View, ViewStyle } from 'react-native';
 import { TouchableRipple } from 'react-native-paper';
 
 interface RowProps {
@@ -9,15 +9,23 @@ interface RowProps {
 		| 'space-between'
 		| 'space-around'
 		| 'space-evenly';
+	align?: FlexAlignType;
 	onPress?: () => void;
 	children: React.ReactNode;
 	style?: StyleProp<ViewStyle>;
 }
 
-const Row = ({ spacing, children, onPress, style }: RowProps) => {
+const Row = ({
+	spacing: justifyContent,
+	align: alignItems,
+	children,
+	onPress,
+	style,
+}: RowProps) => {
 	const viewStyle: StyleProp<ViewStyle> = {
 		flexDirection: 'row',
-		justifyContent: spacing,
+		justifyContent,
+		alignItems,
 	};
 
 	const component = <View style={[viewStyle, style]}>{children}</View>;
@@ -31,6 +39,7 @@ const Row = ({ spacing, children, onPress, style }: RowProps) => {
 
 Row.defaultProps = {
 	spacing: undefined,
+	align: undefined,
 	onPress: undefined,
 	style: undefined,
 };
