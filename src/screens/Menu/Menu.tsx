@@ -1,8 +1,8 @@
 import { ScrollView, Spacer } from '@/components/atoms';
 import { MenuOption } from '@/components/molecules';
-// import { useTheme } from '@/theme';
+import { useTheme } from '@/theme';
 import { config } from '@/theme/_config';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
 const menuOptions = [
 	{
@@ -78,6 +78,13 @@ const menuOptions = [
 		role: 'any',
 	},
 	{
+		id: 'theme',
+		name: 'Dark Mode',
+		icon: 'moon',
+		context: 'any',
+		role: 'any',
+	},
+	{
 		id: 'logout',
 		name: 'Logout',
 		icon: 'log-out',
@@ -87,11 +94,18 @@ const menuOptions = [
 ];
 
 const Menu = () => {
-	// const { variant, changeTheme } = useTheme();
+	const { variant, changeTheme } = useTheme();
 
-	// // const onClick = () => {
-	// // 	changeTheme(variant === 'default' ? 'dark' : 'default');
-	// // };
+	const onClick = (id: string) => {
+		switch (id) {
+			case 'theme':
+				changeTheme(variant === 'default' ? 'dark' : 'default');
+				break;
+			default:
+				Alert.alert('Error', 'Something went wrong');
+				break;
+		}
+	};
 
 	return (
 		<ScrollView>
@@ -102,7 +116,7 @@ const Menu = () => {
 					key={id}
 					name={name}
 					icon={icon}
-					onPress={() => console.log('pressed')}
+					onPress={() => onClick(id)}
 					fontAwesome={fontAwesome}
 				/>
 			))}
