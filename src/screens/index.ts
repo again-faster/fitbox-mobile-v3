@@ -1,6 +1,9 @@
-export { default as Dashboard } from './Dashboard/Dashboard';
+export { default as Auth } from './Auth/Auth';
 export { default as Calendar } from './Calendar/Calendar';
+export { default as Dashboard } from './Dashboard/Dashboard';
 export { default as Example } from './Example/Example';
 export { default as Inbox } from './Inbox/Inbox';
+export { default as Landing } from './Landing/Landing';
+export { default as Login } from './Login/Login';
 export { default as Menu } from './Menu/Menu';
 export { default as Startup } from './Startup/Startup';

@@ -4,6 +4,10 @@ export type ApplicationStackParamList = {
 	Example: undefined;
 	Main: undefined;
 	Startup: undefined;
+	Auth: undefined;
+	Landing: undefined;
+	SignUp: undefined;
+	Invite: undefined;
 };
 
 export type MainTabParamList = {
@@ -15,3 +19,7 @@ export type MainTabParamList = {
 
 export type ApplicationScreenProps =
 	StackScreenProps<ApplicationStackParamList>;
+
+export type MainTabScreenProps = StackScreenProps<
+	MainTabParamList & ApplicationStackParamList
+>;

@@ -1,27 +1,25 @@
+import i18next from 'i18next';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-	View,
 	ActivityIndicator,
+	Alert,
+	ScrollView,
 	Text,
 	TouchableOpacity,
-	ScrollView,
-	Alert,
+	View,
 } from 'react-native';
-import i18next from 'i18next';
-import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
 
 import { ImageVariant } from '@/components/atoms';
 import { Brand } from '@/components/molecules';
 import { SafeScreen } from '@/components/template';
-import { useTheme } from '@/theme';
 import { fetchOne } from '@/services/users';
-
-import { isImageSourcePropType } from '@/types/guards/image';
-
-import SendImage from '@/theme/assets/images/send.png';
+import { useTheme } from '@/theme';
 import ColorsWatchImage from '@/theme/assets/images/colorswatch.png';
+import SendImage from '@/theme/assets/images/send.png';
 import TranslateImage from '@/theme/assets/images/translate.png';
+import { isImageSourcePropType } from '@/types/guards/image';
+import { useQuery } from '@tanstack/react-query';
 
 const Example = () => {
 	const { t } = useTranslation(['example', 'welcome']);
@@ -88,7 +86,11 @@ const Example = () => {
 					]}
 				>
 					<View
-						style={[layout.absolute, backgrounds.gray100, components.circle250]}
+						style={[
+							layout.absolute,
+							backgrounds.gray100,
+							components.circle250,
+						]}
 					/>
 
 					<View style={[layout.absolute, gutters.paddingBottom_12]}>
@@ -107,7 +109,9 @@ const Example = () => {
 					]}
 				>
 					<View>
-						<Text style={[fonts.size_40, fonts.gray800, fonts.bold]}>
+						<Text
+							style={[fonts.size_40, fonts.gray800, fonts.bold]}
+						>
 							{t('welcome:title')}
 						</Text>
 						<Text
@@ -135,8 +139,13 @@ const Example = () => {
 					>
 						<TouchableOpacity
 							testID="fetch-user-button"
-							style={[components.buttonCircle, gutters.marginBottom_16]}
-							onPress={() => setCurrentId(Math.ceil(Math.random() * 10 + 1))}
+							style={[
+								components.buttonCircle,
+								gutters.marginBottom_16,
+							]}
+							onPress={() =>
+								setCurrentId(Math.ceil(Math.random() * 10 + 1))
+							}
 						>
 							{isFetching ? (
 								<ActivityIndicator />
@@ -150,7 +159,10 @@ const Example = () => {
 
 						<TouchableOpacity
 							testID="change-theme-button"
-							style={[components.buttonCircle, gutters.marginBottom_16]}
+							style={[
+								components.buttonCircle,
+								gutters.marginBottom_16,
+							]}
 							onPress={() => onChangeTheme()}
 						>
 							<ImageVariant
@@ -161,9 +173,14 @@ const Example = () => {
 
 						<TouchableOpacity
 							testID="change-language-button"
-							style={[components.buttonCircle, gutters.marginBottom_16]}
+							style={[
+								components.buttonCircle,
+								gutters.marginBottom_16,
+							]}
 							onPress={() =>
-								onChangeLanguage(i18next.language === 'fr' ? 'en' : 'fr')
+								onChangeLanguage(
+									i18next.language === 'fr' ? 'en' : 'fr',
+								)
 							}
 						>
 							<ImageVariant

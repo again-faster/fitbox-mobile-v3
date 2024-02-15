@@ -1,0 +1,11 @@
+{
+    "login": "Login",
+    "register": "Register",
+    "modal": {
+        "title": "What code do you have?",
+        "button": {
+            "gym": "Gym ID / QR Code",
+            "invite": "Invite Code"
+        }
+    }
+}

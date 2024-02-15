@@ -1,64 +1,64 @@
 {
-  "extends": "@tsconfig/react-native/tsconfig.json",
-  "compilerOptions": {
-    "types": ["jest", "node", "react-native-vector-icons"],
-    "paths": {
-      "@/*": ["./src/*"]
+    "extends": "@tsconfig/react-native/tsconfig.json",
+    "compilerOptions": {
+        "types": ["jest", "node", "react-native-vector-icons"],
+        "paths": {
+            "@/*": ["./src/*"]
+        },
+
+        "module": "esnext",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "strict": true,
+        "alwaysStrict": true,
+        "strictNullChecks": true,
+        "noUncheckedIndexedAccess": true,
+
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "allowUnreachableCode": false,
+        "noFallthroughCasesInSwitch": true,
+
+        "target": "es2017",
+        "outDir": "out",
+        "declaration": true,
+        "sourceMap": true,
+
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "allowJs": true,
+        "checkJs": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+
+        "jsx": "preserve",
+        "noEmit": true,
+        "isolatedModules": true,
+        "incremental": true,
+
+        "baseUrl": ".",
+        "plugins": [
+            {
+                "name": "next"
+            }
+        ]
     },
-
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "removeComments": true,
-    "preserveConstEnums": true,
-    "strict": true,
-    "alwaysStrict": true,
-    "strictNullChecks": true,
-    "noUncheckedIndexedAccess": true,
-
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "allowUnreachableCode": false,
-    "noFallthroughCasesInSwitch": true,
-
-    "target": "es2017",
-    "outDir": "out",
-    "declaration": true,
-    "sourceMap": true,
-
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "allowJs": true,
-    "checkJs": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-
-    "jsx": "preserve",
-    "noEmit": true,
-    "isolatedModules": true,
-    "incremental": true,
-
-    "baseUrl": ".",
-    "plugins": [
-      {
-        "name": "next"
-      }
+    "include": [
+        "./src/**/*",
+        "./src/@types/**/*",
+        "index.d.ts",
+        ".eslintrc.js",
+        "jest.setup.js",
+        "jest.config.js",
+        "babel.config.js",
+        "index.js",
+        "commitlint.config.js",
+        "next.config.js",
+        "lint-staged.config.js"
     ]
-  },
-  "include": [
-    "./src/**/*",
-    "./src/@types/**/*",
-    "index.d.ts",
-    ".eslintrc.js",
-    "jest.setup.js",
-    "jest.config.js",
-    "babel.config.js",
-    "index.js",
-    "commitlint.config.js",
-    "next.config.js",
-    "lint-staged.config.js"
-  ]
 }

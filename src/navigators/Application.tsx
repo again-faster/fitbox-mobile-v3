@@ -1,15 +1,46 @@
-import { Calendar, Dashboard, Example, Inbox, Menu, Startup } from '@/screens';
+import {
+	Auth,
+	Calendar,
+	Dashboard,
+	Example,
+	Inbox,
+	Landing,
+	Menu,
+	Startup,
+} from '@/screens';
 import { useTheme } from '@/theme';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { LinkingOptions, NavigationContainer } from '@react-navigation/native';
+import {
+	CardStyleInterpolators,
+	createStackNavigator,
+} from '@react-navigation/stack';
 
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 
+import { config } from '@/theme/_config';
 import type {
 	ApplicationStackParamList,
 	MainTabParamList,
 } from '@/types/navigation';
+
+const linking: LinkingOptions<ApplicationStackParamList> = {
+	prefixes: ['com.fitbox://', 'https://fitbox.iq', 'http://fitbox.iq'],
+	config: {
+		initialRouteName: 'Main',
+		screens: {
+			Startup: {
+				path: 'home',
+			},
+			Main: {
+				path: 'main/:personId',
+			},
+			Auth: {
+				path: 'auth',
+			},
+		},
+	},
+};
 
 const icons: Record<keyof MainTabParamList, string> = {
 	Dashboard: 'home',
@@ -47,10 +78,18 @@ const MainTabNavigator = () => {
 					backgroundColor: colors.gray800,
 				},
 				tabBarLabel: () => null,
-				headerShown: false,
+				headerShown: true,
+				headerStyle: {
+					backgroundColor: colors.brand,
+				},
+				headerTitleAlign: 'center',
 			})}
 		>
-			<Tab.Screen name="Dashboard" component={Dashboard} />
+			<Tab.Screen
+				name="Dashboard"
+				component={Dashboard}
+				options={{ headerShown: false }}
+			/>
 			<Tab.Screen name="Calendar" component={Calendar} />
 			<Tab.Screen name="Inbox" component={Inbox} />
 			<Tab.Screen name="Menu" component={Menu} />
@@ -63,9 +102,20 @@ const ApplicationNavigator = () => {
 	const { variant, navigationTheme } = useTheme();
 
 	return (
-		<NavigationContainer theme={navigationTheme}>
-			<Stack.Navigator key={variant} screenOptions={{ headerShown: false }}>
+		<NavigationContainer theme={navigationTheme} linking={linking}>
+			<Stack.Navigator
+				key={variant}
+				screenOptions={{
+					headerShown: false,
+					headerStyle: { backgroundColor: config.colors.brand },
+					cardStyleInterpolator:
+						CardStyleInterpolators.forScaleFromCenterAndroid,
+				}}
+				initialRouteName="Startup"
+			>
 				<Stack.Screen name="Startup" component={Startup} />
+				<Stack.Screen name="Auth" component={Auth} />
+				<Stack.Screen name="Landing" component={Landing} />
 				<Stack.Screen name="Example" component={Example} />
 				<Stack.Screen name="Main" component={MainTabNavigator} />
 			</Stack.Navigator>

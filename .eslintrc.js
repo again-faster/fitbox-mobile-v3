@@ -40,6 +40,7 @@ module.exports = {
 	},
 	rules: {
 		'@typescript-eslint/no-unused-vars': 'error',
+		'@typescript-eslint/no-use-before-define': 'off',
 		'global-require': 0,
 		'react-hooks/exhaustive-deps': 'off',
 		quotes: ['error', 'single'],
@@ -53,7 +54,10 @@ module.exports = {
 		'no-void': 'off',
 		'react/jsx-props-no-spreading': 'off',
 		'import/prefer-default-export': 'off',
-		'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
+		'import/no-extraneous-dependencies': [
+			'error',
+			{ devDependencies: true },
+		],
 		'react/display-name': 'off',
 		'import/extensions': [
 			'error',
@@ -88,7 +92,7 @@ module.exports = {
 			{
 				printWidth: 80,
 				endOfLine: 'auto',
-				tabWidth: 2,
+				tabWidth: 4,
 				indentStyle: 'space',
 				useTabs: true,
 				arrowParens: 'avoid',

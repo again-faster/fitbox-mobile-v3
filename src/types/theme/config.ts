@@ -11,29 +11,39 @@ export type ThemeState = {
 };
 
 export type FulfilledThemeConfiguration = {
-	fonts: {
-		sizes: readonly number[];
-		readonly colors: Record<string, string>;
-	};
-	gutters: readonly number[];
+	readonly colors: Record<string, string>;
+	readonly metrics: Record<string, number>;
 	readonly backgrounds: Record<string, string>;
+	readonly navigationColors: NavigationTheme['colors'];
+
+	gutters: readonly number[];
+	fonts: {
+		readonly metrics: Record<string, number>;
+		readonly colors: Record<string, string>;
+		sizes: readonly number[];
+	};
+
 	borders: {
 		widths: readonly number[];
 		radius: readonly number[];
 		readonly colors: Record<string, string>;
 	};
-	readonly navigationColors: NavigationTheme['colors'];
 };
 
 export type VariantThemeConfiguration = {
+	readonly colors: FulfilledThemeConfiguration['colors'];
+	readonly metrics: FulfilledThemeConfiguration['metrics'];
+	readonly backgrounds: FulfilledThemeConfiguration['backgrounds'];
+	readonly navigationColors: Partial<NavigationTheme['colors']>;
+
 	fonts: {
+		readonly metrics: FulfilledThemeConfiguration['fonts']['metrics'];
 		readonly colors: FulfilledThemeConfiguration['fonts']['colors'];
 	};
-	readonly backgrounds: FulfilledThemeConfiguration['backgrounds'];
+
 	borders: {
 		readonly colors: FulfilledThemeConfiguration['borders']['colors'];
 	};
-	readonly navigationColors: Partial<NavigationTheme['colors']>;
 };
 
 export type ThemeConfiguration = FulfilledThemeConfiguration & {

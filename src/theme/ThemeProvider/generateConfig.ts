@@ -40,10 +40,12 @@ export default (variant: Variant) => {
 	};
 
 	return {
+		metrics: defaultConfig.metrics,
 		colors,
 		fonts: {
 			sizes: defaultConfig.fonts.sizes,
 			colors: fontColors,
+			metrics: defaultConfig.fonts.metrics,
 		},
 		gutters: defaultConfig.gutters,
 		backgrounds: backgroundColors,

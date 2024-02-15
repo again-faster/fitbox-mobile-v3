@@ -1,0 +1,11 @@
+{
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "modal": {
+        "title": "Quel code avez-vous?",
+        "button": {
+            "gym": "ID de la salle de sport / code QR",
+            "invite": "Code d'invitation"
+        }
+    }
+}

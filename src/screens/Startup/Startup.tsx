@@ -1,16 +1,18 @@
-import { useEffect } from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ActivityIndicator, Text, View } from 'react-native';
 
-import { useTheme } from '@/theme';
 import { Brand } from '@/components/molecules';
 import { SafeScreen } from '@/components/template';
+import { useTheme } from '@/theme';
 
+import useAuth from '@/auth/hooks/useAuth';
 import type { ApplicationScreenProps } from '@/types/navigation';
 
 const Startup = ({ navigation }: ApplicationScreenProps) => {
 	const { layout, gutters, fonts } = useTheme();
+	const { getToken } = useAuth();
 	const { t } = useTranslation(['startup']);
 
 	const { isSuccess, isFetching, isError } = useQuery({
@@ -21,10 +23,22 @@ const Startup = ({ navigation }: ApplicationScreenProps) => {
 	});
 
 	useEffect(() => {
-		navigation.reset({
-			index: 0,
-			routes: [{ name: 'Main' }],
-		});
+		const checkToken = async () => {
+			const token = await getToken();
+			if (token) {
+				navigation.reset({
+					index: 0,
+					routes: [{ name: 'Main' }],
+				});
+			} else {
+				navigation.reset({
+					index: 0,
+					routes: [{ name: 'Landing' }],
+				});
+			}
+		};
+
+		void checkToken();
 	}, [isSuccess]);
 
 	return (
@@ -39,7 +53,10 @@ const Startup = ({ navigation }: ApplicationScreenProps) => {
 			>
 				<Brand />
 				{isFetching && (
-					<ActivityIndicator size="large" style={[gutters.marginVertical_24]} />
+					<ActivityIndicator
+						size="large"
+						style={[gutters.marginVertical_24]}
+					/>
 				)}
 				{isError && (
 					<Text style={[fonts.size_16, fonts.red500]}>

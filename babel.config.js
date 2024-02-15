@@ -1,6 +1,6 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
-	presets: ['module:metro-react-native-babel-preset'],
+	presets: ['module:@react-native/babel-preset'],
 	plugins: [
 		[
 			'module-resolver',
@@ -15,4 +15,9 @@ module.exports = {
 		'inline-dotenv',
 		'react-native-reanimated/plugin', // needs to be last
 	],
+	env: {
+		production: {
+			plugins: ['react-native-paper/babel'],
+		},
+	},
 };

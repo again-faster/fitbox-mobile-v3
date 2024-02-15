@@ -1,6 +1,9 @@
 {
-  "appName": {
-    "full": "React Native fitbox",
-    "initials": "RNB"
-  }
+    "appName": {
+        "full": "React Native fitbox",
+        "initials": "RNB"
+    },
+    "button": {
+        "loading": "Loading..."
+    }
 }
