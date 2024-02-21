@@ -10,15 +10,8 @@ const colors = {
 	danger: '#F44336',
 	warning: '#FFB300',
 	info: '#0085FF',
-	light: '#FFFFFF',
-	dark: '#546E7A',
-	black: '#000000',
-	mute: '#757575',
 	purple: '#8E24AA',
 	pink: '#E91E63',
-	gray: '#EEEEEE',
-	darkgray: '#595959',
-	lightgrey: '#C4C4C4',
 	orange: '#FFA500',
 	magenta: '#FF0066',
 	wellnessPrimary: '#00FF00',
@@ -35,6 +28,13 @@ const colorsLight = {
 	gray50: '#EFEFEF',
 	purple500: '#44427D',
 	purple100: '#E1E1EF',
+	light: '#FFFFFF',
+	dark: '#546E7A',
+	mute: '#757575',
+	gray: '#EEEEEE',
+	darkgray: '#595959',
+	lightgrey: '#C4C4C4',
+	black: '#000000',
 } as const;
 
 const colorsDark = {
@@ -45,6 +45,13 @@ const colorsDark = {
 	purple500: '#A6A4F0',
 	purple100: '#252732',
 	purple50: '#1B1A23',
+	light: '#000000',
+	dark: '#AB9185',
+	mute: '#8A8A8A',
+	gray: '#111111',
+	darkgray: '#A6A6A6',
+	lightgrey: '#3B3B3B',
+	black: '#FFFFFF',
 } as const;
 
 const sizes = [12, 16, 24, 32, 40, 80] as const;

@@ -1,10 +1,12 @@
+import { useTheme } from '@/theme';
 import { config } from '@/theme/_config';
 import { ComponentProps } from 'react';
 import { StyleProp, TextStyle, ViewStyle } from 'react-native';
 import { Button as Btn } from 'react-native-paper';
+import { FontColors } from '../Text/Text';
 
 type ButtonTypeWithoutChildren = Omit<ComponentProps<typeof Btn>, 'children'>;
-type ButtonVariant = keyof typeof config.colors;
+type ButtonVariant = FontColors;
 
 interface ButtonProps extends ButtonTypeWithoutChildren {
 	title: string;
@@ -31,7 +33,7 @@ const Button = ({
 	mode,
 	...rest
 }: ButtonProps) => {
-	const { colors } = config;
+	const { fonts: colors } = useTheme();
 
 	// is outlined
 	const isOutlined = mode === 'outlined';
@@ -39,8 +41,8 @@ const Button = ({
 	const customStyle: StyleProp<ViewStyle> = {
 		// outlined
 		...(!isOutlined
-			? { backgroundColor: colors[variant as ButtonVariant] }
-			: { borderColor: colors[variant as ButtonVariant] }),
+			? { backgroundColor: colors[variant as ButtonVariant].color }
+			: { borderColor: colors[variant as ButtonVariant].color }),
 
 		// rounded
 		...(!rounded ? { borderRadius: 6 } : {}),
@@ -48,7 +50,7 @@ const Button = ({
 
 	const labelStyle: StyleProp<TextStyle> = {
 		color: isOutlined
-			? colors[variant as ButtonVariant]
+			? colors[variant as ButtonVariant].color
 			: contrastColor(customStyle.backgroundColor as string), // default is white
 		...(sm ? { fontSize: config.fonts.metrics.sm } : {}),
 		...(rest.labelStyle as TextStyle),

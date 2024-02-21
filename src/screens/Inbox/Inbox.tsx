@@ -18,26 +18,28 @@ import { TextInput } from 'react-native-paper';
 
 const defaultGif = 'https://media.giphy.com/media/wNyqCUODGgnLa0KBPy/giphy.gif';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const gifSize = width / 1.5;
 
 const Inbox = () => {
 	const [gif, setGif] = useState(defaultGif);
-	const [gifLoaded, setLoaded] = useState(true);
+	const [gifLoaded, setLoaded] = useState(false);
 	const [isSearchGif, setSearchGif] = useState(false);
 	const [searchQuery, setSearchQuery] = useState('');
 
 	return (
 		<View style={styles.container}>
 			{isSearchGif ? (
-				<View style={{ padding: config.metrics.md }}>
-					<TextInput
-						mode="outlined"
-						value={searchQuery}
-						placeholder="Type something"
-						onChangeText={setSearchQuery}
-						right={<TextInput.Icon icon="magnify" />}
-					/>
+				<View>
+					<View style={{ padding: config.metrics.md }}>
+						<TextInput
+							mode="outlined"
+							value={searchQuery}
+							placeholder="Type something"
+							onChangeText={setSearchQuery}
+							right={<TextInput.Icon icon="magnify" />}
+						/>
+					</View>
 
 					<GiphyGridView
 						content={GiphyContent.search({
@@ -46,8 +48,8 @@ const Inbox = () => {
 						})}
 						cellPadding={3}
 						style={{
-							height: height / 1.4,
-							marginTop: config.metrics.lg,
+							height: '90%',
+							marginTop: config.metrics.sm,
 						}}
 						onMediaSelect={e => {
 							setLoaded(false);

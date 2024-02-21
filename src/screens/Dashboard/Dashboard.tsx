@@ -39,7 +39,7 @@ const actionButtons = [
 ];
 
 const { height } = Dimensions.get('window');
-const { metrics, colors } = config;
+const { metrics } = config;
 
 // const isAndroid = Platform.OS === 'ios';
 
@@ -51,8 +51,6 @@ const Dashboard = () => {
 
 	const [loading, setLoading] = useState<boolean>(true);
 	const [refreshing, setRefreshing] = useState<boolean>(true);
-
-	// const { fonts } = useTheme();
 
 	const onRefresh = () => setTimeout(() => setRefreshing(false), 1000);
 
@@ -105,7 +103,7 @@ const Dashboard = () => {
 								showSwitchBtn ? 'space-between' : 'space-around'
 							}
 						>
-							<Text center bold size="md" color="gray800">
+							<Text center bold size="md" color="black">
 								{t('dashboard:sessions.member.title')}
 							</Text>
 
@@ -177,7 +175,7 @@ const styles = StyleSheet.create({
 	},
 	headerStyle: {
 		flex: 1,
-		backgroundColor: colors.info,
+		// backgroundColor: colors.info, // apply colors using useTheme
 		// height: headerHeight,
 		flexDirection: 'row',
 		justifyContent: 'space-between',
@@ -193,10 +191,10 @@ const styles = StyleSheet.create({
 		paddingTop: '3%',
 		backgroundColor: 'white',
 		fontSize: height / 15,
-		color: colors.darkgray,
+		// color: colors.darkgray, // apply colors using useTheme
 	},
 	headerImageBgStyle: {
-		backgroundColor: colors.lightgrey,
+		// backgroundColor: colors.lightgrey, // apply colors using useTheme
 		height: height / 6,
 		justifyContent: 'space-between',
 		alignItems: 'center',
@@ -208,7 +206,7 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		bottom: '-25%',
 		left: 18,
-		borderColor: colors.lightgrey,
+		// borderColor: colors.lightgrey, // apply colors using useTheme
 		borderWidth: 1,
 	},
 	noBannerHeaderImageContainer: {

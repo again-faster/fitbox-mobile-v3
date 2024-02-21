@@ -1,3 +1,4 @@
+import { useTheme } from '@/theme';
 import { config } from '@/theme/_config';
 import { ComponentProps } from 'react';
 import { StyleProp, TextStyle, Text as Txt } from 'react-native';
@@ -22,14 +23,11 @@ const Text = ({
 	style,
 	...rest
 }: TextProps) => {
-	const customStyle: StyleProp<TextStyle> = {
-		...(style as TextStyle),
+	const { fonts } = useTheme();
 
+	let customStyle: StyleProp<TextStyle> = {
 		// font size
 		fontSize: config.fonts.metrics[size as FontSizeMetrics],
-
-		// font color
-		color: config.fonts.colors[color as FontColors],
 
 		// font weight
 		...(bold ? { fontWeight: 'bold' } : {}),
@@ -38,8 +36,21 @@ const Text = ({
 		...(center ? { textAlign: 'center' } : {}),
 	};
 
+	// font color
+	if (fonts[color as FontColors]) {
+		customStyle = { ...customStyle, ...fonts[color as FontColors] };
+	} else {
+		customStyle.color = config.fonts.colors[color as FontColors];
+	}
+
 	return (
-		<Txt {...rest} style={customStyle}>
+		<Txt
+			{...rest}
+			style={{
+				...customStyle,
+				...(style as TextStyle),
+			}}
+		>
 			{children}
 		</Txt>
 	);

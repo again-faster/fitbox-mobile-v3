@@ -25,9 +25,15 @@ const MenuOption = ({
 }: MenuOptionProps) => {
 	const { fonts } = useTheme();
 
-	const useColor = String(fonts.gray800);
+	const useColor = String(fonts.black.color);
 	return (
-		<Card onPress={onPress} style={styles.optionContainer}>
+		<Card
+			onPress={onPress}
+			style={[
+				styles.optionContainer,
+				{ backgroundColor: fonts.light.color },
+			]}
+		>
 			<Row
 				spacing="space-between"
 				style={[layout.itemsCenter, { padding: 10 }]}
@@ -51,7 +57,9 @@ const MenuOption = ({
 						)}
 					</View>
 					<Spacer horizontal size="sm" />
-					<Text size="lg">{name}</Text>
+					<Text size="lg" color="black">
+						{name}
+					</Text>
 				</Row>
 
 				<Ionicons
