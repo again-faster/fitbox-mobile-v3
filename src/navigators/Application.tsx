@@ -5,6 +5,8 @@ import {
 	Example,
 	Inbox,
 	Landing,
+	Login,
+	ResetPassword,
 	Startup,
 } from '@/screens';
 import { useTheme } from '@/theme';
@@ -65,6 +67,7 @@ const MainTabNavigator = () => {
 	return (
 		<Tab.Navigator
 			key={variant}
+			detachInactiveScreens={false}
 			screenOptions={({ route }) => ({
 				tabBarIcon: options =>
 					tabBarIconRender({
@@ -119,6 +122,8 @@ const ApplicationNavigator = () => {
 				<Stack.Screen name="Auth" component={Auth} />
 				<Stack.Screen name="Landing" component={Landing} />
 				<Stack.Screen name="Example" component={Example} />
+				<Stack.Screen name="Login" component={Login} />
+				<Stack.Screen name="ResetPassword" component={ResetPassword} />
 				<Stack.Screen name="Main" component={MainTabNavigator} />
 			</Stack.Navigator>
 		</NavigationContainer>

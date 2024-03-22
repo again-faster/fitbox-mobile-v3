@@ -12,7 +12,10 @@ import type { ApplicationScreenProps } from '@/types/navigation';
 
 const Startup = ({ navigation }: ApplicationScreenProps) => {
 	const { layout, gutters, fonts } = useTheme();
-	const { getToken } = useAuth();
+	const {
+		// getToken,
+		isLoggedIn,
+	} = useAuth();
 	const { t } = useTranslation(['startup']);
 
 	const { isSuccess, isFetching, isError } = useQuery({
@@ -23,9 +26,11 @@ const Startup = ({ navigation }: ApplicationScreenProps) => {
 	});
 
 	useEffect(() => {
-		const checkToken = async () => {
-			const token = await getToken();
-			if (token) {
+		const checkToken = () => {
+			// const token = await getToken();
+			// if (token) {
+
+			if (isLoggedIn) {
 				navigation.reset({
 					index: 0,
 					routes: [{ name: 'Main' }],

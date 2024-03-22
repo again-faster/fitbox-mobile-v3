@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import useAuth from '@/auth/hooks/useAuth';
+// import useAuth from '@/auth/hooks/useAuth';
 import { Button, ImageVariant, Row, Spacer, Text } from '@/components/atoms';
 import { Modal } from '@/components/molecules';
 import { config } from '@/theme/_config';
@@ -20,7 +20,7 @@ const { width } = Dimensions.get('window');
 
 const LandingScreen = ({ navigation }: ApplicationScreenProps) => {
 	const { t } = useTranslation(['landing', 'common']);
-	const { signIn } = useAuth();
+	// const { signIn } = useAuth();
 
 	const [optionsVisibility, setOptionsVisibility] = useState<boolean>(false);
 
@@ -38,14 +38,18 @@ const LandingScreen = ({ navigation }: ApplicationScreenProps) => {
 		}
 	};
 
-	const handleLogin = async () => {
-		const res = await signIn();
-		if (res.accessToken) {
-			navigation.reset({
-				index: 0,
-				routes: [{ name: 'Main' }],
-			});
-		}
+	const handleLogin = () => {
+		navigation.push('Login');
+
+		// Identity implementation
+		// const res = await signIn();
+		// if (res.accessToken) {
+		// 	navigation.reset({
+		// 		index: 0,
+		// 		routes: [{ name: 'Main' }],
+		// 	});
+		// }
+		// End of Identity implementation
 	};
 
 	return (
@@ -62,7 +66,6 @@ const LandingScreen = ({ navigation }: ApplicationScreenProps) => {
 					<Button
 						title={t('landing:login')}
 						variant="darkgray"
-						// eslint-disable-next-line @typescript-eslint/no-misused-promises
 						onPress={handleLogin}
 					/>
 					<Spacer size="rg" />

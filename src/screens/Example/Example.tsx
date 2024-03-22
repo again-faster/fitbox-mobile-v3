@@ -47,7 +47,7 @@ const Example = () => {
 
 	useEffect(() => {
 		if (isSuccess) {
-			Alert.alert(t('example:welcome', data.name));
+			Alert.alert(t('example:welcome', 'testing'));
 		}
 	}, [isSuccess, data]);
 

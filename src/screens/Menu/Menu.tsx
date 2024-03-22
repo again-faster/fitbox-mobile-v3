@@ -104,6 +104,9 @@ const Menu = ({ navigation }: MainTabScreenProps) => {
 			case 'profile':
 				navigation.navigate('ProfileMenu');
 				break;
+			case 'gym':
+				navigation.navigate('Example');
+				break;
 			case 'theme':
 				changeTheme(variant === 'default' ? 'dark' : 'default');
 				break;

@@ -1,164 +1,288 @@
-// import { ScrollView } from '@/components/atoms';
-// import { SafeScreen } from '@/components/template';
+import useAuth from '@/auth/hooks/useAuth';
+import { Button, Row, ScrollView, Spacer, Text } from '@/components/atoms';
+import { Loader } from '@/components/molecules';
+import { SafeScreen } from '@/components/template';
+import { checkEmail } from '@/services/auth';
 import { config } from '@/theme/_config';
-import { Dimensions, StyleSheet, Text } from 'react-native';
+import layout from '@/theme/layout';
+import { ApplicationScreenProps } from '@/types/navigation';
+import { Say } from '@/utils';
+
+import { isArray, isEmpty } from 'lodash';
+import { useState } from 'react';
+import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { TextInput } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const { width } = Dimensions.get('window');
+const { fonts, metrics } = config;
+
+// custom theme for paper component
+const inputCustomTheme = {
+	colors: {
+		primary: config.fonts.colors.mute,
+	},
+	fonts: {
+		regular: {
+			fontFamily: 'Alata-Regular',
+		},
+	},
+};
 
 // interface LoginProps { }
 
-const Login = () => {
-	return <Text style={style.header}>Enter your details</Text>;
+const Login = ({ navigation }: ApplicationScreenProps) => {
+	const { signIn } = useAuth();
 
-	// return (
-	// 	<SafeScreen>
-	// 		<View style={{ flex: 1 }}>
-	// 			<ScrollView keyboardShouldPersistTaps="handled">
-	// 				<View style={style.formSection}>
-	// 					<Spacer rg />
+	const [email, setEmail] = useState<string>('');
+	const [password, setPassword] = useState<string>('');
+	const [passwordHide, setPasswordHide] = useState<boolean>(true);
+	const [fetching, setFetching] = useState<boolean>(false);
+	const [userExist, setUserExist] = useState<boolean>(false);
+	const [processing, setProcessing] = useState<boolean>(false);
 
-	// 					<View style={style.inputContainer}>
-	// 						<TextInput
-	// 							ref="email"
-	// 							label="Email"
-	// 							mode="flat"
-	// 							value={email}
-	// 							onChangeText={this.handleChangeEmail}
-	// 							onSubmitEditing={_handleCheckEmail}
-	// 							autoCompleteType="off"
-	// 							style={style.input}
-	// 							labelStyle={AppStyles.fontAlata}
-	// 							underlineColor="transparent"
-	// 							autoCapitalize="none"
-	// 							returnKeyType="next"
-	// 							keyboardType="email-address"
-	// 							theme={inputCustomTheme}
-	// 						/>
+	const handleChangePassword = (val: string) => setPassword(val);
+	const handleForgotPassword = () => navigation.navigate('ResetPassword');
+	const handleChangeEmail = (value: string) => {
+		setEmail(value);
+		setUserExist(false);
+		setPassword('');
+		setPasswordHide(true);
+	};
 
-	// 						<View style={style.showPasswordBtn}>
-	// 							{fetching ? (
-	// 								// show loading indicator
-	// 								<ActivityIndicator
-	// 									size="small"
-	// 									color={Colors.black}
-	// 								/>
-	// 							) : // show arrow icon
-	// 							!isEmpty(email) && !userExist ? (
-	// 								<Icon
-	// 									name={'arrow-right'}
-	// 									onPress={_handleCheckEmail}
-	// 									size={Metrics.font.xl}
-	// 								/>
-	// 							) : null}
-	// 						</View>
-	// 					</View>
+	const handleErrorMessage = (err: string | string[]) => {
+		if (isArray(err) && err.length > 0) {
+			// Join array of errors
+			return new Error(err.join('\n'));
+		}
 
-	// 					{!userExist && (
-	// 						<TouchableOpacity
-	// 							onPress={this.handleForgotPassword}
-	// 							style={style.forgotPasswordContainer}
-	// 						>
-	// 							<Text darkgray style={style.mdText}>
-	// 								Forgot Password?
-	// 							</Text>
-	// 						</TouchableOpacity>
-	// 					)}
+		return new Error(err as string);
+	};
 
-	// 					{userExist ? (
-	// 						<>
-	// 							<Spacer rg />
+	const handleCheckUserEmail = async () => {
+		// check if email is empty then don't continue
+		if (isEmpty(email)) return;
 
-	// 							<View style={style.inputContainer}>
-	// 								<TextInput
-	// 									ref="password"
-	// 									label="Password"
-	// 									value={password}
-	// 									onChangeText={this.handleChangePassword}
-	// 									autoFocus={true}
-	// 									onSubmitEditing={_handleSignIn}
-	// 									autoCompleteType="off"
-	// 									secureTextEntry={passwordHide}
-	// 									style={style.input}
-	// 									autoCapitalize="none"
-	// 									underlineColor="white"
-	// 									theme={inputCustomTheme}
-	// 								/>
-	// 								{password ? (
-	// 									<Icon
-	// 										name={
-	// 											passwordHide
-	// 												? 'eye-outline'
-	// 												: 'eye-off-outline'
-	// 										}
-	// 										style={style.showPasswordBtn}
-	// 										onPress={() =>
-	// 											this.setState({
-	// 												passwordHide:
-	// 													!this.state
-	// 														.passwordHide,
-	// 											})
-	// 										}
-	// 										size={Metrics.font.xl}
-	// 									/>
-	// 								) : null}
-	// 							</View>
+		// check also if its a valid email
+		const reg = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+		if (!reg.test(email)) {
+			Say.warn('Invalid email address');
+			return;
+		}
 
-	// 							<Spacer sm />
+		try {
+			// show loading indicator
+			setFetching(true);
 
-	// 							<TouchableOpacity
-	// 								onPress={this.handleForgotPassword}
-	// 								style={style.forgotPasswordContainer}
-	// 							>
-	// 								<Text darkgray style={style.mdText}>
-	// 									Forgot Password?
-	// 								</Text>
-	// 							</TouchableOpacity>
-	// 						</>
-	// 					) : null}
-	// 				</View>
-	// 			</ScrollView>
+			// check if email exist
+			const res = await checkEmail(email);
+			if (!res.error) {
+				// check if user is active
+				if (res.data.exists && res.data.isActive) {
+					setUserExist(true);
+				} else {
+					setUserExist(false);
 
-	// 			{!isKeyboardVisible && (
-	// 				<View style={style.footerSection}>
-	// 					<Button
-	// 						t="Login"
-	// 						onPress={
-	// 							userExist ? _handleSignIn : _handleCheckEmail
-	// 						}
-	// 						loading={processing}
-	// 						disabled={isEmpty(email)}
-	// 						labelStyle={style.buttonLabelStyle}
-	// 						style={{
-	// 							...style.buttonStyle,
-	// 							backgroundColor: isEmpty(email)
-	// 								? Colors.lightgrey
-	// 								: Colors.brand,
-	// 						}}
-	// 					/>
+					if (res.data.pendingInvite) {
+						await Say.okThen(
+							'You have a pending invite. Please check your email for further instructions.',
+							'Oops!',
+						);
 
-	// 					<Spacer sm />
+						navigation.navigate('Invite');
 
-	// 					<Row
-	// 						style={{
-	// 							alignSelf: 'center',
-	// 							paddingVertical: Metrics.md,
-	// 						}}
-	// 					>
-	// 						<Text
-	// 							brand
-	// 							style={style.mdText}
-	// 							onPress={() =>
-	// 								this.props.navigation.navigate('SignUp')
-	// 							}
-	// 						>
-	// 							Create an Account
-	// 						</Text>
-	// 					</Row>
-	// 				</View>
-	// 			)}
-	// 		</View>
-	// 	</SafeScreen>
-	// );
+						// If pending invite, show alert sample
+						// Alert.alert(
+						//     'Oops!',
+						//     'You have a pending invite. Please check your email for further instructions',
+						//     [
+						//         {
+						//             text: 'Resend Invite BRO', onPress: () => {
+						//                 Say.ok("Invitation has been sent")
+						//             }
+						//         },
+						//         { text: 'Cancel', style: 'cancel' }
+						//     ],
+						//     { cancelable: true }
+						// )
+					} else {
+						throw new Error('User does not exist or is not active');
+					}
+				}
+			} else {
+				throw handleErrorMessage(res.message);
+			}
+		} catch (error) {
+			Say.err(error as Error);
+		} finally {
+			setFetching(false);
+		}
+	};
+
+	const handleSignIn = () => {
+		if (processing) return;
+
+		const useEmail = email.trim();
+		const usePassword = password.trim();
+
+		if (!useEmail || !usePassword)
+			Say.err('Please complete all information');
+		else {
+			setProcessing(true);
+
+			// call auth service to sign in
+			signIn(useEmail, usePassword)
+				.then(res => {
+					if (res) navigation.navigate('Main');
+				})
+				.finally(() => {
+					setProcessing(false);
+				})
+				.catch(err => {
+					console.log(err);
+				});
+		}
+	};
+
+	return (
+		<SafeScreen>
+			<View style={layout.flex_1}>
+				<ScrollView keyboardShouldPersistTaps="handled">
+					<View style={style.formSection}>
+						<Text style={style.header} color="darkgray">
+							Enter your details
+						</Text>
+
+						<Spacer size="lg" />
+
+						<View style={style.inputContainer}>
+							<TextInput
+								label="Email"
+								mode="flat"
+								value={email}
+								onChangeText={handleChangeEmail}
+								onSubmitEditing={() =>
+									void handleCheckUserEmail()
+								}
+								autoComplete="off"
+								style={style.input}
+								underlineColor="transparent"
+								autoCapitalize="none"
+								returnKeyType="next"
+								keyboardType="email-address"
+								theme={inputCustomTheme}
+							/>
+
+							<View style={style.showPasswordBtn}>
+								{fetching ? (
+									<Loader size="md" color="black" />
+								) : null}
+
+								{!isEmpty(email) && !userExist && !fetching ? (
+									<Icon
+										name="arrow-right"
+										onPress={() => {
+											void handleCheckUserEmail();
+										}}
+										size={fonts.metrics.xl}
+									/>
+								) : null}
+							</View>
+						</View>
+
+						{!userExist && (
+							<TouchableOpacity
+								onPress={handleForgotPassword}
+								style={style.forgotPasswordContainer}
+							>
+								<Text color="darkgray" style={style.mdText}>
+									Forgot Password?
+								</Text>
+							</TouchableOpacity>
+						)}
+
+						{userExist ? (
+							<>
+								<Spacer size="rg" />
+
+								<View style={style.inputContainer}>
+									<TextInput
+										label="Password"
+										value={password}
+										autoFocus
+										onChangeText={handleChangePassword}
+										onSubmitEditing={handleSignIn}
+										autoComplete="off"
+										secureTextEntry={passwordHide}
+										style={style.input}
+										autoCapitalize="none"
+										underlineColor="white"
+										theme={inputCustomTheme}
+									/>
+
+									{password ? (
+										<Icon
+											name={
+												passwordHide
+													? 'eye-outline'
+													: 'eye-off-outline'
+											}
+											style={style.showPasswordBtn}
+											onPress={() =>
+												setPasswordHide(!passwordHide)
+											}
+											size={fonts.metrics.xl}
+										/>
+									) : null}
+								</View>
+
+								<Spacer size="sm" />
+
+								<TouchableOpacity
+									onPress={handleForgotPassword}
+									style={style.forgotPasswordContainer}
+								>
+									<Text color="darkgray" style={style.mdText}>
+										Forgot Password?
+									</Text>
+								</TouchableOpacity>
+							</>
+						) : null}
+					</View>
+				</ScrollView>
+
+				<View style={style.footerSection}>
+					<Button
+						title="Login"
+						onPress={
+							userExist ? handleSignIn : handleCheckUserEmail
+						}
+						loading={processing}
+						disabled={isEmpty(email)}
+						labelStyle={style.buttonLabelStyle}
+						style={{
+							...style.buttonStyle,
+							backgroundColor: isEmpty(email)
+								? fonts.colors.lightgrey
+								: fonts.colors.brand,
+						}}
+					/>
+
+					<Spacer size="sm" />
+
+					<Row align="center" style={{ paddingVertical: metrics.md }}>
+						<Text
+							color="brand"
+							style={style.mdText}
+							onPress={() => navigation.navigate('SignUp')}
+						>
+							Create an Account
+						</Text>
+					</Row>
+				</View>
+			</View>
+		</SafeScreen>
+	);
 };
 
 export default Login;

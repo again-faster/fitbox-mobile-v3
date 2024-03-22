@@ -6,6 +6,8 @@ export type ApplicationStackParamList = {
 	Startup: undefined;
 	Auth: undefined;
 	Landing: undefined;
+	Login: undefined;
+	ResetPassword: undefined;
 	SignUp: undefined;
 	Invite: undefined;
 };

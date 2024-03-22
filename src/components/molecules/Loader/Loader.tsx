@@ -1,23 +1,24 @@
 import { Text } from '@/components/atoms';
+import { FontColors, FontSizeMetrics } from '@/components/atoms/Text/Text';
 import { config } from '@/theme/_config';
-import {
-	ActivityIndicator as AC,
-	ColorValue,
-	StyleSheet,
-	View,
-} from 'react-native';
+import { ActivityIndicator as AC, StyleSheet, View } from 'react-native';
 
 interface LoaderProps {
-	color?: ColorValue;
-	size?: number;
+	color?: FontColors;
+	size?: FontSizeMetrics | number;
 	text?: string;
 	cover?: boolean;
 }
 
 const Loader = ({ color, size, text, cover }: LoaderProps) => {
+	const useSize: number =
+		typeof size === 'number'
+			? size
+			: config.fonts.metrics[size as FontSizeMetrics];
+
 	const renderLoader = (
 		<>
-			<AC color={color} size={size} animating />
+			<AC color={color} size={useSize} animating />
 
 			{text && (
 				<Text center color="darkgray">
