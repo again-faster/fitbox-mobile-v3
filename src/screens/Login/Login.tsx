@@ -10,6 +10,7 @@ import { Say } from '@/utils';
 
 import { isArray, isEmpty } from 'lodash';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -32,6 +33,7 @@ const inputCustomTheme = {
 // interface LoginProps { }
 
 const Login = ({ navigation }: ApplicationScreenProps) => {
+	const { t } = useTranslation(['login']);
 	const { signIn } = useAuth();
 
 	const [email, setEmail] = useState<string>('');
@@ -150,14 +152,14 @@ const Login = ({ navigation }: ApplicationScreenProps) => {
 				<ScrollView keyboardShouldPersistTaps="handled">
 					<View style={style.formSection}>
 						<Text style={style.header} color="darkgray">
-							Enter your details
+							{t('login:title')}
 						</Text>
 
 						<Spacer size="lg" />
 
 						<View style={style.inputContainer}>
 							<TextInput
-								label="Email"
+								label={t('login:input.email')}
 								mode="flat"
 								value={email}
 								onChangeText={handleChangeEmail}
@@ -196,7 +198,7 @@ const Login = ({ navigation }: ApplicationScreenProps) => {
 								style={style.forgotPasswordContainer}
 							>
 								<Text color="darkgray" style={style.mdText}>
-									Forgot Password?
+									{t('login:button.forgotPassword')}
 								</Text>
 							</TouchableOpacity>
 						)}
@@ -207,7 +209,7 @@ const Login = ({ navigation }: ApplicationScreenProps) => {
 
 								<View style={style.inputContainer}>
 									<TextInput
-										label="Password"
+										label={t('login:input.password')}
 										value={password}
 										autoFocus
 										onChangeText={handleChangePassword}
@@ -243,7 +245,7 @@ const Login = ({ navigation }: ApplicationScreenProps) => {
 									style={style.forgotPasswordContainer}
 								>
 									<Text color="darkgray" style={style.mdText}>
-										Forgot Password?
+										{t('login:button.forgotPassword')}
 									</Text>
 								</TouchableOpacity>
 							</>
@@ -253,7 +255,7 @@ const Login = ({ navigation }: ApplicationScreenProps) => {
 
 				<View style={style.footerSection}>
 					<Button
-						title="Login"
+						title={t('login:button.login')}
 						onPress={
 							userExist ? handleSignIn : handleCheckUserEmail
 						}
@@ -276,7 +278,7 @@ const Login = ({ navigation }: ApplicationScreenProps) => {
 							style={style.mdText}
 							onPress={() => navigation.navigate('SignUp')}
 						>
-							Create an Account
+							{t('login:button.register')}
 						</Text>
 					</Row>
 				</View>

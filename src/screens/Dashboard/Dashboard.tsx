@@ -1,20 +1,31 @@
+import useAuth from '@/auth/hooks/useAuth';
 import { Avatar, Row, ScrollView, Spacer, Text } from '@/components/atoms';
 import { Loader } from '@/components/molecules';
+import { SafeScreen } from '@/components/template';
+import getBookedSessions from '@/services/users/getBookedSessions';
 import getUserGymInfo from '@/services/users/getUserGymInfo';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import {
+	CalendarEventSchema,
+	ParsedSessionSchemaType,
+} from '@/types/schemas/session';
+import { Say } from '@/utils';
 import useStore from '@/zustand/Store';
+import moment from 'moment';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
 	Alert,
 	Dimensions,
-	ImageSourcePropType,
 	StyleSheet,
 	TouchableOpacity,
 	View,
 } from 'react-native';
+import { z } from 'zod';
+import BookedSessionCard from './components/BookedSessionCard';
 import DashboardActionButton from './components/DashboardActionButton';
+import DashboardHeader from './components/DashboardHeader';
 
 // List of action buttons to be displayed on the dashboard screen
 const actionButtons = [
@@ -41,7 +52,7 @@ const actionButtons = [
 ];
 
 const { height } = Dimensions.get('window');
-const { metrics } = config;
+const { metrics, fonts } = config;
 
 // const isAndroid = Platform.OS === 'ios';
 
@@ -49,6 +60,7 @@ const { metrics } = config;
 
 const Dashboard = () => {
 	const { t } = useTranslation(['dashboard']);
+	const { user } = useAuth();
 	// const headerHeight = useHeaderHeight();
 
 	const { setAppState } = useStore(state => ({
@@ -57,6 +69,11 @@ const Dashboard = () => {
 
 	const [loading, setLoading] = useState<boolean>(true);
 	const [refreshing, setRefreshing] = useState<boolean>(true);
+	const [gymBanner, setGymBanner] = useState<string>('');
+	const [gymLogo, setGymLogo] = useState<string>('');
+	const [upcomingSessions, setUpcomingSessions] = useState<
+		ParsedSessionSchemaType[]
+	>([]);
 
 	const onRefresh = () => setTimeout(() => setRefreshing(false), 1000);
 
@@ -97,7 +114,79 @@ const Dashboard = () => {
 			setAppState('allowLeaderboards', !!gymInfo.allow_leaderboards);
 			setAppState('allowComments', !!gymInfo.allow_leaderboards_comment);
 			setAppState('appForceUpdate', !!gymInfo.mobile_force_update);
+
+			// set gym logo and banner
+			setGymLogo(gymInfo.logo);
+			setGymBanner(gymInfo.banner);
 		}
+	};
+
+	const getUpcomingSessions = async () => {
+		setLoading(true);
+		let memberSessions: ParsedSessionSchemaType[] = [];
+
+		try {
+			// let res = await RestService.getNextSessions(selectedClassIds.length ? selectedClassIds.join() : null);
+			const res = await getBookedSessions();
+
+			if (res.data && res.data.length > 0) {
+				// Parse the response data
+				res.data.forEach(session => {
+					if (
+						moment(session.calendar_event.end_datetime)
+							.add(30, 'minutes')
+							.isAfter()
+					) {
+						memberSessions.push({
+							event_id: session.event_id,
+							bookable: session.bookable,
+							start_time: session.calendar_event.start_datetime,
+							end_time: session.calendar_event.end_datetime,
+							name: session.calendar_event.comment,
+							event: session.calendar_event as z.infer<
+								typeof CalendarEventSchema
+							>,
+							is_attend: true,
+							class_id: session.class_id,
+							waitlistEnabled:
+								session.waitlist_info.enable_waitlist === 1,
+							waitlistTime:
+								session.waitlist_info.waitlist_timelimit ?? 0,
+						});
+					}
+				});
+
+				memberSessions.sort((sessionA, sessionB) => {
+					const startA = moment(sessionA.event.start_datetime);
+					const startB = moment(sessionB.event.start_datetime);
+					return startA && startB && startA > startB ? 1 : -1;
+				});
+
+				// get only the first 3 upcoming sessions
+				memberSessions = memberSessions.splice(0, 3);
+			}
+		} catch (err) {
+			Say.err(String(err));
+		}
+
+		setUpcomingSessions(memberSessions);
+		setLoading(false);
+		setRefreshing(false);
+
+		// TODO: Do the following once other functionalities are implemented
+		// 	() => {
+		// 		// get switchable users
+		// 		this.getSwitchableUsers();
+
+		// 		// check if session start notification is enabled
+		// 		const sessionStartEnabled =
+		// 			this.props.global?.notification_settings?.settings?.session; // setting_configuration.session_start
+		// 		if (member_sessions.length && sessionStartEnabled) {
+		// 			// set local notifications
+		// 			this.setLocalNotifications(member_sessions);
+		// 		}
+		// 	},
+		// );
 	};
 
 	useEffect(() => {
@@ -107,10 +196,10 @@ const Dashboard = () => {
 		}, 2000);
 
 		void initializeAppStates();
+		void getUpcomingSessions();
 	}, []);
 
 	// TEMPORARY VARIABLES
-	const memberSessions = [];
 	const showSwitchBtn = true;
 	const avatarImage = 'https://avatars.githubusercontent.com/u/15073128?v=4';
 
@@ -140,8 +229,17 @@ const Dashboard = () => {
 		[actionButtons],
 	);
 
+	const version = `?v=${moment().toISOString()}`; // WORKAROUND: Add version to the image URL to force refresh
 	return (
-		<View style={styles.container}>
+		<SafeScreen>
+			<DashboardHeader
+				banner={gymBanner + version}
+				logo={gymLogo + version}
+				onLogoPress={() => Say.ok('Open switch gym modal')}
+			/>
+
+			<Spacer />
+
 			<ScrollView refreshing={refreshing} onRefresh={onRefresh}>
 				<View style={styles.section}>
 					<View>
@@ -151,66 +249,81 @@ const Dashboard = () => {
 								showSwitchBtn ? 'space-between' : 'space-around'
 							}
 						>
-							<Text center bold size="md" color="black">
-								{t('dashboard:sessions.member.title')}
-							</Text>
+							<View>
+								<Text bold size="xxl">
+									{t('dashboard:sessions.member.greeting', {
+										name: user?.user_data.first_name ?? '',
+									})}
+								</Text>
+								<Text size="md" color="gray400">
+									{t('dashboard:sessions.member.subtitle', {
+										count: upcomingSessions.length,
+									})}
+								</Text>
+							</View>
 
 							{showSwitchBtn ? (
 								<TouchableOpacity onPress={onSwitchUserClick}>
-									<Avatar
-										source={
-											avatarImage as ImageSourcePropType
-										}
-									/>
+									<Avatar source={avatarImage} />
 								</TouchableOpacity>
 							) : null}
 						</Row>
 
-						<Spacer size="xl" />
-
-						{loading && <Loader />}
+						<Spacer size="md" />
 
 						{!loading && (
 							<>
-								{memberSessions.length === 0 && (
+								{upcomingSessions.length === 0 ? (
 									<Text
 										color="mute"
 										center
-										style={{
-											marginBottom: metrics.md,
-										}}
+										style={{ marginBottom: metrics.md }}
 									>
 										{t('dashboard:sessions.member.empty')}
 									</Text>
-								)}
-								{/* {memberSessions.map((session, i) => (
-								<Session key={i} index={i} data={session} />
-							))} */}
+								) : null}
+
+								<View style={styles.bookedSessionsContainer}>
+									{upcomingSessions.map((session, i) => (
+										<BookedSessionCard
+											key={i}
+											data={session}
+											onPress={() => {}}
+										/>
+									))}
+								</View>
 							</>
 						)}
+
+						<Spacer size="xl" />
+
+						<Row spacing="space-between" style={layout.wrap}>
+							{renderActionButtons}
+						</Row>
+
+						{loading && <Loader />}
 					</View>
-
-					<Spacer size={30} />
-
-					<Row spacing="space-between" style={layout.wrap}>
-						{renderActionButtons}
-					</Row>
 				</View>
 			</ScrollView>
 
 			{/* <WhatsNewDialog /> */}
-		</View>
+		</SafeScreen>
 	);
 };
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-	},
 	section: {
 		paddingHorizontal: metrics.lg,
 		paddingVertical: metrics.xl,
 		justifyContent: 'space-between',
+	},
+	bookedSessionsContainer: {
+		borderRadius: metrics.rg,
+		overflow: 'hidden',
+		borderColor: '#F2F2F2',
+		borderWidth: 1,
+		gap: 1,
+		backgroundColor: fonts.colors.lightgrey,
 	},
 	rowButton: {
 		flexDirection: 'row',

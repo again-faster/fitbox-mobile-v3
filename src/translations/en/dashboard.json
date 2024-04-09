@@ -1,8 +1,10 @@
 {
     "sessions": {
         "member": {
-            "title": "Your Schedule",
-            "empty": "You don't have any upcoming sessions scheduled, check the Gym Schedule for your next session."
+            "greeting": "Hi {{name}},",
+            "subtitle": "You have {{count}} upcoming sessions",
+            "empty": "You don't have any upcoming sessions scheduled, check the Gym Schedule for your next session.",
+            "schedule": "Upcoming Schedule"
         }
     }
 }

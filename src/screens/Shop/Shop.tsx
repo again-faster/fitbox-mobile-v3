@@ -1,15 +1,14 @@
-import layout from '@/theme/layout';
+import { SafeScreen } from '@/components/template';
 import useStore from '@/zustand/Store';
-import { View } from 'react-native';
 import WebView from 'react-native-webview';
 
 const Shop = () => {
 	const shopUrl = useStore(state => state.shopUrl);
 
 	return (
-		<View style={layout.flex_1}>
+		<SafeScreen>
 			<WebView source={{ uri: shopUrl }} />
-		</View>
+		</SafeScreen>
 	);
 };
 

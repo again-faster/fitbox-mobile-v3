@@ -1,0 +1,12 @@
+{
+    "title": "Enter your details",
+    "input": {
+        "email": "Email",
+        "password": "Password"
+    },
+    "button": {
+        "forgotPassword": "Forgot Password?",
+        "login": "Login",
+        "register": "Create Account"
+    }
+}
