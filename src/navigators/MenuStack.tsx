@@ -1,4 +1,4 @@
-import { Menu, ProfileMenu } from '@/screens';
+import { AboutUs, Menu, ProfileMenu } from '@/screens';
 import { useTheme } from '@/theme';
 import { config } from '@/theme/_config';
 import { MenuStackParamList } from '@/types/navigation';
@@ -18,11 +18,14 @@ const MenuStackNavigator = () => {
 				headerStyle: { backgroundColor: config.colors.brand },
 				headerTitleAlign: 'center',
 				cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+				headerTintColor: 'white',
+				headerBackTitleVisible: false,
 			}}
 			initialRouteName="Menu"
 		>
 			<Stack.Screen name="Menu" component={Menu} />
 			<Stack.Screen name="ProfileMenu" component={ProfileMenu} />
+			<Stack.Screen name="AboutUs" component={AboutUs} />
 		</Stack.Navigator>
 	);
 };

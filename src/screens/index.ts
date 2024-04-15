@@ -1,3 +1,4 @@
+export { default as AboutUs } from './AboutUs/AboutUs';
 export { default as Auth } from './Auth/Auth';
 export { default as Calendar } from './Calendar/Calendar';
 export { default as Dashboard } from './Dashboard/Dashboard';
@@ -10,3 +11,4 @@ export { default as ProfileMenu } from './ProfileMenu/ProfileMenu';
 export { default as ResetPassword } from './ResetPassword/ResetPassword';
 export { default as Shop } from './Shop/Shop';
 export { default as Startup } from './Startup/Startup';
+

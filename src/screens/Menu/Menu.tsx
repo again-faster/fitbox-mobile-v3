@@ -131,6 +131,10 @@ const Menu = ({ navigation }: MainTabScreenProps) => {
 				});
 				break;
 			}
+			case 'about': {
+				navigation.navigate('AboutUs');
+				break;
+			}
 			default:
 				Alert.alert('Oops!', 'Coming soon');
 				break;
