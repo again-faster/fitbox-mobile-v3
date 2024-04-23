@@ -106,7 +106,7 @@ const Dashboard = () => {
 
 			const { gym_info: gymInfo } = res;
 
-			// setAppState('emptyRequiredFields', gymInfo.required_profile_fields);
+			setAppState('emptyRequiredFields', gymInfo.required_profile_fields);
 			// setAppState('gymParameters', gymInfo.gymParams);
 			setAppState('teamId', gymInfo.gym_lookup);
 			setAppState('shopUrl', gymInfo.online_store);
