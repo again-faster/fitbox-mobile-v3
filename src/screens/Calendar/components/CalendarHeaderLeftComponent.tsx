@@ -3,7 +3,7 @@ import HeaderButtonGroup from '@/components/template/Header/HeaderButtonGroup';
 import { Say } from '@/utils';
 import useStore from '@/zustand/Store';
 
-const ShopHeaderLeftComponent = () => {
+const CalendarHeaderLeftComponent = () => {
 	const logo = useStore(state => state.logo);
 	const handleAvatarPress = () => Say.ok('Openn switch gym modal!');
 
@@ -19,4 +19,4 @@ const ShopHeaderLeftComponent = () => {
 	);
 };
 
-export default ShopHeaderLeftComponent;
+export default CalendarHeaderLeftComponent;
