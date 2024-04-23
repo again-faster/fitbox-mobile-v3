@@ -10,6 +10,7 @@ import {
 	Text,
 } from '@/components/atoms';
 import { SafeScreen } from '@/components/template';
+import changeProfileimage from '@/services/users/changeProfileimage';
 import getUserProfile from '@/services/users/getUserProfile';
 import updateUserProfile from '@/services/users/updateUserProfile';
 import { config } from '@/theme/_config';
@@ -33,6 +34,10 @@ import {
 	View,
 	ViewStyle,
 } from 'react-native';
+import ImageCropPicker, {
+	Image,
+	Options,
+} from 'react-native-image-crop-picker';
 import DateTimePicker from 'react-native-modal-datetime-picker';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 
@@ -47,6 +52,7 @@ type DataTypes = {
 	genderOptions: boolean;
 	genderObj?: GenderTypes;
 	datepicker: boolean;
+	imageToken: number;
 	date: string | Date;
 	user: UserProfileType;
 };
@@ -64,8 +70,22 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 		},
 	];
 
+	const imageOptions: Options = {
+		cropperToolbarTitle: 'Crop Image',
+		includeBase64: true,
+		compressImageMaxHeight: 200,
+		compressImageMaxWidth: 200,
+		mediaType: 'photo',
+		cropping: true,
+		cropperCircleOverlay: true,
+		cropperToolbarWidgetColor: 'white', // fails on hex color
+		cropperToolbarColor: config.colors.brand,
+		cropperActiveWidgetColor: config.colors.brand,
+	};
+
 	// states
 	const [pictureOptions, setPictureOptions] = useState(false);
+	const [isUploading, setIsUploading] = useState(false);
 	const [datePicker, setDatePicker] = useState(false);
 	const [dob, setDob] = useState<string>();
 	const [isLoading, setIsLoading] = useState(true);
@@ -80,6 +100,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 			displayText: 'Click to set',
 			value: '',
 		},
+		imageToken: new Date().getTime(),
 		datepicker: false,
 		date: '',
 		user: {
@@ -128,6 +149,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 						...data,
 						user: res.user_data,
 						genderObj,
+						imageToken: new Date().getTime(),
 					});
 				}
 				setIsLoading(false);
@@ -310,6 +332,47 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 		return style;
 	};
 
+	const pickImageFromGallery = () => {
+		void ImageCropPicker.openPicker(imageOptions).then(
+			({ data: image }: Image) => uploadProfileImage(image as string),
+		);
+	};
+
+	const pickImageFromCamera = () => {
+		void ImageCropPicker.openCamera(imageOptions).then(
+			({ data: image }: Image) => uploadProfileImage(image as string),
+		);
+	};
+
+	const uploadProfileImage = async (imgData: string) => {
+		try {
+			setIsUploading(true);
+			setPictureOptions(false);
+			// Image data in base64
+			const image = `data:image/jpg;base64,${imgData}`;
+
+			// Upload image
+			const res = await changeProfileimage({ image });
+
+			if (!res.error) {
+				Say.ok('Profile Image Changed!');
+
+				setData({ ...data, imageToken: new Date().getTime() });
+			} else {
+				let error = 'Something went wrong while uploading image';
+				if (res?.message) {
+					error = res.message;
+				}
+
+				throw new Error(error);
+			}
+		} catch (err) {
+			Say.err(err as string);
+		} finally {
+			setIsUploading(false);
+		}
+	};
+
 	const renderGenderItem = ({ displayText, value, icon }: GenderTypes) => {
 		return (
 			<Card
@@ -361,13 +424,21 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 									setPictureOptions(!pictureOptions)
 								}
 							>
-								<Avatar
-									source={
-										data.user.profile_image || avatarImage
-									}
-									size={DEVICE_WIDTH / 3.5}
-									style={styles.avatarStyle}
-								/>
+								{isUploading ? (
+									<ActivityIndicator
+										size={config.metrics.md}
+										color={config.colors.brand}
+									/>
+								) : (
+									<Avatar
+										source={
+											`${data.user.profile_image}?v=${data.imageToken}` ||
+											avatarImage
+										}
+										size={DEVICE_WIDTH / 3.5}
+										style={styles.avatarStyle}
+									/>
+								)}
 							</TouchableOpacity>
 						</View>
 
@@ -577,7 +648,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 					>
 						<View style={styles.flexOne} />
 					</TouchableWithoutFeedback>
-					<Card onPress={() => null} style={styles.card}>
+					<Card onPress={pickImageFromGallery} style={styles.card}>
 						<Row spacing="space-between" align="center">
 							<Row align="center">
 								<Icon
@@ -595,7 +666,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 							/>
 						</Row>
 					</Card>
-					<Card onPress={() => null} style={styles.card}>
+					<Card onPress={pickImageFromCamera} style={styles.card}>
 						<Row spacing="space-between" align="center">
 							<Row align="center">
 								<Icon
