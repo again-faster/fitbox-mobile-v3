@@ -1,8 +1,8 @@
-import { ClassItemData } from '@/screens/Calendar/components/AgendaItem';
 import { produce } from 'immer';
 import moment from 'moment';
 import type { StateCreator } from 'zustand';
 import type SessionInterface from '../interface/SessionInterface';
+import { ClassItemData } from '../interface/SessionInterface';
 
 const createSessionSlice: StateCreator<
 	SessionInterface,

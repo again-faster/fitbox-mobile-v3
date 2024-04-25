@@ -1,8 +1,11 @@
+import useAuth from '@/auth/hooks/useAuth';
 import { Loader } from '@/components/molecules';
 import { getScheduleList } from '@/services/session';
 import { config } from '@/theme/_config';
 import { Func } from '@/utils';
+import { VisibilityOptions } from '@/utils/Enum';
 import useStore from '@/zustand/Store';
+import { ClassItemData } from '@/zustand/interface/SessionInterface';
 import moment from 'moment';
 import { useCallback, useEffect, useState } from 'react';
 import { Dimensions, StyleSheet } from 'react-native';
@@ -11,12 +14,14 @@ import {
 	CalendarProvider,
 	WeekCalendar,
 } from 'react-native-calendars';
-import AgendaItem, { ClassItemData } from './components/AgendaItem';
+import AgendaItem from './components/AgendaItem';
 
 const { height } = Dimensions.get('window');
 const { fonts } = config;
 
 const Calendar = () => {
+	const { user } = useAuth();
+
 	const { classes, setClasses, setActiveMonth } = useStore(state => ({
 		classes: state.classes,
 		setClasses: state.setClasses,
@@ -61,15 +66,64 @@ const Calendar = () => {
 		getScheduleList(date, date)
 			.then(res => {
 				if (!res.error) {
-					const classesData: ClassItemData[] = res.data.map(item => ({
-						start: moment(item.local_start).format('H:mm A'),
-						duration: `${Func.getDuration(
+					const classesData: ClassItemData[] = res.data.map(item => {
+						// get duration
+						const duration = `${Func.getDuration(
 							item.local_start,
 							item.local_end,
-						)} min(s)`,
-						title: item.title,
-						location: item.venue_id ? item.venue : undefined,
-					}));
+						)} min(s)`;
+
+						// check if schedule is hidden
+						const hideSchedule = Func.isSessionVisible(
+							item.bookable,
+							item.fb_class?.class_visibility ||
+								item.class?.class_visibility,
+							VisibilityOptions.SUBSCRIBED,
+						);
+
+						// isbookinglocked
+						const isBookingLocked = Func.checkSessionLock(
+							item.local_start,
+							item.booking_HH,
+							item.booking_MM,
+						);
+
+						// get spots left
+						const spotsLeft = item.class
+							? Func.getSpotLeft(
+									item.attendance_limit as number,
+									item.member_attendance?.length as number,
+							  )
+							: null;
+
+						// isAttending
+						const isAttending = item?.member_attendance?.some(
+							m => m.user_id === user?.id,
+						);
+
+						// waitlist button
+						const waitlistBtn =
+							!!item.waitlist.enable_waitlist &&
+							moment(item.local_start).diff(moment(), 'minutes') >
+								Number(item.waitlist.waitlist_timelimit) * 60;
+
+						// return data
+						return {
+							start: moment(item.local_start).format('H:mm A'),
+							isSubscribed: Func.checkSubscription(item.bookable),
+							location: item.venue_id ? item.venue : undefined,
+							startDate: item.local_start,
+							eventId: item.event_id,
+							isWaitlisted: false,
+							title: item.title,
+							isBookingLocked,
+							hideSchedule,
+							waitlistBtn,
+							isAttending,
+							spotsLeft,
+							duration,
+						};
+					});
 
 					setClasses(date, classesData);
 				}

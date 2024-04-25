@@ -1,7 +1,7 @@
 import { config } from '@/theme/_config';
+import { TeamAvatarSize } from '@/utils/Enum';
 import { Dimensions, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { AvatarSize } from './enums/size';
 
 const { fonts } = config;
 const { height } = Dimensions.get('window');
@@ -10,7 +10,7 @@ interface TeamAvatarProps {
 	logo?: string;
 	rounded?: boolean;
 	onPress?: () => void;
-	size?: keyof typeof AvatarSize;
+	size?: keyof typeof TeamAvatarSize;
 }
 
 const TeamAvatar = ({
@@ -24,8 +24,8 @@ const TeamAvatar = ({
 
 	// size 15 is the default size
 	const avatarSize = {
-		width: AvatarSize[size] as number,
-		height: AvatarSize[size] as number,
+		width: TeamAvatarSize[size] as number,
+		height: TeamAvatarSize[size] as number,
 	};
 
 	return (

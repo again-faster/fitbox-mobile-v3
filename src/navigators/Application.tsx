@@ -20,8 +20,8 @@ import {
 
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 
+import CalendarHeaderLeftComponent from '@/screens/Calendar/components/CalendarHeaderLeftComponent';
 import CalendarHeaderRightComponent from '@/screens/Calendar/components/CalendarHeaderRightComponent';
-import ShopHeaderLeftComponent from '@/screens/Calendar/components/ShopHeaderLeftComponent';
 import ShopHeaderRightComponent from '@/screens/Shop/components/ShopHeaderRightComponent';
 import type {
 	ApplicationStackParamList,
@@ -107,7 +107,7 @@ const MainTabNavigator = () => {
 				name="Calendar"
 				component={Calendar}
 				options={{
-					headerLeft: ShopHeaderLeftComponent,
+					headerLeft: CalendarHeaderLeftComponent,
 					headerRight: CalendarHeaderRightComponent,
 					title: activeMonth ?? 'Calendar',
 				}}

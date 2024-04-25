@@ -1,4 +1,20 @@
-import { ClassItemData } from '@/screens/Calendar/components/AgendaItem';
+type ClassItemData = {
+	title?: string;
+	location?: string;
+	start?: string;
+	duration?: string;
+	isLoading?: boolean;
+	isSubscribed?: boolean;
+	hideSchedule?: boolean;
+	startDate?: string;
+	isBookingLocked?: boolean;
+	isAttending?: boolean;
+	isWaitlisted?: boolean;
+	waitlistBtn?: boolean;
+	spotsLeft?: number | null;
+	eventId?: number;
+	classId?: number;
+};
 
 type ClassItem = {
 	title: string; // date
@@ -15,5 +31,5 @@ interface SessionInterface extends SessionStateInterface {
 	setActiveMonth: (date: string) => void;
 }
 
-export type { ClassItem, SessionStateInterface };
+export type { ClassItem, ClassItemData, SessionStateInterface };
 export default SessionInterface;

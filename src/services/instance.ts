@@ -4,6 +4,7 @@ import { Say } from '@/utils';
 import ky from 'ky';
 
 const prefixUrl = `${process.env.API_URL ? process.env.API_URL : ''}`;
+const xAppVersion = `${process.env.APP_VERSION ? process.env.APP_VERSION : ''}`;
 const apiToken = () => mmkvStorage.getString('apiToken');
 
 export const instance = () =>
@@ -24,6 +25,7 @@ export const securedInstance = () =>
 		headers: {
 			Accept: 'application/json',
 			'Content-Type': 'application/json',
+			'x-app-version': xAppVersion,
 		},
 		hooks: {
 			beforeRequest: [

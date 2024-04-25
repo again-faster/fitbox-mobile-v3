@@ -13,6 +13,7 @@ interface ButtonProps extends ButtonTypeWithoutChildren {
 	sm?: boolean;
 	rounded?: boolean;
 	variant?: ButtonVariant;
+	fullWidth?: boolean;
 }
 
 const contrastColor = (color: string) => {
@@ -31,6 +32,7 @@ const Button = ({
 	rounded,
 	variant,
 	mode,
+	fullWidth,
 	...rest
 }: ButtonProps) => {
 	const { fonts: colors } = useTheme();
@@ -46,7 +48,10 @@ const Button = ({
 
 		// rounded
 		...(!rounded ? { borderRadius: 6 } : {}),
-	};
+
+		// fullWidth
+		...(fullWidth ? { width: '100%' } : {}),
+	} as ViewStyle;
 
 	const labelStyle: StyleProp<TextStyle> = {
 		color: isOutlined
@@ -67,6 +72,7 @@ Button.defaultProps = {
 	sm: false,
 	rounded: false,
 	variant: 'brand',
+	fullWidth: false,
 };
 
 export default Button;

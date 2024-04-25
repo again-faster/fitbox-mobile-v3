@@ -79,3 +79,9 @@ export const UpdateUserProfilePayloadSchema = z.object({
 export type UpdateUserProfileTypes = z.infer<
 	typeof UpdateUserProfilePayloadSchema
 >;
+
+export const AttendSessionResponseSchema = z.object({
+	error: z.boolean(),
+	message: z.string(),
+	allow_override: z.boolean().optional(),
+});

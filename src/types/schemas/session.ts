@@ -13,6 +13,7 @@ export const WaitlistInfoSchema = z.object({
 	waitlist_timelimit: z.number().nullable(),
 });
 
+export type FBClassSchemaType = z.infer<typeof FBClassSchema>;
 export const FBClassSchema = z.object({
 	id: z.number(),
 	context_id: z.number(),
@@ -112,6 +113,7 @@ export const ParsedBookedSessionSchema = z.object({
 	waitlistTime: z.number(),
 });
 
+export type SessionClassSchemaType = z.infer<typeof SessionClassSchema>;
 export const SessionClassSchema = z.object({
 	id: z.number(),
 	context_id: z.number(),
@@ -126,6 +128,24 @@ export const SessionClassSchema = z.object({
 	class_visibility: z.number(),
 	is_free_class: boolOrOneZero,
 	class_waitlist: z.array(z.any()).nullable(),
+});
+
+export const AttendanceSchema = z.object({
+	id: z.number(),
+	context_id: z.number(),
+	leaderboard_id: z.number(),
+	user_id: z.number(),
+	program_wod_id: z.number(),
+	class_id: z.number(),
+	event_id: z.number(),
+	session_date: z.string(),
+	session_date_utc: z.string().nullable(),
+	ranking: z.string(),
+	created_at: z.string(),
+	updated_at: z.string(),
+	deleted_at: z.string().nullable(),
+	status: z.string(),
+	subscription_id: z.number(),
 });
 
 export type SessionSchemaType = z.infer<typeof SessionSchema>;
@@ -167,12 +187,13 @@ export const SessionSchema = z.object({
 	local_startTime: z.string(),
 	local_start_iso: z.string(),
 	local_end_iso: z.string(),
-	member_attendance: z.array(z.any()).nullable(),
+	member_attendance: z.array(AttendanceSchema).nullable(),
 	member_waitlist: z.array(z.any()).nullable(),
 	attendance_limit: z.number().nullable(),
 	waitlist: WaitlistInfoSchema,
 	bookable: BookableSchema,
 	class: SessionClassSchema,
+	fb_class: FBClassSchema.optional(),
 	read_only: z.string(),
 	user_editable: z.boolean(),
 	variant: z.string().nullable(),
