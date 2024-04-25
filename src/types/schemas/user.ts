@@ -20,7 +20,7 @@ export const UserSchema = z.object({
 	show_billing_form: boolOrOneZero,
 	billing_agreement_accepted: boolOrOneZero,
 	device_type: z.null().optional(),
-	push_token: z.string(),
+	push_token: z.string().nullable(),
 	profile_image: z.string().url(),
 	gym_logo: z.string().url(),
 	banner_image: z.string().url(),
@@ -74,3 +74,4 @@ export const UserProfileSchema = z.object({
 });
 
 export type UserProfileType = z.infer<typeof UserProfileSchema>;
+export type UserSchemaType = z.infer<typeof UserSchema>;

@@ -15,8 +15,10 @@ import getUserProfile from '@/services/users/getUserProfile';
 import updateUserProfile from '@/services/users/updateUserProfile';
 import { config } from '@/theme/_config';
 import { MenuStackNavigatorProps } from '@/types/navigation';
-import { UserProfileType } from '@/types/schemas/user';
+import { UserProfileType, UserSchemaType } from '@/types/schemas/user';
 import { Say } from '@/utils';
+import useStore from '@/zustand/Store';
+import { isEmpty } from 'lodash';
 import moment from 'moment';
 import { useEffect, useLayoutEffect, useState } from 'react';
 import {
@@ -41,6 +43,8 @@ import ImageCropPicker, {
 import DateTimePicker from 'react-native-modal-datetime-picker';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 
+const { width: DEVICE_WIDTH } = Dimensions.get('screen');
+
 type GenderTypes = {
 	value: string;
 	icon: string;
@@ -58,8 +62,16 @@ type DataTypes = {
 };
 
 const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
-	const { width: DEVICE_WIDTH } = Dimensions.get('screen');
-	const { user } = useAuth();
+	const { emptyRequiredFields, setAppState } = useStore(state => ({
+		emptyRequiredFields: state.emptyRequiredFields,
+		setAppState: state.setAppState,
+	}));
+	const { user, updateUser } = useAuth();
+
+	const scrollViewStyle: StyleProp<ViewStyle> = {
+		padding: 20,
+		marginBottom: isEmpty(emptyRequiredFields) ? 0 : 50,
+	};
 	const GENDER_OPTION_LIST = [
 		{ value: 'Male', displayText: 'Male', icon: 'mars' },
 		{ value: 'Female', displayText: 'Female', icon: 'venus' },
@@ -89,9 +101,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 	const [datePicker, setDatePicker] = useState(false);
 	const [dob, setDob] = useState<string>();
 	const [isLoading, setIsLoading] = useState(true);
-	const [emptyRequiredFields, setEmptyRequiredFields] = useState<string[]>(
-		[],
-	);
+
 	const [data, setData] = useState<DataTypes>({
 		pictureOptions: false,
 		genderOptions: false,
@@ -185,11 +195,13 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 			return 'Invalid Date of Birth';
 		}
 		let error = null;
-		if (emptyRequiredFields.length !== 0) {
-			emptyRequiredFields.forEach((field: string) => {
+		emptyRequiredFields.forEach((field: string) => {
+			if (field === 'dob' && !moment(dob).isValid()) {
+				error = 'Invalid Date of Birth';
+			} else if (isEmpty(data.user[field as keyof UserProfileType])) {
 				error = `Invalid ${field.replace(/_/g, ' ').toUpperCase()}`;
-			});
-		}
+			}
+		});
 
 		return error || false;
 	};
@@ -224,6 +236,12 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 
 				try {
 					const response = await updateUserProfile(payload);
+
+					// update state
+					updateUser(payload as unknown as UserSchemaType);
+
+					// clear the empty required fields
+					setAppState('emptyRequiredFields', []);
 
 					if (response.error) {
 						throw new Error(response.message);
@@ -285,16 +303,6 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 
 	const onInputChange = (key: string, value: string) => {
 		setData({ ...data, user: { ...data.user, [key]: value } });
-
-		if (value.trim() === '') {
-			if (!emptyRequiredFields.includes(key)) {
-				setEmptyRequiredFields([...emptyRequiredFields, key]);
-			}
-		} else {
-			setEmptyRequiredFields(
-				emptyRequiredFields.filter(item => item !== key),
-			);
-		}
 	};
 
 	const applyInputValidationStyle = (
@@ -404,7 +412,14 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 		</View>
 	) : (
 		<View>
-			<ScrollView style={styles.scrollView}>
+			{!isEmpty(emptyRequiredFields) && (
+				<View style={styles.bannerStyle}>
+					<Text size="xs" color="danger" center>
+						Please fill out the required fields
+					</Text>
+				</View>
+			)}
+			<ScrollView style={scrollViewStyle}>
 				<SafeScreen>
 					<DateTimePicker
 						mode="date"
@@ -477,10 +492,10 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 						<View style={styles.flexOne}>
 							<Text style={styles.textLabelStyle}>D.O.B</Text>
 							<TouchableOpacity
-								style={{
+								style={applyInputValidationStyle('dob', {
 									...styles.inputStyle,
 									...styles.inputWithIconStyle,
-								}}
+								})}
 								onPress={() => setDatePicker(!datePicker)}
 							>
 								<Text style={styles.textLabelStyle}>
@@ -496,10 +511,10 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 						<View style={styles.flexOne}>
 							<Text style={styles.textLabelStyle}>Gender</Text>
 							<TouchableOpacity
-								style={{
+								style={applyInputValidationStyle('gender', {
 									...styles.inputStyle,
 									...styles.inputWithIconStyle,
-								}}
+								})}
 								onPress={() =>
 									setData({
 										...data,
@@ -778,9 +793,6 @@ const styles = StyleSheet.create({
 		marginBottom: config.metrics.md,
 		justifyContent: 'space-between',
 	},
-	scrollView: {
-		padding: 20,
-	},
 	card: {
 		marginHorizontal: 20,
 	},
@@ -790,6 +802,18 @@ const styles = StyleSheet.create({
 	loaderContainer: {
 		flex: 1,
 		justifyContent: 'center',
+	},
+	bannerStyle: {
+		backgroundColor: 'white',
+		paddingVertical: config.metrics.md,
+		borderColor: config.backgrounds.gray,
+		shadowColor: '#000',
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.2,
+		shadowRadius: 1.41,
+		elevation: 2,
+		alignContent: 'center',
+		borderWidth: 1,
 	},
 });
 export default MyDetails;

@@ -10,10 +10,13 @@ import {
 	CalendarEventSchema,
 	ParsedBookedSessionSchemaType,
 } from '@/types/schemas/session';
+import { UserSchemaType } from '@/types/schemas/user';
 import { Say } from '@/utils';
 import useStore from '@/zustand/Store';
+import { useFocusEffect } from '@react-navigation/native';
+import { isEmpty } from 'lodash';
 import moment from 'moment';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
 	Alert,
@@ -106,7 +109,13 @@ const Dashboard = () => {
 
 			const { gym_info: gymInfo } = res;
 
-			// setAppState('emptyRequiredFields', gymInfo.required_profile_fields);
+			setAppState(
+				'emptyRequiredFields',
+				parseEmptyRequiredFields(
+					gymInfo.required_profile_fields,
+					user?.user_data as UserSchemaType,
+				),
+			);
 			// setAppState('gymParameters', gymInfo.gymParams);
 			setAppState('teamId', gymInfo.gym_lookup);
 			setAppState('shopUrl', gymInfo.online_store);
@@ -120,6 +129,30 @@ const Dashboard = () => {
 			setGymLogo(gymInfo.logo);
 			setGymBanner(gymInfo.banner);
 		}
+	};
+
+	const parseEmptyRequiredFields = (
+		requiredFields: string[],
+		userData: UserSchemaType,
+	) => {
+		const emptyRequiredFields: string[] = [];
+
+		requiredFields.forEach(field => {
+			if (userData) {
+				if (
+					field === 'dob' &&
+					!moment(userData[field]?.date).isValid()
+				) {
+					emptyRequiredFields.push(field);
+				}
+
+				if (isEmpty(userData[field as keyof UserSchemaType])) {
+					emptyRequiredFields.push(field);
+				}
+			}
+		});
+
+		return emptyRequiredFields;
 	};
 
 	const getUpcomingSessions = async () => {
@@ -190,15 +223,17 @@ const Dashboard = () => {
 		// );
 	};
 
-	useEffect(() => {
-		setTimeout(() => {
-			setRefreshing(false);
-			setLoading(false);
-		}, 2000);
+	useFocusEffect(
+		useCallback(() => {
+			setTimeout(() => {
+				setRefreshing(false);
+				setLoading(false);
+			}, 2000);
 
-		void initializeAppStates();
-		void getUpcomingSessions();
-	}, []);
+			void initializeAppStates();
+			void getUpcomingSessions();
+		}, []),
+	);
 
 	// TEMPORARY VARIABLES
 	const showSwitchBtn = true;
