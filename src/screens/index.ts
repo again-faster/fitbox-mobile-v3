@@ -11,4 +11,5 @@ export { default as ProfileMenu } from './ProfileMenu/ProfileMenu';
 export { default as ResetPassword } from './ResetPassword/ResetPassword';
 export { default as Shop } from './Shop/Shop';
 export { default as Startup } from './Startup/Startup';
-
+export { default as Subscription } from './Subscription/Subscription';
+export { default as SubscriptionDetails } from './SubscriptionDetails/SubscriptionDetails';

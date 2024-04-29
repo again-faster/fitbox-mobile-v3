@@ -1,4 +1,10 @@
-import { AboutUs, Menu, ProfileMenu } from '@/screens';
+import {
+	AboutUs,
+	Menu,
+	ProfileMenu,
+	Subscription,
+	SubscriptionDetails,
+} from '@/screens';
 import MyDetails from '@/screens/MyDetails/MyDetails';
 import { useTheme } from '@/theme';
 import { config } from '@/theme/_config';
@@ -28,6 +34,17 @@ const MenuStackNavigator = () => {
 			<Stack.Screen name="ProfileMenu" component={ProfileMenu} />
 			<Stack.Screen name="AboutUs" component={AboutUs} />
 			<Stack.Screen name="MyDetails" component={MyDetails} />
+			<Stack.Screen
+				name="Subscription"
+				component={Subscription}
+				options={{
+					title: 'Subscription Information',
+				}}
+			/>
+			<Stack.Screen
+				name="SubscriptionDetails"
+				component={SubscriptionDetails}
+			/>
 		</Stack.Navigator>
 	);
 };

@@ -49,6 +49,9 @@ const ProfileMenu = ({ navigation }: MenuStackNavigatorProps) => {
 			case 'information':
 				navigation.navigate('MyDetails');
 				break;
+			case 'subscription':
+				navigation.navigate('Subscription');
+				break;
 			default:
 				Alert.alert('Oops!', 'Coming soon');
 				break;

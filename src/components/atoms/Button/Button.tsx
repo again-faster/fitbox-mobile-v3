@@ -33,6 +33,7 @@ const Button = ({
 	variant,
 	mode,
 	fullWidth,
+	style,
 	...rest
 }: ButtonProps) => {
 	const { fonts: colors } = useTheme();
@@ -51,6 +52,8 @@ const Button = ({
 
 		// fullWidth
 		...(fullWidth ? { width: '100%' } : {}),
+
+		...(style as ViewStyle),
 	} as ViewStyle;
 
 	const labelStyle: StyleProp<TextStyle> = {

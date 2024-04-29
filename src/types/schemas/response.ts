@@ -2,6 +2,11 @@ import { z } from 'zod';
 import { GymInfoSchema, GymSchema } from './gym';
 import { MessageItemSchema } from './message';
 import { BookedSessionSchema, SessionSchema } from './session';
+import {
+	SubscriptionDetailsSchema,
+	SubscriptionSchema,
+	TransactionsSchema,
+} from './subscription';
 import { UserProfileSchema, UserSchema } from './user';
 
 export const apiResponseSchema = <T>(dataSchema: z.ZodSchema<T>) =>
@@ -85,3 +90,23 @@ export const AttendSessionResponseSchema = z.object({
 	message: z.string(),
 	allow_override: z.boolean().optional(),
 });
+
+export const GetSubscriptionInfoSchema = z.object({
+	current: z.array(SubscriptionSchema),
+	notify_email_subscription: z.number(),
+	past: z.array(SubscriptionSchema),
+	suspended: z.array(SubscriptionSchema),
+	transactions: z.array(TransactionsSchema),
+});
+
+export type GetSubscriptionInfoType = z.infer<typeof GetSubscriptionInfoSchema>;
+
+export const ToggleEmailNotificationsSchema = z.object({
+	error: z.boolean(),
+	message: z.string(),
+});
+
+export const GetSubscriptionDetailsSchema = z.array(SubscriptionDetailsSchema);
+export type GetSubscriptionDetailsType = z.infer<
+	typeof GetSubscriptionDetailsSchema
+>;
