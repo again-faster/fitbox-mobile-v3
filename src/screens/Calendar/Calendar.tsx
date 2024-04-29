@@ -164,9 +164,9 @@ const Calendar = () => {
 				sectionStyle={styles.section}
 				viewOffset={-90}
 				windowSize={100}
-				infiniteListProps={{
-					visibleIndicesChangedDebounce: 250,
-				}}
+				// infiniteListProps={{
+				// 	visibleIndicesChangedDebounce: 250,
+				// }}
 			/>
 		</CalendarProvider>
 	);
