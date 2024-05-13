@@ -209,6 +209,7 @@ const SubscriptionSetup = ({ route, navigation }: MenuStackNavigatorProps) => {
 			setState({ ...state, processing: false });
 			handleSkip(Boolean(product?.type === 'free'));
 		} catch (e) {
+			// eslint-disable-next-line no-console
 			console.log('error: ', e);
 		}
 	};

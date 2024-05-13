@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import useAuth from '@/auth/hooks/useAuth';
 import { Button, HR, Text } from '@/components/atoms';
 import { navigate } from '@/navigators/NavigationRef';

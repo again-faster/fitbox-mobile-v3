@@ -30,6 +30,7 @@ export const securedInstance = () =>
 		hooks: {
 			beforeRequest: [
 				request => {
+					// eslint-disable-next-line no-console
 					console.log('@request', request.url.toString());
 
 					// TODO: additional headers

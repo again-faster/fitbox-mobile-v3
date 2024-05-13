@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Button, Row, Spacer, Text } from '@/components/atoms';
 import { navigate } from '@/navigators/NavigationRef';
 import { getPaymentInfo, getPaymentMethod } from '@/services/payment';

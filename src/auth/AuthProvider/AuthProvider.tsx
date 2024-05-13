@@ -8,7 +8,7 @@ import { z } from 'zod';
 type User = z.infer<typeof LoginResponseSchema>;
 
 type Context = {
-	signIn: (email: string, password: string) => Promise<any>;
+	signIn: (email: string, password: string) => Promise<unknown>;
 	signOut: () => void;
 	user: User | null;
 	updateUser: (user: UserSchemaType) => boolean;
@@ -81,7 +81,7 @@ const AuthProvider = ({ children, storage }: Props) => {
 			storage.delete('apiToken');
 			storage.delete('user');
 		} catch (error) {
-			console.error('@error', error);
+			// console.error('@error', error);
 		}
 	};
 
