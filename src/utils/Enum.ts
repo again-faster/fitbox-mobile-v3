@@ -34,5 +34,5 @@ export {
 	ModalEnum,
 	PaymentGateways,
 	TeamAvatarSize,
-	VisibilityOptions
+	VisibilityOptions,
 };

@@ -38,36 +38,37 @@ const SubscriptionList = ({
 		navigate('SubscriptionDetails', { id, subscriptionType });
 	};
 
-	return (
-		data &&
-		!isEmpty(data[type]) && (
-			<View>
-				{title && (
-					<>
-						<Text size="md" color="darkgray">
-							{`${title}:`}
-						</Text>
-						<Spacer size="xs" />
-					</>
-				)}
-				{reversedData.map((item: SubscriptionType, index: number) => {
-					const { name } = item;
-					return (
-						<Button
-							key={index}
-							title={name}
-							dark
-							mode="outlined"
-							style={styles.subscriptionButtonStyle}
-							labelStyle={styles.subscriptionButtonLabelStyle}
-							onPress={() => goToSubscription(item.id, type)}
-						/>
-					);
-				})}
+	if (!data || isEmpty(data[type])) {
+		return null;
+	}
 
-				{type === 'current' && renderAddSubscriptionButton()}
-			</View>
-		)
+	return (
+		<View>
+			{title && (
+				<>
+					<Text size="md" color="darkgray">
+						{`${title}:`}
+					</Text>
+					<Spacer size="xs" />
+				</>
+			)}
+			{reversedData.map((item: SubscriptionType, index: number) => {
+				const { name } = item;
+				return (
+					<Button
+						key={index}
+						title={name}
+						dark
+						mode="outlined"
+						style={styles.subscriptionButtonStyle}
+						labelStyle={styles.subscriptionButtonLabelStyle}
+						onPress={() => goToSubscription(item.id, type)}
+					/>
+				);
+			})}
+
+			{type === 'current' && renderAddSubscriptionButton()}
+		</View>
 	);
 };
 

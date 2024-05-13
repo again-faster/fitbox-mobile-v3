@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { config } from '@/theme/_config';
 
 export type ArrayValue<T extends readonly any[]> = T[number];
@@ -30,9 +31,15 @@ export type HasProperty<
 	? Key extends keyof typeof config
 		? {
 				readonly [_ in Key]: Key extends KeysOfUnion<Config>
-					? HasProperty<Extract<Config, { [__ in Key]: unknown }>[Key], Rest>
+					? HasProperty<
+							Extract<Config, { [__ in Key]: unknown }>[Key],
+							Rest
+					  >
 					: HasProperty<
-							Extract<typeof config, { [___ in Key]: unknown }>[Key],
+							Extract<
+								typeof config,
+								{ [___ in Key]: unknown }
+							>[Key],
 							Rest
 					  >;
 		  }

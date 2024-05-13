@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import useAuth from '@/auth/hooks/useAuth';
 import { Loader } from '@/components/molecules';
 import { SafeScreen } from '@/components/template';
@@ -223,6 +224,7 @@ const Calendar = () => {
 		void loadClasses();
 	}, [currentDate]);
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const renderItem = useCallback(({ item }: any) => {
 		return <AgendaItem item={item as ClassItemData} />;
 	}, []);

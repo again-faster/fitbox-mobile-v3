@@ -7,4 +7,3 @@ export { default as Row } from './Row/Row';
 export { default as ScrollView } from './ScrollView/ScrollView';
 export { default as Spacer } from './Spacer/Spacer';
 export { default as Text } from './Text/Text';
-

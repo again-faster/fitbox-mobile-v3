@@ -21,6 +21,7 @@ const StripeSuccess = () => {
 					labelStyle={styles.returnBtn}
 					title="Return to home"
 					// TODO: navigate to AuthLoading
+					// eslint-disable-next-line no-console
 					onPress={() => console.log('Strip Success')}
 				/>
 			</View>

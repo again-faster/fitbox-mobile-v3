@@ -29,6 +29,7 @@ const SubscriptionDetails = ({ route }: MenuStackNavigatorProps) => {
 					goBack();
 				}
 			} catch (e) {
+				// eslint-disable-next-line no-console
 				console.log('error, ', e);
 				setIsLoading(false);
 			}

@@ -47,6 +47,7 @@ const Inbox = () => {
 							mediaType: GiphyMediaType.Gif,
 						})}
 						cellPadding={3}
+						// eslint-disable-next-line react-native/no-inline-styles
 						style={{
 							height: '90%',
 							marginTop: config.metrics.sm,

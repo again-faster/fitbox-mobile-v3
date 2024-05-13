@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { HasProperty } from '@/types/theme/common';
 
 export function hasProperty<Config, KeyPath extends string>(

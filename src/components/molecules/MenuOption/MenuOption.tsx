@@ -39,7 +39,7 @@ const MenuOption = ({
 		>
 			<Row
 				spacing="space-between"
-				style={[layout.itemsCenter, { padding: 10 }]}
+				style={[layout.itemsCenter, styles.optionMainContainer]}
 			>
 				<Row style={layout.itemsCenter}>
 					<View style={styles.optionIconContainer}>
@@ -87,6 +87,9 @@ MenuOption.defaultProps = {
 export default MenuOption;
 
 const styles = StyleSheet.create({
+	optionMainContainer: {
+		padding: 10,
+	},
 	optionContainer: {
 		margin: config.metrics.md,
 		marginBottom: 0,

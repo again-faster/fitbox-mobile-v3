@@ -141,6 +141,7 @@ const Login = ({ navigation }: ApplicationScreenProps) => {
 					setProcessing(false);
 				})
 				.catch(err => {
+					// eslint-disable-next-line no-console
 					console.log(err);
 				});
 		}

@@ -21,6 +21,7 @@ const InboxSelectGymModal = ({
 }: InboxSelectGymModalProps) => {
 	return (
 		<View
+			// eslint-disable-next-line react-native/no-inline-styles
 			style={[styles.container, { display: visible ? 'flex' : 'none' }]}
 		>
 			<FlatList

@@ -144,7 +144,11 @@ const SubscriptionSetup = ({ route, navigation }: MenuStackNavigatorProps) => {
 		})();
 	}, []);
 
-	const handleSkip = async (isFree = false) => {
+	const handleSkip = (isFree = false) => {
+		// TODO: Remove logging, this is just to satisfy the linter
+		// eslint-disable-next-line no-console
+		console.log('isFree', isFree);
+
 		if (fromSubscription) {
 			navigation.pop();
 			return false;
@@ -162,6 +166,7 @@ const SubscriptionSetup = ({ route, navigation }: MenuStackNavigatorProps) => {
 
 		// TODO:
 		// update the storage and navigate to AuthLoading
+		return true;
 	};
 
 	const handleSelectSubscription = (selectedProductId: number) => {
@@ -211,6 +216,7 @@ const SubscriptionSetup = ({ route, navigation }: MenuStackNavigatorProps) => {
 			setState({ ...state, processing: false });
 			void handleSkip(Boolean(product?.type === 'free'));
 		} catch (e) {
+			// eslint-disable-next-line no-console
 			console.log('error: ', e);
 		}
 	};

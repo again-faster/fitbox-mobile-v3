@@ -36,6 +36,7 @@ const Subscription = () => {
 				setData(res);
 				setIsLoading(false);
 			} catch (e) {
+				// eslint-disable-next-line no-console
 				console.log('error', e);
 				setIsLoading(false);
 			}

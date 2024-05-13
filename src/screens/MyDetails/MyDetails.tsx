@@ -249,6 +249,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 						Say.ok(response.message);
 					}
 				} catch (e) {
+					// eslint-disable-next-line no-console
 					console.log('error', e);
 				} finally {
 					setIsLoading(false);
