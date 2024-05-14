@@ -14,6 +14,20 @@ export type ApplicationStackParamList = {
 export type ApplicationScreenProps =
 	StackScreenProps<ApplicationStackParamList>;
 
+export type PDFViewerScreenParams = {
+	title: string;
+	waiverUrl: string;
+};
+
+export type SubscriptionDetailsParams = {
+	id: number;
+	type: string;
+};
+
+export type SubscriptionSetupParams = {
+	fromSubscription?: boolean;
+};
+
 export type MenuStackParamList = {
 	Menu: undefined;
 	ProfileMenu: undefined;
@@ -25,11 +39,13 @@ export type MenuStackParamList = {
 	Help: undefined;
 	MyDetails: undefined;
 	Subscription: undefined;
-	SubscriptionDetails: undefined;
-	SubscriptionSetup: undefined;
+	SubscriptionDetails: SubscriptionDetailsParams;
+	SubscriptionSetup: SubscriptionSetupParams;
 	PaymentInformation: undefined;
 	PaymentUpdate: undefined;
 	StripeSuccess: undefined;
+	AcceptedWaivers: undefined;
+	PDFViewerScreen: PDFViewerScreenParams;
 };
 export type MenuStackNavigatorProps = StackScreenProps<MenuStackParamList>;
 

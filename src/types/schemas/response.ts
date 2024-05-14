@@ -21,6 +21,7 @@ import {
 	UserSubscriptionProductsSchema,
 } from './subscription';
 import { UserProfileSchema, UserSchema } from './user';
+import { WaiverSchema } from './waivers';
 
 export const apiResponseSchema = <T>(dataSchema: z.ZodSchema<T>) =>
 	z.object({
@@ -152,3 +153,6 @@ export const SetupPaymentIntentSchema = z.object({
 export const GetPaymentMethodSchema = PaymentMethodSchema;
 export const StripeGetCardDetails = CardDetailsSchema;
 export const SetupPaymentIntent = PaymentIntentSchema;
+export const GetAcceptedWaiversSchema = apiResponseSchema(
+	z.array(WaiverSchema),
+);

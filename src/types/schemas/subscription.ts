@@ -7,7 +7,7 @@ export const SubscriptionSchema = z.object({
 	first_billing_date: z.string(),
 	id: z.number(),
 	name: z.string(),
-	description: z.string().nullable(),
+	description: z.string().nullable().optional(),
 	payment_gateway: z.string().nullable(),
 	price_in_cents: z.number(),
 	recurring_interval: z.number(),

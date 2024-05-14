@@ -9,7 +9,10 @@ import {
 import getUserProfile from '@/services/users/getUserProfile';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
-import { MenuStackNavigatorProps } from '@/types/navigation';
+import {
+	MenuStackNavigatorProps,
+	SubscriptionSetupParams,
+} from '@/types/navigation';
 import { GetUserSubscriptionProductsType } from '@/types/schemas/response';
 import {
 	SaveSubscriptionPayloadType,
@@ -59,8 +62,7 @@ const SubscriptionSetup = ({ route, navigation }: MenuStackNavigatorProps) => {
 	);
 	const initialStartDate = moment().format('YYYY-MM-DD');
 	const { user } = useAuth();
-	const { fromSubscription }: { fromSubscription?: boolean } =
-		route.params ?? {};
+	const { fromSubscription } = route.params as SubscriptionSetupParams;
 	const [data, setData] = useState<GetUserSubscriptionProductsType>();
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [state, setState] = useState<StateProps>({
