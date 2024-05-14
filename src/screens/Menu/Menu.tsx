@@ -135,6 +135,10 @@ const Menu = ({ navigation }: MainTabScreenProps) => {
 				navigation.navigate('AboutUs');
 				break;
 			}
+			case 'waivers': {
+				navigation.navigate('AcceptedWaivers');
+				break;
+			}
 			default:
 				Alert.alert('Oops!', 'Coming soon');
 				break;

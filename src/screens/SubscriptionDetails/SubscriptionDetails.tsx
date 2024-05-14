@@ -2,7 +2,10 @@ import { HR, ScrollView, Spacer, Text } from '@/components/atoms';
 import { goBack } from '@/navigators/NavigationRef';
 import { getSubscriptionDetails } from '@/services/subscription';
 import { config } from '@/theme/_config';
-import { MenuStackNavigatorProps } from '@/types/navigation';
+import {
+	MenuStackNavigatorProps,
+	SubscriptionDetailsParams,
+} from '@/types/navigation';
 import { SubscriptionDetailsType } from '@/types/schemas/subscription';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
@@ -14,7 +17,7 @@ const SubscriptionDetails = ({ route }: MenuStackNavigatorProps) => {
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [data, setData] = useState<SubscriptionDetailsType>();
 
-	const { id, type }: { id?: number; type?: string } = route.params ?? {};
+	const { id, type } = route.params as SubscriptionDetailsParams;
 
 	useEffect(() => {
 		void (async () => {

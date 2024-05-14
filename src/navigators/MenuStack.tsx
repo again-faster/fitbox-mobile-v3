@@ -7,7 +7,9 @@ import {
 	SubscriptionDetails,
 	SubscriptionSetup,
 } from '@/screens';
+import AcceptedWaiversScreen from '@/screens/AcceptedWaiversScreen/AcceptedWaiversScreen';
 import MyDetails from '@/screens/MyDetails/MyDetails';
+import PDFViewerScreen from '@/screens/PDFViewerScreen/PDFViewerScreen';
 import PaymentUpdate from '@/screens/PaymentUpdate/PaymentUpdate';
 import StripeSuccess from '@/screens/StripeSuccess/StripeSuccess';
 import { useTheme } from '@/theme';
@@ -77,6 +79,12 @@ const MenuStackNavigator = () => {
 					title: 'Select User',
 				}}
 			/>
+			<Stack.Screen
+				name="AcceptedWaivers"
+				component={AcceptedWaiversScreen}
+				options={{ title: 'Accepted Waivers' }}
+			/>
+			<Stack.Screen name="PDFViewerScreen" component={PDFViewerScreen} />
 		</Stack.Navigator>
 	);
 };
