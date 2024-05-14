@@ -5,7 +5,7 @@
  */
 
 const CONSTANT_SAMPLE = 'just a test';
-const { HELP_URL } = process.env;
+const { HELP_URL = '' } = process.env;
 export default {
 	CONSTANT_SAMPLE,
 	HELP_URL,
