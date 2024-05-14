@@ -32,6 +32,9 @@ const BookedSessionCard = ({ data, onPress }: BookedSessionCardProps) => {
 					<Text bold size="md" numberOfLines={2}>
 						{data.name}
 					</Text>
+					<Text bold size="md" numberOfLines={2}>
+						{data.venue}
+					</Text>
 					<Text size="sm">
 						{moment(data.start_time).format('h:mmA')} -{' '}
 						{moment(data.end_time).format('h:mmA')}

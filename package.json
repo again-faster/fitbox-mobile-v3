@@ -4,6 +4,7 @@
     "private": true,
     "scripts": {
         "android": "react-native run-android",
+        "androidActive": "react-native run-android --active-arch-only",
         "ios": "react-native run-ios",
         "lint": "eslint \"**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
         "start": "react-native start",

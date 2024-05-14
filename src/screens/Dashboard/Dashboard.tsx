@@ -186,6 +186,7 @@ const Dashboard = () => {
 								session.waitlist_info.enable_waitlist === 1,
 							waitlistTime:
 								session.waitlist_info.waitlist_timelimit ?? 0,
+							venue: session.calendar_event.venue_name,
 						});
 					}
 				});
@@ -310,29 +311,29 @@ const Dashboard = () => {
 											onPress={() => {}}
 										/>
 									))}
-
-								{upcomingSessions.length > 3 && (
-									<TouchableOpacity
-										style={styles.viewMoreButton}
-										onPress={() => {}}
-									>
-										<Text bold center>
-											{`View ${
-												upcomingSessions.length - 3
-											} more`}
-										</Text>
-									</TouchableOpacity>
-								)}
 							</View>
 						)}
+
+						{!loading && upcomingSessions.length > 3 && (
+							<TouchableOpacity
+								style={styles.viewMoreButton}
+								onPress={() => {
+									// TODO: Navigate to the My Bookings screen
+								}}
+							>
+								<Text bold color="info">
+									{t('dashboard:sessions.member.viewAll')}
+								</Text>
+							</TouchableOpacity>
+						)}
+
+						{loading && <Loader />}
 
 						<Spacer size="xl" />
 
 						<Row spacing="space-between" style={layout.wrap}>
 							{renderActionButtons}
 						</Row>
-
-						{loading && <Loader />}
 					</View>
 				</View>
 			</ScrollView>
@@ -425,9 +426,9 @@ const styles = StyleSheet.create({
 		height: 74,
 	},
 	viewMoreButton: {
-		alignItems: 'center',
-		padding: 15,
+		alignItems: 'flex-end',
 		backgroundColor: 'white',
+		padding: 5,
 	},
 });
 

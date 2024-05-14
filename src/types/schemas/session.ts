@@ -44,12 +44,13 @@ export const CalendarEventSchema = z.object({
 	ref_id: z.number(),
 	variant: z.string().nullable(),
 	sender_user_id: z.number(),
-	updated_by: z.string().nullable(),
+	updated_by: z.number().nullable(),
 	context_id: z.number(),
-	attendance_limit: z.string().nullable(),
+	attendance_limit: z.number().nullable(),
 	created_at: z.string(),
 	updated_at: z.string(),
 	venue_id: z.number().nullable(),
+	venue_name: z.string().optional(),
 	start_datetime: z.string(),
 	end_datetime: z.string(),
 	duration: z.number(),
@@ -72,6 +73,29 @@ export const CalendarEventSchema = z.object({
 	locktime_MM: z.number(),
 	booking_HH: z.number(),
 	booking_MM: z.number(),
+});
+
+export const StaffSessionSchema = z.object({
+	id: z.number(),
+	context_id: z.number(),
+	leaderboard_id: z.number(),
+	user_id: z.number(),
+	program_wod_id: z.number(),
+	class_id: z.number(),
+	event_id: z.number(),
+	session_date: z.string(),
+	session_date_utc: z.string().nullable(),
+	ranking: z.string(),
+	created_at: z.string(),
+	updated_at: z.string(),
+	deleted_at: z.string().nullable(),
+	status: z.string(),
+	subscription_id: z.number(),
+	waitlist: z.array(z.any()).nullable(),
+	bookable: BookableSchema,
+	waitlist_info: WaitlistInfoSchema,
+	fb_class: FBClassSchema,
+	calendar_event: CalendarEventSchema,
 });
 
 export const BookedSessionSchema = z.object({
@@ -111,6 +135,7 @@ export const ParsedBookedSessionSchema = z.object({
 	class_id: z.number(),
 	waitlistEnabled: z.boolean(),
 	waitlistTime: z.number(),
+	venue: z.string().optional(),
 });
 
 export type SessionClassSchemaType = z.infer<typeof SessionClassSchema>;

@@ -65,9 +65,12 @@ export const CheckEmailResponseSchema = apiResponseSchema(
 	}),
 );
 
-export const BookedSessionResponseSchema = apiResponseSchema(
-	z.array(BookedSessionSchema),
-);
+export const BookedSessionResponseSchema = z
+	.object({
+		staffSessions: z.array(BookedSessionSchema),
+	})
+	.and(apiResponseSchema(z.array(BookedSessionSchema)));
+
 export const GetUserProfileResponseSchema = z.object({
 	error: z.boolean(),
 	message: z.string(),

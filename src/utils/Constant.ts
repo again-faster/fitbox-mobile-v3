@@ -4,9 +4,11 @@
  * Must be CAPITALIZED and use underscore (_) to separate words.
  */
 
+const { API_URL = '', HELP_URL = '' } = process.env;
 const CONSTANT_SAMPLE = 'just a test';
-const { HELP_URL = '' } = process.env;
+
 export default {
-	CONSTANT_SAMPLE,
+	API_URL,
 	HELP_URL,
+	CONSTANT_SAMPLE,
 };
