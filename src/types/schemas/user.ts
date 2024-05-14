@@ -16,6 +16,7 @@ export const UserSchema = z.object({
 	height: z.number(),
 	current_weight: z.number(),
 	gender: z.enum(['Male', 'Female', 'Other']),
+	show_subscription_from: z.boolean().optional(),
 	show_payment_form: boolOrOneZero,
 	show_billing_form: boolOrOneZero,
 	billing_agreement_accepted: boolOrOneZero,

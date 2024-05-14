@@ -61,7 +61,7 @@ const SubscriptionSetup = ({ route, navigation }: MenuStackNavigatorProps) => {
 		}),
 	);
 	const initialStartDate = moment().format('YYYY-MM-DD');
-	const { user } = useAuth();
+	const { user, updateUser } = useAuth();
 	const { fromSubscription } = route.params as SubscriptionSetupParams;
 	const [data, setData] = useState<GetUserSubscriptionProductsType>();
 	const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -129,7 +129,7 @@ const SubscriptionSetup = ({ route, navigation }: MenuStackNavigatorProps) => {
 					'Sorry',
 				).then(() => navigation.pop());
 			} else {
-				void handleSkip();
+				handleSkip();
 			}
 
 			const userProfileRes = await getUserProfile();
@@ -147,28 +147,21 @@ const SubscriptionSetup = ({ route, navigation }: MenuStackNavigatorProps) => {
 	}, []);
 
 	const handleSkip = (isFree = false) => {
-		// TODO: Remove logging, this is just to satisfy the linter
-		// eslint-disable-next-line no-console
-		console.log('isFree', isFree);
-
 		if (fromSubscription) {
 			navigation.pop();
-			return false;
 		}
 
-		// TODO:
-		// below to be added once SwitchUserScreen will be created where we are initializing the stored value in Asyncstorage from the switchAccount endpoint
-		// get stored value from switchUser endpoint in AsyncStorage
+		const session = user?.user_data;
 
-		// user.show_subscription_form = false;
-		// user.show_payment_form = Boolean(!isFree); // if free don't show payment setup
-		// user.has_paid_subscriptions = Boolean(!isFree);
+		if (session) {
+			session.show_subscription_from = false;
+			session.show_payment_form = Boolean(!isFree);
+			session.has_paid_subscriptions = Boolean(!isFree);
 
-		setAppState('fromAcceptInvite', false);
-
-		// TODO:
-		// update the storage and navigate to AuthLoading
-		return true;
+			setAppState('fromAcceptInvite', false);
+			updateUser(session);
+			// TODO: navigate to AuthLoading
+		}
 	};
 
 	const handleSelectSubscription = (selectedProductId: number) => {
@@ -216,7 +209,7 @@ const SubscriptionSetup = ({ route, navigation }: MenuStackNavigatorProps) => {
 			}
 
 			setState({ ...state, processing: false });
-			void handleSkip(Boolean(product?.type === 'free'));
+			handleSkip(Boolean(product?.type === 'free'));
 		} catch (e) {
 			// eslint-disable-next-line no-console
 			console.log('error: ', e);
@@ -259,9 +252,7 @@ const SubscriptionSetup = ({ route, navigation }: MenuStackNavigatorProps) => {
 					title="I understand"
 					sm
 					style={styles.buttonStyle}
-					onPress={() =>
-						void handleSkip(subscription.type === 'free')
-					}
+					onPress={() => handleSkip(subscription.type === 'free')}
 				/>
 			</ScrollView>
 		);
@@ -367,7 +358,7 @@ const SubscriptionSetup = ({ route, navigation }: MenuStackNavigatorProps) => {
 				</View>
 				{!fromSubscription && (
 					<TouchableOpacity
-						onPress={() => void handleSkip()}
+						onPress={() => handleSkip()}
 						style={{ paddingVertical: config.metrics.md }}
 					>
 						<Text
