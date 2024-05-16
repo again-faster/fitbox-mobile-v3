@@ -34,6 +34,14 @@ const Startup = ({ navigation }: ApplicationScreenProps) => {
 						index: 0,
 						routes: [{ name: 'Eula' }],
 					});
+				} else if (
+					user.user_data.show_billing_form &&
+					!user.user_data.billing_agreement_accepted
+				) {
+					navigation.reset({
+						index: 0,
+						routes: [{ name: 'BillingAgreement' }],
+					});
 				} else {
 					navigation.reset({
 						index: 0,

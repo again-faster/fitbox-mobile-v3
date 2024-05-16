@@ -1,6 +1,7 @@
 export { default as Avatar } from './Avatar/Avatar';
 export { default as Button } from './Button/Button';
 export { default as Card } from './Card/Card';
+export { default as Footer } from './Footer/Footer';
 export { default as HR } from './HR/HR';
 export { default as ImageVariant } from './ImageVariant/ImageVariant';
 export { default as Row } from './Row/Row';

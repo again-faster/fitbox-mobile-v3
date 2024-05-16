@@ -15,15 +15,18 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { LinkingOptions, NavigationContainer } from '@react-navigation/native';
 import {
 	CardStyleInterpolators,
+	StackNavigationOptions,
 	createStackNavigator,
 } from '@react-navigation/stack';
 
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 
+import BillingAgreementScreen from '@/screens/BillingAgreementScreen/BillingAgreementScreen';
 import CalendarHeaderLeftComponent from '@/screens/Calendar/components/CalendarHeaderLeftComponent';
 import CalendarHeaderRightComponent from '@/screens/Calendar/components/CalendarHeaderRightComponent';
 import EULAScreen from '@/screens/EULAScreen/EULAScreen';
 import ShopHeaderRightComponent from '@/screens/Shop/components/ShopHeaderRightComponent';
+import { config } from '@/theme/_config';
 import type {
 	ApplicationStackParamList,
 	MainTabParamList,
@@ -136,6 +139,14 @@ const Stack = createStackNavigator<ApplicationStackParamList>();
 const ApplicationNavigator = () => {
 	const { variant, navigationTheme } = useTheme();
 
+	const AgreementHeaderOptions: StackNavigationOptions = {
+		headerShown: true,
+		headerStyle: { backgroundColor: config.colors.brand },
+		headerTitleAlign: 'center',
+		cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+		headerTintColor: 'white',
+	};
+
 	return (
 		<NavigationContainer
 			linking={linking}
@@ -159,6 +170,14 @@ const ApplicationNavigator = () => {
 				<Stack.Screen name="ResetPassword" component={ResetPassword} />
 				<Stack.Screen name="Main" component={MainTabNavigator} />
 				<Stack.Screen name="Eula" component={EULAScreen} />
+				<Stack.Screen
+					name="BillingAgreement"
+					component={BillingAgreementScreen}
+					options={{
+						title: 'Billing Agreement',
+						...AgreementHeaderOptions,
+					}}
+				/>
 			</Stack.Navigator>
 		</NavigationContainer>
 	);
