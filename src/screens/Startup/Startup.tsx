@@ -28,16 +28,18 @@ const Startup = ({ navigation }: ApplicationScreenProps) => {
 
 	useEffect(() => {
 		const checkToken = () => {
-			if (!user?.user_data.eula_accepted) {
-				navigation.reset({
-					index: 0,
-					routes: [{ name: 'Eula' }],
-				});
-			} else if (isLoggedIn()) {
-				navigation.reset({
-					index: 0,
-					routes: [{ name: 'Main' }],
-				});
+			if (isLoggedIn()) {
+				if (!user?.user_data.eula_accepted) {
+					navigation.reset({
+						index: 0,
+						routes: [{ name: 'Eula' }],
+					});
+				} else {
+					navigation.reset({
+						index: 0,
+						routes: [{ name: 'Main' }],
+					});
+				}
 			} else {
 				navigation.reset({
 					index: 0,
