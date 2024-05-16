@@ -1,4 +1,5 @@
-import { HR, Row, ScrollView, Spacer, Text } from '@/components/atoms';
+import { Button, HR, Row, ScrollView, Spacer, Text } from '@/components/atoms';
+import { navigate } from '@/navigators/NavigationRef';
 import {
 	getSubscriptionInfo,
 	toggleEmailNotifications,
@@ -71,24 +72,34 @@ const Subscription = () => {
 
 	const renderTransactions = (transactions: TransactionsType[]) => {
 		return transactions.map((item: TransactionsType, index: number) => (
-			<Row
-				spacing="space-between"
-				style={styles.transactionRowStyle}
-				key={index}
-			>
-				<Text size="md" color="darkgray" center style={layout.flex_1}>
-					{moment(item.created_at).format('DD/MM/YY')}
-				</Text>
-				<Text
-					size="md"
-					color="darkgray"
-					style={styles.transactionNameTextStyle}
-				>
-					{item.name}
-				</Text>
-				<Text size="md" color="darkgray" center style={layout.flex_1}>
-					${(item.amount / 100).toFixed(2)}
-				</Text>
+			<Row style={styles.transactionRowStyle} key={index}>
+				<View style={layout.flex_1}>
+					<Text
+						size="md"
+						color="darkgray"
+						style={styles.alignTextLeft}
+					>
+						{moment(item.created_at).format('DD/MM/YY')}
+					</Text>
+				</View>
+				<View style={styles.transactionNameContainer}>
+					<Text
+						size="md"
+						color="darkgray"
+						style={styles.alignTextLeft}
+					>
+						{item.name}
+					</Text>
+				</View>
+				<View style={layout.flex_1}>
+					<Text
+						size="md"
+						color="darkgray"
+						style={styles.alignTextRight}
+					>
+						${(item.amount / 100).toFixed(2)}
+					</Text>
+				</View>
 			</Row>
 		));
 	};
@@ -123,8 +134,8 @@ const Subscription = () => {
 		title: string,
 	) => {
 		const isSectionToggled = toggledSections.includes(id);
-		const paddingHorizontal = id === 'transactions' ? 33 : 0;
-		const marginHorizontal = id === 'transactions' ? 33 : 0;
+		const paddingHorizontal = id === 'transactions' ? 15 : 0;
+		const marginHorizontal = id === 'transactions' ? 15 : 0;
 		return (
 			data &&
 			!isEmpty(data[id]) && (
@@ -185,7 +196,7 @@ const Subscription = () => {
 			<HR thickness={1} color="#F2F2F2" />
 
 			<View style={styles.viewStyle}>
-				<Row spacing="space-between">
+				<Row spacing="space-between" align="center">
 					<Row>
 						{isToggleLoading && (
 							<ActivityIndicator
@@ -202,6 +213,19 @@ const Subscription = () => {
 						value={data?.notify_email_subscription === 1}
 					/>
 				</Row>
+
+				<Spacer size="lg" />
+
+				<Button
+					title="Add New Membership"
+					labelStyle={styles.addSubscriptionButtonLabelStyle}
+					onPress={() =>
+						navigate('SubscriptionSetup', {
+							fromSubscription: true,
+						})
+					}
+					icon="plus"
+				/>
 
 				<Spacer size="lg" />
 				<SubscriptionList
@@ -240,10 +264,11 @@ const styles = StyleSheet.create({
 		borderColor: '#F2F2F2',
 		marginBottom: 5,
 		paddingBottom: 5,
+		marginHorizontal: 15,
 	},
-	transactionNameTextStyle: {
-		flex: 3,
-		marginLeft: 25,
+	transactionNameContainer: {
+		flex: 2,
+		paddingLeft: 20,
 	},
 	subscriptionButtonStyle: {
 		marginBottom: 15,
@@ -255,7 +280,7 @@ const styles = StyleSheet.create({
 		textTransform: 'capitalize',
 	},
 	viewStyle: {
-		paddingHorizontal: 33,
+		paddingHorizontal: 15,
 		paddingVertical: 8,
 	},
 	loaderStyle: {
@@ -265,6 +290,12 @@ const styles = StyleSheet.create({
 	toggleLoadingStyle: {
 		left: -28,
 		position: 'absolute',
+	},
+	alignTextRight: {
+		textAlign: 'right',
+	},
+	alignTextLeft: {
+		textAlign: 'left',
 	},
 });
 

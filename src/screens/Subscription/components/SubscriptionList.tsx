@@ -22,18 +22,6 @@ const SubscriptionList = ({
 		data?.[type] as SubscriptionType[]
 	).reverse();
 
-	const renderAddSubscriptionButton = () => {
-		return (
-			<Button
-				title="Add New Membership"
-				labelStyle={styles.addSubscriptionButtonLabelStyle}
-				onPress={() =>
-					navigate('SubscriptionSetup', { fromSubscription: true })
-				}
-			/>
-		);
-	};
-
 	const goToSubscription = (id: number, subscriptionType: string) => {
 		navigate('SubscriptionDetails', { id, subscriptionType });
 	};
@@ -47,7 +35,7 @@ const SubscriptionList = ({
 			{title && (
 				<>
 					<Text size="md" color="darkgray">
-						{`${title}:`}
+						{`${title}`}
 					</Text>
 					<Spacer size="xs" />
 				</>
@@ -66,8 +54,6 @@ const SubscriptionList = ({
 					/>
 				);
 			})}
-
-			{type === 'current' && renderAddSubscriptionButton()}
 		</View>
 	);
 };
