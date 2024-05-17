@@ -29,6 +29,16 @@ const Startup = ({ navigation }: ApplicationScreenProps) => {
 	useEffect(() => {
 		const checkToken = () => {
 			if (isLoggedIn()) {
+				if (user?.user_data) {
+					// check if user has accepted EULA
+					if (!user?.user_data.eula_accepted) {
+						navigation.reset({
+							index: 0,
+							routes: [{ name: 'Eula' }],
+						});
+					}
+				}
+
 				navigation.reset({
 					index: 0,
 					routes: [{ name: 'Main' }],
@@ -43,16 +53,6 @@ const Startup = ({ navigation }: ApplicationScreenProps) => {
 
 		void checkToken();
 	}, [isSuccess]);
-
-	useEffect(() => {
-		// if user has not accepted eula, redirect to eula screen
-		if (!user?.user_data.eula_accepted) {
-			navigation.reset({
-				index: 0,
-				routes: [{ name: 'Eula' }],
-			});
-		}
-	}, [user?.user_data]);
 
 	return (
 		<SafeScreen>
