@@ -8,6 +8,7 @@
         "ios": "react-native run-ios",
         "lint": "eslint \"**/*.{ts,tsx}\" --report-unused-disable-directives --max-warnings 0",
         "start": "react-native start",
+        "start:reset-cache": "yarn start --reset-cache",
         "test": "jest",
         "type-check": "tsc",
         "check-types": "tsc --noEmit --pretty",

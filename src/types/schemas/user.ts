@@ -24,7 +24,7 @@ export const UserSchema = z.object({
 	push_token: z.string().nullable(),
 	profile_image: z.string().url(),
 	gym_logo: z.string().url(),
-	banner_image: z.string().url(),
+	banner_image: z.string().nullable(),
 	unread_item: z.number(),
 	eula_accepted: boolOrOneZero,
 	has_waived_subscriptions: boolOrOneZero,

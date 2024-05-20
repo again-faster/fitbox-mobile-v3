@@ -11,6 +11,7 @@ export type ApplicationStackParamList = {
 	SignUp: undefined;
 	Invite: undefined;
 	Eula: undefined;
+	SwitchGym: undefined;
 	BillingAgreement: undefined;
 };
 export type ApplicationScreenProps =

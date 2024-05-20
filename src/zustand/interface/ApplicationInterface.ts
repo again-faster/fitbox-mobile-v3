@@ -16,6 +16,8 @@ interface ApplicationStateInterface {
 
 interface ApplicationInterface extends ApplicationStateInterface {
 	setAppState: (key: keyof ApplicationStateInterface, value: unknown) => void;
+	clearAppState: () => void;
 }
 
+export type { ApplicationStateInterface };
 export default ApplicationInterface;

@@ -58,6 +58,10 @@ const createSessionSlice: StateCreator<
 		}
 	},
 
+	clearClasses: () => {
+		setState({ classes: [] });
+	},
+
 	setVenueFilters: data => {
 		setState({ venueFilters: data });
 	},

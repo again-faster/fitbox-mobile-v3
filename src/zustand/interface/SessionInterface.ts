@@ -37,6 +37,7 @@ interface SessionStateInterface {
 
 interface SessionInterface extends SessionStateInterface {
 	setClasses: (date: string, data: ClassItemData[]) => void;
+	clearClasses: () => void;
 	setActiveMonth: (date: string) => void;
 	setVenueFilters: (data: VenueFilter[]) => void;
 	setClassFilters: (data: ClassFilter[]) => void;

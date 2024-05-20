@@ -124,7 +124,7 @@ const Dashboard = () => {
 
 			// set gym logo and banner
 			setGymLogo(gymInfo.logo);
-			setGymBanner(gymInfo.banner);
+			setGymBanner(String(gymInfo.banner));
 		}
 	};
 
@@ -275,7 +275,6 @@ const Dashboard = () => {
 			<DashboardHeader
 				banner={gymBanner + version}
 				logo={gymLogo + version}
-				onLogoPress={() => Say.ok('Open switch gym modal')}
 			/>
 
 			<Spacer />

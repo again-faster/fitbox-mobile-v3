@@ -1,6 +1,8 @@
 import TeamAvatar from '@/components/atoms/TeamAvatar/TeamAvatar';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { ApplicationStackParamList } from '@/types/navigation';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Dimensions, ImageBackground, StyleSheet, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -10,17 +12,18 @@ const { fonts, colors } = config;
 interface DashboardHeaderProps {
 	banner?: string;
 	logo?: string;
-	onLogoPress?: () => void;
 }
 
-const DashboardHeader = ({
-	banner,
-	logo,
-	onLogoPress,
-}: DashboardHeaderProps) => {
+const DashboardHeader = ({ banner, logo }: DashboardHeaderProps) => {
+	const navigation: NavigationProp<ApplicationStackParamList> =
+		useNavigation();
+
 	const children = (
 		<View style={styles.headerImageContainer}>
-			<TeamAvatar logo={logo} onPress={onLogoPress} />
+			<TeamAvatar
+				logo={logo}
+				onPress={() => navigation.navigate('SwitchGym')}
+			/>
 		</View>
 	);
 
@@ -42,7 +45,6 @@ const DashboardHeader = ({
 DashboardHeader.defaultProps = {
 	banner: '',
 	logo: '',
-	onLogoPress: () => {},
 };
 
 export default DashboardHeader;

@@ -89,18 +89,19 @@ export const UpdateUserProfileSchema = z.object({
 });
 
 export const UpdateUserProfilePayloadSchema = z.object({
-	id: z.number(),
-	firstname: z.string(),
-	lastname: z.string(),
-	dob: z.string(),
-	gender: z.string(),
-	email: z.string(),
-	contact_phone: z.string(),
-	height: z.number(),
-	current_weight: z.number(),
-	weight_unit: z.string(),
+	id: z.number().optional(),
+	firstname: z.string().optional(),
+	lastname: z.string().optional(),
+	dob: z.string().optional(),
+	gender: z.string().optional(),
+	email: z.string().optional(),
+	contact_phone: z.string().optional(),
+	height: z.number().optional(),
+	current_weight: z.number().optional(),
+	weight_unit: z.string().optional(),
 	emergency_contact_name: z.string().optional(),
 	emergency_contact_number: z.string().optional(),
+	default_team_id: z.number().optional(),
 });
 
 export type UpdateUserProfileTypes = z.infer<

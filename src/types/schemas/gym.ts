@@ -16,7 +16,7 @@ export const GymInfoSchema = z.object({
 	country: z.optional(z.string()),
 	gym_lookup: z.number(),
 	logo: z.string(),
-	banner: z.string(),
+	banner: z.string().nullable(),
 	num_of_unread_messages: z.number(),
 	allow_leaderboards_comment: boolOrOneZero,
 	online_store: z.string(),

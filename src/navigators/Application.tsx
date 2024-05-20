@@ -21,6 +21,7 @@ import {
 
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 
+import { SwitchGym } from '@/modals';
 import BillingAgreementScreen from '@/screens/BillingAgreementScreen/BillingAgreementScreen';
 import CalendarHeaderLeftComponent from '@/screens/Calendar/components/CalendarHeaderLeftComponent';
 import CalendarHeaderRightComponent from '@/screens/Calendar/components/CalendarHeaderRightComponent';
@@ -31,9 +32,11 @@ import type {
 	ApplicationStackParamList,
 	MainTabParamList,
 } from '@/types/navigation';
+import { Constant } from '@/utils';
 import useStore from '@/zustand/Store';
 import MenuStackNavigator from './MenuStack';
 import { navigationRef } from './NavigationRef';
+import HeaderCloseButton from './components/HeaderCloseButton';
 
 const linking: LinkingOptions<ApplicationStackParamList> = {
 	prefixes: ['com.fitbox://', 'https://fitbox.iq', 'http://fitbox.iq'],
@@ -137,9 +140,9 @@ const MainTabNavigator = () => {
 
 const Stack = createStackNavigator<ApplicationStackParamList>();
 const ApplicationNavigator = () => {
-	const { variant, navigationTheme } = useTheme();
+	const { variant, navigationTheme, colors } = useTheme();
 
-	const AgreementHeaderOptions: StackNavigationOptions = {
+	const CommonHeaderOptions: StackNavigationOptions = {
 		headerShown: true,
 		headerStyle: { backgroundColor: config.colors.brand },
 		headerTitleAlign: 'center',
@@ -155,44 +158,69 @@ const ApplicationNavigator = () => {
 		>
 			<Stack.Navigator
 				key={variant}
+				initialRouteName="Startup"
 				screenOptions={{
 					headerShown: false,
 					cardStyleInterpolator:
 						CardStyleInterpolators.forScaleFromCenterAndroid,
 				}}
-				initialRouteName="Startup"
 			>
-				<Stack.Screen name="Startup" component={Startup} />
-				<Stack.Screen name="Auth" component={Auth} />
-				<Stack.Screen name="Landing" component={Landing} />
-				<Stack.Screen name="Example" component={Example} />
-				<Stack.Screen name="Login" component={Login} />
-				<Stack.Screen
-					name="ResetPassword"
-					component={ResetPassword}
-					options={{
-						title: 'Forgot Password',
-						...AgreementHeaderOptions,
-						headerBackTitleVisible: false,
+				<Stack.Group>
+					<Stack.Screen name="Startup" component={Startup} />
+					<Stack.Screen name="Auth" component={Auth} />
+					<Stack.Screen name="Landing" component={Landing} />
+					<Stack.Screen name="Example" component={Example} />
+					<Stack.Screen
+						name="Login"
+						component={Login}
+						options={CommonHeaderOptions}
+					/>
+					<Stack.Screen
+						name="ResetPassword"
+						component={ResetPassword}
+						options={{
+							title: 'Forgot Password',
+							...CommonHeaderOptions,
+							headerBackTitleVisible: false,
+						}}
+					/>
+					<Stack.Screen name="Main" component={MainTabNavigator} />
+					<Stack.Screen
+						name="Eula"
+						component={EULAScreen}
+						options={{
+							title: 'End User License Agreement',
+							...CommonHeaderOptions,
+						}}
+					/>
+					<Stack.Screen
+						name="BillingAgreement"
+						component={BillingAgreementScreen}
+						options={{
+							title: 'Billing Agreement',
+							...CommonHeaderOptions,
+						}}
+					/>
+				</Stack.Group>
+
+				<Stack.Group
+					screenOptions={{
+						headerTintColor: colors.darkgray,
+						headerRight: HeaderCloseButton,
+						headerLeft: () => null,
+						presentation: 'modal',
+						headerShown: true,
+
+						...(Constant.IS_ANDROID
+							? {
+									cardStyleInterpolator:
+										CardStyleInterpolators.forModalPresentationIOS,
+							  }
+							: {}),
 					}}
-				/>
-				<Stack.Screen name="Main" component={MainTabNavigator} />
-				<Stack.Screen
-					name="Eula"
-					component={EULAScreen}
-					options={{
-						title: 'End User License Agreement',
-						...AgreementHeaderOptions,
-					}}
-				/>
-				<Stack.Screen
-					name="BillingAgreement"
-					component={BillingAgreementScreen}
-					options={{
-						title: 'Billing Agreement',
-						...AgreementHeaderOptions,
-					}}
-				/>
+				>
+					<Stack.Screen name="SwitchGym" component={SwitchGym} />
+				</Stack.Group>
 			</Stack.Navigator>
 		</NavigationContainer>
 	);
