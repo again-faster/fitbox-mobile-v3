@@ -178,6 +178,11 @@ const ApplicationNavigator = () => {
 					<Stack.Screen
 						name="ResetPassword"
 						component={ResetPassword}
+						options={{
+							title: 'Forgot Password',
+							...CommonHeaderOptions,
+							headerBackTitleVisible: false,
+						}}
 					/>
 					<Stack.Screen name="Main" component={MainTabNavigator} />
 					<Stack.Screen

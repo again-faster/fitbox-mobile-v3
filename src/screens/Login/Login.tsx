@@ -324,6 +324,7 @@ const style = StyleSheet.create({
 	},
 	forgotPasswordContainer: {
 		alignItems: 'flex-end',
+		marginTop: config.metrics.rg,
 	},
 	buttonStyle: {
 		borderRadius: 6,

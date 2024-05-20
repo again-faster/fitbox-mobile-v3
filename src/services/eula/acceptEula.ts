@@ -1,10 +1,10 @@
 import { ApiRoutes } from '@/constants';
-import { AcceptAgreementSchema } from '@/types/schemas/response';
+import { ErrorMessageResponse } from '@/types/schemas/response';
 import { securedInstance } from '../instance';
 
 export default async () => {
 	const url = ApiRoutes.acceptEula;
 
 	const response = await securedInstance().get(url).json();
-	return AcceptAgreementSchema.parse(response);
+	return ErrorMessageResponse.parse(response);
 };
