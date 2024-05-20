@@ -14,7 +14,7 @@ const defaultState: ApplicationStateInterface = {
 	emptyRequiredFields: [],
 	fromAcceptInvite: false,
 	setupSubscriptionId: null,
-	user: null,
+	loggedInUser: null,
 };
 
 const createApplicationSlice: StateCreator<

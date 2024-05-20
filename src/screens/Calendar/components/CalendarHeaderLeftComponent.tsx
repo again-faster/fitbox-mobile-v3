@@ -1,11 +1,15 @@
 import TeamAvatar from '@/components/atoms/TeamAvatar/TeamAvatar';
 import HeaderButtonGroup from '@/components/template/Header/HeaderButtonGroup';
-import { Say } from '@/utils';
+import { ApplicationStackParamList } from '@/types/navigation';
 import useStore from '@/zustand/Store';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 
 const CalendarHeaderLeftComponent = () => {
+	const navigation: NavigationProp<ApplicationStackParamList> =
+		useNavigation();
+
 	const logo = useStore(state => state.logo);
-	const handleAvatarPress = () => Say.ok('Openn switch gym modal!');
+	const handleAvatarPress = () => navigation.navigate('SwitchGym');
 
 	return (
 		<HeaderButtonGroup>

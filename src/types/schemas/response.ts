@@ -35,6 +35,7 @@ export const apiResponseSchema = <T>(dataSchema: z.ZodSchema<T>) =>
 		error: z.boolean(),
 	});
 
+export type LoginResponseSchemaType = z.infer<typeof LoginResponseSchema>;
 export const LoginResponseSchema = z.object({
 	id: z.number(),
 	error: z.boolean(),

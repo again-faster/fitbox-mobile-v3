@@ -30,7 +30,7 @@ const TeamAvatar = ({
 
 	return (
 		<TouchableOpacity activeOpacity={0.8} onPress={onPress}>
-			{logo ? (
+			{logo && logo !== '' ? (
 				<Image
 					style={[avatarSize, roundedStyle]}
 					source={{

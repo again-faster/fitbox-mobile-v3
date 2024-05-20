@@ -10,7 +10,6 @@ import layout from '@/theme/layout';
 import { SubscriptionType } from '@/types/schemas/subscription';
 import { Say } from '@/utils';
 import { PaymentGateways } from '@/utils/Enum';
-import useStore from '@/zustand/Store';
 import { useNavigation } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
@@ -36,9 +35,7 @@ const CardInfoScreen = () => {
 	const { user, updateUser } = useAuth();
 
 	const navigation = useNavigation();
-	const { setAppState } = useStore(state => ({
-		setAppState: state.setAppState,
-	}));
+
 	const [state, setState] = useState<StateProps>({
 		isLoading: true,
 		showOptions: true,
@@ -122,7 +119,6 @@ const CardInfoScreen = () => {
 			session.has_payment_details = 'skipped';
 
 			updateUser(session);
-			setAppState('user', session);
 			// TODO: create and navigate to AuthLoading
 			// navigate('AuthLoading')
 		}
@@ -137,7 +133,6 @@ const CardInfoScreen = () => {
 			if (session) {
 				session.has_payment_details = 'skipped';
 				updateUser(session);
-				setAppState('user', session);
 			}
 		} catch (e) {
 			console.log('error: ', e);

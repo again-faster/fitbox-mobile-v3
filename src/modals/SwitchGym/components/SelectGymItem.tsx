@@ -35,7 +35,7 @@ const SelectGymItem = ({
 					...styles.imageSize,
 				}}
 			>
-				{image ? (
+				{image && image !== '' ? (
 					<Image
 						style={styles.imageSize}
 						source={{

@@ -1,16 +1,14 @@
 import { deletePushToken, login } from '@/services/auth';
-import { LoginResponseSchema } from '@/types/schemas/response';
+import { LoginResponseSchemaType } from '@/types/schemas/response';
 import { UserSchemaType } from '@/types/schemas/user';
-import { PropsWithChildren, createContext, useMemo, useState } from 'react';
+import useStore from '@/zustand/Store';
+import { PropsWithChildren, createContext, useMemo } from 'react';
 import type { MMKV } from 'react-native-mmkv';
-import { z } from 'zod';
-
-type User = z.infer<typeof LoginResponseSchema>;
 
 type Context = {
 	signIn: (email: string, password: string) => Promise<unknown>;
 	signOut: () => void;
-	user: User | null;
+	user: LoginResponseSchemaType | null;
 	updateUser: (user: UserSchemaType) => boolean;
 	isLoggedIn: boolean;
 };
@@ -21,30 +19,32 @@ type Props = PropsWithChildren<{
 }>;
 
 const AuthProvider = ({ children, storage }: Props) => {
-	const [loggedInUser, setLoggedInUser] = useState<User | null>(null);
+	const loggedInUser = useStore(s => s.loggedInUser);
+	const setAppState = useStore(s => s.setAppState);
 
-	const setStorageAuth = (data: User): void => {
+	const setStorageAuth = (data: LoginResponseSchemaType): void => {
 		// Store the access token, refresh token, and expiration time in storage
 		storage.set('apiToken', data.token);
-		storage.set('user', JSON.stringify(data));
 
 		// set the logged in user
-		setLoggedInUser(data);
+		setAppState('loggedInUser', data);
 	};
 
 	const updateUser = (user: UserSchemaType): boolean => {
-		const userData = storage.getString('user') as string;
-		const userObj = JSON.parse(userData) as User;
+		const userObj = loggedInUser;
+		if (!userObj) {
+			return false;
+		}
 
 		// merge the user data
 		const updatedUser = {
-			...userObj.user_data,
+			...loggedInUser.user_data,
 			...user,
 		};
 
 		// update the user data
 		const updatedUserData = {
-			...userObj,
+			...loggedInUser,
 			user_data: updatedUser,
 		};
 
@@ -52,12 +52,15 @@ const AuthProvider = ({ children, storage }: Props) => {
 		storage.set('user', JSON.stringify(updatedUserData));
 
 		// update the logged in user
-		setLoggedInUser(updatedUserData);
+		setAppState('loggedInUser', updatedUserData);
 
 		return true;
 	};
 
-	const signIn = async (email: string, password: string): Promise<User> => {
+	const signIn = async (
+		email: string,
+		password: string,
+	): Promise<LoginResponseSchemaType> => {
 		// call login service
 		const res = await login(email, password);
 
@@ -69,7 +72,7 @@ const AuthProvider = ({ children, storage }: Props) => {
 	};
 
 	const signOut = async () => {
-		const { id, token } = loggedInUser as User;
+		const { id, token } = loggedInUser as LoginResponseSchemaType;
 
 		// remove push token from server
 		try {
@@ -80,7 +83,7 @@ const AuthProvider = ({ children, storage }: Props) => {
 			storage.delete('user');
 
 			// remove the logged in user
-			setLoggedInUser(null);
+			setAppState('loggedInUser', null);
 		} catch (error) {
 			// console.error('@error', error);
 		}

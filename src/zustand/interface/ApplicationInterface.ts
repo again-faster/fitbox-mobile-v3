@@ -1,4 +1,4 @@
-import { UserSchemaType } from '@/types/schemas/user';
+import { LoginResponseSchemaType } from '@/types/schemas/response';
 
 interface ApplicationStateInterface {
 	appForceUpdate: boolean;
@@ -11,7 +11,7 @@ interface ApplicationStateInterface {
 	emptyRequiredFields: string[];
 	fromAcceptInvite: boolean;
 	setupSubscriptionId: null | number;
-	user: UserSchemaType | null;
+	loggedInUser: LoginResponseSchemaType | null;
 }
 
 interface ApplicationInterface extends ApplicationStateInterface {
