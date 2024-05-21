@@ -6,7 +6,7 @@ import {
 	getUserSubscriptionProducts,
 	saveSubscription,
 } from '@/services/subscription';
-import getUserProfile from '@/services/users/getUserProfile';
+import { getUserProfile } from '@/services/users';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import {

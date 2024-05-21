@@ -1,7 +1,6 @@
 import { FlatList, Loader } from '@/components/molecules';
 import { resetRoot } from '@/navigators/NavigationRef';
-import getUserGyms from '@/services/users/getUserGyms';
-import updateUserProfile from '@/services/users/updateUserProfile';
+import { getUserGyms, updateUserProfile } from '@/services/users';
 import { Gym } from '@/types/schemas/gym';
 import { Say } from '@/utils';
 import useStore from '@/zustand/Store';

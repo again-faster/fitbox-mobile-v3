@@ -1,4 +1,10 @@
+export { default as changeProfileImage } from './changeProfileimage';
 export { default as fetchOne } from './fetchOne';
+export { default as getBookedSessions } from './getBookedSessions';
 export { default as getChildInfo } from './getChildInfo';
 export { default as getParentInfo } from './getParentInfo';
+export { default as getUserGymInfo } from './getUserGymInfo';
+export { default as getUserGyms } from './getUserGyms';
+export { default as getUserProfile } from './getUserProfile';
 export { default as switchAccount } from './switchAccount';
+export { default as updateUserProfile } from './updateUserProfile';

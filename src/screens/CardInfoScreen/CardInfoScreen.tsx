@@ -2,9 +2,9 @@
 import useAuth from '@/auth/hooks/useAuth';
 import { Button, HR, Text } from '@/components/atoms';
 import { navigate } from '@/navigators/NavigationRef';
-import setupPaymentIntent from '@/services/payment/setupPaymentIntent';
+import { setupPaymentIntent } from '@/services/payment';
 import { getSubscriptionInfo } from '@/services/subscription';
-import getUserGymInfo from '@/services/users/getUserGymInfo';
+import { getUserGymInfo } from '@/services/users';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { SubscriptionType } from '@/types/schemas/subscription';
