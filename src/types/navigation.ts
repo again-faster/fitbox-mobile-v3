@@ -16,6 +16,7 @@ export type ApplicationStackParamList = {
 	BillingAgreement: undefined;
 	GymWaiver: undefined;
 	PDFViewer: PDFViewerScreenParams;
+	SwitchUser: undefined;
 };
 export type ApplicationScreenProps =
 	StackScreenProps<ApplicationStackParamList>;

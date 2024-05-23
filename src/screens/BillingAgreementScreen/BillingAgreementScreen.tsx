@@ -1,6 +1,6 @@
 import useAuth from '@/auth/hooks/useAuth';
 import { Button, Spacer, Text } from '@/components/atoms';
-import acceptBillingAgreement from '@/services/billing/acceptBillingAgreement';
+import { acceptBillingAgreement } from '@/services/billing';
 import { config } from '@/theme/_config';
 import { ApplicationScreenProps } from '@/types/navigation';
 import { Say } from '@/utils';

@@ -1,8 +1,8 @@
 import useAuth from '@/auth/hooks/useAuth';
 import { Row, Spacer, Text } from '@/components/atoms';
 import { FlatList, Loader } from '@/components/molecules';
-import getConversationList from '@/services/message/getConversationList';
-import getUserGyms from '@/services/users/getUserGyms';
+import { getConversationList } from '@/services/message';
+import { getUserGyms } from '@/services/users';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { Gym } from '@/types/schemas/gym';

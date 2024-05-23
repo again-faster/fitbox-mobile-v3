@@ -2,8 +2,8 @@ import useAuth from '@/auth/hooks/useAuth';
 import { Avatar, Row, ScrollView, Spacer, Text } from '@/components/atoms';
 import { Loader } from '@/components/molecules';
 import { SafeScreen } from '@/components/template';
-import getBookedSessions from '@/services/users/getBookedSessions';
-import getUserGymInfo from '@/services/users/getUserGymInfo';
+import { navigate } from '@/navigators/NavigationRef';
+import { getBookedSessions, getUserGymInfo } from '@/services/users';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { UserSchemaType } from '@/types/schemas/user';
@@ -244,8 +244,7 @@ const Dashboard = () => {
 	const avatarImage = 'https://avatars.githubusercontent.com/u/15073128?v=4';
 
 	// TEMPORARY FUNCTIONS
-	const comingSoonAlert = () => Alert.alert('Oops!', 'Coming soon..');
-	const onSwitchUserClick = comingSoonAlert;
+	const onSwitchUserClick = () => navigate('SwitchUser');
 	const onActionButtonClick = (navigation: string) => {
 		Alert.alert('Coming soon', `${navigation} screen`);
 	};

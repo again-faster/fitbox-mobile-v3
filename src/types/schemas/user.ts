@@ -15,12 +15,12 @@ export const UserSchema = z.object({
 	}),
 	height: z.number(),
 	current_weight: z.number(),
-	gender: z.enum(['Male', 'Female', 'Other']),
+	gender: z.enum(['Male', 'Female', 'Other']).nullable(),
 	show_subscription_from: z.boolean().optional(),
 	show_payment_form: boolOrOneZero,
 	show_billing_form: boolOrOneZero,
 	billing_agreement_accepted: boolOrOneZero,
-	device_type: z.null().optional(),
+	device_type: z.number().nullable().optional(),
 	push_token: z.string().nullable(),
 	profile_image: z.string().url(),
 	gym_logo: z.string().url(),
@@ -44,10 +44,11 @@ export const UserSchema = z.object({
 	allow_leaderboards_comment: boolOrOneZero,
 	is_parent: boolOrOneZero,
 	is_child: boolOrOneZero,
+	from_parent: z.boolean().optional(),
 	parent_id: z.number(),
-	onboarding_gym_ids: z.array(z.number()),
-	emergency_contact_name: z.string().nullable(),
-	emergency_contact_number: z.string().nullable(),
+	onboarding_gym_ids: z.array(z.number()).optional(),
+	emergency_contact_name: z.string().nullable().optional(),
+	emergency_contact_number: z.string().nullable().optional(),
 });
 
 export const UserProfileSchema = z.object({
@@ -79,5 +80,33 @@ export const UserProfileSchema = z.object({
 	waiver_accepted: z.number().optional(),
 });
 
+export const ChildrenInfoSchema = z.object({
+	child_id: z.number(),
+	child_info: z.object({
+		email: z.string(),
+		firstname: z.string(),
+		id: z.number(),
+		lastname: z.string(),
+		profile_image: z.string().optional(),
+	}),
+	context_id: z.number(),
+	profile_image: z.string().optional(),
+});
+
+export const ParentInfoSchema = z.object({
+	email: z.string(),
+	firstname: z.string(),
+	id: z.number(),
+	lastname: z.string(),
+	profile_image: z.string().optional(),
+});
+export const ChildDataSchema = z.object({
+	children: z.array(ChildrenInfoSchema),
+	context_id: z.number(),
+	parent_id: z.number(),
+});
+
+export type ChildrenType = z.infer<typeof ChildrenInfoSchema>;
+export type ParentType = z.infer<typeof ParentInfoSchema>;
 export type UserProfileType = z.infer<typeof UserProfileSchema>;
 export type UserSchemaType = z.infer<typeof UserSchema>;

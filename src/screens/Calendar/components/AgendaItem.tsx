@@ -1,6 +1,5 @@
 import { Button, Text } from '@/components/atoms';
-import attendSession from '@/services/session/attendSession';
-import joinWaitlist from '@/services/session/joinWaitlist';
+import { attendSession, joinWaitlist } from '@/services/session';
 import { config } from '@/theme/_config';
 import { Say } from '@/utils';
 import useStore from '@/zustand/Store';

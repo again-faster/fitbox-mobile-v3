@@ -11,6 +11,7 @@ type Context = {
 	user: LoginResponseSchemaType | null;
 	updateUser: (user: UserSchemaType) => boolean;
 	isLoggedIn: boolean;
+	setStorageAuth: (data: LoginResponseSchemaType) => void;
 };
 export const AuthContext = createContext<Context | undefined>(undefined);
 
@@ -96,6 +97,7 @@ const AuthProvider = ({ children, storage }: Props) => {
 			updateUser,
 			user: loggedInUser,
 			isLoggedIn: !!loggedInUser,
+			setStorageAuth,
 		};
 	}, [storage, loggedInUser]);
 

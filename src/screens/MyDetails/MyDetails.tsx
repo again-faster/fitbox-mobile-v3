@@ -10,9 +10,11 @@ import {
 	Text,
 } from '@/components/atoms';
 import { SafeScreen } from '@/components/template';
-import changeProfileimage from '@/services/users/changeProfileimage';
-import getUserProfile from '@/services/users/getUserProfile';
-import updateUserProfile from '@/services/users/updateUserProfile';
+import {
+	changeProfileImage,
+	getUserProfile,
+	updateUserProfile,
+} from '@/services/users';
 import { config } from '@/theme/_config';
 import { MenuStackNavigatorProps } from '@/types/navigation';
 import { UserProfileType, UserSchemaType } from '@/types/schemas/user';
@@ -361,7 +363,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 			const image = `data:image/jpg;base64,${imgData}`;
 
 			// Upload image
-			const res = await changeProfileimage({ image });
+			const res = await changeProfileImage({ image });
 
 			if (!res.error) {
 				Say.ok('Profile Image Changed!');
