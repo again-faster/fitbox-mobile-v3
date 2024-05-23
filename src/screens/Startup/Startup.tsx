@@ -37,7 +37,7 @@ const Startup = ({ navigation }: ApplicationScreenProps) => {
 							routes: [{ name: 'Eula' }],
 						});
 					}
-					if (user.user_data.waiver_accepted) {
+					if (!user.user_data.waiver_accepted) {
 						return navigation.reset({
 							index: 0,
 							routes: [{ name: 'GymWaiver' }],

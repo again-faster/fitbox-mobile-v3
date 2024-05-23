@@ -12,7 +12,7 @@ export const WaiverSchema = z.object({
 		email: z.string(),
 		face_id: z.string().nullable(),
 		firstname: z.string(),
-		gender: z.string(),
+		gender: z.string().nullable(),
 		id: z.number(),
 		lastname: z.string(),
 	}),
