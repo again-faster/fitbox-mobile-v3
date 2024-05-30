@@ -307,6 +307,10 @@ const HealthCaptureScreen = ({
 		navigation.navigate('ProfileMenu');
 	};
 
+	const handleSelectRow = (focusedRow: number) => {
+		setState(prevState => ({ ...prevState, focusedRow }));
+	};
+
 	const handleSubmit = async () => {
 		setState(prevState => ({ ...prevState, submitting: true }));
 		const { questions } = state;
@@ -348,7 +352,7 @@ const HealthCaptureScreen = ({
 			if (!res.error) {
 				updateStorageSession();
 			} else {
-				Say.err('Something went wrong');
+				Say.err(res.message ? res.message : 'Something went wrong');
 				setState(prevState => ({ ...prevState, submitting: false }));
 			}
 		}
@@ -398,6 +402,9 @@ const HealthCaptureScreen = ({
 											borderColor,
 											...styles.dataNumberStyle,
 										}}
+										onPress={() =>
+											handleSelectRow(index + 1)
+										}
 									>
 										<Text
 											size="md"

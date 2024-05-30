@@ -1,4 +1,4 @@
-import { Text } from '@/components/atoms';
+import { Row, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import { StyleProp, StyleSheet, TextStyle, View } from 'react-native';
 
@@ -20,12 +20,14 @@ const TextCell = ({
 
 	return (
 		<View style={noborder ? styles.cellStyleNoBorder : styles.cellStyle}>
-			<Text style={textStyles}>{title}</Text>
-			{required && (
-				<Text color="danger" size="md" style={styles.textRequired}>
-					*
-				</Text>
-			)}
+			<Row>
+				<Text style={textStyles}>{title}</Text>
+				{required && (
+					<Text color="danger" size="md">
+						*
+					</Text>
+				)}
+			</Row>
 		</View>
 	);
 };
@@ -51,10 +53,5 @@ const styles = StyleSheet.create({
 	},
 	cellTextStyle: {
 		fontSize: config.fonts.metrics.md,
-	},
-	textRequired: {
-		position: 'absolute',
-		right: 5,
-		top: 2,
 	},
 });
