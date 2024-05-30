@@ -55,6 +55,9 @@ const ProfileMenu = ({ navigation }: MenuStackNavigatorProps) => {
 			case 'payments':
 				navigation.navigate('PaymentInformation');
 				break;
+			case 'health-info':
+				navigation.navigate('HealthCapture', { fromMenu: true });
+				break;
 			default:
 				Alert.alert('Oops!', 'Coming soon');
 				break;

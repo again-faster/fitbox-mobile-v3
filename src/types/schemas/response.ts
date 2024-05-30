@@ -28,6 +28,7 @@ import {
 import {
 	ChildDataSchema,
 	ParentInfoSchema,
+	UserHealthInfoSchema,
 	UserProfileSchema,
 	UserSchema,
 } from './user';
@@ -208,3 +209,4 @@ export const SwitchAccountSchema = z.object({
 	token: z.string(),
 	user_data: UserSchema,
 });
+export const GetUserHealthInfo = UserHealthInfoSchema;

@@ -1,6 +1,7 @@
 import {
 	AboutUs,
 	AcceptedWaiversScreen,
+	HealthCaptureScreen,
 	HelpScreen,
 	Menu,
 	MyDetails,
@@ -90,6 +91,11 @@ const MenuStackNavigator = () => {
 				name="HelpScreen"
 				component={HelpScreen}
 				options={{ title: 'Help' }}
+			/>
+			<Stack.Screen
+				name="HealthCapture"
+				component={HealthCaptureScreen}
+				options={{ title: 'Heath Capture', headerLeft: () => null }}
 			/>
 		</Stack.Navigator>
 	);

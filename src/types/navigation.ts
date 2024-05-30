@@ -42,6 +42,10 @@ export type SubscriptionSetupParams = {
 	fromSubscription?: boolean;
 };
 
+export type HealthCaptureParams = {
+	fromMenu?: boolean;
+};
+
 export type MenuStackParamList = {
 	Menu: undefined;
 	ProfileMenu: undefined;
@@ -61,6 +65,7 @@ export type MenuStackParamList = {
 	AcceptedWaivers: undefined;
 	PDFViewerScreen: PDFViewerScreenParams;
 	HelpScreen: undefined;
+	HealthCapture: HealthCaptureParams;
 };
 export type MenuStackNavigatorProps = StackScreenProps<MenuStackParamList>;
 

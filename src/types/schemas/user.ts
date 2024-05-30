@@ -38,7 +38,7 @@ export const UserSchema = z.object({
 	]),
 	is_staff: boolOrOneZero,
 	notice: z.string(),
-	last_login: z.string(),
+	last_login: z.union([z.boolean(), z.string()]),
 	is_health_captured: boolOrOneZero,
 	allow_leaderboards: boolOrOneZero,
 	allow_leaderboards_comment: boolOrOneZero,
@@ -108,5 +108,13 @@ export const ChildDataSchema = z.object({
 
 export type ChildrenType = z.infer<typeof ChildrenInfoSchema>;
 export type ParentType = z.infer<typeof ParentInfoSchema>;
+export const UserHealthInfoSchema = z.object({
+	allergies: z.array(z.any()),
+	injuries: z.array(z.any()),
+	pre_existing: z.array(z.any()),
+	prescription: z.array(z.any()),
+});
+
 export type UserProfileType = z.infer<typeof UserProfileSchema>;
 export type UserSchemaType = z.infer<typeof UserSchema>;
+export type UserHealthInfoType = z.infer<typeof UserHealthInfoSchema>;

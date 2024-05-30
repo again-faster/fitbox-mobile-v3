@@ -5,6 +5,8 @@ export { default as getChildInfo } from './getChildInfo';
 export { default as getParentInfo } from './getParentInfo';
 export { default as getUserGymInfo } from './getUserGymInfo';
 export { default as getUserGyms } from './getUserGyms';
+export { default as getUserHealthInfo } from './getUserHealthInfo';
 export { default as getUserProfile } from './getUserProfile';
+export { default as saveHealthInfo } from './saveHealthInfo';
 export { default as switchAccount } from './switchAccount';
 export { default as updateUserProfile } from './updateUserProfile';

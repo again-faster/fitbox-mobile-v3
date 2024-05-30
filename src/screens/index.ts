@@ -7,6 +7,7 @@ export { default as Dashboard } from './Dashboard/Dashboard';
 export { default as EULAScreen } from './EULAScreen/EULAScreen';
 export { default as Example } from './Example/Example';
 export { default as GymWaiverScreen } from './GymWaiverScreen/GymWaiverScreen';
+export { default as HealthCaptureScreen } from './HealthCaptureScreen/HealthCaptureScreen';
 export { default as HelpScreen } from './HelpScreen/HelpScreen';
 export { default as Inbox } from './Inbox/Inbox';
 export { default as Landing } from './Landing/Landing';

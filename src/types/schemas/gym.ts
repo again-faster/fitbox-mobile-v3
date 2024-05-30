@@ -20,7 +20,11 @@ export const GymInfoSchema = z.object({
 	num_of_unread_messages: z.number(),
 	allow_leaderboards_comment: boolOrOneZero,
 	online_store: z.string(),
+	name: z.string().optional(),
+	website: z.string().optional(),
 });
+
+export type GymInfoType = z.infer<typeof GymInfoSchema>;
 
 export type GymVenueType = z.infer<typeof GymVenueSchema>;
 export const GymVenueSchema = z.object({
