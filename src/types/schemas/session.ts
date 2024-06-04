@@ -249,22 +249,101 @@ export const ClassEventSchema = z.object({
 	id: z.number(),
 });
 
-export const WODMovementSchema = z.object({
-	notes: z.string().nullish(),
-	reps: z.string().nullish(),
-	movement: z.object({
-		name: z.string(),
-	}),
+export type SessionWODMovementSchemaType = z.infer<
+	typeof SessionWODMovementSchema
+>;
+export const SessionWODMovementSchema = z.object({
+	id: z.number(),
+	wod_section_id: z.number(),
+	movement_id: z.number(),
+	scored: z.boolean(),
+	reps: z.string().nullable(),
+	height_male: z.string().nullable(),
+	height_female: z.string().nullable(),
+	height_unit: z.string().nullable(),
+	weight_male: z.string().nullable(),
+	weight_female: z.string().nullable(),
+	weight_unit: z.string().nullable(),
+	calories: z.string().nullable(),
+	calories_male: z.string().nullable(),
+	calories_female: z.string().nullable(),
+	distance_male: z.string().nullable(),
+	distance_female: z.string().nullable(),
+	distance: z.string().nullish(),
+	distance_unit: z.string(),
+	time: z.number().nullish(),
+	time_unit: z.string(),
+	sequence: z.number(),
+	notes: z.string(),
 	video: z.string().nullish(),
+	created_at: z.string(),
+	updated_at: z.string(),
+	deleted_at: z.string().nullish(),
+	movement: z.object({
+		id: z.number(),
+		context_id: z.number(),
+		name: z.string(),
+		description: z.string(),
+		gymnastics: z.boolean(),
+		weightlifting: z.boolean(),
+		monostructural: z.boolean(),
+		weight: z.boolean(),
+		height: z.boolean(),
+		bodyweight: z.boolean(),
+		distance: z.boolean(),
+		calories: z.boolean(),
+		time: z.boolean(),
+		other: z.string(),
+		w_distance: z.string(),
+		bw_weight1: z.string(),
+		bw_distance1: z.string(),
+		bw_weight2: z.string(),
+		bw_distance2: z.string(),
+		video_template: z.string().nullish(),
+		created_at: z.string().nullish(),
+		updated_at: z.string().nullish(),
+		deleted_at: z.string().nullish(),
+	}),
 });
 
-export const FBWODSectionSchema = z.object({
+export const SessionFBWODSchema = z.object({
+	id: z.number(),
+	context_id: z.number(),
+	name: z.string(),
+	summary: z.string(),
+	is_benchmark: z.number(),
+	created_at: z.string(),
+	updated_at: z.string(),
+	deleted_at: z.string().nullish(),
+	notes: z.string(),
 	wod_section: z.object({
+		id: z.number(),
+		belong_benchmark_wod_id: z.number().nullish(),
+		belong_program_wod_id: z.number().nullish(),
+		has_benchmark_wod_id: z.number().nullish(),
+		name: z.string(),
+		scored: z.boolean(),
+		scoring_by: z.string(),
+		scoring_type_id: z.number(),
+		rounds: z.number(),
+		sets: z.number().nullish(),
+		reps: z.string(),
+		duration: z.number().nullish(),
+		sequence: z.number().nullish(),
+		created_at: z.string(),
+		updated_at: z.string(),
+		deleted_at: z.string().nullish(),
 		text_section: z.string().nullish(),
-		summary: z.string().nullish(),
-		wod_movements: z.array(WODMovementSchema).nullish(),
+		publishing_rule: z.string().nullish(),
+		video: z.string().nullish(),
+		is_leaderboard: boolOrOneZero,
+		allow_sets_or_round_scoring: boolOrOneZero,
+		member_notes: z.string().nullable(),
+		coach_notes: z.string().nullable(),
+		default_collapse_state: boolOrOneZero,
+		staff_only: boolOrOneZero,
+		wod_movements: z.array(SessionWODMovementSchema).nullish(),
 	}),
-	notes: z.string().nullish(),
 });
 
 export type SessionSectionSchemaType = z.infer<typeof SessionSectionSchema>;
@@ -273,10 +352,11 @@ export const SessionSectionSchema = z.object({
 	video: z.string().nullish(),
 	id: z.number(),
 	sessionId: z.string().nullish(),
-	fb_wod: FBWODSectionSchema.nullish(),
+	fb_wod: SessionFBWODSchema.nullish(),
+	wod_movements: z.array(SessionWODMovementSchema).nullish(),
 	text_section: z.string().nullish(),
 	name: z.string(),
-	leaderboard_section_id: z.string().nullish(),
+	leaderboard_section_id: z.number().nullish(),
 	scoring_type: z
 		.object({
 			name: z.string(),
@@ -327,6 +407,9 @@ const attendanceSchema = z.object({
 	subscription_id: z.number(),
 });
 
+export type SessionMemberAttendanceSchemaType = z.infer<
+	typeof SessionMemberAttendanceSchema
+>;
 export const SessionMemberAttendanceSchema = z.object({
 	team_id: z.number(),
 	user_id: z.number(),

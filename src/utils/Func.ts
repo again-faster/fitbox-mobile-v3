@@ -146,6 +146,21 @@ const validURL = (s: string) => {
 	return res !== null;
 };
 
+const getYoutubeUrl = (u: string) => {
+	let useId = '';
+
+	const url = String(u)
+		.replace(/(>|<)/gi, '')
+		.split(/(vi\/|v=|\/v\/|youtu\.be\/|\/embed\/)/);
+
+	if (url[2] !== undefined) {
+		const [urlParts] = url[2].split(/[^0-9a-z_-]/i);
+		useId = urlParts !== undefined ? urlParts : '';
+	}
+
+	return useId;
+};
+
 export default {
 	decodeHtml,
 	stripHtmlTags,
@@ -156,4 +171,5 @@ export default {
 	getSpotLeft,
 	checkSectionsIfAvailable,
 	validURL,
+	getYoutubeUrl,
 };

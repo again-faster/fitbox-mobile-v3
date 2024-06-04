@@ -4,18 +4,27 @@ import layout from '@/theme/layout';
 import { ApplicationScreenProps, SessionParams } from '@/types/navigation';
 import { SessionDetailSchemaType } from '@/types/schemas/session';
 import { Func } from '@/utils';
+import { SessionTabsEnum } from '@/utils/Enum';
 import useStore from '@/zustand/Store';
 import { useQuery } from '@tanstack/react-query';
 import moment from 'moment';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import SessionActionButtons from './components/SessionActionButtons';
-import SessionInformationTab from './components/SessionInformationTab';
-import SessionLoader from './components/SessionLoader';
-import SessionTabButtons from './components/SessionTabButtons';
+
+import {
+	SessionActionButtons,
+	SessionAttendanceTab,
+	SessionInformationTab,
+	SessionLoader,
+	SessionSectionsTab,
+	SessionTabButtons,
+} from './components';
 
 const Session = ({ route }: ApplicationScreenProps) => {
 	const loggedInUser = useStore(state => state.loggedInUser);
+	const [activeTab, setActiveTab] = useState<SessionTabsEnum>(
+		SessionTabsEnum.INFO,
+	);
 
 	const {
 		id: eventId = 0,
@@ -32,9 +41,13 @@ const Session = ({ route }: ApplicationScreenProps) => {
 		queryKey: ['getUserGyms'],
 		queryFn: () => getScheduleDetail(eventId),
 		select: res => res.data,
+		enabled: !!eventId,
 	});
 
-	const session = useMemo(() => data, [data]);
+	const session = data;
+	const bookedMembers = session?.member_attendance ?? [];
+	const startTime = moment(session?.start_datetime);
+
 	// const sections = useMemo(() => session?.sections, [session]);
 	// const attendanceView = useMemo(
 	// 	() =>
@@ -43,11 +56,6 @@ const Session = ({ route }: ApplicationScreenProps) => {
 	// 			: true,
 	// 	[session],
 	// );
-
-	const bookedMembers = useMemo(
-		() => session?.member_attendance ?? [],
-		[session],
-	);
 
 	// const notBookedMembers = useMemo(
 	// 	() => session?.not_book_members ?? [],
@@ -59,13 +67,18 @@ const Session = ({ route }: ApplicationScreenProps) => {
 		[session],
 	);
 
-	const isBookingLocked = session
-		? Func.checkSessionLock(
-				session.start_datetime,
-				session.booking_HH,
-				session.booking_MM,
-		  )
-		: false;
+	const isBookingLocked = useMemo(
+		() =>
+			!!(
+				session &&
+				Func.checkSessionLock(
+					session.start_datetime,
+					session.booking_HH,
+					session.booking_MM,
+				)
+			),
+		[session],
+	);
 
 	const isAttending = useMemo(
 		() =>
@@ -93,10 +106,12 @@ const Session = ({ route }: ApplicationScreenProps) => {
 		return bookedMembers.length + 10;
 	}, [session, bookedMembers]);
 
-	const startTime = useMemo(() => moment(session?.start_datetime), [session]);
-
 	// 		TODO:		tab: showWorkoutTab ? 1 : 0, // show wod page if available
 	// 		TODO:			toggledSections,
+
+	const handleTabChange = (tab: SessionTabsEnum) => {
+		setActiveTab(tab);
+	};
 
 	if (error) {
 		return (
@@ -125,22 +140,32 @@ const Session = ({ route }: ApplicationScreenProps) => {
 				waitlistTime={Number(waitlistTime)}
 			/>
 
-			<SessionTabButtons />
-
-			<SessionInformationTab
-				session={session as SessionDetailSchemaType}
+			<SessionTabButtons
+				activeTab={activeTab}
+				handleTabChange={handleTabChange}
 			/>
 
-			{/* <SessionSectionTab
-				sections={sections}
-				attendanceView={attendanceView}
-				bookedMembers={bookedMembers}
-				notBookedMembers={notBookedMembers}
-				isBookingLocked={isBookingLocked}
-				isAttending={isAttending}
-				isWaitlist={isWaitlist}
-				spotsLeft={spotsLeft}
-			/> */}
+			{activeTab === SessionTabsEnum.INFO ? (
+				<SessionInformationTab
+					session={session as SessionDetailSchemaType}
+				/>
+			) : null}
+
+			{activeTab === SessionTabsEnum.SECTIONS ? (
+				<SessionSectionsTab
+					session={session as SessionDetailSchemaType}
+				/>
+			) : null}
+
+			{activeTab === SessionTabsEnum.RESULTS ? (
+				<Text center>Coming soon..</Text>
+			) : null}
+
+			{activeTab === SessionTabsEnum.ATTENDANCE ? (
+				<SessionAttendanceTab
+					session={session as SessionDetailSchemaType}
+				/>
+			) : null}
 		</View>
 	);
 };
@@ -148,7 +173,9 @@ const Session = ({ route }: ApplicationScreenProps) => {
 export default Session;
 
 const styles = StyleSheet.create({
-	container: {},
+	container: {
+		flex: 1,
+	},
 	infoSectionContainer: {
 		marginHorizontal: 5,
 		marginBottom: '5%',

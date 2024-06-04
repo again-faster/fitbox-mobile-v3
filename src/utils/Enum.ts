@@ -11,13 +11,19 @@ enum FilterTypeEnum {
 	VENUE = 'venue',
 }
 
+enum SessionTabsEnum {
+	INFO = 'info',
+	SECTIONS = 'sections',
+	RESULTS = 'results',
+	ATTENDANCE = 'attendance',
+}
+
 enum TeamAvatarSize {
 	sm = 35,
 	md = 74,
 	lg = 100,
 }
 
-// Visibility options
 enum VisibilityOptions {
 	FULL = 0,
 	LIMITED = 1,
@@ -31,6 +37,7 @@ enum PaymentGateways {
 
 export {
 	FilterTypeEnum,
+	SessionTabsEnum,
 	ModalEnum,
 	PaymentGateways,
 	TeamAvatarSize,

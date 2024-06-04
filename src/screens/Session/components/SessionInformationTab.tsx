@@ -2,7 +2,7 @@ import { Row, ScrollView, Spacer, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { SessionDetailSchemaType } from '@/types/schemas/session';
-import { Func, Say } from '@/utils';
+import { Func } from '@/utils';
 import useStore from '@/zustand/Store';
 import moment from 'moment';
 import { useMemo } from 'react';
@@ -88,8 +88,7 @@ const SessionInformationTab = ({ session }: SessionInformationTabProps) => {
 	}, [session]);
 
 	return (
-		<View style={{ padding: metrics.sm }}>
-			<Spacer />
+		<View style={{ paddingHorizontal: metrics.sm }}>
 			<ScrollView>
 				<View style={styles.infoSectionContainer}>
 					<Text size="md" bold color="brand">
@@ -135,17 +134,12 @@ const SessionInformationTab = ({ session }: SessionInformationTabProps) => {
 						<>
 							<Spacer size="sm" />
 							<Text size="rg">Location:</Text>
-							<Text
-								size="md"
-								color="info"
-								onPress={() =>
-									Say.ok(
-										String(session?.venue_name),
-										String(session?.venue_location),
-									)
-								}
-							>
+							<Text size="md" color="info">
 								{session?.venue_name}
+
+								{session?.venue_location
+									? ` (${session?.venue_location})`
+									: ''}
 							</Text>
 						</>
 					)}

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * TODO: Temporary Tab Buttons for Session Screen
  * Continue to implement this tabs
@@ -7,7 +6,8 @@
 import { Row, Spacer, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
-import { memo, useState } from 'react';
+import { SessionTabsEnum } from '@/utils/Enum';
+import { memo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -16,8 +16,15 @@ import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const { metrics } = config;
 
-const SessionTabButtons = () => {
-	const [activeTab, setActiveTab] = useState<number>(0);
+interface SessionTabButtonsProps {
+	activeTab: SessionTabsEnum;
+	handleTabChange: (tab: SessionTabsEnum) => void;
+}
+
+const SessionTabButtons = ({
+	activeTab,
+	handleTabChange,
+}: SessionTabButtonsProps) => {
 	const subscribed = true;
 	const isLimited = false;
 	const hasLeaderboard = true;
@@ -29,63 +36,76 @@ const SessionTabButtons = () => {
 		attendance_limit: 10,
 	};
 
-	const onChangeTab = (tab: number) => {
-		console.log('onChangeTab', tab);
-	};
+	// const showLeaderBoardButton = (s: unknown) => {
+	// 	setActiveTab(0);
 
-	const showLeaderBoardButton = (s: unknown) => {
-		setActiveTab(0);
-
-		console.log('showLeaderBoardButton', s);
-	};
+	// 	console.log('showLeaderBoardButton', s);
+	// };
 
 	return (
 		<View style={styles.container}>
 			<TouchableOpacity
-				onPress={() => {
-					onChangeTab(0);
-				}}
+				onPress={() => handleTabChange(SessionTabsEnum.INFO)}
 				style={[layout.flex_1, layout.itemsCenter]}
 			>
 				<Icon
 					name="info-circle"
-					color={activeTab === 0 ? '#595959' : '#C4C4C4'}
 					size={25}
+					color={
+						activeTab === SessionTabsEnum.INFO
+							? '#595959'
+							: '#C4C4C4'
+					}
 				/>
 			</TouchableOpacity>
+
 			{subscribed && !isLimited ? (
 				<TouchableOpacity
-					onPress={() => {
-						onChangeTab(1);
-					}}
+					onPress={() => handleTabChange(SessionTabsEnum.SECTIONS)}
 					style={[layout.flex_1, layout.itemsCenter]}
 				>
 					<Icon1
 						name="dumbbell"
-						color={activeTab === 1 ? '#595959' : '#C4C4C4'}
 						size={25}
+						color={
+							activeTab === SessionTabsEnum.SECTIONS
+								? '#595959'
+								: '#C4C4C4'
+						}
 					/>
 				</TouchableOpacity>
 			) : null}
+
 			{hasLeaderboard && (allowLeaderboards || isStaff) ? (
 				<TouchableOpacity
-					onPress={() => showLeaderBoardButton(session)}
+					onPress={() => handleTabChange(SessionTabsEnum.RESULTS)}
 					style={[layout.flex_1, layout.itemsCenter]}
 				>
-					<MIcon name="trophy" size={25} color="#C4C4C4" />
+					<MIcon
+						name="trophy"
+						size={25}
+						color={
+							activeTab === SessionTabsEnum.RESULTS
+								? '#595959'
+								: '#C4C4C4'
+						}
+					/>
 				</TouchableOpacity>
 			) : null}
+
 			{(attendanceView && !isLimited) || isStaff ? (
 				<TouchableOpacity
-					onPress={() => {
-						onChangeTab(2);
-					}}
+					onPress={() => handleTabChange(SessionTabsEnum.ATTENDANCE)}
 					style={[layout.flex_1, layout.itemsCenter]}
 				>
 					<Icon
 						name="user-circle"
-						color={activeTab === 2 ? '#595959' : '#C4C4C4'}
 						size={25}
+						color={
+							activeTab === SessionTabsEnum.ATTENDANCE
+								? '#595959'
+								: '#C4C4C4'
+						}
 					/>
 
 					<Row style={{ marginTop: metrics.sm }}>

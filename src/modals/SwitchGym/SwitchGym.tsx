@@ -5,6 +5,7 @@ import { Gym } from '@/types/schemas/gym';
 import { Say } from '@/utils';
 import useStore from '@/zustand/Store';
 import { useQuery } from '@tanstack/react-query';
+import { isArray } from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import SelectGymItem from './components/SelectGymItem';
@@ -69,7 +70,7 @@ const SwitchGym = () => {
 	const sortedData = useMemo(() => {
 		let useSortedData: Gym[] = [];
 
-		if (isSuccess && data?.data) {
+		if (isSuccess && isArray(data?.data)) {
 			useSortedData = data?.data?.sort((a: Gym, b: Gym) => {
 				if (a.name < b.name) {
 					return -1;
