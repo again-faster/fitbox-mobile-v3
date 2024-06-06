@@ -8,6 +8,7 @@ import {
 import {
 	ContactDataSchema,
 	MessageItemSchema,
+	SearchGIFResultsSchema,
 	SendMessageDataSchema,
 } from './message';
 import {
@@ -219,3 +220,10 @@ export const GetContacts = apiResponseSchema(ContactDataSchema);
 export const SendConversationMessageSchema = apiResponseSchema(
 	SendMessageDataSchema,
 );
+
+export const SearchGIFResponseSchema = z.object({
+	next: z.string(),
+	results: SearchGIFResultsSchema,
+});
+
+export type SearchGIFResponseType = z.infer<typeof SearchGIFResponseSchema>;
