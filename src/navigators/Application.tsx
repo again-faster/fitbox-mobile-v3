@@ -155,11 +155,17 @@ const ComposeStackNavigator = () => {
 			initialRouteName="Contacts"
 			screenOptions={{
 				headerTintColor: colors.darkgray,
-				presentation: 'card',
-				headerLeft: HeaderCloseButton,
+				cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+				headerMode: 'float',
+				headerShadowVisible: false,
+				headerLeft: () => null,
 			}}
 		>
-			<ComposeStack.Screen name="Compose" component={ComposeScreen} />
+			<ComposeStack.Screen
+				name="Compose"
+				component={ComposeScreen}
+				options={{ title: 'Compose Message' }}
+			/>
 			<ComposeStack.Screen name="Contacts" component={ContactsScreen} />
 		</ComposeStack.Navigator>
 	);
@@ -286,9 +292,7 @@ const ApplicationNavigator = () => {
 					<Stack.Screen
 						name="ComposeStack"
 						component={ComposeStackNavigator}
-						options={{
-							headerShown: false,
-						}}
+						options={{ headerShown: false }}
 					/>
 				</Stack.Group>
 			</Stack.Navigator>
