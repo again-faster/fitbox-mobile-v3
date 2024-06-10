@@ -9,12 +9,13 @@ import { SearchGIFResponseType } from '@/types/schemas/response';
 import { Constant, Say } from '@/utils';
 import useStore from '@/zustand/Store';
 import { debounce } from 'lodash';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
 	ActivityIndicator,
 	Alert,
 	FlatList,
 	Image,
+	Platform,
 	StyleSheet,
 	TextInput,
 	TouchableOpacity,
@@ -59,6 +60,7 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 	const [gifList, setGifList] = useState<GIFItemType[]>([]);
 	const [toggleGif, setToggleGif] = useState<boolean>(false);
 	const [searchQuery, setSearchQuery] = useState<string>('');
+	const gifRef = useRef<FlatList | null>(null);
 
 	useEffect(() => {
 		const debouncedEffect = debounce(async (query: string) => {
@@ -72,6 +74,7 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 				const data: SearchGIFResponseType =
 					(await searchRes.json()) as SearchGIFResponseType;
 				setGifList(data.results);
+				gifRef.current?.scrollToIndex({ animated: true, index: 0 });
 			} catch (e) {
 				Say.err(e as string);
 			}
@@ -355,6 +358,7 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 							data={gifList}
 							renderItem={renderGIFTile}
 							showsHorizontalScrollIndicator={false}
+							ref={gifRef}
 						/>
 					</View>
 				)}
@@ -478,12 +482,15 @@ const styles = StyleSheet.create({
 		paddingTop: config.metrics.sm,
 	},
 	searchGIF: {
-		height: 30,
+		height: Platform.OS === 'ios' ? 30 : 33,
 		margin: 5,
 		justifyContent: 'center',
 		marginBottom: config.metrics.rg,
 	},
-	searchInputGIF: { paddingBottom: 25, fontSize: config.fonts.metrics.rg },
+	searchInputGIF: {
+		paddingBottom: Platform.OS === 'ios' ? 25 : 29,
+		fontSize: config.fonts.metrics.rg,
+	},
 });
 
 export default ComposeScreen;

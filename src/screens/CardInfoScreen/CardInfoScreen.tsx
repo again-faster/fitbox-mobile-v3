@@ -12,7 +12,7 @@ import { Say } from '@/utils';
 import { PaymentGateways } from '@/utils/Enum';
 import { useNavigation } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View, ViewStyle } from 'react-native';
 import SimpleToast from 'react-native-simple-toast';
 import WebView from 'react-native-webview';
 
@@ -194,7 +194,7 @@ const CardInfoScreen = () => {
 				{state.paymentURL && (
 					<View style={layout.flex_1}>
 						<WebView
-							style={webViewStyle}
+							style={webViewStyle as ViewStyle}
 							scalesPageToFit
 							source={{ uri: state.paymentURL }}
 							injectedJavaScript={SCRIPT}
