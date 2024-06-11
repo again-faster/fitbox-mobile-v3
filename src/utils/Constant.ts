@@ -28,6 +28,9 @@ const SORT_OPTIONS = [
 	{ name: 'Groups', value: 'group' },
 ];
 
+// TODO: transfer apiKey or retrieve somewhere
+const TENOR_API_KEY = 'AIzaSyCe3wcxBWD8Oe5SBfBz7qhR2680gYvIqEA';
+
 const QUESTIONS_LIST = [
 	{
 		qid: 'allergies',
@@ -168,4 +171,5 @@ export default {
 	BODY_PARTS,
 	QUESTIONS_LIST,
 	SORT_OPTIONS,
+	TENOR_API_KEY,
 };

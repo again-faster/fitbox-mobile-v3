@@ -87,3 +87,46 @@ export const SendMessageDataSchema = z.object({
 	status: z.number(),
 	subject: z.string(),
 });
+
+export const MediaItemSchema = z.object({
+	dims: z.array(z.number()),
+	duration: z.number(),
+	preview: z.string(),
+	size: z.number(),
+	url: z.string(),
+});
+
+export const MediaFormatSchema = z.object({
+	gif: MediaItemSchema,
+	gifpreview: MediaItemSchema,
+	loopedmp4: MediaItemSchema,
+	mediumgif: MediaItemSchema,
+	mp4: MediaItemSchema,
+	nanogif: MediaItemSchema,
+	nanogifpreview: MediaItemSchema,
+	nanomp4: MediaItemSchema,
+	tinygif: MediaItemSchema,
+	tinygifpreview: MediaItemSchema,
+	tinymp4: MediaItemSchema,
+	tinywebm: MediaItemSchema,
+	webm: MediaItemSchema,
+	webp: MediaItemSchema,
+});
+
+export const GIFItemSchema = z.object({
+	content_description: z.string(),
+	created: z.number(),
+	flags: z.array(z.any()),
+	hasaudio: z.boolean(),
+	id: z.string(),
+	itemurl: z.string(),
+	media_formats: MediaFormatSchema,
+	tags: z.array(z.any()),
+	title: z.string(),
+	url: z.string(),
+});
+export const SearchGIFResultsSchema = z.array(GIFItemSchema);
+
+export type MediaFormatType = z.infer<typeof MediaFormatSchema>;
+export type GIFItemType = z.infer<typeof GIFItemSchema>;
+export type SearchGIFResultsType = z.infer<typeof SearchGIFResultsSchema>;

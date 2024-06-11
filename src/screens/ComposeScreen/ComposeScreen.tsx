@@ -4,19 +4,26 @@ import { sendConversationMessage } from '@/services/message';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { ComposeParams, ComposeScreenProps } from '@/types/navigation';
-import { ContactMembersType } from '@/types/schemas/message';
-import { Say } from '@/utils';
+import { ContactMembersType, GIFItemType } from '@/types/schemas/message';
+import { SearchGIFResponseType } from '@/types/schemas/response';
+import { Constant, Say } from '@/utils';
 import useStore from '@/zustand/Store';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { debounce } from 'lodash';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
 	ActivityIndicator,
 	Alert,
+	FlatList,
+	Image,
+	Platform,
 	StyleSheet,
 	TextInput,
 	TouchableOpacity,
 	View,
 } from 'react-native';
+import { Searchbar } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/Ionicons';
+import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type State = {
 	message: string;
@@ -50,6 +57,35 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 		sending: false,
 		isStaff: !!user?.user_data.is_staff,
 	});
+	const [gifList, setGifList] = useState<GIFItemType[]>([]);
+	const [toggleGif, setToggleGif] = useState<boolean>(false);
+	const [searchQuery, setSearchQuery] = useState<string>('');
+	const gifRef = useRef<FlatList | null>(null);
+
+	useEffect(() => {
+		const debouncedEffect = debounce(async (query: string) => {
+			const searchUrl = `https://tenor.googleapis.com/v2/search?q=${
+				query || 'trending'
+			}&key=${Constant.TENOR_API_KEY}&client_key=${
+				user?.token as string
+			}&limit=30`;
+			try {
+				const searchRes = await fetch(searchUrl);
+				const data: SearchGIFResponseType =
+					(await searchRes.json()) as SearchGIFResponseType;
+				setGifList(data.results);
+				gifRef.current?.scrollToIndex({ animated: true, index: 0 });
+			} catch (e) {
+				Say.err(e as string);
+			}
+		}, 500);
+
+		void debouncedEffect(searchQuery);
+
+		return () => {
+			debouncedEffect.cancel();
+		};
+	}, [searchQuery]);
 
 	const renderHeaderCancelButton = () => (
 		<TouchableOpacity
@@ -120,11 +156,10 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 
 				// TODO: add attachedFiles.length logic here
 
-				try {
-					await sendConversationMessage(payload);
-				} catch (e) {
-					Say.err(e as string);
-				}
+				await sendConversationMessage(payload).catch(e =>
+					Say.err(e as string),
+				);
+
 				setState(prevState => ({ ...prevState, message: '' }));
 				navigation.navigate('Inbox');
 			}
@@ -139,6 +174,72 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 		setAppState('message', state.message);
 		setAppState('subject', state.subject);
 		navigation.navigate('Contacts');
+	};
+
+	const handleSendGIF = async (url: string) => {
+		try {
+			let { subject } = state;
+
+			const {
+				recipients,
+				recipientIds,
+				disable_reply: disableReply,
+				sending,
+			} = state;
+			// TODO: get attachedfiles from props
+
+			if (sending) return false;
+
+			subject = subject.trim();
+
+			if (!recipients) Alert.alert('Please add a recipient');
+			else if (!subject) Alert.alert('Subject is required');
+			// TODO: add attachedfiles.length > 0 in condition
+			else if (url) {
+				setState(prevState => ({ ...prevState, sending: true }));
+
+				const payload = {
+					subject,
+					message: url,
+					recipients: recipientIds.join(','),
+					disable_reply: !!disableReply,
+				};
+
+				// TODO: add attachedFiles.length logic here
+
+				await sendConversationMessage(payload).catch(e =>
+					Say.err(e as string),
+				);
+
+				setState(prevState => ({ ...prevState, message: '' }));
+				navigation.navigate('Main');
+			}
+		} catch (e) {
+			return Alert.alert('Something went wrong');
+		}
+
+		return setState(prevState => ({ ...prevState, sending: false }));
+	};
+
+	const renderGIFTile = ({ item }: { item: GIFItemType }) => {
+		const tinyGIF = item.media_formats.tinygif;
+
+		return (
+			<TouchableOpacity
+				style={styles.gifContainer}
+				// TODO: change url if GIF is too large to display in the Conversation component
+				onPress={() =>
+					void handleSendGIF(item.media_formats.mediumgif.url)
+				}
+			>
+				<Image
+					source={{
+						uri: tinyGIF.url,
+					}}
+					style={styles.gifStyle}
+				/>
+			</TouchableOpacity>
+		);
 	};
 
 	return (
@@ -176,6 +277,7 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 					onChangeText={handleEnterSubject}
 					placeholder="Subject"
 					underlineColorAndroid="transparent"
+					keyboardType="twitter"
 				/>
 			</View>
 			<View style={styles.footerContainer}>
@@ -231,11 +333,48 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 					</TouchableOpacity>
 				)}
 
+				{toggleGif && (
+					<View style={styles.searchGIFContainer}>
+						<TouchableOpacity
+							style={styles.closeGIF}
+							onPress={() => setToggleGif(false)}
+						>
+							<Icon
+								name="close-outline"
+								size={config.metrics.lg}
+								color={config.backgrounds.darkgray}
+								style={styles.closeAttachmentIcon}
+							/>
+						</TouchableOpacity>
+						<Searchbar
+							placeholder="Search Tenor"
+							style={styles.searchGIF}
+							value={searchQuery}
+							onChangeText={text => setSearchQuery(text)}
+							inputStyle={styles.searchInputGIF}
+						/>
+						<FlatList
+							horizontal
+							data={gifList}
+							renderItem={renderGIFTile}
+							showsHorizontalScrollIndicator={false}
+							ref={gifRef}
+						/>
+					</View>
+				)}
+
 				<Row style={styles.footerInnerWrapper} align="center">
 					{/* if attachedfiles === 0 */}
 					<TouchableOpacity>
 						<Icon
 							name="attach-outline"
+							size={config.metrics.xl}
+							color={config.colors.brand}
+						/>
+					</TouchableOpacity>
+					<TouchableOpacity onPress={() => setToggleGif(true)}>
+						<MIcon
+							name="file-gif-box"
 							size={config.metrics.xl}
 							color={config.colors.brand}
 						/>
@@ -320,6 +459,37 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'flex-end',
 		maxHeight: '100%',
+	},
+	gifStyle: {
+		width: 100,
+		height: 100,
+	},
+	gifContainer: {
+		paddingHorizontal: 2,
+	},
+	searchGIFContainer: {
+		minHeight: 104,
+		borderColor: config.backgrounds.gray,
+		borderTopLeftRadius: 10,
+		borderTopRightRadius: 10,
+		borderTopWidth: 1,
+		borderLeftWidth: 1,
+		borderRightWidth: 1,
+	},
+	closeGIF: {
+		alignSelf: 'flex-end',
+		marginHorizontal: 8,
+		paddingTop: config.metrics.sm,
+	},
+	searchGIF: {
+		height: Platform.OS === 'ios' ? 30 : 33,
+		margin: 5,
+		justifyContent: 'center',
+		marginBottom: config.metrics.rg,
+	},
+	searchInputGIF: {
+		paddingBottom: Platform.OS === 'ios' ? 25 : 29,
+		fontSize: config.fonts.metrics.rg,
 	},
 });
 
