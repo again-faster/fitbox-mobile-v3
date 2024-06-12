@@ -1,5 +1,6 @@
 import { Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
+import layout from '@/theme/layout';
 import {
 	Dimensions,
 	Platform,
@@ -69,7 +70,7 @@ const InputCell = ({
 					}
 					placeholder={placeholder}
 					textAlign="center"
-					style={textInputStyle}
+					style={[textInputStyle, layout.fontMontserratRegular]}
 				/>
 			)}
 

@@ -435,7 +435,10 @@ const SubscriptionSetup = ({ route, navigation }: MenuStackNavigatorProps) => {
 							<TextInput
 								label="Start Date"
 								value={formattedDate}
-								style={styles.input}
+								style={[
+									styles.input,
+									layout.fontMontserratRegular,
+								]}
 								autoCapitalize="words"
 								underlineColor="white"
 								theme={{

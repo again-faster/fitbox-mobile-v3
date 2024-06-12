@@ -16,6 +16,7 @@ import {
 	updateUserProfile,
 } from '@/services/users';
 import { config } from '@/theme/_config';
+import layout from '@/theme/layout';
 import { MenuStackNavigatorProps } from '@/types/navigation';
 import { UserProfileType, UserSchemaType } from '@/types/schemas/user';
 import { Say } from '@/utils';
@@ -33,6 +34,7 @@ import {
 	StyleProp,
 	StyleSheet,
 	TextInput,
+	TextStyle,
 	TouchableOpacity,
 	TouchableWithoutFeedback,
 	View,
@@ -310,11 +312,14 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 
 	const applyInputValidationStyle = (
 		fieldName: string,
-		currentStyle: StyleProp<ViewStyle>,
+		currentStyle: StyleProp<TextStyle>,
 	) => {
 		const { email, first_name: firstName, last_name: lastName } = data.user;
 
-		const style: StyleProp<ViewStyle> = { ...(currentStyle as ViewStyle) };
+		const style: StyleProp<TextStyle> = {
+			...(currentStyle as TextStyle),
+			...layout.fontMontserratRegular,
+		};
 
 		// Check if the default required fields are empty
 		switch (fieldName) {

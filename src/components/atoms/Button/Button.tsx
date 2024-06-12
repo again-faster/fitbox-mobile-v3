@@ -1,5 +1,6 @@
 import { useTheme } from '@/theme';
 import { config } from '@/theme/_config';
+import layout from '@/theme/layout';
 import { ComponentProps } from 'react';
 import { StyleProp, TextStyle, ViewStyle } from 'react-native';
 import { Button as Btn } from 'react-native-paper';
@@ -64,6 +65,7 @@ const Button = ({
 			: contrastColor(customStyle.backgroundColor as string), // default is white
 		...(sm ? { fontSize: config.fonts.metrics.sm } : {}),
 		...(rest.labelStyle as TextStyle),
+		...layout.fontMontserratRegular,
 	};
 
 	return (

@@ -35,6 +35,7 @@ import CalendarHeaderRightComponent from '@/screens/Calendar/components/Calendar
 import ShopHeaderRightComponent from '@/screens/Shop/components/ShopHeaderRightComponent';
 
 import { config } from '@/theme/_config';
+import layout from '@/theme/layout';
 import type {
 	ApplicationStackParamList,
 	ComposeStackParamsList,
@@ -111,6 +112,7 @@ const MainTabNavigator = () => {
 					backgroundColor: colors.brand,
 				},
 				headerTitleAlign: 'center',
+				headerTitleStyle: layout.fontMontserratRegular,
 			})}
 		>
 			<Tab.Screen
@@ -159,6 +161,7 @@ const ComposeStackNavigator = () => {
 				headerMode: 'float',
 				headerShadowVisible: false,
 				headerLeft: () => null,
+				headerTitleStyle: layout.fontMontserratRegular,
 			}}
 		>
 			<ComposeStack.Screen
@@ -193,7 +196,7 @@ const ApplicationNavigator = () => {
 						headerTintColor: 'white',
 						headerTitleAlign: 'center',
 						headerStyle: { backgroundColor: config.colors.brand },
-
+						headerTitleStyle: layout.fontMontserratRegular,
 						cardStyleInterpolator:
 							CardStyleInterpolators.forScaleFromCenterAndroid,
 					}}

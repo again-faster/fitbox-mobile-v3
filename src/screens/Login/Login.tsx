@@ -171,7 +171,10 @@ const Login = ({ navigation }: ApplicationScreenProps) => {
 									void handleCheckUserEmail()
 								}
 								autoComplete="off"
-								style={style.input}
+								style={[
+									style.input,
+									layout.fontMontserratRegular,
+								]}
 								underlineColor="transparent"
 								autoCapitalize="none"
 								returnKeyType="next"
@@ -220,7 +223,10 @@ const Login = ({ navigation }: ApplicationScreenProps) => {
 										onSubmitEditing={handleSignIn}
 										autoComplete="off"
 										secureTextEntry={passwordHide}
-										style={style.input}
+										style={[
+											style.input,
+											layout.fontMontserratRegular,
+										]}
 										autoCapitalize="none"
 										underlineColor="white"
 										theme={inputCustomTheme}

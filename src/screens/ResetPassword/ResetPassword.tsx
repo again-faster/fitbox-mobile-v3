@@ -1,6 +1,7 @@
 import { Button, Spacer, Text } from '@/components/atoms';
 import { resetPassword } from '@/services/auth';
 import { config } from '@/theme/_config';
+import layout from '@/theme/layout';
 import { Say } from '@/utils';
 import { useState } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
@@ -45,7 +46,7 @@ const ResetPassword = () => {
 					value={email}
 					onChangeText={handleChangeEmail}
 					autoComplete="off"
-					style={styles.input}
+					style={[styles.input, layout.fontMontserratRegular]}
 					autoCapitalize="none"
 					keyboardType="email-address"
 					underlineColor="transparent"

@@ -1,4 +1,4 @@
-import { ViewStyle } from 'react-native';
+import { TextStyle, ViewStyle } from 'react-native';
 
 export default {
 	hide: {
@@ -81,6 +81,13 @@ export default {
 	z10: {
 		zIndex: 10,
 	},
+	/* Fonts */
+	fontMontserratRegular: {
+		fontFamily: 'Montserrat-Regular',
+	},
+	fontMontserratBold: {
+		fontFamily: 'Montserrat-Bold',
+	},
 	/* Shadows */
 	shadowLight: {
 		backgroundColor: 'white',
@@ -115,4 +122,4 @@ export default {
 		shadowRadius: 4.65,
 		elevation: 8,
 	},
-} as const satisfies Record<string, ViewStyle>;
+} as const satisfies Record<string, ViewStyle | TextStyle>;

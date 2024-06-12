@@ -1,5 +1,6 @@
 import { useTheme } from '@/theme';
 import { config } from '@/theme/_config';
+import layout from '@/theme/layout';
 import { ComponentProps } from 'react';
 import { StyleProp, TextStyle, Text as Txt } from 'react-native';
 
@@ -32,8 +33,8 @@ const Text = ({
 		// font size
 		fontSize: config.fonts.metrics[size as FontSizeMetrics],
 
-		// font weight
-		...(bold ? { fontWeight: 'bold' } : {}),
+		// font family & weight
+		...(bold ? layout.fontMontserratBold : layout.fontMontserratRegular),
 
 		// center text
 		...(center ? { textAlign: 'center' } : {}),
