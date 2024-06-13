@@ -10,12 +10,14 @@ type ChatMessageProps = {
 	data: SendMessageDataType;
 	messageOnly: boolean;
 	onLongPress: () => void;
+	dontDisplayTime: boolean;
+	index: number;
 };
 
 const ChatMessage = (props: ChatMessageProps) => {
 	const { user } = useAuth();
 
-	const { data, messageOnly, onLongPress } = props;
+	const { data, messageOnly, onLongPress, dontDisplayTime, index } = props;
 	const isFromUser = data.sender_id === user?.user_data.user_id;
 
 	const isGifUrl = (url: string) => {
@@ -35,6 +37,15 @@ const ChatMessage = (props: ChatMessageProps) => {
 					? config.colors.info
 					: config.backgrounds.gray,
 		  };
+	const messageContainer = {
+		marginTop: dontDisplayTime ? 0 : config.metrics.rg,
+	};
+
+	const messageMarginTop = {
+		marginTop: dontDisplayTime ? config.metrics.xs : config.metrics.sm,
+		marginBottom: index === 0 ? config.metrics.rg : 0,
+	};
+
 	const renderMessage = () => (
 		<Row
 			style={[
@@ -63,14 +74,24 @@ const ChatMessage = (props: ChatMessageProps) => {
 				style={{
 					...layout.flex_1,
 					alignItems,
+					...messageContainer,
 				}}
 			>
-				<Text center size="xs" color="darkgray">
-					{moment.utc(data.created_at).local().format('MMM DD')}{' '}
-					{moment.utc(data.created_at).local().format('h:mm a')}
-				</Text>
+				{!dontDisplayTime && (
+					<Text center size="xs" color="darkgray">
+						{moment.utc(data.created_at).local().format('MMM DD')}{' '}
+						{moment.utc(data.created_at).local().format('h:mm a')}
+					</Text>
+				)}
 
-				<View style={[styles.msg, messageBubble, messageBackground]}>
+				<View
+					style={[
+						styles.msg,
+						messageBubble,
+						messageBackground,
+						messageMarginTop,
+					]}
+				>
 					{isGifUrl(data.message) ? (
 						<Image
 							source={{
@@ -102,7 +123,6 @@ const ChatMessage = (props: ChatMessageProps) => {
 const styles = StyleSheet.create({
 	container: {
 		paddingHorizontal: config.metrics.md,
-		marginVertical: config.metrics.rg,
 	},
 	senderContainer: {
 		width: 60,
@@ -113,7 +133,6 @@ const styles = StyleSheet.create({
 	msg: {
 		padding: config.metrics.rg,
 		borderRadius: config.metrics.rg,
-		marginTop: config.metrics.sm,
 	},
 	gif: {
 		width: 150,

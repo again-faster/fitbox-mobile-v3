@@ -328,9 +328,17 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 		item: SendMessageDataType;
 		index: number;
 	}) => {
+		const dontDisplayTime =
+			moment.utc(item.created_at).local().format('MMM DD h:mm a') ===
+			moment
+				.utc(state.list[index + 1]?.created_at)
+				.local()
+				.format('MMM DD h:mm a');
+
 		return (
 			<ChatMessage
 				key={item.id}
+				index={index}
 				data={item}
 				messageOnly={
 					!(
@@ -344,6 +352,7 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 						selectedMessage: index,
 					}))
 				}
+				dontDisplayTime={dontDisplayTime}
 			/>
 		);
 	};
@@ -409,11 +418,16 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 
 	return (
 		<View style={layout.flex_1}>
-			<View style={{ padding: config.metrics.md }}>
+			<View
+				style={{
+					paddingTop: config.metrics.rg,
+					paddingHorizontal: config.metrics.md,
+				}}
+			>
 				<Text bold size="lg">
 					{state.subject}
 				</Text>
-				<HR />
+				<HR noMarginBottom />
 			</View>
 			<View style={styles.conversationContainer}>
 				{renderConversation()}
