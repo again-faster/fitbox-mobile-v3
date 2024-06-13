@@ -1,8 +1,8 @@
 import { config } from '@/theme/_config';
 import { useState } from 'react';
 import { Alert, Linking } from 'react-native';
-import { ActivityIndicator } from 'react-native-paper';
 import WebView from 'react-native-webview';
+import Text from '../Text/Text';
 
 const { metrics } = config;
 
@@ -67,7 +67,11 @@ const HTMLView = ({ content }: HTMLViewProps) => {
 
 	return (
 		<>
-			{loading && <ActivityIndicator />}
+			{loading && (
+				<Text center style={{ marginTop: metrics.xl }}>
+					Please wait..
+				</Text>
+			)}
 
 			<WebView
 				onLoadEnd={() => setLoading(false)}
