@@ -2,6 +2,7 @@ import useAuth from '@/auth/hooks/useAuth';
 import { ScrollView } from '@/components/atoms';
 import { useTheme } from '@/theme';
 import { config } from '@/theme/_config';
+import layout from '@/theme/layout';
 import { MainTabScreenProps } from '@/types/navigation';
 import useStore from '@/zustand/Store';
 import { Alert, Linking, StyleSheet, Text, View } from 'react-native';
@@ -224,6 +225,7 @@ const Menu = ({ navigation }: MainTabScreenProps) => {
 						key={item.id}
 						style={styles.menuOption}
 						title={item.name}
+						titleStyle={layout.fontMontserratRegular}
 						onPress={() => onClick(item.id)}
 						left={() => renderLeftIcon(item)}
 						right={renderRightIcon}
@@ -236,7 +238,11 @@ const Menu = ({ navigation }: MainTabScreenProps) => {
 							key={i}
 							style={styles.menuOptionContainer}
 						>
-							<List.Subheader>{op.title}</List.Subheader>
+							<List.Subheader
+								style={layout.fontMontserratRegular}
+							>
+								{op.title}
+							</List.Subheader>
 							{options}
 						</List.Section>
 					);
