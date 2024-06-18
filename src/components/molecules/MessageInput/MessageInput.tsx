@@ -1,6 +1,7 @@
 import useAuth from '@/auth/hooks/useAuth';
 import { Row } from '@/components/atoms';
 import { config } from '@/theme/_config';
+import layout from '@/theme/layout';
 import { GIFItemType } from '@/types/schemas/message';
 import { SearchGIFResponseType } from '@/types/schemas/response';
 import { Constant, Say } from '@/utils';
@@ -190,6 +191,7 @@ const styles = StyleSheet.create({
 	searchInputGIF: {
 		paddingBottom: Platform.OS === 'ios' ? 25 : 29,
 		fontSize: config.fonts.metrics.rg,
+		...layout.fontMontserratRegular,
 	},
 	footerInnerWrapper: {
 		backgroundColor: config.backgrounds.gray,
@@ -205,6 +207,7 @@ const styles = StyleSheet.create({
 		marginHorizontal: config.metrics.rg,
 		minHeight: 40,
 		maxHeight: 300,
+		...layout.fontMontserratRegular,
 	},
 	gifContainer: {
 		paddingHorizontal: 2,

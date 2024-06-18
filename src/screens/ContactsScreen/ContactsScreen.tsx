@@ -266,6 +266,7 @@ const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 				title={item.fullname}
 				right={() => renderCheckIcon(item.is_selected as boolean)}
 				onPress={() => handleToggleContact(index)}
+				titleStyle={layout.fontMontserratRegular}
 			/>
 		);
 	};
@@ -440,7 +441,10 @@ const styles = StyleSheet.create({
 		paddingVertical: 8,
 	},
 	searchBar: { margin: config.metrics.md },
-	searchBarInput: { fontSize: config.fonts.metrics.rg },
+	searchBarInput: {
+		fontSize: config.fonts.metrics.rg,
+		...layout.fontMontserratRegular,
+	},
 	loader: { justifyContent: 'center', flex: 1 },
 	groupTitleStyle: { color: '#222' },
 	groupAccordionStyle: { padding: 0 },

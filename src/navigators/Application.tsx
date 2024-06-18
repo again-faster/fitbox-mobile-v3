@@ -135,7 +135,9 @@ const MainTabNavigator = () => {
 			<Tab.Screen
 				name="InboxStack"
 				component={InboxStackNavigator}
-				options={{ headerShown: false }}
+				options={{
+					headerShown: false,
+				}}
 			/>
 			<Tab.Screen
 				name="Shop"
@@ -168,6 +170,7 @@ const InboxStackNavigator = () => {
 						CardStyleInterpolators.forHorizontalIOS,
 					headerTintColor: 'white',
 					headerBackTitleVisible: false,
+					headerTitleStyle: layout.fontMontserratRegular,
 				}}
 			>
 				<InboxStack.Screen name="Inbox" component={Inbox} />
