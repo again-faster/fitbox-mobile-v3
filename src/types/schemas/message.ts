@@ -75,17 +75,17 @@ export const RecipientsSchema = z.object({
 
 export const SendMessageDataSchema = z.object({
 	attached_files: z.array(z.any()),
-	convo_id: z.number(),
+	convo_id: z.number().optional(),
 	created_at: z.string(),
 	firstname: z.string(),
 	id: z.number(),
 	lastname: z.string(),
 	message: z.string(),
 	profile_image: z.string(),
-	recipients: z.array(RecipientsSchema),
+	recipients: z.array(RecipientsSchema).optional(),
 	sender_id: z.number(),
-	status: z.number(),
-	subject: z.string(),
+	status: z.number().optional(),
+	subject: z.string().optional(),
 });
 
 export const MediaItemSchema = z.object({
@@ -130,3 +130,4 @@ export const SearchGIFResultsSchema = z.array(GIFItemSchema);
 export type MediaFormatType = z.infer<typeof MediaFormatSchema>;
 export type GIFItemType = z.infer<typeof GIFItemSchema>;
 export type SearchGIFResultsType = z.infer<typeof SearchGIFResultsSchema>;
+export type SendMessageDataType = z.infer<typeof SendMessageDataSchema>;

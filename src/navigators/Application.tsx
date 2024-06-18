@@ -4,6 +4,7 @@ import {
 	Calendar,
 	ComposeScreen,
 	ContactsScreen,
+	ConversationScreen,
 	Dashboard,
 	EULAScreen,
 	Example,
@@ -40,6 +41,7 @@ import layout from '@/theme/layout';
 import type {
 	ApplicationStackParamList,
 	ComposeStackParamsList,
+	InboxParamList,
 	MainTabParamList,
 } from '@/types/navigation';
 import { Constant } from '@/utils';
@@ -69,7 +71,7 @@ const linking: LinkingOptions<ApplicationStackParamList> = {
 const icons: Record<keyof MainTabParamList, string> = {
 	Dashboard: 'home',
 	Calendar: 'calendar-month-outline',
-	Inbox: 'chat',
+	InboxStack: 'chat',
 	Shop: 'cart',
 	MenuTab: 'menu',
 };
@@ -130,7 +132,11 @@ const MainTabNavigator = () => {
 					title: activeMonth ?? 'Calendar',
 				}}
 			/>
-			<Tab.Screen name="Inbox" component={Inbox} />
+			<Tab.Screen
+				name="InboxStack"
+				component={InboxStackNavigator}
+				options={{ headerShown: false }}
+			/>
 			<Tab.Screen
 				name="Shop"
 				component={Shop}
@@ -149,8 +155,54 @@ const MainTabNavigator = () => {
 	);
 };
 
-const ComposeStack = createStackNavigator<ComposeStackParamsList>();
+const InboxStack = createStackNavigator<InboxParamList>();
+const InboxStackNavigator = () => {
+	const { colors } = useTheme();
+	return (
+		<InboxStack.Navigator initialRouteName="Inbox">
+			<InboxStack.Group
+				screenOptions={{
+					headerStyle: { backgroundColor: config.colors.brand },
+					headerTitleAlign: 'center',
+					cardStyleInterpolator:
+						CardStyleInterpolators.forHorizontalIOS,
+					headerTintColor: 'white',
+					headerBackTitleVisible: false,
+				}}
+			>
+				<InboxStack.Screen name="Inbox" component={Inbox} />
+				<InboxStack.Screen
+					name="Conversation"
+					component={ConversationScreen}
+				/>
+			</InboxStack.Group>
+			<InboxStack.Group
+				screenOptions={{
+					headerTintColor: colors.darkgray,
+					headerRight: HeaderCloseButton,
+					headerLeft: () => null,
+					presentation: 'modal',
+					headerShown: true,
 
+					...(Constant.IS_ANDROID
+						? {
+								cardStyleInterpolator:
+									CardStyleInterpolators.forModalPresentationIOS,
+						  }
+						: {}),
+				}}
+			>
+				<InboxStack.Screen
+					name="ComposeStack"
+					component={ComposeStackNavigator}
+					options={{ headerShown: false }}
+				/>
+			</InboxStack.Group>
+		</InboxStack.Navigator>
+	);
+};
+
+const ComposeStack = createStackNavigator<ComposeStackParamsList>();
 const ComposeStackNavigator = () => {
 	const { colors } = useTheme();
 	return (
@@ -291,11 +343,6 @@ const ApplicationNavigator = () => {
 						name="SwitchUser"
 						component={SwitchUser}
 						options={{ title: 'Switch User' }}
-					/>
-					<Stack.Screen
-						name="ComposeStack"
-						component={ComposeStackNavigator}
-						options={{ headerShown: false }}
 					/>
 					<Stack.Screen
 						name="AddAttendance"

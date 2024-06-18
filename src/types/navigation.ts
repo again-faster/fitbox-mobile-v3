@@ -1,5 +1,5 @@
 import type { StackScreenProps } from '@react-navigation/stack';
-import { ContactMembersType } from './schemas/message';
+import { ContactMembersType, MessageItemType } from './schemas/message';
 import { SessionDetailSchemaType } from './schemas/session';
 
 export type SessionParams = {
@@ -30,7 +30,6 @@ export type ApplicationStackParamList = {
 	GymWaiver: undefined;
 	PDFViewer: PDFViewerScreenParams;
 	SwitchUser: undefined;
-	ComposeStack: undefined;
 	AddAttendance: AddAttendanceParams;
 	Webview: WebViewParams;
 };
@@ -38,7 +37,7 @@ export type ApplicationScreenProps =
 	StackScreenProps<ApplicationStackParamList>;
 
 export type ComposeScreenProps = StackScreenProps<
-	ComposeStackParamsList & ApplicationStackParamList
+	ComposeStackParamsList & InboxParamList
 >;
 
 export type ComposeStackParamsList = {
@@ -99,10 +98,23 @@ export type MenuStackParamList = {
 };
 export type MenuStackNavigatorProps = StackScreenProps<MenuStackParamList>;
 
+export type InboxParamList = {
+	Inbox: undefined;
+	Conversation: ConversationParams;
+	ComposeStack: undefined;
+};
+
+export type ConversationParams = {
+	conversation: MessageItemType;
+	index: number;
+};
+
+export type InboxScreenProps = StackScreenProps<InboxParamList>;
+
 export type MainTabParamList = {
 	Dashboard: undefined;
 	Calendar: undefined;
-	Inbox: undefined;
+	InboxStack: undefined;
 	Shop: undefined;
 	MenuTab: undefined;
 };

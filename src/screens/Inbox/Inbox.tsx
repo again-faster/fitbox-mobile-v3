@@ -5,7 +5,7 @@ import { getConversationList } from '@/services/message';
 import { getUserGyms } from '@/services/users';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
-import { MainTabScreenProps } from '@/types/navigation';
+import { InboxScreenProps } from '@/types/navigation';
 import { Gym } from '@/types/schemas/gym';
 import { MessageItemType } from '@/types/schemas/message';
 import { Say } from '@/utils';
@@ -27,7 +27,7 @@ import InboxSelectGymModal from './modals/InboxSelectGymModal';
 
 const { fonts } = config;
 
-const Inbox = ({ navigation }: MainTabScreenProps) => {
+const Inbox = ({ navigation }: InboxScreenProps) => {
 	const { user } = useAuth();
 
 	const userId = user?.id;
@@ -139,9 +139,7 @@ const Inbox = ({ navigation }: MainTabScreenProps) => {
 	};
 
 	const handlePress = (item: MessageItemType, index: number) => {
-		// eslint-disable-next-line no-console
-		console.log('item', item, index);
-		Say.ok('Coming soon!');
+		navigation.navigate('Conversation', { conversation: item, index });
 	};
 
 	const handleRefresh = (reset = true) => {

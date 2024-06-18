@@ -36,6 +36,7 @@ export default {
 	conversationList: `${v1}message/conversations`,
 	conversationArchivedList: `${v1}message/conversations/trashed`,
 	conversationMessages: `${v1}message/conversation`,
+	checkConversationReplyStatus: `${v1}message/disable-reply-status`,
 	sendConversationMessage: `${v1}message/create`,
 	deleteConversation: `${v1}message/conversations`,
 	deleteConversationMessage: `${v1}message`,

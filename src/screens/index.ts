@@ -5,6 +5,7 @@ export { default as BillingAgreementScreen } from './BillingAgreementScreen/Bill
 export { default as Calendar } from './Calendar/Calendar';
 export { default as ComposeScreen } from './ComposeScreen/ComposeScreen';
 export { default as ContactsScreen } from './ContactsScreen/ContactsScreen';
+export { default as ConversationScreen } from './ConversationScreen/ConversationScreen';
 export { default as Dashboard } from './Dashboard/Dashboard';
 export { default as EULAScreen } from './EULAScreen/EULAScreen';
 export { default as Example } from './Example/Example';

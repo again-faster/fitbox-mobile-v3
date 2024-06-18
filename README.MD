@@ -4,7 +4,9 @@ Complete rebuil
 
 ## TRANSLATION
 
-Make sure to place text to translations files.
+Make sure to place text to translations files. 
+
+:bangbang: On-hold, to speed up development, we will not be using translations for now. :bangbang:
 
 ```
 - DashboardScreen   |   src\translations\en\dashboard.json
@@ -36,71 +38,3 @@ These are groups of organisms stitched together to form pages or sections of an 
 In creating commits, always follow the conventional commits.
 
 Please refer to: https://kapeli.com/cheat_sheets/Conventional_Commits.docset/Contents/Resources/Documents/index
-
-# PROGRESS
-All screens must be in the `src/screens` folder. Below screens are from the old app and needs to be updated. Implement them carefully and make sure to follow the design guidelines.
-
-From `./src/screens/common`
-- AboutScreen
-- AcceptedWaiversScreen
-- AuthLoading
-- BillingAgreementScreen
-- BookingsScreen
-- BottomNavIcon
-- BrowseMediaScreen
-- CalendarScreen
-- Camera
-- CardInfoScreen
-- ClassResultsScreen
-- ComposeScreen
-- ContactsScreen
-- ConversationScreen
-- EULAScreen
-- FitboxGalleryScreen
-- ForgotPasswordScreen
-- GymWaiverScreen
-- HealthCaptureScreen
-- InboxScreen - DONE
-- InboxSettingsScreen
-- Landing - DONE
-- Login - DONE
-- MenuScreen - DONE
-- PaymentInformation
-- PaymentUpdate
-- PDFViewerScreen
-- PowerBIScreen
-- ProfileMenuScreen - DONE
-- ProfileScreen
-- ScoreCommentsScreen
-- SelectGymScreen
-- SelectUserScreen
-- Shop Screen - DONE
-- SignUp
-- SubscriptionDetails
-- Subscriptions
-- SubscriptionSetup
-- SwitchUserScreen
-- WebViewScreen
-- WorkoutPerformance
-- WorkoutScore
-
-From `./src/screens/member`
-- AddReportDataScreen
-- AddWorkoutResult
-- ClassFilterScreen
-- CompletedScreen
-- LeaderboardScreen
-- MemberAttendance
-- MemberDashboard
-- MovementScreen
-- PastPerformance
-- ReportScreen
-- ReportSettingsScreen
-- ScoreScreen
-- ScoreSubmission
-- ScoreUpdate
-- ScoringScreen
-- UpdateWorkoutResult
-- WellnessScreen
-- WorkoutPastPerformance
-- WorkoutsScreen

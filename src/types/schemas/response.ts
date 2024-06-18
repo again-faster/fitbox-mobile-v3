@@ -227,3 +227,17 @@ export const SearchGIFResponseSchema = z.object({
 });
 
 export type SearchGIFResponseType = z.infer<typeof SearchGIFResponseSchema>;
+export const GetConversationMessagesSchema = z.object({
+	data: z.array(SendMessageDataSchema),
+	error: z.boolean(),
+	message: z.string(),
+	page: z.number(),
+	total_items: z.number(),
+	total_pages: z.number(),
+});
+
+export const CheckConversationReplyStatusSchema = apiResponseSchema(
+	z.object({
+		disable_reply: z.number(),
+	}),
+);
