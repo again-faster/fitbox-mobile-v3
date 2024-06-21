@@ -3,9 +3,19 @@
 # Set path to Info.plist
 INFO_PLIST_PATH="ios/fitbox/Info.plist"  # Adjust path as per your project structure
 
+# Check if Info.plist exists
+if [ ! -f "$INFO_PLIST_PATH" ]; then
+    echo "Error: Info.plist not found at path: $INFO_PLIST_PATH"
+    exit 1
+fi
+
 # Read current build number
 CURRENT_PROJECT_VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$INFO_PLIST_PATH")
 echo "Current Project Version: $CURRENT_PROJECT_VERSION"
+if [ -z "$CURRENT_PROJECT_VERSION" ]; then
+    echo "Error: Failed to retrieve CFBundleVersion from Info.plist at path: $INFO_PLIST_PATH"
+    exit 1
+fi
 
 # Increment build number
 NEW_PROJECT_VERSION=$((CURRENT_PROJECT_VERSION + 1))
