@@ -380,7 +380,7 @@ const paymentSchema = z.object({
 	context_id: z.number(),
 	user_type: z.string(),
 	gateway: z.string(),
-	method: z.string(),
+	method: z.string().nullable(),
 	source_id: z.nullable(z.string()),
 	account_id: z.string(),
 	default: z.number(),
@@ -414,7 +414,7 @@ const MemberActiveSubscriptionSchema = z.object({
 	free_membership: z
 		.object({
 			id: z.number(),
-			payment_gateway: z.string(),
+			payment_gateway: z.string().nullable(),
 			context_id: z.number(),
 			remote_id: z.string(),
 			name: z.string(),
