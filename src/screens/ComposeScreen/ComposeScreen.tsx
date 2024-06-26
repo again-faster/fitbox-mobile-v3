@@ -11,6 +11,8 @@ import useStore from '@/zustand/Store';
 import { useEffect, useLayoutEffect, useState } from 'react';
 import {
 	Alert,
+	KeyboardAvoidingView,
+	Platform,
 	StyleSheet,
 	TextInput,
 	TouchableOpacity,
@@ -195,107 +197,114 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 	};
 
 	return (
-		<View style={layout.flex_1}>
-			<View style={styles.recipientContainer}>
-				<Row
-					style={{
-						paddingHorizontal: config.metrics.md,
-						paddingVertical: config.metrics.rg,
-					}}
-					align="center"
-				>
-					<Text>To</Text>
-					<Spacer horizontal />
-					<TouchableOpacity
-						style={layout.flex_1}
-						onPress={handlePressRecipients}
+		<KeyboardAvoidingView
+			style={layout.flex_1}
+			behavior={Platform.OS === 'ios' ? 'height' : 'padding'}
+			enabled
+		>
+			<View style={layout.flex_1}>
+				<View style={styles.recipientContainer}>
+					<Row
+						style={{
+							paddingHorizontal: config.metrics.md,
+							paddingVertical: config.metrics.rg,
+						}}
+						align="center"
 					>
-						<Text color="mute" numberOfLines={2}>
-							{(state.recipients as string) || 'Recipients'}
-						</Text>
-					</TouchableOpacity>
-				</Row>
-			</View>
-
-			<View
-				style={{
-					padding: config.metrics.md,
-					borderBottomWidth: StyleSheet.hairlineWidth,
-					borderColor: config.borders.colors.gray,
-				}}
-			>
-				<TextInput
-					value={state.subject}
-					onChangeText={handleEnterSubject}
-					placeholder="Subject"
-					underlineColorAndroid="transparent"
-					style={layout.fontMontserratRegular}
-					keyboardType="twitter"
-				/>
-			</View>
-			<View style={styles.footerContainer}>
-				<Row
-					spacing="space-between"
-					style={{
-						padding: config.metrics.rg,
-						backgroundColor: config.backgrounds.dark,
-					}}
-					align="center"
-				>
-					<Row style={layout.flex_1} align="center">
-						<Icon
-							name="attach-outline"
-							size={config.metrics.lg}
-							color={config.backgrounds.light}
-							style={{ marginRight: config.metrics.md }}
-						/>
-						<Text color="light" numberOfLines={1}>
-							File Name
-						</Text>
-					</Row>
-					<TouchableOpacity>
-						<Icon
-							name="close-outline"
-							size={config.metrics.lg}
-							color={config.backgrounds.light}
-							style={styles.closeAttachmentIcon}
-						/>
-					</TouchableOpacity>
-				</Row>
-				{user?.user_data.is_staff && (
-					<TouchableOpacity
-						style={styles.disableReplyButtonStyle}
-						onPress={() => setDisableReply(!replyDisabled)}
-					>
-						<Row
-							style={{ paddingHorizontal: config.metrics.rg }}
-							spacing="space-between"
+						<Text>To</Text>
+						<Spacer horizontal />
+						<TouchableOpacity
+							style={layout.flex_1}
+							onPress={handlePressRecipients}
 						>
-							<Text>Disable replies</Text>
-							<View style={styles.checkboxInput}>
-								{replyDisabled ? (
-									<Icon
-										name="checkmark-outline"
-										size={config.metrics.md}
-										color={config.borders.colors.mute}
-										style={styles.disableIcon}
-									/>
-								) : null}
-							</View>
-						</Row>
-					</TouchableOpacity>
-				)}
+							<Text color="mute" numberOfLines={2}>
+								{(state.recipients as string) || 'Recipients'}
+							</Text>
+						</TouchableOpacity>
+					</Row>
+				</View>
 
-				<MessageInput
-					message={state.message}
-					handleEnterMessage={handleEnterMessage}
-					sending={state.sending}
-					handleSendGIF={handleSendGIF}
-					handleSendMessage={handleSendMessage}
-				/>
-				<View style={styles.extraFooterStyle} />
+				<View
+					style={{
+						padding: config.metrics.md,
+						borderBottomWidth: StyleSheet.hairlineWidth,
+						borderColor: config.borders.colors.gray,
+					}}
+				>
+					<TextInput
+						value={state.subject}
+						onChangeText={handleEnterSubject}
+						placeholder="Subject"
+						underlineColorAndroid="transparent"
+						style={layout.fontMontserratRegular}
+						keyboardType="twitter"
+					/>
+				</View>
+				<View style={styles.footerContainer}>
+					{/* TODO: Add this component once add attachment is implemented */}
+					{/* <Row
+						spacing="space-between"
+						style={{
+							padding: config.metrics.rg,
+							backgroundColor: config.backgrounds.dark,
+						}}
+						align="center"
+					>
+						<Row style={layout.flex_1} align="center">
+							<Icon
+								name="attach-outline"
+								size={config.metrics.lg}
+								color={config.backgrounds.light}
+								style={{ marginRight: config.metrics.md }}
+							/>
+							<Text color="light" numberOfLines={1}>
+								File Name
+							</Text>
+						</Row>
+						<TouchableOpacity>
+							<Icon
+								name="close-outline"
+								size={config.metrics.lg}
+								color={config.backgrounds.light}
+								style={styles.closeAttachmentIcon}
+							/>
+						</TouchableOpacity>
+					</Row> */}
+					{user?.user_data.is_staff && (
+						<TouchableOpacity
+							style={styles.disableReplyButtonStyle}
+							onPress={() => setDisableReply(!replyDisabled)}
+						>
+							<Row
+								style={{ paddingHorizontal: config.metrics.rg }}
+								spacing="space-between"
+							>
+								<Text>Disable replies</Text>
+								<View style={styles.checkboxInput}>
+									{replyDisabled ? (
+										<Icon
+											name="checkmark-outline"
+											size={config.metrics.md}
+											color={config.borders.colors.mute}
+											style={styles.disableIcon}
+										/>
+									) : null}
+								</View>
+							</Row>
+						</TouchableOpacity>
+					)}
+
+					<MessageInput
+						message={state.message}
+						handleEnterMessage={handleEnterMessage}
+						sending={state.sending}
+						handleSendGIF={handleSendGIF}
+						handleSendMessage={handleSendMessage}
+					/>
+					<View style={styles.extraFooterStyle} />
+				</View>
 			</View>
-		</View>
+		</KeyboardAvoidingView>
 	);
 };
 
