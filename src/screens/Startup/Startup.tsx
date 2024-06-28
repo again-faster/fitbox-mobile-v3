@@ -9,7 +9,6 @@ import { useTheme } from '@/theme';
 
 import useAuth from '@/auth/hooks/useAuth';
 import type { ApplicationScreenProps } from '@/types/navigation';
-import { CommonActions } from '@react-navigation/native';
 
 const Startup = ({ navigation }: ApplicationScreenProps) => {
 	const { layout, gutters, fonts } = useTheme();
@@ -58,12 +57,10 @@ const Startup = ({ navigation }: ApplicationScreenProps) => {
 						user.user_data.last_login &&
 						!user.user_data.is_health_captured
 					) {
-						return navigation.dispatch(
-							CommonActions.reset({
-								index: 0,
-								routes: [{ name: 'HealthCapture' }],
-							}),
-						);
+						return navigation.reset({
+							index: 0,
+							routes: [{ name: 'HealthCapture' }],
+						});
 					}
 
 					// TODO: Additional conditions here.

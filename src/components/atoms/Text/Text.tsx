@@ -18,10 +18,11 @@ interface TextProps extends ComponentProps<typeof Txt> {
 }
 
 const Text = ({
-	size,
-	color,
-	bold,
-	center,
+	size = 'rg',
+	color = 'gray800',
+	bold = false,
+	center = false,
+	compact = false,
 	children,
 	style,
 	transform,
@@ -31,7 +32,7 @@ const Text = ({
 
 	let customStyle: StyleProp<TextStyle> = {
 		// font size
-		fontSize: config.fonts.metrics[size as FontSizeMetrics],
+		fontSize: config.fonts.metrics[size],
 
 		// font family & weight
 		...(bold ? layout.fontMontserratBold : layout.fontMontserratRegular),
@@ -43,16 +44,14 @@ const Text = ({
 		...(transform ? { textTransform: transform } : {}),
 
 		// compact
-		...(rest.compact
-			? { lineHeight: config.fonts.metrics[size as FontSizeMetrics] }
-			: {}),
+		...(compact ? { lineHeight: config.fonts.metrics[size] } : {}),
 	};
 
 	// font color
-	if (fonts[color as FontColors]) {
-		customStyle = { ...customStyle, ...fonts[color as FontColors] };
+	if (fonts[color]) {
+		customStyle = { ...customStyle, ...fonts[color] };
 	} else {
-		customStyle.color = config.fonts.colors[color as FontColors];
+		customStyle.color = config.fonts.colors[color];
 	}
 
 	return (
@@ -66,15 +65,6 @@ const Text = ({
 			{children}
 		</Txt>
 	);
-};
-
-Text.defaultProps = {
-	size: 'rg',
-	color: 'gray800',
-	bold: false,
-	center: false,
-	compact: false,
-	transform: undefined,
 };
 
 export type { FontColors, FontSizeMetrics };

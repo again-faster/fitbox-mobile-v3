@@ -14,7 +14,11 @@ type AvatarProps = {
 	style?: StyleProp<ImageStyle>;
 };
 
-const Avatar = ({ size, source, style }: AvatarProps) => {
+const Avatar = ({
+	size = 50,
+	source = DefaultAvatar as ImageSourcePropType,
+	style = {},
+}: AvatarProps) => {
 	const [src, setSrc] = useState<ImageSourcePropType | null>(null);
 
 	const width = Number(size);
@@ -47,12 +51,6 @@ const Avatar = ({ size, source, style }: AvatarProps) => {
 			source={src}
 		/>
 	) : null;
-};
-
-Avatar.defaultProps = {
-	source: DefaultAvatar as ImageSourcePropType,
-	size: 50,
-	style: {},
 };
 
 export default Avatar;

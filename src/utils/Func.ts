@@ -68,7 +68,7 @@ const checkSubscription = (bookable?: BookableSchemaType) => {
 
 const isSessionVisible = (
 	bookable: BookableSchemaType,
-	checkVisibility: number,
+	checkVisibility: VisibilityOptions,
 	visibility: VisibilityOptions,
 ) => {
 	if (

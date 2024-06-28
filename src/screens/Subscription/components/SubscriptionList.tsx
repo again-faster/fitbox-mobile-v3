@@ -74,8 +74,4 @@ const styles = StyleSheet.create({
 	},
 });
 
-SubscriptionList.defaultProps = {
-	title: undefined,
-};
-
 export default React.memo(SubscriptionList);

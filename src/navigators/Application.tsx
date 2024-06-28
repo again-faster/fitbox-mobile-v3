@@ -9,12 +9,14 @@ import {
 	EULAScreen,
 	Example,
 	GymWaiverScreen,
+	HealthCaptureScreen,
 	Inbox,
 	Landing,
 	Login,
 	PDFViewerScreen,
 	ResetPassword,
 	Session,
+	// SessionScoringScreen,
 	Shop,
 	Startup,
 	WebView,
@@ -85,6 +87,11 @@ const tabBarIconRender = ({
 	color: string;
 	size: number;
 }) => <Ionicons name={icons[route]} size={size} color={color} />;
+
+const CommonHeaderOptions: StackNavigationOptions = {
+	headerShown: true,
+	cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+};
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const MainTabNavigator = () => {
@@ -234,11 +241,6 @@ const Stack = createStackNavigator<ApplicationStackParamList>();
 const ApplicationNavigator = () => {
 	const { variant, navigationTheme, colors } = useTheme();
 
-	const CommonHeaderOptions: StackNavigationOptions = {
-		headerShown: true,
-		cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-	};
-
 	return (
 		<NavigationContainer
 			linking={linking}
@@ -319,6 +321,14 @@ const ApplicationNavigator = () => {
 							headerBackTitleVisible: false,
 						}}
 					/>
+					<Stack.Screen
+						name="HealthCapture"
+						component={HealthCaptureScreen}
+						options={{
+							...CommonHeaderOptions,
+							headerBackTitleVisible: false,
+						}}
+					/>
 				</Stack.Group>
 
 				<Stack.Group
@@ -353,6 +363,15 @@ const ApplicationNavigator = () => {
 						options={{ title: 'Add Attendance' }}
 					/>
 				</Stack.Group>
+				{/*
+				<Stack.Screen
+					name="Scoring"
+					component={SessionScoringScreen}
+					options={() => ({
+						...CommonHeaderOptions,
+						headerShown: false,
+					})}
+				/> */}
 
 				<Stack.Screen
 					name="Webview"

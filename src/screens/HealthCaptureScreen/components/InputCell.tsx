@@ -12,19 +12,7 @@ import {
 import DropDownPicker from 'react-native-dropdown-picker';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 
-const InputCell = ({
-	type,
-	value,
-	handleChange,
-	placeholder,
-	colIndex,
-	qIndex,
-	rowIndex,
-	noborder,
-	handleSelectInput,
-	selectItems,
-	focused,
-}: {
+interface InputCellProps {
 	type: string;
 	handleChange: (
 		text: string | boolean,
@@ -47,7 +35,21 @@ const InputCell = ({
 		} | null,
 	) => void;
 	selectItems: { label: string; value: string }[];
-}) => {
+}
+
+const InputCell = ({
+	placeholder = '',
+	noborder = false,
+	type,
+	value,
+	handleChange,
+	colIndex,
+	qIndex,
+	rowIndex,
+	handleSelectInput,
+	selectItems,
+	focused,
+}: InputCellProps) => {
 	const textInputStyle = {
 		...styles.inputTextStyle,
 		borderBottomWidth: noborder ? 1 : 0,
@@ -188,9 +190,3 @@ const styles = StyleSheet.create({
 		paddingBottom: 11,
 	},
 });
-
-InputCell.defaultProps = {
-	placeholder: '',
-	focused: undefined,
-	noborder: false,
-};

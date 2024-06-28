@@ -88,10 +88,6 @@ const BookedSessionCard = ({
 
 export default memo(BookedSessionCard);
 
-BookedSessionCard.defaultProps = {
-	venue: undefined,
-};
-
 const styles = StyleSheet.create({
 	container: {
 		backgroundColor: fonts.colors.light,

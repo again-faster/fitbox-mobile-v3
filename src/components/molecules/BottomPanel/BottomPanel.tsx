@@ -2,6 +2,7 @@ import { HR, Row, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import React from 'react';
 import {
+	DimensionValue,
 	Modal,
 	Platform,
 	SafeAreaView,
@@ -23,22 +24,20 @@ type BottomPanelProps = {
 	noMask?: boolean;
 	style?: StyleProp<ViewStyle>;
 	children: React.ReactNode;
-	maxHeight?: number;
+	maxHeight?: DimensionValue;
 };
 
-const BottomPanel = (props: BottomPanelProps) => {
-	const {
-		visible,
-		onClose,
-		backButton,
-		rightTitle,
-		title,
-		maxHeight = '70%',
-		noMask,
-		style,
-		children,
-	} = props;
-
+const BottomPanel = ({
+	backButton = false,
+	noMask = false,
+	maxHeight = '70%',
+	visible,
+	onClose,
+	rightTitle,
+	title,
+	style,
+	children,
+}: BottomPanelProps) => {
 	const isAndroid = Platform.OS === 'android';
 
 	const customStyle: StyleProp<ViewStyle> = {
@@ -94,15 +93,6 @@ const BottomPanel = (props: BottomPanelProps) => {
 			</SafeAreaView>
 		</Modal>
 	);
-};
-
-BottomPanel.defaultProps = {
-	backButton: false,
-	rightTitle: undefined,
-	title: undefined,
-	noMask: false,
-	style: undefined,
-	maxHeight: '70%',
 };
 
 export default BottomPanel;

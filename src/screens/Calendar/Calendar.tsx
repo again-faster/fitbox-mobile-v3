@@ -270,18 +270,22 @@ const Calendar = () => {
 						todayTextColor: fonts.colors.brand,
 					}}
 				/>
-				<AgendaList
-					sections={classes}
-					renderItem={renderItem}
-					sectionStyle={styles.section}
-					viewOffset={-90}
-					windowSize={100}
-					removeClippedSubviews
-					keyExtractor={(item: ClassItemData) => String(item.eventId)}
-					// infiniteListProps={{
-					// 	visibleIndicesChangedDebounce: 250,
-					// }}
-				/>
+				{classes.length ? (
+					<AgendaList
+						sections={classes}
+						renderItem={renderItem}
+						sectionStyle={styles.section}
+						viewOffset={-90}
+						windowSize={100}
+						removeClippedSubviews
+						keyExtractor={(item: ClassItemData) =>
+							String(item.eventId)
+						}
+						// infiniteListProps={{
+						// 	visibleIndicesChangedDebounce: 250,
+						// }}
+					/>
+				) : null}
 			</CalendarProvider>
 
 			{/* Modals */}

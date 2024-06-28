@@ -5,10 +5,11 @@ import ky from 'ky';
 
 const xAppVersion = `${process.env.APP_VERSION ? process.env.APP_VERSION : ''}`;
 const apiToken = () => mmkvStorage.getString('apiToken');
+const apiUrl = () => mmkvStorage.getString('apiUrl');
 
 export const instance = () =>
 	ky.extend({
-		prefixUrl: Constant.API_URL,
+		prefixUrl: apiUrl() || Constant.API_URL,
 		headers: {
 			Accept: 'application/json',
 		},
@@ -17,7 +18,7 @@ export const instance = () =>
 
 export const securedInstance = () =>
 	ky.extend({
-		prefixUrl: Constant.API_URL,
+		prefixUrl: apiUrl() || Constant.API_URL,
 		searchParams: {
 			api_key: apiToken() || '',
 		},

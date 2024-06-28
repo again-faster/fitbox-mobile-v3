@@ -1,11 +1,12 @@
 import useAuth from '@/auth/hooks/useAuth';
-import { ScrollView } from '@/components/atoms';
+import { ScrollView, Text } from '@/components/atoms';
 import { useTheme } from '@/theme';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { MainTabScreenProps } from '@/types/navigation';
+import { Constant } from '@/utils';
 import useStore from '@/zustand/Store';
-import { Alert, Linking, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, StyleSheet, View } from 'react-native';
 import { List } from 'react-native-paper';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -131,7 +132,7 @@ const menuOptions = [
 
 const Menu = ({ navigation }: MainTabScreenProps) => {
 	const { variant, changeTheme } = useTheme();
-	const { signOut } = useAuth();
+	const { signOut, getApiUrl } = useAuth();
 	const shopUrl = useStore(state => state.shopUrl);
 
 	const onClick = (id: string) => {
@@ -218,6 +219,8 @@ const Menu = ({ navigation }: MainTabScreenProps) => {
 		/>
 	);
 
+	const apiUrl = getApiUrl();
+
 	return (
 		<ScrollView contentContainerStyle={styles.container}>
 			{menuOptions.map((op, i) => {
@@ -254,11 +257,11 @@ const Menu = ({ navigation }: MainTabScreenProps) => {
 
 			<View style={styles.versionContainer}>
 				<Text>{`App Version ${menuOptions ? '3.2' : ''}`}</Text>
-				{/* {Consts.env !== 'prod' && (
-					<Text danger sm style={{ marginTop: Metrics.sm }}>
-						Development Mode ({Consts.baseURL})
+				{apiUrl !== Constant.API_BASE_URLS.DEV && (
+					<Text size="sm" style={styles.environment}>
+						Development Mode ({apiUrl})
 					</Text>
-				)} */}
+				)}
 			</View>
 		</ScrollView>
 	);
@@ -290,5 +293,9 @@ const styles = StyleSheet.create({
 		width: '100%',
 		alignItems: 'center',
 		paddingVertical: config.metrics.lg,
+	},
+	environment: {
+		marginTop: config.metrics.lg,
+		color: config.colors.danger,
 	},
 });

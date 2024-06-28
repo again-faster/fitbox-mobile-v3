@@ -9,7 +9,11 @@ type RowDetailTypes = {
 	lowercase?: boolean;
 };
 
-const SubscriptionRowDetail = ({ title, value, lowercase }: RowDetailTypes) => {
+const SubscriptionRowDetail = ({
+	title,
+	value,
+	lowercase = false,
+}: RowDetailTypes) => {
 	const valueStyles = {
 		flex: 1.5,
 		textTransform: lowercase ? 'lowercase' : 'capitalize',
@@ -29,10 +33,6 @@ const SubscriptionRowDetail = ({ title, value, lowercase }: RowDetailTypes) => {
 			</Text>
 		</Row>
 	);
-};
-
-SubscriptionRowDetail.defaultProps = {
-	lowercase: false,
 };
 
 export default SubscriptionRowDetail;

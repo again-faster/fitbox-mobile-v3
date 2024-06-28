@@ -32,6 +32,7 @@ export type ApplicationStackParamList = {
 	SwitchUser: undefined;
 	AddAttendance: AddAttendanceParams;
 	Webview: WebViewParams;
+	HealthCapture: HealthCaptureParams;
 };
 export type ApplicationScreenProps =
 	StackScreenProps<ApplicationStackParamList>;

@@ -15,8 +15,7 @@ interface CardProps {
 	activeOpacity?: number;
 }
 
-const Card = (props: CardProps) => {
-	const { onPress, children, style, activeOpacity } = props;
+const Card = ({ onPress, style, activeOpacity, children }: CardProps) => {
 	const opacity = activeOpacity || 0.5;
 	if (onPress) {
 		return (
@@ -45,11 +44,5 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.2,
 	},
 });
-
-Card.defaultProps = {
-	onPress: undefined,
-	style: undefined,
-	activeOpacity: undefined,
-};
 
 export default Card;

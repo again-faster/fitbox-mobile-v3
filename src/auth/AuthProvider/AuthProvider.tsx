@@ -1,6 +1,7 @@
 import { deletePushToken, login } from '@/services/auth';
 import { LoginResponseSchemaType } from '@/types/schemas/response';
 import { UserSchemaType } from '@/types/schemas/user';
+import { Constant } from '@/utils';
 import useStore from '@/zustand/Store';
 import { PropsWithChildren, createContext, useMemo } from 'react';
 import type { MMKV } from 'react-native-mmkv';
@@ -12,6 +13,8 @@ type Context = {
 	updateUser: (user: UserSchemaType) => boolean;
 	isLoggedIn: boolean;
 	setStorageAuth: (data: LoginResponseSchemaType) => void;
+	setApiUrl: (url: string) => void;
+	getApiUrl: () => string;
 };
 export const AuthContext = createContext<Context | undefined>(undefined);
 
@@ -90,6 +93,14 @@ const AuthProvider = ({ children, storage }: Props) => {
 		}
 	};
 
+	const setApiUrl = (url: string) => {
+		storage.set('apiUrl', url);
+	};
+
+	const getApiUrl = (): string => {
+		return storage.getString('apiUrl') || Constant.API_URL; // default to Constant.API_URL if not set in storage
+	};
+
 	const value = useMemo(() => {
 		return {
 			signIn,
@@ -98,6 +109,8 @@ const AuthProvider = ({ children, storage }: Props) => {
 			user: loggedInUser,
 			isLoggedIn: !!loggedInUser,
 			setStorageAuth,
+			setApiUrl,
+			getApiUrl,
 		};
 	}, [storage, loggedInUser]);
 

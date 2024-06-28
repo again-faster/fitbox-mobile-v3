@@ -28,12 +28,12 @@ const contrastColor = (color: string) => {
 };
 
 const Button = ({
+	sm = false,
+	rounded = false,
+	variant = 'brand',
+	fullWidth = false,
 	title,
-	sm,
-	rounded,
-	variant,
 	mode,
-	fullWidth,
 	style,
 	...rest
 }: ButtonProps) => {
@@ -48,8 +48,8 @@ const Button = ({
 
 		// outlined
 		...(!isOutlined
-			? { backgroundColor: colors[variant as ButtonVariant].color }
-			: { borderColor: colors[variant as ButtonVariant].color }),
+			? { backgroundColor: colors[variant].color }
+			: { borderColor: colors[variant].color }),
 
 		...(!rounded ? { borderRadius: 6 } : {}),
 
@@ -61,7 +61,7 @@ const Button = ({
 
 	const labelStyle: StyleProp<TextStyle> = {
 		color: isOutlined
-			? colors[variant as ButtonVariant].color
+			? colors[variant].color
 			: contrastColor(customStyle.backgroundColor as string), // default is white
 		...(sm ? { fontSize: config.fonts.metrics.sm } : {}),
 		...(rest.labelStyle as TextStyle),
@@ -73,13 +73,6 @@ const Button = ({
 			{title}
 		</Btn>
 	);
-};
-
-Button.defaultProps = {
-	sm: false,
-	rounded: false,
-	variant: 'brand',
-	fullWidth: false,
 };
 
 export default Button;

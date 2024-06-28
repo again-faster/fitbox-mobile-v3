@@ -15,7 +15,7 @@ interface DashboardHeaderProps {
 	logo?: string;
 }
 
-const DashboardHeader = ({ banner, logo }: DashboardHeaderProps) => {
+const DashboardHeader = ({ banner = '', logo = '' }: DashboardHeaderProps) => {
 	const navigation: NavigationProp<ApplicationStackParamList> =
 		useNavigation();
 
@@ -41,11 +41,6 @@ const DashboardHeader = ({ banner, logo }: DashboardHeaderProps) => {
 			{children}
 		</View>
 	);
-};
-
-DashboardHeader.defaultProps = {
-	banner: '',
-	logo: '',
 };
 
 export default memo(DashboardHeader);

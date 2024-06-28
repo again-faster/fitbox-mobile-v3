@@ -9,20 +9,23 @@ import {
 import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // import useAuth from '@/auth/hooks/useAuth';
+import useAuth from '@/auth/hooks/useAuth';
 import { Button, ImageVariant, Row, Spacer, Text } from '@/components/atoms';
 import { Modal } from '@/components/molecules';
 import { config } from '@/theme/_config';
 import LogoImage from '@/theme/assets/images/logo_with_name.png';
 import { ApplicationScreenProps } from '@/types/navigation';
+import { Constant } from '@/utils';
 import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
 const LandingScreen = ({ navigation }: ApplicationScreenProps) => {
 	const { t } = useTranslation(['landing', 'common']);
-	// const { signIn } = useAuth();
+	const { getApiUrl, setApiUrl } = useAuth();
 
 	const [optionsVisibility, setOptionsVisibility] = useState<boolean>(false);
+	const [currentApi, setCurrentApi] = useState<string>(getApiUrl());
 
 	const toggleOptionVisibility = () =>
 		setOptionsVisibility(!optionsVisibility);
@@ -52,8 +55,33 @@ const LandingScreen = ({ navigation }: ApplicationScreenProps) => {
 		// End of Identity implementation
 	};
 
+	const envList = Object.values(Constant.API_BASE_URLS);
+	const onRotateEnv = () => {
+		const currentIndex = envList.indexOf(getApiUrl());
+
+		const newIndex =
+			currentIndex + 1 >= envList.length ? 0 : currentIndex + 1;
+
+		setApiUrl(String(envList[newIndex]));
+		setCurrentApi(String(envList[newIndex]));
+	};
+
 	return (
 		<View style={styles.main}>
+			<View style={styles.changeEnvButton}>
+				<Button
+					title={currentApi
+						.replace('https://', '')
+						.replace('.fitbox', '')
+						.replace('.iq', '')
+						.replace('fitbox', 'PRODUCTION')
+						.toUpperCase()}
+					variant="darkgray"
+					onPress={onRotateEnv}
+					sm
+				/>
+			</View>
+
 			<View style={styles.container}>
 				<ImageVariant
 					source={LogoImage as ImageSourcePropType}
@@ -73,6 +101,7 @@ const LandingScreen = ({ navigation }: ApplicationScreenProps) => {
 						title={t('landing:register')}
 						onPress={toggleOptionVisibility}
 					/>
+					<Spacer size="rg" />
 				</View>
 			</View>
 
@@ -143,5 +172,10 @@ const styles = StyleSheet.create({
 	},
 	optionLabelStyle: {
 		paddingVertical: config.metrics.md,
+	},
+	changeEnvButton: {
+		position: 'absolute',
+		right: '5%',
+		top: '5%',
 	},
 });

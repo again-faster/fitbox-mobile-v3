@@ -9,8 +9,13 @@ type HRProps = {
 	noMarginBottom?: boolean;
 };
 
-const HR = (props: HRProps) => {
-	const { color, thickness, margin, style, noMarginBottom } = props;
+const HR = ({
+	color = config.borders.colors.gray,
+	thickness = StyleSheet.hairlineWidth,
+	margin = true,
+	style,
+	noMarginBottom = false,
+}: HRProps) => {
 	const marginBottom = noMarginBottom ? { marginBottom: 0 } : {};
 	return (
 		<View
@@ -27,14 +32,6 @@ const HR = (props: HRProps) => {
 			]}
 		/>
 	);
-};
-
-HR.defaultProps = {
-	color: config.borders.colors.gray,
-	thickness: StyleSheet.hairlineWidth,
-	margin: true,
-	style: undefined,
-	noMarginBottom: false,
 };
 
 export default HR;

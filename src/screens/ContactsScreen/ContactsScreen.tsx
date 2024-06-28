@@ -26,7 +26,6 @@ import { List, Searchbar } from 'react-native-paper';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 type State = {
-	list: ContactMembersType[];
 	groups: ContactGroupType[];
 	loading: boolean;
 	refreshing: boolean;
@@ -39,15 +38,17 @@ const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 		setAppState: state.setAppState,
 	}));
 	const [state, setState] = useState<State>({
-		list: [],
 		groups: [],
 		loading: true,
 		refreshing: false,
 		sortBy: 'player',
 		searchQuery: '',
 	});
+	const [contactList, setContactList] = useState<ContactMembersType[]>([]);
 	const stateRef = useRef<State>();
+	const contactListRef = useRef<ContactMembersType[]>([]);
 	stateRef.current = state;
+	contactListRef.current = contactList;
 	const [selectAll, setSelectAll] = useState<boolean>(false);
 
 	const renderHeaderComposeButton = () => (
@@ -88,9 +89,8 @@ const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 	}, []);
 
 	const saveContacts = () => {
-		const { list, groups } = stateRef.current as State;
+		const { groups } = stateRef.current as State;
 		const contacts: ContactMembersType[] = [];
-
 		groups.forEach(group => {
 			group.members?.forEach((c: ContactGroupMembersType) => {
 				if (c.is_selected) {
@@ -103,7 +103,7 @@ const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 			});
 		});
 
-		list.forEach((c: ContactMembersType) => {
+		contactListRef.current.forEach((c: ContactMembersType) => {
 			if (c.is_selected && !contacts.includes(c)) {
 				contacts.push(c);
 			}
@@ -134,12 +134,12 @@ const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 
 		setState(prevState => ({
 			...prevState,
-			list: _sortBy(list, 'fullname'),
 			groups,
 			loading: false,
 			refreshing: false,
 			sortBy: sortByRefresh || sort,
 		}));
+		setContactList(_sortBy(list, 'fullname'));
 	};
 
 	const handleTabPress = (sort: string) => {
@@ -147,11 +147,11 @@ const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 	};
 
 	const handleToggleContact = (index: number) => {
-		const { list } = state;
-		(list[index] as ContactMembersType).is_selected = !(
-			list[index] as ContactMembersType
+		const updatedContactList = [...contactList];
+		(updatedContactList[index] as ContactMembersType).is_selected = !(
+			updatedContactList[index] as ContactMembersType
 		).is_selected;
-		setState(prevState => ({ ...prevState, list }));
+		setContactList(updatedContactList);
 	};
 
 	const renderCheckIcon = (isSelected: boolean) => {
@@ -164,29 +164,35 @@ const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 	};
 
 	const onSelectAll = () => {
-		const { list, sortBy } = state;
-		const notSelected = list.find(
+		const { sortBy } = state;
+		const updatedContactList = [...contactList];
+		const notSelected = updatedContactList.find(
 			i =>
 				i.role === sortBy &&
 				(i.is_selected === undefined || i.is_selected === false),
 		);
 
 		if (notSelected) {
-			list.forEach((item: ContactMembersType, index: number) => {
-				if (sortBy === item.role) {
-					(list[index] as ContactMembersType).is_selected = true;
-				}
-			});
+			updatedContactList.forEach(
+				(item: ContactMembersType, index: number) => {
+					if (sortBy === item.role) {
+						(
+							updatedContactList[index] as ContactMembersType
+						).is_selected = true;
+					}
+				},
+			);
 		} else {
-			list.map((item: ContactMembersType, index: number) =>
+			updatedContactList.map((item: ContactMembersType, index: number) =>
 				sortBy === item.role
-					? delete (list[index] as ContactMembersType).is_selected
+					? delete (updatedContactList[index] as ContactMembersType)
+							.is_selected
 					: null,
 			);
 		}
 
 		setSelectAll(!selectAll);
-		setState(prevState => ({ ...prevState, list }));
+		setContactList(updatedContactList);
 	};
 
 	const handleToggleGroup = (index: number) => {
@@ -349,7 +355,7 @@ const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 		if (state.sortBy !== 'group') {
 			return (
 				<FlatList
-					data={state.list}
+					data={contactList}
 					renderItem={renderList}
 					refreshing={state.refreshing}
 					onRefresh={() => void getData(state.sortBy)}

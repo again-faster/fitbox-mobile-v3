@@ -28,6 +28,12 @@ const SORT_OPTIONS = [
 	{ name: 'Groups', value: 'group' },
 ];
 
+const API_BASE_URLS = {
+	DEV: 'https://dev.fitbox.iq',
+	STAGING: 'https://staging.fitbox.iq',
+	PROD: 'https://fitbox.iq',
+};
+
 // TODO: transfer apiKey or retrieve somewhere
 const TENOR_API_KEY = 'AIzaSyCe3wcxBWD8Oe5SBfBz7qhR2680gYvIqEA';
 
@@ -172,4 +178,5 @@ export default {
 	QUESTIONS_LIST,
 	SORT_OPTIONS,
 	TENOR_API_KEY,
+	API_BASE_URLS,
 };

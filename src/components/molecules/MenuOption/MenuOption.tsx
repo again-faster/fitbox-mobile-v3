@@ -18,12 +18,12 @@ interface MenuOptionProps {
 }
 
 const MenuOption = ({
+	fontAwesome = false,
+	showOptionBadge = false,
+	hide = false,
 	name,
 	icon,
 	onPress,
-	fontAwesome,
-	showOptionBadge,
-	hide,
 }: MenuOptionProps) => {
 	const { fonts } = useTheme();
 
@@ -76,12 +76,6 @@ const MenuOption = ({
 			{showOptionBadge && <Text>Badge</Text>}
 		</Card>
 	);
-};
-
-MenuOption.defaultProps = {
-	fontAwesome: false,
-	showOptionBadge: false,
-	hide: false,
 };
 
 export default MenuOption;

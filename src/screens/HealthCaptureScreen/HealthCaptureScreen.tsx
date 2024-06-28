@@ -5,6 +5,7 @@ import getUserGymInfo from '@/services/users/getUserGymInfo';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import {
+	ApplicationScreenProps,
 	HealthCaptureParams,
 	MenuStackNavigatorProps,
 } from '@/types/navigation';
@@ -13,6 +14,7 @@ import { UserHealthInfoType, UserSchemaType } from '@/types/schemas/user';
 import { Constant, Say } from '@/utils';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 
+import { navigate } from '@/navigators/NavigationRef';
 import { CommonActions } from '@react-navigation/native';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
@@ -69,9 +71,8 @@ type DataObject = {
 const HealthCaptureScreen = ({
 	navigation,
 	route,
-}: MenuStackNavigatorProps) => {
+}: MenuStackNavigatorProps | ApplicationScreenProps) => {
 	const { user, updateUser } = useAuth();
-	const { fromMenu } = route.params as HealthCaptureParams;
 
 	const [state, setState] = useState<StateProps>({
 		gymInfo: null,
@@ -291,8 +292,8 @@ const HealthCaptureScreen = ({
 
 		updateUser(newUserInfo);
 
-		if (fromMenu) {
-			navigation.navigate('Menu');
+		if ((route.params as HealthCaptureParams)?.fromMenu) {
+			navigate('Menu');
 		} else {
 			navigation.dispatch(
 				CommonActions.reset({
@@ -304,7 +305,7 @@ const HealthCaptureScreen = ({
 	};
 
 	const goToMainMenu = () => {
-		navigation.navigate('Menu');
+		navigate('Menu');
 	};
 
 	const handleSelectRow = (focusedRow: number) => {
@@ -721,7 +722,8 @@ const HealthCaptureScreen = ({
 					style={styles.submitButtonStyle}
 					loading={state.submitting}
 				/>
-				{user?.user_data.is_health_captured || fromMenu ? (
+				{user?.user_data.is_health_captured ||
+				(route.params as HealthCaptureParams)?.fromMenu ? (
 					<Button
 						labelStyle={{
 							...styles.submitLabelStyle,

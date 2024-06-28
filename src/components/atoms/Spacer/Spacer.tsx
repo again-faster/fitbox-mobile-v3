@@ -25,9 +25,4 @@ const Spacer = ({ size = 'sm', horizontal = false }: SpacerProps) => {
 	return <View style={{ height, width }} />;
 };
 
-Spacer.defaultProps = {
-	size: 'sm',
-	horizontal: false,
-};
-
 export default Spacer;

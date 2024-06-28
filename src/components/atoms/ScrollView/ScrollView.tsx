@@ -10,7 +10,7 @@ interface ScrollViewProps extends React.ComponentProps<typeof SV> {
 const ScrollView = ({
 	onRefresh,
 	children,
-	refreshing,
+	refreshing = false,
 	...props
 }: ScrollViewProps) => {
 	const { colors } = useTheme();
@@ -33,11 +33,6 @@ const ScrollView = ({
 			{children}
 		</SV>
 	);
-};
-
-ScrollView.defaultProps = {
-	onRefresh: undefined,
-	refreshing: false,
 };
 
 export default ScrollView;

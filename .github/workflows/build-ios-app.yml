@@ -70,12 +70,28 @@ jobs:
                   cd ios
                   yarn install
 
-            - name: install Cocoapod dependencies
+            - name: Update Bundler and Install Gems
               run: |
-                  cd ios
-                  pod repo update
-                  pod install
+                   gem update --system
+                   gem install bundler
+                   bundle install
 
+            - name: Clear Bundler Cache
+              run: |
+                   bundle clean --force
+                   rm -rf ~/.bundle/cache
+
+            - name: Install Pod Dependencies
+              run: |
+                   echo "RCT_NEW_ARCH_ENABLED: $RCT_NEW_ARCH_ENABLED"
+                   which bundle
+                   bundle --version
+                   which pod
+                   pod --version
+                   cd ios
+                   pod repo update
+                   RCT_NEW_ARCH_ENABLED=1 bundle exec pod install --verbose
+                   
             - name: Increment Xcode Build Number and Commit
               run: |
                   bash scripts/increment_build_number.sh

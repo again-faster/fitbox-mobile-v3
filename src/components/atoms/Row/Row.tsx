@@ -44,11 +44,4 @@ const Row = ({
 	return component;
 };
 
-Row.defaultProps = {
-	spacing: undefined,
-	align: undefined,
-	onPress: undefined,
-	style: undefined,
-};
-
 export default Row;

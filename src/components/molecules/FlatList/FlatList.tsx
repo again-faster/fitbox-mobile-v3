@@ -14,13 +14,12 @@ type FlatListProps = {
 };
 
 const FlatList = ({
+	placeholder,
+	refreshing = false,
+	loading = false,
 	data,
 	renderItem,
-	loading,
-	refreshing,
 	onRefresh,
-	placeholder,
-	useRefresh,
 	extractor,
 	...rest
 }: FlatListProps & React.ComponentProps<typeof List>) => {
@@ -43,15 +42,6 @@ const FlatList = ({
 			data={data}
 		/>
 	);
-};
-
-FlatList.defaultProps = {
-	useRefresh: false,
-	extractor: undefined,
-	placeholder: null,
-	onRefresh: undefined,
-	refreshing: false,
-	loading: false,
 };
 
 export default FlatList;

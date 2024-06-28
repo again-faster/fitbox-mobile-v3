@@ -10,11 +10,14 @@ interface LoaderProps {
 	cover?: boolean;
 }
 
-const Loader = ({ color, size, text, cover }: LoaderProps) => {
+const Loader = ({
+	color = 'brand',
+	size = config.fonts.metrics.lg,
+	cover = false,
+	text,
+}: LoaderProps) => {
 	const useSize: number =
-		typeof size === 'number'
-			? size
-			: config.fonts.metrics[size as FontSizeMetrics];
+		typeof size === 'number' ? size : config.fonts.metrics[size];
 
 	const renderLoader = (
 		<>
@@ -32,13 +35,6 @@ const Loader = ({ color, size, text, cover }: LoaderProps) => {
 	if (cover) return <View style={styles.cover}>{renderLoader}</View>;
 
 	return renderLoader;
-};
-
-Loader.defaultProps = {
-	color: config.fonts.colors.brand,
-	size: config.fonts.metrics.lg,
-	text: undefined,
-	cover: false,
 };
 
 export default Loader;

@@ -45,6 +45,9 @@ const CardInfoScreen = () => {
 		allowSkip: true,
 	});
 	const [paymentIsLoading, setPaymentIsLoading] = useState(true);
+	const routes = navigation.getState()?.routes ?? [];
+	const lastRouteName = routes[routes.length - 1]?.name;
+
 	useEffect(() => {
 		void (async () => {
 			await checkCountry();
@@ -138,11 +141,11 @@ const CardInfoScreen = () => {
 			console.log('error: ', e);
 		}
 
-		if (
-			navigation.getState().routes[
-				navigation.getState().routes.length - 1
-			]?.name === 'PaymentUpdate'
-		) {
+		if ((lastRouteName ?? '') !== 'PaymentUpdate' && state.allowSkip) {
+			// Your existing logic
+		}
+
+		if (lastRouteName === 'PaymentUpdate') {
 			navigation.goBack();
 			Say.ok('Successfully Updated');
 		} else {
@@ -217,19 +220,16 @@ const CardInfoScreen = () => {
 				)}
 			</View>
 
-			{navigation.getState().routes[
-				navigation.getState().routes.length - 1
-			]?.name !== 'PaymentUpdate' &&
-				state.allowSkip && (
-					<View style={styles.skipButtonContainer}>
-						<Button
-							title="Skip"
-							labelStyle={styles.skipButtonStyle}
-							dark
-							onPress={void handleskip}
-						/>
-					</View>
-				)}
+			{lastRouteName !== 'PaymentUpdate' && state.allowSkip && (
+				<View style={styles.skipButtonContainer}>
+					<Button
+						title="Skip"
+						labelStyle={styles.skipButtonStyle}
+						dark
+						onPress={void handleskip}
+					/>
+				</View>
+			)}
 		</>
 	);
 };

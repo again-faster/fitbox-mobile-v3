@@ -14,10 +14,10 @@ interface TeamAvatarProps {
 }
 
 const TeamAvatar = ({
-	logo,
-	rounded,
+	logo = '',
+	rounded = false,
 	size = 'md',
-	onPress,
+	onPress = () => {},
 }: TeamAvatarProps) => {
 	// Rounded style
 	const roundedStyle = rounded ? { borderRadius: 50 } : {};
@@ -48,13 +48,6 @@ const TeamAvatar = ({
 			)}
 		</TouchableOpacity>
 	);
-};
-
-TeamAvatar.defaultProps = {
-	logo: '',
-	onPress: () => {},
-	rounded: false,
-	size: 'md',
 };
 
 export default TeamAvatar;

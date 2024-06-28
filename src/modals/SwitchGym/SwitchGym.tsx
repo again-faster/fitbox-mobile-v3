@@ -47,6 +47,9 @@ const SwitchGym = () => {
 					Say.err(res.message);
 				}
 			})
+			.catch(() => {
+				Say.err('Something went wrong');
+			})
 			.finally(() => {
 				setSwitching(false);
 			});
