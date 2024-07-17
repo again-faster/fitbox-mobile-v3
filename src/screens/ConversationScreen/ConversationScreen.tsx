@@ -1,5 +1,5 @@
 import useAuth from '@/auth/hooks/useAuth';
-import { HR, Row, Text } from '@/components/atoms';
+import { HR, KeyboardSpacer, Row, Text } from '@/components/atoms';
 import { ChatMessage, MessageInput, Modal } from '@/components/molecules';
 import HeaderButtonGroup from '@/components/template/Header/HeaderButtonGroup';
 import {
@@ -24,6 +24,7 @@ import {
 	ActivityIndicator,
 	Alert,
 	FlatList,
+	Platform,
 	StyleSheet,
 	TouchableOpacity,
 	View,
@@ -390,6 +391,7 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 				</Text>
 				<HR noMarginBottom />
 			</View>
+
 			<View style={styles.conversationContainer}>
 				{renderConversation()}
 			</View>
@@ -424,6 +426,7 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 					] as SendMessageDataType,
 				)}
 			</Modal>
+			{Platform.OS === 'ios' && <KeyboardSpacer />}
 		</View>
 	);
 };

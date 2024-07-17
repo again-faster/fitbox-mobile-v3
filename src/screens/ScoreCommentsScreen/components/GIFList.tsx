@@ -80,31 +80,36 @@ const GIFList = ({
 
 	return (
 		<View style={styles.searchGIFContainer}>
-			<Icon
-				name="close-outline"
-				size={config.metrics.lg}
-				color={config.backgrounds.darkgray}
-				style={styles.closeAttachmentIcon}
-				onPress={() => {
-					setToggleGIF(false);
-					setChosenGIF('');
-					setGIFUrl('');
-				}}
-			/>
-			<Searchbar
-				placeholder="Search Tenor"
-				style={styles.searchGIF}
-				value={searchQuery as string}
-				onChangeText={text => setSearchQuery(text)}
-				inputStyle={styles.searchInputGIF}
-			/>
-			<FlatList
-				horizontal
-				data={gifList}
-				renderItem={renderGIFTile}
-				showsHorizontalScrollIndicator={false}
-				ref={gifRef}
-			/>
+			{isEmpty(chosenGIF) && (
+				<>
+					<Icon
+						name="close-outline"
+						size={config.metrics.lg}
+						color={config.backgrounds.darkgray}
+						style={styles.closeAttachmentIcon}
+						onPress={() => {
+							setToggleGIF(false);
+							setChosenGIF('');
+							setGIFUrl('');
+						}}
+					/>
+					<Searchbar
+						placeholder="Search Tenor"
+						style={styles.searchGIF}
+						value={searchQuery as string}
+						onChangeText={text => setSearchQuery(text)}
+						inputStyle={styles.searchInputGIF}
+					/>
+					<FlatList
+						horizontal
+						data={gifList}
+						renderItem={renderGIFTile}
+						showsHorizontalScrollIndicator={false}
+						ref={gifRef}
+						keyboardShouldPersistTaps="always"
+					/>
+				</>
+			)}
 			{!isEmpty(chosenGIF) && (
 				<View style={styles.chosenGIFContainer}>
 					<Icon
@@ -168,7 +173,7 @@ const styles = StyleSheet.create({
 	},
 	chosenGIFContainer: {
 		paddingTop: config.metrics.xs,
-		paddingBottom: config.metrics.lg,
+		paddingBottom: config.metrics.rg,
 		alignItems: 'center',
 	},
 });

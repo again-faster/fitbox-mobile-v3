@@ -28,7 +28,7 @@ export const SectionSchema = z.object({
 export const LeaderboardsDataSchema = z.object({
 	firstname: z.string(),
 	lastname: z.string(),
-	gender: z.string(),
+	gender: z.string().nullable(),
 	profile_image: z.string(),
 	venue_id: z.number().nullable(),
 	score_type: z.string().nullable(),
@@ -41,7 +41,7 @@ export const LeaderboardsDataSchema = z.object({
 	score_id: z.number(),
 	num_of_comments: z.number(),
 	user_id: z.number(),
-	age: z.number(),
+	age: z.number().nullable(),
 	wod_section_id: z.number(),
 	wod_attendance_id: z.number(),
 	sequence: z.number(),

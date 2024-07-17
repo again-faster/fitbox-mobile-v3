@@ -454,8 +454,8 @@ const ClassResultsScreen = ({
 					if (ageFrom !== '' && ageTo !== '') {
 						show = false;
 						if (
-							data.age >= Number(ageFrom) &&
-							data.age <= Number(ageTo)
+							(data.age as number) >= Number(ageFrom) &&
+							(data.age as number) <= Number(ageTo)
 						) {
 							show = false;
 						}

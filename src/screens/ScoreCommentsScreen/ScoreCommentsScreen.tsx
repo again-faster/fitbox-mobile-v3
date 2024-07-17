@@ -1,5 +1,12 @@
 import useAuth from '@/auth/hooks/useAuth';
-import { Avatar, Card, Row, Spacer, Text } from '@/components/atoms';
+import {
+	Avatar,
+	Card,
+	KeyboardSpacer,
+	Row,
+	Spacer,
+	Text,
+} from '@/components/atoms';
 import {
 	commentScore,
 	getScoreApplauses,
@@ -428,6 +435,7 @@ const ScoreCommentsScreen = ({ route }: DashboardStackNavigatorProps) => {
 				</View>
 			</Modal>
 			{renderCommentsTab()}
+			{Platform.OS === 'ios' && <KeyboardSpacer />}
 		</View>
 	);
 };
