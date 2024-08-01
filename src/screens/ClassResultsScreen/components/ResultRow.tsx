@@ -137,11 +137,11 @@ const ResultRow = (props: Props) => {
 								<TouchableOpacity
 									key={key}
 									style={{
-										marginHorizontal: config.metrics.sm,
+										marginHorizontal: config.metrics.rg,
 									}}
 									onPress={() => void onIconClick(key)}
 								>
-									<Text>{reaction}</Text>
+									<Text size="xl">{reaction}</Text>
 								</TouchableOpacity>
 							);
 						})}
@@ -162,129 +162,147 @@ const ResultRow = (props: Props) => {
 					})
 				}
 			>
-				<Row align="center">
-					<Avatar
-						key={userID}
-						source={profileImage}
-						size={config.metrics.xl}
-					/>
+				<Row>
+					<Avatar key={userID} source={profileImage} size={55} />
 					<Spacer horizontal size="sm" />
-					<Text size="rg" color="darkgray" style={layout.flex_1}>
-						{`${firstname} ${lastname}`}
-					</Text>
-					<View style={styles.alignCenter}>
-						<Text>
+					<View style={styles.textContainer}>
+						<Text
+							size="md"
+							color="darkgray"
+							bold
+							style={layout.flex_1}
+							numberOfLines={1}
+						>
+							{`${firstname} ${lastname}`}
+						</Text>
+
+						<Text numberOfLines={1}>
 							{hideRxSwitch && 'Score: '}
 							{showValue()}
 							{!hideRxSwitch &&
 								` (${(scoreType as string).slice(0, 2)})`}
 						</Text>
 					</View>
-				</Row>
-			</TouchableOpacity>
-			<Row
-				style={{
-					...layout.flex_1,
-					marginTop: config.metrics.md,
-				}}
-			>
-				<Row style={styles.reactionsStyle}>
-					{renderPopupReact(
-						tooltipPopupActive,
-						showReactions,
-						onClickReact,
-					)}
-					{reactionCounts.length > 0 &&
-						reactionCounts.map(
-							({ reaction, count, isApplauded }, index) => {
-								return (
+					<Spacer horizontal size="sm" />
+					<View style={styles.iconsContainer}>
+						<View style={styles.commentStyle}>
+							{showComments ? (
+								<>
+									<Spacer horizontal />
 									<TouchableOpacity
-										key={reaction}
-										style={{
-											marginRight:
-												index ===
-												reactionCounts.length - 1
-													? config.metrics.rg
-													: config.metrics.xs,
-										}}
-										onPress={() => {
-											void onApplause(
-												scoreId,
-												reaction,
-												currentReaction,
-											);
-										}}
+										onPress={() =>
+											navigate('ScoreComments', {
+												score_id: scoreId,
+												type: 'comments',
+												showComments,
+											})
+										}
 									>
 										<Row align="flex-end">
-											<Text size="md">
-												{
-													resources.react[
-														reaction as keyof Reactions
-													]
+											<Image
+												source={
+													numOfComments > 0
+														? resources.icon
+																.comments
+														: resources.icon
+																.commentso
 												}
-											</Text>
-
-											<Text
-												size="sm"
-												color={
-													isApplauded
-														? 'info'
-														: 'darkgray'
-												}
-												bold={!!isApplauded}
-											>
-												{count}
-											</Text>
+												style={{
+													width: config.metrics.lg,
+													height: config.metrics.lg,
+												}}
+											/>
+											{numOfComments > 0 && (
+												<>
+													<Spacer
+														horizontal
+														size="xs"
+													/>
+													<Text>{numOfComments}</Text>
+												</>
+											)}
 										</Row>
 									</TouchableOpacity>
-								);
-							},
-						)}
-					{showReactions.length > 0 && (
-						<TouchableOpacity
-							onPress={() => onEmoteClick(rowIndex, sectionIndex)}
-						>
-							<Image
-								source={resources.icon.addReaction}
-								style={styles.addReactionStyle}
-							/>
-						</TouchableOpacity>
-					)}
-				</Row>
+								</>
+							) : null}
+						</View>
+						<Spacer size="xs" />
+						<View style={styles.reactionsContainer}>
+							<Row style={styles.reactionsStyle}>
+								{renderPopupReact(
+									tooltipPopupActive,
+									showReactions,
+									onClickReact,
+								)}
+								{reactionCounts.length > 0 &&
+									reactionCounts.map(
+										(
+											{ reaction, count, isApplauded },
+											index,
+										) => {
+											return (
+												<TouchableOpacity
+													key={reaction}
+													style={{
+														marginRight:
+															index ===
+															reactionCounts.length -
+																1
+																? config.metrics
+																		.rg
+																: config.metrics
+																		.xs,
+													}}
+													onPress={() => {
+														void onApplause(
+															scoreId,
+															reaction,
+															currentReaction,
+														);
+													}}
+												>
+													<Row align="flex-end">
+														<Text size="md">
+															{
+																resources.react[
+																	reaction as keyof Reactions
+																]
+															}
+														</Text>
 
-				<View style={styles.commentStyle}>
-					{showComments ? (
-						<>
-							<Spacer horizontal />
-							<TouchableOpacity
-								onPress={() =>
-									navigate('ScoreComments', {
-										score_id: scoreId,
-										type: 'comments',
-										showComments,
-									})
-								}
-							>
-								<Row align="flex-end">
-									<Image
-										source={
-											numOfComments > 0
-												? resources.icon.comments
-												: resources.icon.commentso
+														<Text
+															size="sm"
+															color={
+																isApplauded
+																	? 'info'
+																	: 'darkgray'
+															}
+															bold={!!isApplauded}
+														>
+															{count}
+														</Text>
+													</Row>
+												</TouchableOpacity>
+											);
+										},
+									)}
+								{showReactions.length > 0 && (
+									<TouchableOpacity
+										onPress={() =>
+											onEmoteClick(rowIndex, sectionIndex)
 										}
-										style={{
-											width: config.metrics.lg,
-											height: config.metrics.lg,
-										}}
-									/>
-									<Spacer horizontal size="xs" />
-									<Text>{numOfComments}</Text>
-								</Row>
-							</TouchableOpacity>
-						</>
-					) : null}
-				</View>
-			</Row>
+									>
+										<Image
+											source={resources.icon.addReaction}
+											style={styles.addReactionStyle}
+										/>
+									</TouchableOpacity>
+								)}
+							</Row>
+						</View>
+					</View>
+				</Row>
+			</TouchableOpacity>
 		</View>
 	);
 };
@@ -299,12 +317,12 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	tooltipContainer: {
-		width: Constant.DEVICEWIDTH,
+		width: Constant.DEVICEWIDTH / 2,
 		height: 50,
 		justifyContent: 'center',
 		alignItems: 'center',
 		position: 'absolute',
-		left: -40,
+		right: 60,
 		top: '-150%',
 		zIndex: 99999,
 		flex: 1,
@@ -359,6 +377,17 @@ const styles = StyleSheet.create({
 	},
 	addReactionStyle: { width: 20, height: 20 },
 	commentStyle: {
+		alignItems: 'flex-end',
+		paddingRight: 2,
+	},
+	textContainer: {
+		flex: 3,
+	},
+	iconsContainer: {
+		justifyContent: 'space-between',
+	},
+	reactionsContainer: {
+		alignItems: 'flex-end',
 		justifyContent: 'flex-end',
 	},
 });
