@@ -24,5 +24,5 @@ echo "Updated CURRENT_PROJECT_VERSION to $NEW_PROJECT_VERSION in XCODEPROJ"
 if [ -n "$(git status --porcelain "$PROJECT_PATH")" ]; then
     git add "$PROJECT_PATH"
     git commit -m "build: increment project version to $NEW_PROJECT_VERSION" --author="GitHub Actions <actions@github.com>"
-    git push origin HEAD:upgrade/rn-0.74  # change to which branch you are pushing the changes
+    git push origin HEAD:dev-build  # change to which branch you are pushing the changes
 fi

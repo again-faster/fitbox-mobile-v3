@@ -483,7 +483,8 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 22;
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 72JFN8S92U;
 				ENABLE_BITCODE = NO;
@@ -503,7 +504,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.af.fitbox;
 				PRODUCT_NAME = fitbox;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Fitbox Mobile V2";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "fitbox v2 appstore";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -520,7 +521,8 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 22;
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 72JFN8S92U;
 				INFOPLIST_FILE = fitbox/Info.plist;
@@ -539,7 +541,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.af.fitbox;
 				PRODUCT_NAME = fitbox;
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Fitbox Mobile V2";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "fitbox v2 appstore";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
