@@ -1,12 +1,16 @@
 import useAuth from '@/auth/hooks/useAuth';
-import { Avatar, Row, ScrollView, Spacer, Text } from '@/components/atoms';
+import { Row, ScrollView, Spacer, Text } from '@/components/atoms';
 import { SafeScreen } from '@/components/template';
 import { navigate } from '@/navigators/NavigationRef';
 import { getGymClasses, getGymVenues } from '@/services/gym';
+import { getAttendanceReport } from '@/services/leaderboards';
 import { getClassFilters } from '@/services/session';
 import { getBookedSessions, getUserGymInfo } from '@/services/users';
 import { config } from '@/theme/_config';
+import layout from '@/theme/layout';
+import resources from '@/theme/resources';
 import { GymVenueType } from '@/types/schemas/gym';
+import { AttendanceReportDataType } from '@/types/schemas/leaderboards';
 import { ClassFiltersDataType } from '@/types/schemas/session';
 import { UserSchemaType } from '@/types/schemas/user';
 import { Say } from '@/utils';
@@ -20,6 +24,7 @@ import { useTranslation } from 'react-i18next';
 import {
 	Alert,
 	Dimensions,
+	Image,
 	StyleSheet,
 	TouchableOpacity,
 	View,
@@ -89,6 +94,9 @@ const Dashboard = () => {
 	const [classFiltersData, setClassFiltersData] = useState<
 		ClassFiltersDataType[]
 	>([]);
+
+	const [attendanceReport, setAttendanceReport] =
+		useState<AttendanceReportDataType | null>(null);
 
 	const onRefresh = () => {
 		void initializeAppStates();
@@ -269,9 +277,27 @@ const Dashboard = () => {
 	);
 
 	// get filter options every gym switch
+	// get attendance report
 	useEffect(() => {
 		void fetchFilterOptions();
+		void fetchAttendanceReport();
 	}, []);
+
+	const fetchAttendanceReport = () => {
+		try {
+			getAttendanceReport(user?.user_data.user_id as number)
+				.then(res => {
+					if (!res.error) {
+						setAttendanceReport(res.data);
+					}
+				})
+				.catch(err => {
+					Say.err(err as string);
+				});
+		} catch (e) {
+			Say.err(e as string);
+		}
+	};
 
 	const fetchFilterOptions = () => {
 		const selectedVenueIds = venueFilters
@@ -346,10 +372,10 @@ const Dashboard = () => {
 
 	// TEMPORARY VARIABLES
 	const showSwitchBtn = true;
-	const avatarImage = 'https://avatars.githubusercontent.com/u/15073128?v=4';
+	// const avatarImage = 'https://avatars.githubusercontent.com/u/15073128?v=4';
 
 	// TEMPORARY FUNCTIONS
-	const onSwitchUserClick = () => navigate('SwitchUser');
+	// const onSwitchUserClick = () => navigate('SwitchUser');
 	const onActionButtonClick = (navTo: string) => {
 		if (navTo === 'calendar') {
 			navigate('Calendar');
@@ -436,13 +462,80 @@ const Dashboard = () => {
 									})}
 								</Text>
 							</View>
-
-							{showSwitchBtn ? (
+							{/* Remove profile pic for now from Gene and Cam */}
+							{/* {showSwitchBtn ? (
 								<TouchableOpacity onPress={onSwitchUserClick}>
 									<Avatar source={avatarImage} />
 								</TouchableOpacity>
-							) : null}
+							) : null} */}
 						</Row>
+
+						{attendanceReport && (
+							<View
+								style={{
+									marginTop: config.metrics.lg,
+									marginBottom: config.metrics.rg,
+								}}
+							>
+								<Row spacing="space-evenly">
+									<View
+										style={[
+											layout.flex_1,
+											styles.attendanceContainer,
+										]}
+									>
+										<Row align="flex-end">
+											<Image
+												source={
+													resources.icon.monthToDate
+												}
+												style={styles.attendanceIcon}
+											/>
+											<Text
+												style={styles.attendanceValue}
+												bold
+											>
+												{attendanceReport?.monthToDate}
+											</Text>
+											<Text
+												size="md"
+												style={styles.attendanceText}
+											>
+												this month
+											</Text>
+										</Row>
+									</View>
+
+									<View
+										style={[
+											layout.flex_1,
+											styles.attendanceContainer,
+										]}
+									>
+										<Row align="flex-end">
+											<Image
+												source={
+													resources.icon.yearToDate
+												}
+												style={styles.attendanceIcon}
+											/>
+											<Text
+												style={styles.attendanceValue}
+												bold
+											>
+												{attendanceReport?.yearToDate}
+											</Text>
+											<Text
+												size="md"
+												style={styles.attendanceText}
+											>
+												this year
+											</Text>
+										</Row>
+									</View>
+								</Row>
+							</View>
+						)}
 
 						{upcomingSessions.length > 0 && (
 							<>
@@ -589,6 +682,20 @@ const styles = StyleSheet.create({
 		flexWrap: 'wrap',
 		flexDirection: 'row-reverse',
 	},
+	attendanceIcon: {
+		width: 25,
+		height: 25,
+		marginBottom: 8,
+		marginRight: 8,
+	},
+	attendanceText: {
+		paddingBottom: 5,
+		marginLeft: config.metrics.sm,
+	},
+	attendanceContainer: {
+		alignItems: 'center',
+	},
+	attendanceValue: { fontSize: 35 },
 });
 
 export default Dashboard;

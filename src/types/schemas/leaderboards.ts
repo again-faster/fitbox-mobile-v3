@@ -130,6 +130,15 @@ export const ScoreResultSchema = z.object({
 	wod_section_id: z.number().nullish(),
 });
 
+export const AttendanceReportDataSchema = z.object({
+	lastMonth: z.number(),
+	lastWeek: z.number(),
+	lifetime: z.number(),
+	monthToDate: z.number(),
+	weekToDate: z.number(),
+	yearToDate: z.number(),
+});
+
 export type SectionType = z.infer<typeof SectionSchema>;
 export type LeaderboardsDataType = z.infer<typeof LeaderboardsDataSchema>;
 export type ScoreDetailsDataType = z.infer<typeof ScoreDetailsDataSchema>;
@@ -143,3 +152,6 @@ export type GetPastPerformanceResultType = z.infer<
 	typeof GetPastPerformanceResultSchema
 >;
 export type ScoreResultType = z.infer<typeof ScoreResultSchema>;
+export type AttendanceReportDataType = z.infer<
+	typeof AttendanceReportDataSchema
+>;

@@ -554,14 +554,14 @@ export const SessionDetailSchema = z.object({
 
 export const ClassFiltersDataSchema = z.object({
 	classIds: z.array(z.number()),
-	context_id: z.number(),
-	created_at: z.string(),
+	context_id: z.number().optional(),
+	created_at: z.string().optional(),
 	id: z.number(),
-	isDefault: z.number(),
+	isDefault: z.union([z.boolean(), z.number()]),
 	locationIds: z.array(z.number()),
 	name: z.string(),
 	sequence: z.number(),
-	updated_at: z.string(),
+	updated_at: z.string().optional(),
 });
 
 export type ClassFiltersDataType = z.infer<typeof ClassFiltersDataSchema>;

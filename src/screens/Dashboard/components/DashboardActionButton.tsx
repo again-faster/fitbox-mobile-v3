@@ -19,7 +19,6 @@ const DashboardActionButton = ({
 	icon,
 }: DashboardActionButtonProps) => {
 	const { colors } = useTheme();
-
 	return (
 		<TouchableRipple
 			onPress={onPress}
@@ -48,7 +47,7 @@ const styles = StyleSheet.create({
 		marginBottom: metrics.md,
 		gap: 8,
 		borderWidth: 1,
-		paddingHorizontal: 8,
+		paddingHorizontal: 7,
 		borderRadius: 4,
 		justifyContent: 'center',
 		height: 55,

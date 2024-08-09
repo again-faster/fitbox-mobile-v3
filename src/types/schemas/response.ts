@@ -8,6 +8,7 @@ import {
 } from './gym';
 import {
 	ApplausesDataSchema,
+	AttendanceReportDataSchema,
 	GetPastPerformanceResultSchema,
 	LeaderboardsDataSchema,
 	PrResultSchema,
@@ -308,4 +309,8 @@ export const GetClassFiltersSchema = apiResponseSchema(
 
 export const GetFitboxGallerySchema = apiResponseSchema(
 	FitboxGalleryDataSchema,
+);
+
+export const GetAttendanceReportSchema = apiResponseSchema(
+	AttendanceReportDataSchema,
 );
