@@ -5,6 +5,7 @@ import {
 	SessionSectionSchemaType,
 } from '@/types/schemas/session';
 import moment from 'moment';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import { VisibilityOptions } from './Enum';
 
 const decodeHtml = (str: string): string => {
@@ -161,6 +162,15 @@ const getYoutubeUrl = (u: string) => {
 	return useId;
 };
 
+const getBase64 = async (uri: string) => {
+	return ReactNativeBlobUtil.fs.readFile(uri, 'base64');
+};
+
+const getFileExt = (filename: string) => {
+	const split: string[] = filename.split('.');
+	return split.pop()?.toLowerCase();
+};
+
 export default {
 	decodeHtml,
 	stripHtmlTags,
@@ -172,4 +182,6 @@ export default {
 	checkSectionsIfAvailable,
 	validURL,
 	getYoutubeUrl,
+	getBase64,
+	getFileExt,
 };

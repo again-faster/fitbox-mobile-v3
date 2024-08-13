@@ -965,6 +965,27 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-compressor (1.8.25):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-mmkv (3.0.0-beta.6):
     - DoubleConversion
     - glog
@@ -1094,6 +1115,49 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Toast (~> 4)
+    - Yoga
+  - react-native-video (6.0.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - react-native-video/Video (= 6.0.0)
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - react-native-video/Video (6.0.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
     - Yoga
   - react-native-webview (13.8.4):
     - DoubleConversion
@@ -1419,6 +1483,27 @@ PODS:
     - React-Core
     - React-RCTImage
     - TOCropViewController
+  - RNPermissions (4.1.5):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNReanimated (3.14.0):
     - DoubleConversion
     - glog
@@ -1545,6 +1630,12 @@ PODS:
     - StripeCore (= 23.27.2)
   - Toast (4.1.1)
   - TOCropViewController (2.7.4)
+  - VisionCamera (4.5.1):
+    - VisionCamera/Core (= 4.5.1)
+    - VisionCamera/React (= 4.5.1)
+  - VisionCamera/Core (4.5.1)
+  - VisionCamera/React (4.5.1):
+    - React-Core
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -1582,10 +1673,12 @@ DEPENDENCIES:
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - react-native-app-auth (from `../node_modules/react-native-app-auth`)
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
+  - react-native-compressor (from `../node_modules/react-native-compressor`)
   - react-native-mmkv (from `../node_modules/react-native-mmkv`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-simple-toast (from `../node_modules/react-native-simple-toast`)
+  - react-native-video (from `../node_modules/react-native-video`)
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
@@ -1615,10 +1708,12 @@ DEPENDENCIES:
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNImageCropPicker (from `../node_modules/react-native-image-crop-picker`)
+  - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - "stripe-react-native (from `../node_modules/@stripe/stripe-react-native`)"
+  - VisionCamera (from `../node_modules/react-native-vision-camera`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -1702,6 +1797,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-app-auth"
   react-native-blob-util:
     :path: "../node_modules/react-native-blob-util"
+  react-native-compressor:
+    :path: "../node_modules/react-native-compressor"
   react-native-mmkv:
     :path: "../node_modules/react-native-mmkv"
   react-native-pdf:
@@ -1710,6 +1807,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-simple-toast:
     :path: "../node_modules/react-native-simple-toast"
+  react-native-video:
+    :path: "../node_modules/react-native-video"
   react-native-webview:
     :path: "../node_modules/react-native-webview"
   React-nativeconfig:
@@ -1768,6 +1867,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-gesture-handler"
   RNImageCropPicker:
     :path: "../node_modules/react-native-image-crop-picker"
+  RNPermissions:
+    :path: "../node_modules/react-native-permissions"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
@@ -1776,6 +1877,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-vector-icons"
   stripe-react-native:
     :path: "../node_modules/@stripe/stripe-react-native"
+  VisionCamera:
+    :path: "../node_modules/react-native-vision-camera"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -1813,10 +1916,12 @@ SPEC CHECKSUMS:
   React-Mapbuffer: bf56147c9775491e53122a94c423ac201417e326
   react-native-app-auth: 63fa4e58c5bd29aeb974d3a06a23c5858322d533
   react-native-blob-util: a535b7689faf6c51a8c7175792c9bb8316d31703
+  react-native-compressor: 4538dcdc8e2a45ef5e3a8998536e5b4ea99b26b1
   react-native-mmkv: a24141d1f74aea25d4bdddd2be992809020a3f98
   react-native-pdf: 5aa4735f8874ff679b67801576554524cd40e63c
   react-native-safe-area-context: 1c0114777144dc0724820de71fe99c2e1e293a37
   react-native-simple-toast: 9109970a65fc36a8752f107c0775204abc4bc2db
+  react-native-video: 680e7e1bbd341582525d80916f902bba3925c998
   react-native-webview: 100110d55ec4c12190470dd9c47a0eff6d7aca53
   React-nativeconfig: 9f223cd321823afdecf59ed00861ab2d69ee0fc1
   React-NativeModulesApple: ff7efaff7098639db5631236cfd91d60abff04c0
@@ -1846,6 +1951,7 @@ SPEC CHECKSUMS:
   RNDateTimePicker: acd05aa87d5f795ed486c8ec6574a86b8d63dae3
   RNGestureHandler: 42f1d03e80c71bdfd6de5dae295ddc3b8b73f8b2
   RNImageCropPicker: e7ab6fb43d2fc3e84651e786ef4a080d63b0ed3d
+  RNPermissions: bdab38519751291a81b353777665d881a7926e4f
   RNReanimated: 547f464b5464b66e9f841e4b95531c1bf5ed2344
   RNScreens: d3d50aa84db4541eee00fbb1f32151030f56c510
   RNVectorIcons: 933948590e598ec50433d6f207242e5a7c1d6b7d
@@ -1861,8 +1967,9 @@ SPEC CHECKSUMS:
   StripeUICore: 436db87a21e3bb45b7a6a90c114a6d21c35b4be0
   Toast: 1f5ea13423a1e6674c4abdac5be53587ae481c4e
   TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
+  VisionCamera: 104de00dce2e04dec51bfb6027eff0312fa3174e
   Yoga: 2f71ecf38d934aecb366e686278102a51679c308
 
-PODFILE CHECKSUM: e4c19eaae501fa259ae84a58c5ce655abe8b646c
+PODFILE CHECKSUM: 6ef5793cf426b17c348282627a96fa2175306c3f
 
 COCOAPODS: 1.14.3

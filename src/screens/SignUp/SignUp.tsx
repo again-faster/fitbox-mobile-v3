@@ -1,6 +1,6 @@
 import useAuth from '@/auth/hooks/useAuth';
 import { Avatar, Button, Card, Row, Spacer, Text } from '@/components/atoms';
-import { BottomPanel } from '@/components/molecules';
+import { BottomPanel, QRCamera } from '@/components/molecules';
 import { checkEmail, register } from '@/services/auth';
 import { getUserGymInfoV2 } from '@/services/users';
 import { config } from '@/theme/_config';
@@ -12,10 +12,12 @@ import moment from 'moment';
 import { RefObject, createRef, useEffect, useRef, useState } from 'react';
 import {
 	ActivityIndicator,
+	Alert,
 	DimensionValue,
 	Dimensions,
 	Keyboard,
 	Modal,
+	Platform,
 	ScrollView,
 	StyleSheet,
 	TextInput,
@@ -28,6 +30,7 @@ import GoogleRecaptcha, {
 	GoogleRecaptchaRefAttributes,
 } from 'react-native-google-recaptcha';
 import DateTimePicker from 'react-native-modal-datetime-picker';
+import { PERMISSIONS, RESULTS, request } from 'react-native-permissions';
 import SimpleToast from 'react-native-simple-toast';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { InputField } from './components';
@@ -206,7 +209,6 @@ const SignUp = ({ navigation }: ApplicationScreenProps) => {
 		setState(prev => ({ ...prev, fetching: false }));
 	};
 
-	// TODO: typescript
 	const parseRequiredFields = (theRequiredFields: string[]) => {
 		if (isArray(theRequiredFields)) {
 			return theRequiredFields.map(
@@ -421,18 +423,37 @@ const SignUp = ({ navigation }: ApplicationScreenProps) => {
 		setState(prevState => ({ ...prevState, fields, fieldsError }));
 	};
 
-	// TODO: add handleOnScan
-
 	const handleRightIconClicked = () => {
 		const { code } = state;
 		if (code) {
 			setState(prevState => ({ ...prevState, code: '', gymInfo: null }));
 		} else {
-			// TODO: call handleOpenCameraQR
+			handleOpenCamera();
 		}
 	};
 
-	// TODO: add handleOpenCameraQR
+	const handleOpenCamera = () => {
+		const PERMISSION =
+			Platform.OS === 'android'
+				? PERMISSIONS.ANDROID.CAMERA
+				: PERMISSIONS.IOS.CAMERA;
+		if (Platform.OS === 'android') {
+			request(PERMISSION)
+				.then(res => {
+					if (res === RESULTS.GRANTED) {
+						setState(prevState => ({ ...prevState, useQR: true }));
+					} else {
+						Alert.alert(
+							'Permission Denied',
+							'Please allow camera permission to scan QR code',
+						);
+					}
+				})
+				.catch(() => Say.err('Failed to request camera permission'));
+		} else {
+			setState(prevState => ({ ...prevState, useQR: true }));
+		}
+	};
 
 	const renderFormView = () => {
 		const { gymInfo, processing, role, activeFieldInput } = state;
@@ -627,12 +648,34 @@ const SignUp = ({ navigation }: ApplicationScreenProps) => {
 		);
 	};
 
+	const parseCode = (path: string) => {
+		const urlArr = path.split('/');
+		return urlArr[urlArr.length - 1]?.split('?')[0];
+	};
+
+	const handleOnScan = (code: string) => {
+		setState(prevState => ({ ...prevState, useQR: false }));
+		const qrCode: string = parseCode(code) as string;
+
+		if (qrCode.length === MAX_CODE_LENGTH) {
+			handleOnChange(qrCode);
+		} else {
+			SimpleToast.show('Invalid QR Code', SimpleToast.SHORT);
+		}
+	};
+
 	const renderCodeEnterView = () => {
 		const { code, gymInfo, fetching } = state;
 
 		return (
 			<ScrollView contentContainerStyle={styles.container}>
-				{/* TODO: add QRCamera */}
+				<QRCamera
+					visible={state.useQR}
+					onDismiss={() =>
+						setState(prevState => ({ ...prevState, useQR: false }))
+					}
+					onFinish={qr => handleOnScan(qr as string)}
+				/>
 
 				<View style={styles.codeEnterViewContainer}>
 					<Text center>Enter gym id you wish to join</Text>

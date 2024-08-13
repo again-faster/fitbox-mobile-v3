@@ -32,7 +32,9 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>To be able to change your avatar, attach files to messaging and record videos</string>
+	<string>$(PRODUCT_NAME) needs access to your Camera.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>$(PRODUCT_NAME) needs access to your Microphone.</string>
 	<key>NSDocumentsFolderUsageDescription</key>
 	<string></string>
 	<key>NSDownloadsFolderUsageDescription</key>
