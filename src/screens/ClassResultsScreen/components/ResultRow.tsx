@@ -115,7 +115,7 @@ const ResultRow = (props: Props) => {
 	const containerStyle = {
 		...styles.dataRow,
 		borderBottomWidth: !last ? 0.5 : 0,
-		backgroundColor: isPR ? '#FDDC5C' : 'transparent',
+		backgroundColor: isPR ? '#FDDC5C' : 'white',
 	};
 
 	const onClickReact = async (reaction: string) => {
@@ -166,38 +166,22 @@ const ResultRow = (props: Props) => {
 					<Avatar key={userID} source={profileImage} size={55} />
 					<Spacer horizontal size="sm" />
 					<View style={styles.textContainer}>
-						<Text
-							size="md"
-							color="darkgray"
-							bold
-							style={layout.flex_1}
-							numberOfLines={1}
-						>
-							{`${firstname} ${lastname}`}
-						</Text>
+						<Row style={layout.flex_1}>
+							<Text
+								size="md"
+								color="darkgray"
+								bold
+								numberOfLines={1}
+								style={styles.titleStyle}
+							>
+								{`${firstname} ${lastname}`}
+							</Text>
+							<Spacer horizontal />
+							<View style={styles.commentStyle}>
+								{showComments ? (
+									<>
+										<Spacer horizontal />
 
-						<Text numberOfLines={1}>
-							{hideRxSwitch && 'Score: '}
-							{showValue()}
-							{!hideRxSwitch &&
-								` (${(scoreType as string).slice(0, 2)})`}
-						</Text>
-					</View>
-					<Spacer horizontal size="sm" />
-					<View style={styles.iconsContainer}>
-						<View style={styles.commentStyle}>
-							{showComments ? (
-								<>
-									<Spacer horizontal />
-									<TouchableOpacity
-										onPress={() =>
-											navigate('ScoreComments', {
-												score_id: scoreId,
-												type: 'comments',
-												showComments,
-											})
-										}
-									>
 										<Row align="flex-end">
 											<Image
 												source={
@@ -222,84 +206,105 @@ const ResultRow = (props: Props) => {
 												</>
 											)}
 										</Row>
-									</TouchableOpacity>
-								</>
-							) : null}
-						</View>
-						<Spacer size="xs" />
-						<View style={styles.reactionsContainer}>
-							<Row style={styles.reactionsStyle}>
-								{renderPopupReact(
-									tooltipPopupActive,
-									showReactions,
-									onClickReact,
-								)}
-								{reactionCounts.length > 0 &&
-									reactionCounts.map(
-										(
-											{ reaction, count, isApplauded },
-											index,
-										) => {
-											return (
-												<TouchableOpacity
-													key={reaction}
-													style={{
-														marginRight:
-															index ===
-															reactionCounts.length -
-																1
-																? config.metrics
-																		.rg
-																: config.metrics
-																		.xs,
-													}}
-													onPress={() => {
-														void onApplause(
-															scoreId,
-															reaction,
-															currentReaction,
-														);
-													}}
-												>
-													<Row align="flex-end">
-														<Text size="md">
-															{
-																resources.react[
-																	reaction as keyof Reactions
-																]
-															}
-														</Text>
-
-														<Text
-															size="sm"
-															color={
-																isApplauded
-																	? 'info'
-																	: 'darkgray'
-															}
-															bold={!!isApplauded}
-														>
-															{count}
-														</Text>
-													</Row>
-												</TouchableOpacity>
-											);
-										},
+									</>
+								) : null}
+							</View>
+						</Row>
+						<Row style={styles.bottomRowContainer}>
+							<Text numberOfLines={1}>
+								{hideRxSwitch && 'Score: '}
+								{showValue()}
+								{!hideRxSwitch &&
+									` (${(scoreType as string).slice(0, 2)})`}
+							</Text>
+							<View style={styles.reactionsContainer}>
+								<Row style={styles.reactionsStyle}>
+									{renderPopupReact(
+										tooltipPopupActive,
+										showReactions,
+										onClickReact,
 									)}
-								{showReactions.length > 0 && (
-									<TouchableOpacity
-										onPress={() =>
-											onEmoteClick(rowIndex, sectionIndex)
-										}
-									>
-										<Image
-											source={resources.icon.addReaction}
-											style={styles.addReactionStyle}
-										/>
-									</TouchableOpacity>
-								)}
-							</Row>
-						</View>
+									{reactionCounts.length > 0 &&
+										reactionCounts.map(
+											(
+												{
+													reaction,
+													count,
+													isApplauded,
+												},
+												index,
+											) => {
+												return (
+													<TouchableOpacity
+														key={reaction}
+														style={{
+															marginRight:
+																index ===
+																reactionCounts.length -
+																	1
+																	? config
+																			.metrics
+																			.rg
+																	: config
+																			.metrics
+																			.xs,
+														}}
+														onPress={() => {
+															void onApplause(
+																scoreId,
+																reaction,
+																currentReaction,
+															);
+														}}
+													>
+														<Row align="flex-end">
+															<Text size="md">
+																{
+																	resources
+																		.react[
+																		reaction as keyof Reactions
+																	]
+																}
+															</Text>
+
+															<Text
+																size="sm"
+																color={
+																	isApplauded
+																		? 'info'
+																		: 'darkgray'
+																}
+																bold={
+																	!!isApplauded
+																}
+															>
+																{count}
+															</Text>
+														</Row>
+													</TouchableOpacity>
+												);
+											},
+										)}
+									{showReactions.length > 0 && (
+										<TouchableOpacity
+											onPress={() =>
+												onEmoteClick(
+													rowIndex,
+													sectionIndex,
+												)
+											}
+										>
+											<Image
+												source={
+													resources.icon.addReaction
+												}
+												style={styles.addReactionStyle}
+											/>
+										</TouchableOpacity>
+									)}
+								</Row>
+							</View>
+						</Row>
 					</View>
 				</Row>
 			</TouchableOpacity>
@@ -381,15 +386,18 @@ const styles = StyleSheet.create({
 		paddingRight: 2,
 	},
 	textContainer: {
-		flex: 3,
-	},
-	iconsContainer: {
 		justifyContent: 'space-between',
+		flex: 1,
+	},
+	bottomRowContainer: {
+		justifyContent: 'space-between',
+		alignItems: 'flex-end',
 	},
 	reactionsContainer: {
 		alignItems: 'flex-end',
 		justifyContent: 'flex-end',
 	},
+	titleStyle: { maxWidth: '82%' },
 });
 
 export default ResultRow;

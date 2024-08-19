@@ -25,6 +25,7 @@ import {
 	TouchableWithoutFeedback,
 	View,
 } from 'react-native';
+import DateTimePicker from 'react-native-modal-datetime-picker';
 import { Badge } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { ResultRow } from './components';
@@ -75,6 +76,7 @@ const genderOptions = [
 	{ id: 'Female', name: 'Female' },
 ];
 
+const iosVersion = parseInt(Platform.Version as string, 10);
 const ClassResultsScreen = ({
 	selectClass,
 	dateFromParams,
@@ -215,7 +217,6 @@ const ClassResultsScreen = ({
 	const fetchLeaderBoard = () => {
 		const { selectedClass, resultDate } = state;
 		setState(prevState => ({ ...prevState, loadingResults: true }));
-
 		if (classes[selectedClass as number]) {
 			getClassLeaderboards(
 				classes[selectedClass as number]?.id as number,
@@ -264,7 +265,6 @@ const ClassResultsScreen = ({
 			resultDate,
 			datePanelVisible: false,
 		}));
-		fetchLeaderBoard();
 	};
 
 	const handleEmoteClick = (resultIndex: number, sIndex: number) =>
@@ -385,13 +385,19 @@ const ClassResultsScreen = ({
 						style={{
 							...styles.sectionsCard,
 							paddingBottom,
+							backgroundColor: config.backgrounds.brand,
 						}}
 					>
 						<Row
 							align="center"
 							style={{ paddingHorizontal: config.metrics.rg }}
 						>
-							<Text size="md" bold style={layout.flex_1}>
+							<Text
+								size="md"
+								color="light"
+								bold
+								style={layout.flex_1}
+							>
 								{section.title}
 							</Text>
 							<Icon
@@ -400,7 +406,7 @@ const ClassResultsScreen = ({
 										? 'chevron-up'
 										: 'chevron-down'
 								}
-								color={config.backgrounds.darkgray}
+								color={config.backgrounds.light}
 								size={25}
 								onPress={() => toggleSectionCard(sequenceId)}
 							/>
@@ -538,46 +544,31 @@ const ClassResultsScreen = ({
 			);
 		});
 
-	const renderSelectDatePanel = () => {
-		const showDates = [];
-		const { resultDate } = state;
+	const onConfirmDatePicker = (date: Date) => {
+		setResultDate(moment(date).format(defaultTimeFormat));
+		setState(prevState => ({
+			...prevState,
+			datePanelVisible: false,
+		}));
+		setTimeout(() => {
+			setState(prevState => ({
+				...prevState,
+				filterPanelVisible: true,
+			}));
+		}, 500);
+	};
 
-		let startDate = moment().startOf('week').format(defaultTimeFormat);
-
-		while (moment(startDate) <= moment()) {
-			showDates.push(startDate);
-			startDate = moment(startDate)
-				.add(1, 'days')
-				.format(defaultTimeFormat);
-		}
-
-		return showDates.reverse().map((date, key) => (
-			<TouchableOpacity
-				key={key}
-				onPress={() => setResultDate(date)}
-				style={{
-					marginBottom:
-						key + 1 !== showDates.length
-							? config.metrics.xl
-							: config.metrics.xs,
-				}}
-			>
-				<Row spacing="space-between">
-					<Text size="md">
-						{key === 0
-							? 'Today'
-							: moment(date).format('MMMM DD, YYYY')}
-					</Text>
-					{date === resultDate && (
-						<Icon
-							name="check"
-							size={config.metrics.md}
-							color={config.colors.info}
-						/>
-					)}
-				</Row>
-			</TouchableOpacity>
-		));
+	const onCancelDatePicker = () => {
+		setState(prevState => ({
+			...prevState,
+			datePanelVisible: false,
+		}));
+		setTimeout(() => {
+			setState(prevState => ({
+				...prevState,
+				filterPanelVisible: true,
+			}));
+		}, 500);
 	};
 
 	const renderVenuePanel = () => {
@@ -1038,22 +1029,15 @@ const ClassResultsScreen = ({
 					</BottomPanel>
 
 					{/* Result Date Panel */}
-					<BottomPanel
-						title="Result Date"
-						backButton
-						visible={state.datePanelVisible}
-						onClose={() =>
-							setState(prevState => ({
-								...prevState,
-								datePanelVisible: false,
-								filterPanelVisible: true,
-							}))
-						}
-					>
-						<View style={{ padding: config.metrics.lg }}>
-							{renderSelectDatePanel()}
-						</View>
-					</BottomPanel>
+					<DateTimePicker
+						mode="date"
+						date={new Date(state.resultDate as string)}
+						maximumDate={new Date()}
+						isVisible={state.datePanelVisible}
+						pickerContainerStyleIOS={styles.pickerContaineriOSStyle}
+						onConfirm={date => onConfirmDatePicker(date)}
+						onCancel={onCancelDatePicker}
+					/>
 
 					{/* Location Panel */}
 					<BottomPanel
@@ -1180,6 +1164,9 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		marginBottom: config.metrics.md,
 		paddingHorizontal: 0,
+	},
+	pickerContaineriOSStyle: {
+		paddingLeft: iosVersion >= 14 ? 18 : 0,
 	},
 });
 
