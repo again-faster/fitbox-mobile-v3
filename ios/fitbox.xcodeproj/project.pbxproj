@@ -16,8 +16,8 @@
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		CB00A2F92C242363002C8C5F /* Montserrat-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CB00A2F72C242362002C8C5F /* Montserrat-Regular.ttf */; };
 		CB00A2FA2C242363002C8C5F /* Montserrat-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CB00A2F82C242363002C8C5F /* Montserrat-Bold.ttf */; };
-		CB7384C42C74ECB0000C7212 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CB7384C22C74ECAF000C7212 /* GoogleService-Info.plist */; };
-		CB7384C52C7576CD000C7212 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CB7384C22C74ECAF000C7212 /* GoogleService-Info.plist */; };
+		CBF954C32C76F2E900958DA5 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CBF954C22C76F2E900958DA5 /* GoogleService-Info.plist */; };
+		CBF954C42C76F2E900958DA5 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CBF954C22C76F2E900958DA5 /* GoogleService-Info.plist */; };
 		DE8D3492226D9C103E95FE4D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 392EDFA95319695B8BF623F9 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
@@ -52,7 +52,7 @@
 		CB00A2F72C242362002C8C5F /* Montserrat-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Montserrat-Regular.ttf"; path = "../src/theme/assets/fonts/Montserrat-Regular.ttf"; sourceTree = "<group>"; };
 		CB00A2F82C242363002C8C5F /* Montserrat-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Montserrat-Bold.ttf"; path = "../src/theme/assets/fonts/Montserrat-Bold.ttf"; sourceTree = "<group>"; };
 		CB4E31812C4633D800F124A4 /* fitbox.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = fitbox.entitlements; path = fitbox/fitbox.entitlements; sourceTree = "<group>"; };
-		CB7384C22C74ECAF000C7212 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		CBF954C22C76F2E900958DA5 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -101,10 +101,10 @@
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
-				CB7384C22C74ECAF000C7212 /* GoogleService-Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB71A68108700A75B9A /* main.m */,
 				392EDFA95319695B8BF623F9 /* PrivacyInfo.xcprivacy */,
+				CBF954C22C76F2E900958DA5 /* GoogleService-Info.plist */,
 			);
 			name = fitbox;
 			sourceTree = "<group>";
@@ -250,7 +250,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CB7384C42C74ECB0000C7212 /* GoogleService-Info.plist in Resources */,
+				CBF954C42C76F2E900958DA5 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -258,12 +258,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CB7384C52C7576CD000C7212 /* GoogleService-Info.plist in Resources */,
 				CB00A2F92C242363002C8C5F /* Montserrat-Regular.ttf in Resources */,
 				CB00A2FA2C242363002C8C5F /* Montserrat-Bold.ttf in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				DE8D3492226D9C103E95FE4D /* PrivacyInfo.xcprivacy in Resources */,
+				CBF954C32C76F2E900958DA5 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
