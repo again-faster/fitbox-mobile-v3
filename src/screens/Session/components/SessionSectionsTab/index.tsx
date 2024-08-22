@@ -202,7 +202,12 @@ const SessionsSectionsTab = ({ session }: SessionsSectionsTabProps) => {
 							style={styles.sessionHeaderComponent}
 						>
 							<Row align="center">
-								<Text size="lg" bold style={layout.flex_1}>
+								<Text
+									size="lg"
+									bold
+									color="info"
+									style={layout.flex_1}
+								>
 									{section.name}
 								</Text>
 								<Row style={layout.relative}>

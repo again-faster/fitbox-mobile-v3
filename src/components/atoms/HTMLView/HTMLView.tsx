@@ -29,21 +29,18 @@ const HTMLView = ({ content, index = null }: HTMLViewProps) => {
                 <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0">
 				<link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'>
                 <style>
-                    * {
+					* {
                         -webkit-box-sizing: border-box;
                         -moz-box-sizing: border-box;
                         box-sizing: border-box;
-
                     }
                     body {
-                        padding: 0;
-                        margin: 0;
+						margin: 0;
+						padding: 0;
                         font-family: 'Montserrat', sans-serif;
-                        font-size: 15px;
+                        font-size: ${config.metrics.lg}px;
                         word-wrap: break-word;
 						background-color: ${backgroundColor} ;
-						overflow:hidden;
-						box-sizing: border-box;
                     }
                     blockquote {
                         padding: 10px 20px;
