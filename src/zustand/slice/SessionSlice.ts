@@ -70,11 +70,11 @@ const createSessionSlice: StateCreator<
 		}
 	},
 
-	getClassesByDate: (date, userId) => {
+	getClassesByDate: (date, userId, force = false) => {
 		// Define initial state and functions here or outside the store
 		const { classes, setClasses } = getState();
 		const hasData = classes.find(item => item.title === date);
-		if (hasData) {
+		if (hasData && !force) {
 			return;
 		}
 

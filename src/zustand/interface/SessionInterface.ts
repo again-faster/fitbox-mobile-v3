@@ -42,7 +42,7 @@ interface SessionStateInterface {
 
 interface SessionInterface extends SessionStateInterface {
 	setClasses: (date: string, data: ClassItemData[]) => void;
-	getClassesByDate: (date: string, userId: number) => void;
+	getClassesByDate: (date: string, userId: number, refresh?: boolean) => void;
 	clearClasses: () => void;
 	setActiveMonth: (date: string) => void;
 	setVenueFilters: (data: VenueFilter[]) => void;

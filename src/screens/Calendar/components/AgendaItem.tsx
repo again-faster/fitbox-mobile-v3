@@ -123,7 +123,7 @@ const AgendaItem = ({
 				sessionDate,
 				onSuccessPurchase: () => {
 					handleBook();
-					getClassesByDate(sessionDate, loggedInUser!.id);
+					getClassesByDate(sessionDate, loggedInUser!.id, true);
 				},
 			});
 		};

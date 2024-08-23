@@ -156,7 +156,6 @@ const Session = ({ route }: ApplicationScreenProps) => {
 				eventId={eventId}
 				subscribed={subscribed}
 				isAttending={isAttending}
-				isBookingLocked={isBookingLocked}
 				isWaitlist={isWaitlist}
 				islocked={isBookingLocked}
 				spotsLeft={spotsLeft}

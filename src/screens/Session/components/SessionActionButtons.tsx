@@ -21,7 +21,6 @@ interface SessionActionButtonsProps {
 	startTime: moment.Moment;
 	waitlistEnabled: boolean;
 	waitlistTime: number;
-	isBookingLocked: boolean;
 }
 
 const SessionActionButtons = ({
@@ -34,7 +33,6 @@ const SessionActionButtons = ({
 	startTime,
 	waitlistEnabled,
 	waitlistTime,
-	isBookingLocked,
 }: SessionActionButtonsProps) => {
 	const navigation =
 		useNavigation<NavigationProp<ApplicationStackParamList>>();
@@ -50,19 +48,12 @@ const SessionActionButtons = ({
 	const [isBooking, setIsBooking] = useState<boolean>(false);
 	const [isAttending, setAttending] = useState<boolean>(propsIsAttending);
 
-	const currentTime = moment();
-
 	// TODO: Temporary console.log, remove when done
 	// eslint-disable-next-line no-console
 	console.log('currentTime', {
-		loggedInUser,
-		setAttending,
 		setWaitlisting,
-		currentTime,
 		eventId,
-		startTime,
 		waitlistTime,
-		isBookingLocked,
 	});
 
 	const reloadSessionDetail = () =>
@@ -80,7 +71,6 @@ const SessionActionButtons = ({
 				sessionDate,
 				onSuccessPurchase: () => {
 					handleBook();
-					getClassesByDate(sessionDate, loggedInUser!.id);
 				},
 			});
 		};
@@ -119,8 +109,6 @@ const SessionActionButtons = ({
 			is_attend: !isAttending,
 		})
 			.then(res => {
-				const currentUser = loggedInUser!.user_data;
-
 				if (res.error) {
 					// check error code and verify if waitlist on class is enabled
 					if (res.error_code === 'SFULL01' && waitlistEnabled) {
@@ -174,11 +162,6 @@ const SessionActionButtons = ({
 						SimpleToast.show(
 							'You are already booked for this session',
 							SimpleToast.SHORT,
-						);
-
-						getClassesByDate(
-							moment(startTime).format('YYYY-MM-DD'),
-							currentUser.user_id,
 						);
 					}
 
@@ -252,6 +235,12 @@ const SessionActionButtons = ({
 						SimpleToast.SHORT,
 					);
 				}
+
+				getClassesByDate(
+					moment(startTime).format('YYYY-MM-DD'),
+					loggedInUser!.id,
+					true,
+				);
 			})
 			.catch(() => {
 				// console.log('@err', err);
