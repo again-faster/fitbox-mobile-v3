@@ -3014,9 +3014,9 @@
     "@sinonjs/commons" "^3.0.0"
 
 "@stripe/stripe-react-native@^0.38.1":
-  version "0.38.1"
-  resolved "https://registry.yarnpkg.com/@stripe/stripe-react-native/-/stripe-react-native-0.38.1.tgz#3fe9d5e0ff0c4753512b835716eba3065ce06c46"
-  integrity sha512-FpwoazLMooJMoMTJiICdoW8SZY5PeJsqbRKCO+yjbMkYfbCOQfXHPzsaPSA3AAPo9cVa1Z7dzoUDILndE6Y7Kg==
+  version "0.38.4"
+  resolved "https://registry.yarnpkg.com/@stripe/stripe-react-native/-/stripe-react-native-0.38.4.tgz#83470fa10bec0900c80ae967c4c1d56ab8c7a64f"
+  integrity sha512-uPLgr5tRC5GTmqqGdqteA2mbuR682QYHsjWAvqVe+creu1KOHm13VhP1FAbXybWCdgtPEQsDS5X8XEVWy5pN2A==
 
 "@tanstack/query-core@5.51.1":
   version "5.51.1"

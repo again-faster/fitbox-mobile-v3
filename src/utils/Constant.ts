@@ -4,6 +4,7 @@
  * Must be CAPITALIZED and use underscore (_) to separate words.
  */
 
+import { NotificationSettings } from '@/types/schemas/notifications';
 import { Dimensions, Platform } from 'react-native';
 
 /**
@@ -227,6 +228,33 @@ const NOTIFICATION_SERVICE_URL = {
  */
 const PAGINATE_FETCH_LIMIT = 20;
 
+/**
+ * Options for Notification Settings
+ */
+const NOTIFICATION_SETTINGS: NotificationSettings = {
+	session: {
+		title: 'Session Start',
+		description: 'Receive a notification when a session is about to start',
+		defaultValue: false,
+		disabled: false,
+	},
+	// Note: Commenting this for now since these options aren't configurable as of the moment
+	// waitlist: {
+	//     title: "Waitlist",
+	//     description: "Receive a notification when a session is about to start",
+	//     defaultValue: true,
+	//     disabled: true // TODO: disabled for now, backend will be implemented
+	// },
+	// message: {
+	//     title: "Messages",
+	//     description: "Stay up to date by receiving a notification whenever a new message is received.",
+	//     defaultValue: true,
+	//     disabled: true // TODO: disabled for now, backend will be implemented
+	// },
+
+	// NOTE: Add more settings here
+};
+
 export default {
 	ENABLE_ENV_PICKER,
 	MASQUERADE_USER_API_TOKEN,
@@ -244,4 +272,5 @@ export default {
 	STRIPE_PUBLISHABLE_KEY,
 	PAGINATE_FETCH_LIMIT,
 	NOTIFICATION_SERVICE_URL,
+	NOTIFICATION_SETTINGS,
 };

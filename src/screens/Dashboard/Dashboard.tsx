@@ -14,9 +14,10 @@ import layout from '@/theme/layout';
 import resources from '@/theme/resources';
 import { GymVenueType } from '@/types/schemas/gym';
 import { AttendanceReportDataType } from '@/types/schemas/leaderboards';
+import { NotificationSettingsState } from '@/types/schemas/notifications';
 import { ClassFiltersDataType } from '@/types/schemas/session';
 import { UserSchemaType } from '@/types/schemas/user';
-import { Say } from '@/utils';
+import { Constant, Say } from '@/utils';
 import useStore from '@/zustand/Store';
 import { ClassFilter, VenueFilter } from '@/zustand/interface/SessionInterface';
 import messaging, { firebase } from '@react-native-firebase/messaging';
@@ -27,6 +28,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
 	Alert,
+	AppState,
 	Dimensions,
 	Image,
 	Platform,
@@ -34,6 +36,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
+import { RESULTS, checkNotifications } from 'react-native-permissions';
 import PushNotification from 'react-native-push-notification';
 import BookedSessionCard, {
 	BookedSessionCardProps,
@@ -81,6 +84,7 @@ const Dashboard = () => {
 		setClassFilters,
 		setHeaderTitle,
 		setDefaultClassFilter,
+		notifSettings,
 	} = useStore(state => ({
 		setAppState: state.setAppState,
 		classFilters: state.classFilters,
@@ -90,6 +94,7 @@ const Dashboard = () => {
 		setHeaderTitle: state.setHeaderTitle,
 		setDefaultClassFilter: state.setDefaultClassFilter,
 		pushToken: state.pushToken,
+		notifSettings: state.notifSettings,
 	}));
 
 	const [loading, setLoading] = useState<boolean>(true);
@@ -187,6 +192,44 @@ const Dashboard = () => {
 		return emptyRequiredFields;
 	};
 
+	const checkNotificationStatus = async () => {
+		const { status } = await checkNotifications();
+		const isEnabled = status === RESULTS.GRANTED;
+
+		// Add notification settings to r=global state merged with the current state
+		const settings = {
+			...notifSettings,
+			enabled: isEnabled,
+		};
+
+		setAppState('notifSettings', settings);
+
+		return isEnabled;
+	};
+
+	const initializeNotificationSettings = async () => {
+		const currentSettings = notifSettings ?? {};
+
+		const notificationSettingValues: NotificationSettingsState =
+			Object.entries(
+				Constant.NOTIFICATION_SETTINGS,
+			).reduce<NotificationSettingsState>((setting, [key, value]) => {
+				return {
+					...setting,
+					[key]:
+						currentSettings?.settings?.[key] ?? value.defaultValue,
+				};
+			}, {});
+
+		const isEnabled = await checkNotificationStatus();
+		const notificationSettings = {
+			settings: notificationSettingValues,
+			enabled: isEnabled,
+		};
+
+		setAppState('notifSettings', notificationSettings);
+	};
+
 	const getUpcomingSessions = async () => {
 		setLoading(true);
 		const memberSessions: BookedSessionCardProps[] = [];
@@ -263,8 +306,10 @@ const Dashboard = () => {
 		// 		this.getSwitchableUsers();
 		// 	},
 		// );
-		// Check if session start notification is enabled and include it in the condition with member_sessions.length then setLocalNotifications
-		setLocalNotifications(memberSessions);
+		const sessionStartEnabled = notifSettings?.settings?.session;
+		if (sessionStartEnabled && memberSessions.length > 0) {
+			setLocalNotifications(memberSessions);
+		}
 	};
 
 	const setLocalNotifications = (sessions: BookedSessionCardProps[]) =>
@@ -335,12 +380,20 @@ const Dashboard = () => {
 		}, []),
 	);
 
+	useEffect(() => {
+		void getUpcomingSessions();
+	}, [notifSettings]);
+
 	// get filter options every gym switch
 	// get attendance report
 	useEffect(() => {
 		void fetchFilterOptions();
 		void fetchAttendanceReport();
 		void savePushNotificationToken();
+		AppState.addEventListener('change', () => {
+			void checkNotificationStatus();
+		});
+		void initializeNotificationSettings();
 	}, []);
 
 	const fetchAttendanceReport = () => {

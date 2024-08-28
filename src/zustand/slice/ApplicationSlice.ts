@@ -22,6 +22,7 @@ const defaultState: ApplicationStateInterface = {
 	notifications: [],
 	showModalNotification: false,
 	pushToken: '',
+	notifSettings: { enabled: false, settings: {} },
 };
 
 const createApplicationSlice: StateCreator<

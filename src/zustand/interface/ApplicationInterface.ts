@@ -19,6 +19,7 @@ interface ApplicationStateInterface {
 	notifications: NotificationsType[];
 	showModalNotification: boolean;
 	pushToken: string;
+	notifSettings: NotifSettingsInterface;
 }
 
 interface AttachedFilesInterface {
@@ -26,6 +27,13 @@ interface AttachedFilesInterface {
 	base64?: string;
 	from?: string;
 	url?: string;
+}
+
+interface NotifSettingsInterface {
+	enabled: boolean;
+	settings: {
+		[key: string]: boolean;
+	};
 }
 
 interface ApplicationInterface extends ApplicationStateInterface {

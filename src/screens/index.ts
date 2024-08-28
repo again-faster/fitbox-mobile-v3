@@ -21,6 +21,7 @@ export { default as Landing } from './Landing/Landing';
 export { default as Login } from './Login/Login';
 export { default as Menu } from './Menu/Menu';
 export { default as MyDetails } from './MyDetails/MyDetails';
+export { default as NotificationScreen } from './NotificationScreen/NotificationScreen';
 export { default as PDFViewerScreen } from './PDFViewerScreen/PDFViewerScreen';
 export { default as PaymentInformation } from './PaymentInformation/PaymentInformation';
 export { default as PaymentUpdate } from './PaymentUpdate/PaymentUpdate';

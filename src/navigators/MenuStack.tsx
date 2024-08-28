@@ -5,6 +5,7 @@ import {
 	HelpScreen,
 	Menu,
 	MyDetails,
+	NotificationScreen,
 	PDFViewerScreen,
 	PaymentInformation,
 	PaymentUpdate,
@@ -91,6 +92,13 @@ const MenuStackNavigator = () => {
 				name="HealthCapture"
 				component={HealthCaptureScreen}
 				options={{ title: 'Heath Capture', headerLeft: () => null }}
+			/>
+			<Stack.Screen
+				name="Notifications"
+				component={NotificationScreen}
+				options={{
+					title: 'Notification Setting',
+				}}
 			/>
 		</Stack.Navigator>
 	);

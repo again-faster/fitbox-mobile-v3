@@ -61,6 +61,21 @@ export const MessageSchema = z.object({
 	ttl: z.number(),
 });
 
+type NotificationSetting = {
+	title: string;
+	description: string;
+	defaultValue: boolean;
+	disabled: boolean;
+};
+
+export type NotificationSettings = {
+	[key: string]: NotificationSetting;
+};
+
+export type NotificationSettingsState = {
+	[key: string]: boolean;
+};
+
 export type MessageType = z.infer<typeof MessageSchema>;
 export type NotificationsType = z.infer<typeof NotificationsSchema>;
 export type MessageNotificationsType = z.infer<

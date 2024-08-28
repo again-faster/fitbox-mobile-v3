@@ -183,6 +183,10 @@ const Menu = ({ navigation }: MainTabScreenProps) => {
 				navigation.navigate('AboutUs');
 				break;
 			}
+			case 'notification': {
+				navigation.navigate('Notifications');
+				break;
+			}
 			case 'waivers': {
 				navigation.navigate('AcceptedWaivers');
 				break;
