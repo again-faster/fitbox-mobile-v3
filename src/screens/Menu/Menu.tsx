@@ -8,6 +8,7 @@ import { MainTabScreenProps } from '@/types/navigation';
 import { Constant } from '@/utils';
 import useStore from '@/zustand/Store';
 import { Alert, Linking, StyleSheet, View } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
 import { List } from 'react-native-paper';
 import SimpleToast from 'react-native-simple-toast';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
@@ -143,6 +144,9 @@ const Menu = ({ navigation }: MainTabScreenProps) => {
 			state.clearFilters();
 		},
 	}));
+
+	const version = DeviceInfo.getVersion();
+	const build = DeviceInfo.getBuildNumber();
 
 	const onClick = (id: string) => {
 		switch (id) {
@@ -305,7 +309,9 @@ const Menu = ({ navigation }: MainTabScreenProps) => {
 			})}
 
 			<View style={styles.versionContainer}>
-				<Text>{`App Version ${menuOptions ? '3.2' : ''}`}</Text>
+				<Text>{`App Version ${
+					menuOptions ? `${version} (${build})` : ''
+				}`}</Text>
 				{[
 					Constant.API_BASE_URLS.DEV,
 					Constant.API_BASE_URLS.STAGING,

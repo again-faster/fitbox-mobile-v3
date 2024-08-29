@@ -50,6 +50,7 @@
         "react-native-blob-util": "^0.19.9",
         "react-native-calendars": "^1.1304.1",
         "react-native-compressor": "^1.8.25",
+        "react-native-device-info": "^11.1.0",
         "react-native-dropdown-picker": "^5.4.6",
         "react-native-gesture-handler": "^2.14.0",
         "react-native-google-recaptcha": "^1.0.8",
