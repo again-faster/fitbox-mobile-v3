@@ -1,5 +1,5 @@
 import { config } from '@/theme/_config';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, Linking } from 'react-native';
 import WebView from 'react-native-webview';
 import Text from '../Text/Text';
@@ -14,6 +14,33 @@ interface HTMLViewProps {
 const HTMLView = ({ content, index = null }: HTMLViewProps) => {
 	const [loading, setLoading] = useState(true);
 	const [webViewHeight, setWebViewHeight] = useState(0);
+
+	const webViewRef = useRef<WebView>(null);
+
+	// Polling the content height 3 times to ensure the height is not miscalculated
+	useEffect(() => {
+		let pollCount = 0;
+		const MAX_POLLS = 3;
+
+		const pollHeight = () => {
+			if (webViewRef.current) {
+				webViewRef.current.injectJavaScript(`
+          window.ReactNativeWebView.postMessage(document.body.scrollHeight);
+        `);
+			}
+		};
+
+		const intervalId = setInterval(() => {
+			if (pollCount < MAX_POLLS) {
+				pollHeight();
+				pollCount += 1;
+			} else {
+				clearInterval(intervalId);
+			}
+		}, 500);
+
+		return () => clearInterval(intervalId);
+	}, []);
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const onWebViewMessage = (event: any) =>
@@ -84,11 +111,11 @@ const HTMLView = ({ content, index = null }: HTMLViewProps) => {
 			)}
 
 			<WebView
+				ref={webViewRef}
 				onLoadEnd={() => setLoading(false)}
 				style={{ height: webViewHeight }}
 				source={{ html: renderContent }}
 				onMessage={onWebViewMessage}
-				injectedJavaScript="window.ReactNativeWebView.postMessage(document.body.scrollHeight)"
 				onShouldStartLoadWithRequest={(event: { url: string }) => {
 					if (!/^[data:text, about:blank]/.test(event.url)) {
 						onLinkPress(event.url);
