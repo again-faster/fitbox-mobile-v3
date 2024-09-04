@@ -10,4 +10,5 @@ export { default as getScoreApplauses } from './getScoreApplauses';
 export { default as getScoreComments } from './getScoreComments';
 export { default as getScoreDetails } from './getScoreDetails';
 export { default as getScoringTypes } from './getScoringTypes';
+export { default as updateAttendance } from './updateAttendance';
 export { default as updateScore } from './updateScore';

@@ -2,7 +2,9 @@ import { Avatar, Row, Spacer, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import useStore from '@/zustand/Store';
+import { isNil } from 'lodash';
 import { StyleSheet, View } from 'react-native';
+import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const { metrics, fonts } = config;
 
@@ -10,15 +12,28 @@ interface AttendanceItemProps {
 	id: number;
 	avatar: string;
 	name: string;
+	status: string;
+	isStaff: boolean;
+	handleCheckInUser: (userId: number) => Promise<void>;
+	handleToggleUserAttendance: (
+		userId: number,
+		override?: boolean,
+	) => Promise<void>;
 }
 
-const AttendanceItem = ({ id, avatar, name }: AttendanceItemProps) => {
+const AttendanceItem = ({
+	id,
+	avatar,
+	name,
+	status,
+	isStaff,
+	handleCheckInUser,
+	handleToggleUserAttendance,
+}: AttendanceItemProps) => {
 	const loggedInUser = useStore(state => state.loggedInUser);
 
-	// // Check if member is checked in
-	// const checkedIn =
-	// 	member.attendance?.status === 'checked-in' ||
-	// 	isNil(member.attendance?.status); // is nil for added members
+	// Check if member is checked in
+	const checkedIn = status === 'checked-in' || isNil(status); // is nil for added members
 	// const loading = processingMembers.includes(member.user_id);
 
 	return (
@@ -35,41 +50,30 @@ const AttendanceItem = ({ id, avatar, name }: AttendanceItemProps) => {
 				<Text>{name + (id === loggedInUser?.id ? ' (You)' : '')}</Text>
 			</Row>
 
-			{/* 
-			TODO: For adding in attendance staff
 			<View style={styles.actionButtonContainer}>
-				{isStaff ? ( // show check in button only for staff
-					loading ? (
-						<Loader />
-					) : (
-						<Row>
-							<MIcon
-								size={Metrics.icon.rg}
-								onPress={() =>
-									this.handleCheckInUser(member.user_id)
-								}
-								name="account-check"
-								color={
-									checkedIn
-										? Colors.oceanGreen
-										: Colors.darkgray
-								}
-							/>
-							<Spacer sm h />
-							<MIcon
-								size={Metrics.icon.rg}
-								onPress={() =>
-									this.handleToggleUserAttendance(
-										member.user_id,
-									)
-								}
-								name="account-off"
-								color={Colors.darkgray}
-							/>
-						</Row>
-					)
-				) : null}
-			</View> */}
+				{isStaff && (
+					<Row>
+						<MIcon
+							size={config.metrics.lg}
+							name="account-check"
+							color={
+								checkedIn
+									? config.colors.oceanGreen
+									: config.backgrounds.darkgray
+							}
+							onPress={() => void handleCheckInUser(id)}
+						/>
+						<Spacer horizontal size="sm" />
+						<MIcon
+							size={config.metrics.lg}
+							name="account-off"
+							color={config.backgrounds.darkgray}
+							onPress={() => void handleToggleUserAttendance(id)}
+						/>
+						<Spacer horizontal size="sm" />
+					</Row>
+				)}
+			</View>
 		</Row>
 	);
 };
@@ -84,7 +88,6 @@ const styles = StyleSheet.create({
 	},
 	actionButtonContainer: {
 		justifyContent: 'center',
-		height: fonts.metrics.rg,
 	},
 	avatarStyle: {
 		borderRadius: 35,
