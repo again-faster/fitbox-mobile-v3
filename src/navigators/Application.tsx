@@ -44,7 +44,7 @@ import CalendarHeaderRightComponent from '@/screens/Calendar/components/Calendar
 import ShopHeaderRightComponent from '@/screens/Shop/components/ShopHeaderRightComponent';
 
 import useAuth from '@/auth/hooks/useAuth';
-import { NotificationDialog } from '@/components/molecules';
+import { Loader, NotificationDialog } from '@/components/molecules';
 import ResultTypesModal from '@/screens/PerformanceSummary/ResultTypesModal/ResultTypesModal';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
@@ -57,6 +57,7 @@ import type {
 import { Constant } from '@/utils';
 import useStore from '@/zustand/Store';
 import { StripeProvider } from '@stripe/stripe-react-native';
+import { useState } from 'react';
 import DashboardStackNavigator from './DashboardStack';
 import MenuStackNavigator from './MenuStack';
 import { navigationRef } from './NavigationRef';
@@ -93,20 +94,38 @@ const tabBarIconRender = ({
 	route,
 	color,
 	size,
+	loading,
 }: {
 	route: keyof MainTabParamList;
 	color: string;
 	size: number;
-}) => <Ionicons name={icons[route]} size={size} color={color} />;
+	loading: boolean;
+}) => {
+	if (loading) return <Loader size="xl" />;
+
+	return <Ionicons name={icons[route]} size={size} color={color} />;
+};
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const MainTabNavigator = () => {
 	const { variant, colors } = useTheme();
-	const { shopUrl, activeMonth, headerTitle } = useStore(state => ({
-		shopUrl: state.shopUrl,
-		activeMonth: state.activeMonth,
-		headerTitle: state.headerTitle,
-	}));
+	const { shopUrl, activeMonth, headerTitle, clearClasses } = useStore(
+		state => ({
+			shopUrl: state.shopUrl,
+			activeMonth: state.activeMonth,
+			headerTitle: state.headerTitle,
+			clearClasses: state.clearClasses,
+		}),
+	);
+	const [currentTab, setCurrentTab] = useState<string>('DashboardStack');
+	const [loadingCalendar, setLoadingCalendar] = useState<boolean>(false);
+
+	const handleRefreshCalendar = () => {
+		if (loadingCalendar) return;
+		setLoadingCalendar(true);
+		clearClasses();
+		setTimeout(() => setLoadingCalendar(false), 1500);
+	};
 
 	return (
 		<Tab.Navigator
@@ -115,6 +134,7 @@ const MainTabNavigator = () => {
 			screenOptions={({ route }) => ({
 				tabBarIcon: options =>
 					tabBarIconRender({
+						loading: route.name === 'Calendar' && loadingCalendar,
 						route: route.name,
 						...options,
 					}),
@@ -130,6 +150,18 @@ const MainTabNavigator = () => {
 				},
 				headerTitleAlign: 'center',
 				headerTitleStyle: layout.fontMontserratRegular,
+			})}
+			screenListeners={({ route: slRoute }) => ({
+				tabPress: () => {
+					setCurrentTab(slRoute.name);
+
+					if (
+						slRoute.name === 'Calendar' &&
+						currentTab === 'Calendar'
+					) {
+						handleRefreshCalendar();
+					}
+				},
 			})}
 		>
 			<Tab.Screen

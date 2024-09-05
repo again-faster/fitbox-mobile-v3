@@ -1,4 +1,3 @@
-import { Spacer } from '@/components/atoms';
 import HeaderButtonGroup from '@/components/template/Header/HeaderButtonGroup';
 import useStore from '@/zustand/Store';
 import { ModalEnum } from '@/zustand/interface/ModalInterface';
@@ -40,7 +39,6 @@ const CalendarHeaderRightComponent = () => {
 			>
 				{numberOfFilters}
 			</Badge>
-			<Spacer horizontal />
 		</HeaderButtonGroup>
 	);
 };

@@ -2,6 +2,7 @@
 import { SafeScreen } from '@/components/template';
 import { getGymClasses, getGymVenues } from '@/services/gym';
 import { config } from '@/theme/_config';
+import layout from '@/theme/layout';
 import { GymVenueType } from '@/types/schemas/gym';
 import { FilterTypeEnum } from '@/utils/Enum';
 import useStore from '@/zustand/Store';
@@ -168,8 +169,14 @@ const Calendar = () => {
 			});
 
 			setHasPlaceholder(true);
+
+			if (currentDate !== moment().format('YYYY-MM-DD')) {
+				setCurrentDate(moment().format('YYYY-MM-DD'));
+			} else {
+				void loadClasses();
+			}
 		}
-	}, []);
+	}, [hasPlaceholder]);
 
 	const isFocused = useIsFocused();
 	useEffect(() => {
@@ -239,6 +246,10 @@ const Calendar = () => {
 					theme={{
 						selectedDayBackgroundColor: fonts.colors.brand,
 						todayTextColor: fonts.colors.brand,
+						textDayFontFamily:
+							layout.fontMontserratRegular.fontFamily,
+						textDayHeaderFontFamily:
+							layout.fontMontserratBold.fontFamily,
 					}}
 				/>
 				{classes.length > 0 && hasPlaceholder && (
