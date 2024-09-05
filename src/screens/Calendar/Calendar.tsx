@@ -1,5 +1,4 @@
 /* eslint-disable no-console */
-import { Loader } from '@/components/molecules';
 import { SafeScreen } from '@/components/template';
 import { getGymClasses, getGymVenues } from '@/services/gym';
 import { config } from '@/theme/_config';
@@ -12,9 +11,9 @@ import {
 	VenueFilter,
 } from '@/zustand/interface/SessionInterface';
 import { useIsFocused } from '@react-navigation/native';
-import { isArray } from 'lodash';
+import { debounce, isArray } from 'lodash';
 import moment from 'moment';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Dimensions, StyleSheet } from 'react-native';
 import {
 	AgendaList,
@@ -34,6 +33,9 @@ const Calendar = () => {
 		loggedInUser,
 		classFilters,
 		venueFilters,
+		hasPlaceholder,
+		setHasPlaceholder,
+		setClasses,
 		getClassesByDate,
 		setActiveMonth,
 		setVenueFilters,
@@ -45,6 +47,9 @@ const Calendar = () => {
 		loggedInUser: state.loggedInUser,
 		classFilters: state.classFilters,
 		venueFilters: state.venueFilters,
+		hasPlaceholder: state.hasPlaceholder,
+		setHasPlaceholder: state.setHasPlaceholder,
+		setClasses: state.setClasses,
 		getClassesByDate: state.getClassesByDate,
 		setActiveMonth: state.setActiveMonth,
 		setVenueFilters: state.setVenueFilters,
@@ -53,27 +58,30 @@ const Calendar = () => {
 		defaultClassFilter: state.defaultClassFilter,
 	}));
 
-	const [initialLoading, setInitialLoading] = useState<boolean>(true);
 	const [currentDate, setCurrentDate] = useState<string>(
 		moment().format('YYYY-MM-DD'),
 	);
 
 	const loadClasses = () => {
-		// loop through the whole week based on current date
-		const week = Array.from({ length: 9 }, (_, i) => {
-			return moment(currentDate)
-				.startOf('week')
-				.add(i, 'days')
-				.format('YYYY-MM-DD');
-		});
+		// Calculate start of the week once
+		const weekStartDate = moment(currentDate);
 
-		week.forEach((date, i) => {
+		const isPrevious = moment(currentDate).isBefore(moment(), 'day');
+		if (isPrevious) {
+			weekStartDate.startOf('week').add(1, 'day');
+		} else {
+			weekStartDate.startOf('week').subtract(1, 'day');
+		}
+
+		// Generate the dates for the whole week based on the current date
+		const week = Array.from({ length: 9 }, (_, i) =>
+			weekStartDate.clone().add(i, 'days').format('YYYY-MM-DD'),
+		);
+
+		// Fetch classes for each date with a delay
+		week.forEach(date => {
 			if (moment(date).isSameOrAfter(moment(currentDate))) {
-				if (initialLoading) setInitialLoading(false);
-
-				setTimeout(() => {
-					getClassesByDate(date, loggedInUser!.id);
-				}, 50 * i);
+				getClassesByDate(date, loggedInUser!.id);
 			}
 		});
 	};
@@ -145,6 +153,22 @@ const Calendar = () => {
 
 	useEffect(() => {
 		void fetchFilterOptions();
+
+		if (!hasPlaceholder) {
+			// create date placeholders to today to next 2 months
+			const today = moment();
+			const nextMonth = today.clone().add(1, 'months');
+			const dates = Array.from(
+				{ length: nextMonth.diff(today, 'days') },
+				(_, i) => today.clone().add(i, 'days').format('YYYY-MM-DD'),
+			);
+
+			dates.forEach(date => {
+				setClasses(date, [{ isLoading: true } as ClassItemData]);
+			});
+
+			setHasPlaceholder(true);
+		}
 	}, []);
 
 	const isFocused = useIsFocused();
@@ -177,7 +201,7 @@ const Calendar = () => {
 		const clearLocations = venueFilters.some(v => v.is_selected);
 
 		if (!clearClasses && !clearLocations) {
-			setHeaderTitle(moment(currentDate).format('MMMM'));
+			setHeaderTitle('');
 		}
 	}, [classFilters, venueFilters]);
 
@@ -186,21 +210,24 @@ const Calendar = () => {
 		return <AgendaItem item={item as ClassItemData} />;
 	}, []);
 
-	const currentDateIsFetching = classes.find(
-		item => item.title === currentDate && item.data[0]?.isLoading === true,
+	// useFocusEffect(
+
+	const handleDateChange = useCallback(
+		debounce((date: string) => {
+			setCurrentDate(date);
+		}, 1000),
+		[],
 	);
 
-	if (currentDateIsFetching && initialLoading) {
-		return <Loader />;
-	}
+	const memoizedClasses = useMemo(() => classes, [classes]);
 
 	return (
 		<SafeScreen>
 			<CalendarProvider
-				date={moment().format('YYYY-MM-DD')}
+				date={currentDate}
 				showTodayButton
-				onDateChanged={date => setCurrentDate(date)}
-				todayBottomMargin={16}
+				onDateChanged={handleDateChange}
+				todayBottomMargin={26}
 				theme={{
 					todayButtonTextColor: fonts.colors.brand,
 					todayButtonFontWeight: 'bold',
@@ -214,22 +241,24 @@ const Calendar = () => {
 						todayTextColor: fonts.colors.brand,
 					}}
 				/>
-				{classes.length ? (
+				{classes.length > 0 && hasPlaceholder && (
 					<AgendaList
-						sections={classes}
+						sections={memoizedClasses}
 						renderItem={renderItem}
 						sectionStyle={styles.section}
-						viewOffset={-90}
+						viewOffset={-70}
 						windowSize={100}
 						removeClippedSubviews
 						keyExtractor={(item: ClassItemData) =>
 							String(item.eventId)
 						}
-						// infiniteListProps={{
-						// 	visibleIndicesChangedDebounce: 250,
-						// }}
+						initialNumToRender={10}
+						maxToRenderPerBatch={5}
+						onEndReached={() => {
+							console.log('onEndReached');
+						}}
 					/>
-				) : null}
+				)}
 			</CalendarProvider>
 
 			{/* Modals */}

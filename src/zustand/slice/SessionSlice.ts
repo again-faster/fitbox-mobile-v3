@@ -18,6 +18,7 @@ const createSessionSlice: StateCreator<
 	classFilters: [],
 	headerTitle: null,
 	defaultClassFilter: null,
+	hasPlaceholder: false,
 
 	setDefaultClassFilter: data => {
 		setState({ defaultClassFilter: data });
@@ -53,27 +54,27 @@ const createSessionSlice: StateCreator<
 				}),
 			});
 		} else {
-			// get last class
-			const lastClass = classes[classes.length - 1];
+			// Add the new class item
+			const updatedClasses = [...classes, newClassItem];
 
-			if (moment(date).isAfter(moment(lastClass?.title))) {
-				// add new data
-				setState({
-					classes: [...classes, newClassItem],
-				});
-			} else {
-				// add new data
-				setState({
-					classes: [newClassItem, ...classes],
-				});
-			}
+			// Sort the classes by date in descending order
+			updatedClasses.sort((a, b) =>
+				moment(a.title).diff(moment(b.title)),
+			);
+
+			// Update the state with the sorted classes
+			setState({
+				classes: updatedClasses,
+			});
 		}
 	},
 
 	getClassesByDate: (date, userId, force = false) => {
 		// Define initial state and functions here or outside the store
 		const { classes, setClasses } = getState();
-		const hasData = classes.find(item => item.title === date);
+		const hasData = classes.find(
+			item => item.title === date && !item.data[0]?.isLoading,
+		);
 		if (hasData && !force) {
 			return;
 		}
@@ -165,7 +166,7 @@ const createSessionSlice: StateCreator<
 	},
 
 	clearClasses: () => {
-		setState({ classes: [] });
+		setState({ classes: [], hasPlaceholder: false });
 	},
 
 	setVenueFilters: data => {
@@ -197,6 +198,10 @@ const createSessionSlice: StateCreator<
 				classFilters: clearedClassFilters,
 			});
 		}
+	},
+
+	setHasPlaceholder: value => {
+		setState({ hasPlaceholder: value });
 	},
 });
 

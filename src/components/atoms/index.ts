@@ -10,4 +10,5 @@ export { default as Row } from './Row/Row';
 export { default as RowSelectItem } from './RowSelectItem/RowSelectItem';
 export { default as ScrollView } from './ScrollView/ScrollView';
 export { default as Spacer } from './Spacer/Spacer';
+export { default as SkeletonView } from './SkeletonView/SkeletonView';
 export { default as Text } from './Text/Text';
