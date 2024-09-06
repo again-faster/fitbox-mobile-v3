@@ -119,7 +119,6 @@ const Dashboard = () => {
 
 	const initializeAppStates = async () => {
 		const res = await getUserGymInfo();
-
 		if (!res.error) {
 			// TODO: Update the following once other functionalities are implemented
 			// const gymParams = {
@@ -143,7 +142,6 @@ const Dashboard = () => {
 
 			// set refresh unread callback, this will be called when unread messages are updated
 			// this.props.setUnreadMsgCb(this.initializeAppStates);
-
 			const { gym_info: gymInfo } = res;
 
 			setAppState(
@@ -366,6 +364,13 @@ const Dashboard = () => {
 		}
 	};
 
+	const onFocusTasks = async () => {
+		await initializeAppStates();
+		await getUpcomingSessions();
+		await getClassFiltersFn();
+		PushNotification.cancelAllLocalNotifications();
+	};
+
 	useFocusEffect(
 		useCallback(() => {
 			setTimeout(() => {
@@ -373,10 +378,7 @@ const Dashboard = () => {
 				setLoading(false);
 			}, 2000);
 
-			void initializeAppStates();
-			void getUpcomingSessions();
-			void getClassFiltersFn();
-			PushNotification.cancelAllLocalNotifications();
+			void onFocusTasks();
 		}, []),
 	);
 
@@ -384,16 +386,20 @@ const Dashboard = () => {
 		void getUpcomingSessions();
 	}, [notifSettings]);
 
+	const onMountTasks = async () => {
+		await initializeNotificationSettings();
+		await savePushNotificationToken();
+		AppState.addEventListener('change', () => {
+			void checkNotificationStatus();
+		});
+	};
+
 	// get filter options every gym switch
 	// get attendance report
 	useEffect(() => {
 		void fetchFilterOptions();
 		void fetchAttendanceReport();
-		void savePushNotificationToken();
-		AppState.addEventListener('change', () => {
-			void checkNotificationStatus();
-		});
-		void initializeNotificationSettings();
+		void onMountTasks();
 	}, []);
 
 	const fetchAttendanceReport = () => {
