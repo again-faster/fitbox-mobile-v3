@@ -125,6 +125,11 @@ const Session = ({ route }: ApplicationScreenProps) => {
 		return bookedMembers.length + 10;
 	}, [session, bookedMembers]);
 
+	const classId = useMemo(
+		() => Number(session?.class_event.class_id),
+		[session],
+	);
+
 	const handleTabChange = (tab: SessionTabsEnum) => {
 		setActiveTab(tab);
 	};
@@ -153,6 +158,7 @@ const Session = ({ route }: ApplicationScreenProps) => {
 	return (
 		<View style={styles.container}>
 			<SessionActionButtons
+				classId={classId}
 				eventId={eventId}
 				subscribed={subscribed}
 				isAttending={isAttending}
@@ -194,7 +200,7 @@ const Session = ({ route }: ApplicationScreenProps) => {
 
 			{activeTab === SessionTabsEnum.RESULTS ? (
 				<ClassResultsScreen
-					selectClass={session?.class_event.class_id}
+					selectClass={classId}
 					dateFromParams={moment(session?.start_datetime).format(
 						'YYYY-MM-DD',
 					)}

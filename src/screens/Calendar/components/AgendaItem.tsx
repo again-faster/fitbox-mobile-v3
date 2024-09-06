@@ -165,7 +165,7 @@ const AgendaItem: React.FC<AgendaItemProps> = React.memo(
 			navigation.navigate('Session', {
 				id: Number(eventId),
 				title: title || 'Session',
-				waitlistEnabled: !!isWaitlisted,
+				waitlistEnabled: !!waitlistBtn,
 				waitlistTime: Number(waitlistTime),
 			});
 		}, []);
@@ -248,14 +248,22 @@ const AgendaItem: React.FC<AgendaItemProps> = React.memo(
 			}
 
 			if (!isAttending && !isWaitlisted && spotsLeft === 0) {
+				if (waitlistBtn) {
+					return (
+						<Button
+							sm
+							compact
+							fullWidth
+							mode="outlined"
+							title="Waitlist"
+							onPress={handleWaitlist}
+							loading={isBooking}
+						/>
+					);
+				}
+
 				return (
-					<Button
-						sm
-						mode="outlined"
-						title="Session Full"
-						compact
-						fullWidth
-					/>
+					<Button sm mode="outlined" title="Full" compact fullWidth />
 				);
 			}
 
@@ -274,25 +282,6 @@ const AgendaItem: React.FC<AgendaItemProps> = React.memo(
 						title="Book"
 						mode="outlined"
 						onPress={handleBook}
-						loading={isBooking}
-					/>
-				);
-			}
-
-			if (
-				!isAttending &&
-				spotsLeft === 0 &&
-				!isWaitlisted &&
-				waitlistBtn
-			) {
-				return (
-					<Button
-						sm
-						compact
-						fullWidth
-						mode="outlined"
-						title="Waitlist"
-						onPress={handleWaitlist}
 						loading={isBooking}
 					/>
 				);

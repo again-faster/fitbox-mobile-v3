@@ -1,5 +1,9 @@
 import { Button, Row } from '@/components/atoms';
-import { attendSession } from '@/services/session';
+import {
+	attendSession,
+	cancelWaitlist,
+	joinWaitlist,
+} from '@/services/session';
 import layout from '@/theme/layout';
 import { ApplicationStackParamList } from '@/types/navigation';
 import { Say } from '@/utils';
@@ -12,6 +16,7 @@ import { Alert, StyleSheet, Text, View } from 'react-native';
 import SimpleToast from 'react-native-simple-toast';
 
 interface SessionActionButtonsProps {
+	classId: number;
 	eventId: number;
 	subscribed: boolean;
 	isAttending: boolean;
@@ -24,6 +29,7 @@ interface SessionActionButtonsProps {
 }
 
 const SessionActionButtons = ({
+	classId,
 	eventId,
 	subscribed,
 	isAttending: propsIsAttending,
@@ -48,18 +54,17 @@ const SessionActionButtons = ({
 	const [isBooking, setIsBooking] = useState<boolean>(false);
 	const [isAttending, setAttending] = useState<boolean>(propsIsAttending);
 
-	// TODO: Temporary console.log, remove when done
-	// eslint-disable-next-line no-console
-	console.log('currentTime', {
-		setWaitlisting,
-		eventId,
-		waitlistTime,
-	});
-
-	const reloadSessionDetail = () =>
+	const reloadSessionDetail = () => {
 		void queryClient.invalidateQueries({
 			queryKey: ['sessionGetScheduleDetail'],
 		});
+
+		getClassesByDate(
+			moment(startTime).format('YYYY-MM-DD'),
+			loggedInUser!.id,
+			true,
+		);
+	};
 
 	// TODO: Find a way to merge both function from AgendaItem.tsx
 	const handleBuyNow = () => {
@@ -231,12 +236,6 @@ const SessionActionButtons = ({
 					);
 				}
 
-				getClassesByDate(
-					moment(startTime).format('YYYY-MM-DD'),
-					loggedInUser!.id,
-					true,
-				);
-
 				reloadSessionDetail();
 			})
 			.catch(() => {
@@ -249,7 +248,51 @@ const SessionActionButtons = ({
 	};
 
 	const handleWaitlist = () => {
-		// handle waitlist
+		setWaitlisting(true);
+
+		joinWaitlist(Number(classId), Number(eventId))
+			.then(res => {
+				if (res.error) {
+					Say.warn(res.message, 'Oops!');
+				} else {
+					SimpleToast.show(
+						'You have been added to the waitlist',
+						SimpleToast.SHORT,
+					);
+					reloadSessionDetail();
+				}
+			})
+			.catch(() => {
+				Say.warn('Error joining waitlist', 'Oops!');
+			})
+			.finally(() => {
+				setIsBooking(false);
+				setWaitlisting(false);
+			});
+	};
+
+	const handleCancelWaitlist = () => {
+		setWaitlisting(true);
+
+		cancelWaitlist(Number(classId), Number(eventId))
+			.then(res => {
+				if (res.error) {
+					Say.warn(res.message, 'Oops!');
+				} else {
+					SimpleToast.show(
+						'You have been removed from the waitlist',
+						SimpleToast.SHORT,
+					);
+					reloadSessionDetail();
+				}
+			})
+			.catch(() => {
+				Say.warn('Error cancel waitlist', 'Oops!');
+			})
+			.finally(() => {
+				setIsBooking(false);
+				setWaitlisting(false);
+			});
 	};
 
 	const renderLeftButton = useCallback(() => {
@@ -262,7 +305,7 @@ const SessionActionButtons = ({
 		}
 
 		if (spotsLeft === 0) {
-			return <Button sm mode="outlined" title="Session Full" />;
+			return <Button sm mode="outlined" title="Full" />;
 		}
 
 		if (spotsLeft <= 3 && spotsLeft > 0) {
@@ -302,14 +345,20 @@ const SessionActionButtons = ({
 			return (
 				<Button
 					sm
-					title="Cancel"
-					onPress={handleWaitlist}
+					title="Cancel Waitlist"
+					onPress={handleCancelWaitlist}
 					loading={isWaitlisting}
 				/>
 			);
 		}
 
-		if (spotsLeft === 0 && waitlistEnabled) {
+		if (
+			!isAttending &&
+			!isWaitlist &&
+			spotsLeft === 0 &&
+			waitlistEnabled &&
+			moment(startTime).diff(moment(), 'minutes') > waitlistTime * 60
+		) {
 			return (
 				<Button
 					sm
