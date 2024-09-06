@@ -1,5 +1,5 @@
 import useAuth from '@/auth/hooks/useAuth';
-import { Button, Row, Spacer, Text } from '@/components/atoms';
+import { Button, Row, Spacer } from '@/components/atoms';
 import { acceptWaiver, getWaiver } from '@/services/waivers';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
@@ -17,9 +17,9 @@ import {
 	View,
 } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import Pdf from 'react-native-pdf';
 import SimpleToast from 'react-native-simple-toast';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import WebView from 'react-native-webview';
 
 type StateTypes = {
 	waiver: string;
@@ -36,7 +36,6 @@ const GymWaiverScreen = ({ navigation }: ApplicationScreenProps) => {
 		loading: true,
 		downloading: false,
 	});
-	const [errorPdf, setErrorPdf] = useState(false);
 
 	useEffect(() => {
 		void (async () => {
@@ -173,27 +172,14 @@ const GymWaiverScreen = ({ navigation }: ApplicationScreenProps) => {
 	) : (
 		<View style={styles.container}>
 			<View style={layout.flex_1}>
-				{errorPdf ? (
-					<View style={styles.errorPdf}>
-						<Icon
-							name="exclamation-triangle"
-							color={config.colors.danger}
-							size={config.metrics.xl}
-						/>
-						<Spacer />
-						<Text size="md">Error loading PDF</Text>
-					</View>
-				) : (
-					<Pdf
-						source={{
-							uri: state.waiver,
-							cache: true,
-						}}
-						style={styles.pdfStyle}
-						onError={() => setErrorPdf(true)}
-						trustAllCerts={Platform.OS !== 'android'}
-					/>
-				)}
+				<WebView
+					style={layout.flex_1}
+					source={{
+						uri: `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(
+							state.waiver,
+						)}`,
+					}}
+				/>
 			</View>
 			<Spacer size="lg" />
 

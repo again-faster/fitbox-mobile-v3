@@ -41,11 +41,6 @@ const Startup = ({ navigation }: ApplicationScreenProps) => {
 						});
 					}
 
-					/**
-					 * TODO: High prio
-					 * On some accounts, when goes to gym waiver screen it crashes the app for some reason.
-					 * Please investigate and fix.
-					 */
 					if (!user.user_data.waiver_accepted) {
 						return navigation.reset({
 							index: 0,
