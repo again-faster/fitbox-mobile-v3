@@ -79,9 +79,6 @@ const createSessionSlice: StateCreator<
 			return;
 		}
 
-		// Add loading state
-		setClasses(date, [{ isLoading: true }]);
-
 		getScheduleList(date, date)
 			.then(res => {
 				if (!res.error) {

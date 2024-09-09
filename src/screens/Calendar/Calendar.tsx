@@ -11,7 +11,7 @@ import {
 	ClassItemData,
 	VenueFilter,
 } from '@/zustand/interface/SessionInterface';
-import { useIsFocused } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { debounce, isArray } from 'lodash';
 import moment from 'moment';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -217,8 +217,14 @@ const Calendar = () => {
 		return <AgendaItem item={item as ClassItemData} />;
 	}, []);
 
-	// useFocusEffect(
-
+	useFocusEffect(
+		useCallback(() => {
+			// refetch current date classes
+			if (hasPlaceholder) {
+				getClassesByDate(currentDate, loggedInUser!.id, true);
+			}
+		}, []),
+	);
 	const handleDateChange = useCallback(
 		debounce((date: string) => {
 			setCurrentDate(date);
