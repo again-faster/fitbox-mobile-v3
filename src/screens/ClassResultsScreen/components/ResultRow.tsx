@@ -109,6 +109,8 @@ const ResultRow = (props: Props) => {
 	const showReactions = Object.entries(resources.react).filter(
 		([key]) => !activeIcons.includes(key),
 	);
+	const allReactions = Object.entries(resources.react);
+
 	const tooltipPopupActive =
 		activeResultIndex === rowIndex && activeSectionIndex === sectionIndex;
 
@@ -221,7 +223,7 @@ const ResultRow = (props: Props) => {
 								<Row style={styles.reactionsStyle}>
 									{renderPopupReact(
 										tooltipPopupActive,
-										showReactions,
+										allReactions,
 										onClickReact,
 									)}
 									{reactionCounts.length > 0 &&
