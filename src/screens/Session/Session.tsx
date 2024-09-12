@@ -44,6 +44,7 @@ const Session = ({ route }: ApplicationScreenProps) => {
 		isFetching: refreshing,
 		error,
 		isSuccess,
+		isFetchedAfterMount,
 	} = useQuery({
 		queryKey: ['sessionGetScheduleDetail'],
 		queryFn: () => getScheduleDetail(eventId),
@@ -53,7 +54,7 @@ const Session = ({ route }: ApplicationScreenProps) => {
 
 	const session = data;
 	const bookedMembers = session?.member_attendance ?? [];
-	const startTime = moment(session?.start_datetime);
+	const startTime = session?.start_datetime as string;
 
 	// const sections = useMemo(() => session?.sections, [session]);
 	const attendanceView = session?.attendance_view ?? false;
@@ -151,7 +152,7 @@ const Session = ({ route }: ApplicationScreenProps) => {
 		);
 	}
 
-	if (data === undefined) {
+	if (!isFetchedAfterMount) {
 		return <SessionLoader />;
 	}
 

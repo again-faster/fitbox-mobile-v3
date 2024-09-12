@@ -1,16 +1,12 @@
 import { SkeletonView, Text } from '@/components/atoms';
 import { BookButton } from '@/components/molecules';
-import { attendSession, joinWaitlist } from '@/services/session';
 import { config } from '@/theme/_config';
 import { ApplicationStackParamList } from '@/types/navigation';
-import { Say } from '@/utils';
 import useStore from '@/zustand/Store';
 import { ClassItemData } from '@/zustand/interface/SessionInterface';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import moment from 'moment';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
-import SimpleToast from 'react-native-simple-toast';
 
 const { metrics, fonts } = config;
 
@@ -45,76 +41,15 @@ const AgendaItem: React.FC<AgendaItemProps> = React.memo(
 		const navigation =
 			useNavigation<NavigationProp<ApplicationStackParamList>>();
 
-		const { loggedInUser, classFilters, venueFilters, getClassesByDate } =
-			useStore(e => ({
-				loggedInUser: e.loggedInUser,
-				classFilters: e.classFilters,
-				venueFilters: e.venueFilters,
-				getClassesByDate: e.getClassesByDate,
-			}));
+		const { classFilters, venueFilters } = useStore(e => ({
+			classFilters: e.classFilters,
+			venueFilters: e.venueFilters,
+			getClassesByDate: e.getClassesByDate,
+		}));
 
-		const [isBooking, setIsBooking] = useState<boolean>(false);
 		const [isAttending, setIsAttending] = useState<boolean>(
 			!!isAttendingProp,
 		);
-
-		const handleBook = () => {
-			setIsBooking(true);
-
-			attendSession({
-				event_id: Number(eventId),
-				is_attend: true,
-			})
-				.then(res => {
-					if (res.error) {
-						if (res?.error_code === 'AB001') {
-							// Show alert if user is already booked for this
-							SimpleToast.show(
-								'You are already booked for this session',
-								SimpleToast.SHORT,
-							);
-
-							// refresh calendar to update booked s on calendar
-							getClassesByDate(
-								moment(startDate).format('YYYY-MM-DD'),
-								loggedInUser!.id,
-							);
-						}
-
-						if (res.message) {
-							Say.warn(res.message, 'Oops!');
-						}
-					} else {
-						setIsAttending(true);
-					}
-				})
-				.catch(() => {
-					// console.log('@err', err);
-					Say.warn('Error booking session', 'Oops!');
-				})
-				.finally(() => {
-					setIsBooking(false);
-				});
-		};
-
-		const handleWaitlist = () => {
-			setIsBooking(true);
-
-			joinWaitlist(Number(classId), Number(eventId))
-				.then(res => {
-					if (res.error) {
-						Say.warn(res.message, 'Oops!');
-					} else {
-						Say.ok('You have been added to the waitlist');
-					}
-				})
-				.catch(() => {
-					Say.warn('Error joining waitlist', 'Oops!');
-				})
-				.finally(() => {
-					setIsBooking(false);
-				});
-		};
 
 		const handleViewSession = useCallback(() => {
 			navigation.navigate('Session', {
@@ -128,23 +63,21 @@ const AgendaItem: React.FC<AgendaItemProps> = React.memo(
 		const renderButton = useCallback(
 			() => (
 				<BookButton
+					eventId={eventId as number}
+					classId={classId as number}
 					isSubscribed={isSubscribed}
 					isCoach={isCoach as boolean}
-					isAttending={isAttending}
 					spotsLeft={spotsLeft as number}
 					isWaitlisted={isWaitlisted as boolean}
 					startDate={startDate as string}
 					isBookingLocked={isBookingLocked as boolean}
 					waitlistBtn={waitlistBtn as boolean}
-					isBooking={isBooking}
-					eventId={eventId as number}
-					handleBook={handleBook}
-					handleWaitlist={handleWaitlist}
+					isAttending={isAttending}
+					setAttending={setIsAttending}
 					handleViewSession={handleViewSession}
 				/>
 			),
 			[
-				isBooking,
 				isAttending,
 				isSubscribed,
 				isCoach,
