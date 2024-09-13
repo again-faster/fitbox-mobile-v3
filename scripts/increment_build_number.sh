@@ -28,12 +28,28 @@ git pull origin $BRANCH_DEV || handle_error "Failed to pull latest changes from 
 # Merge dev into dev-build
 echo "Merging $BRANCH_DEV into $BRANCH_DEV_BUILD..."
 git checkout $BRANCH_DEV_BUILD
-git merge $BRANCH_DEV --allow-unrelated-histories
+git merge $BRANCH_DEV --allow-unrelated-histories || handle_error "Merge conflicts occurred. Please resolve them manually."
 
-# Check for merge conflicts
-if [ $? -ne 0 ]; then
-    handle_error "Merge conflicts occurred. Please resolve them manually."
-fi
+# Handle merge conflicts
+# Stage all changes except for the specific file
+echo "Resolving conflicts..."
+
+# Resolve conflicts by keeping the incoming changes (the dev branch) for all files
+git diff --name-only --diff-filter=U | while read file; do
+    if [ "$file" != "$PROJECT_PATH" ]; then
+        echo "Resolving conflict for $file by keeping incoming changes"
+        git checkout --theirs "$file"
+    else
+        echo "Retaining current version for $file"
+        git checkout --ours "$file"
+    fi
+done
+
+# Add resolved files to the staging area
+git add .
+
+# Commit the merge
+git commit -m "fix: resolve merge conflicts with incoming changes except for $PROJECT_PATH"
 
 # Read current build number
 # Extract current version placeholder value
