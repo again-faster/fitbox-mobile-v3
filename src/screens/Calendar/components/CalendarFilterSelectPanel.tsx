@@ -5,7 +5,7 @@ import { ModalEnum } from '@/utils/Enum';
 import useStore from '@/zustand/Store';
 import { ClassFilter, VenueFilter } from '@/zustand/interface/SessionInterface';
 import { produce } from 'immer';
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { FilterTypeEnum } from './CalendarFilterPanel';
@@ -30,33 +30,56 @@ const CalendarFilterSelect = ({ type }: CalendarFilterSelectProps) => {
 			: ModalEnum.VENUE_FILTER;
 
 	// prepare filter state based on the type
-	const stateFilter =
-		type === FilterTypeEnum.CLASS ? 'classFilters' : 'venueFilters';
+	const stateFilterToApply =
+		type === FilterTypeEnum.CLASS
+			? 'classFiltersToApply'
+			: 'venueFiltersToApply';
 
-	const { visible, toggleModal, filters, setClassFilters, setVenueFilters } =
-		useStore(state => {
-			return {
-				visible: !!state[modal],
-				filters: state[stateFilter],
-				toggleModal: state.toggleModal,
-				setClassFilters: state.setClassFilters,
-				setVenueFilters: state.setVenueFilters,
-			};
-		});
+	const {
+		visible,
+		toggleModal,
+		filtersToApply,
+		setClassFiltersToApply,
+		setVenueFiltersToApply,
+		venueFilters,
+		classFilters,
+	} = useStore(state => {
+		return {
+			visible: !!state[modal],
+			venueFilters: state.venueFilters,
+			classFilters: state.classFilters,
+			filtersToApply: state[stateFilterToApply],
+			toggleModal: state.toggleModal,
+
+			setClassFiltersToApply: state.setClassFiltersToApply,
+			setVenueFiltersToApply: state.setVenueFiltersToApply,
+		};
+	});
+
+	useEffect(() => {
+		if (visible) {
+			// set the default filters to apply
+			if (type === FilterTypeEnum.CLASS) {
+				setClassFiltersToApply(classFilters);
+			} else {
+				setVenueFiltersToApply(venueFilters);
+			}
+		}
+	}, [visible]);
 
 	const handleFilterPress = (index: number) => {
 		// new filter data
-		const newFilters = produce(filters, draft => {
+		const newFilters = produce(filtersToApply, draft => {
 			draft[index] = {
-				...filters[index],
-				is_selected: !filters[index]?.is_selected,
+				...filtersToApply[index],
+				is_selected: !filtersToApply[index]?.is_selected,
 			} as ClassFilter | VenueFilter;
 		});
 
 		if (type === FilterTypeEnum.CLASS) {
-			setClassFilters(newFilters as ClassFilter[]);
+			setClassFiltersToApply(newFilters as ClassFilter[]);
 		} else {
-			setVenueFilters(newFilters as VenueFilter[]);
+			setVenueFiltersToApply(newFilters as VenueFilter[]);
 		}
 	};
 
@@ -64,7 +87,11 @@ const CalendarFilterSelect = ({ type }: CalendarFilterSelectProps) => {
 		<BottomPanel
 			title={title}
 			visible={visible}
-			onClose={() => toggleModal(modal, false)}
+			onClose={() => {
+				toggleModal(modal, false);
+				setClassFiltersToApply(classFilters);
+				setVenueFiltersToApply(venueFilters);
+			}}
 			rightTitle={
 				<TouchableOpacity
 					onPress={() => {
@@ -79,7 +106,7 @@ const CalendarFilterSelect = ({ type }: CalendarFilterSelectProps) => {
 			}
 		>
 			<ScrollView>
-				{filters.map((data, key) => (
+				{filtersToApply.map((data, key) => (
 					<TouchableOpacity
 						key={key}
 						onPress={() => {

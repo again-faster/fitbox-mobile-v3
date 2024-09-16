@@ -21,6 +21,12 @@ const CalendarFilterPanel = () => {
 		onReset,
 		toggleModal,
 		clearFilter,
+		venueFiltersToApply,
+		classFiltersToApply,
+		setClassFilters,
+		setVenueFilters,
+		setClassFiltersToApply,
+		setVenueFiltersToApply,
 	} = useStore(state => ({
 		onClose: () => state.toggleModal(ModalEnum.CALENDAR_FILTER, false),
 		visible: state[ModalEnum.CALENDAR_FILTER],
@@ -29,6 +35,12 @@ const CalendarFilterPanel = () => {
 		clearFilter: state.clearFilters,
 		classFilters: state.classFilters,
 		venueFilters: state.venueFilters,
+		classFiltersToApply: state.classFiltersToApply,
+		venueFiltersToApply: state.venueFiltersToApply,
+		setClassFilters: state.setClassFilters,
+		setVenueFilters: state.setVenueFilters,
+		setClassFiltersToApply: state.setClassFiltersToApply,
+		setVenueFiltersToApply: state.setVenueFiltersToApply,
 	}));
 
 	const getFilterTitle = (filterType: FilterTypeEnum) =>
@@ -42,7 +54,9 @@ const CalendarFilterPanel = () => {
 		const optionTitle = getFilterTitle(filterType);
 
 		const filters: ClassFilter[] = (
-			filterType === FilterTypeEnum.VENUE ? venueFilters : classFilters
+			filterType === FilterTypeEnum.VENUE
+				? venueFiltersToApply
+				: classFiltersToApply
 		).filter((item: GymClassType) => item.is_selected);
 
 		const renderFilters =
@@ -103,11 +117,21 @@ const CalendarFilterPanel = () => {
 		);
 	};
 
+	const applyFilter = () => {
+		setClassFilters(classFiltersToApply);
+		setVenueFilters(venueFiltersToApply);
+		onClose();
+	};
+
 	return (
 		<BottomPanel
 			title="Class Filter"
 			visible={visible}
-			onClose={onClose}
+			onClose={() => {
+				onClose();
+				setClassFiltersToApply(classFilters);
+				setVenueFiltersToApply(venueFilters);
+			}}
 			rightTitle={
 				<TouchableOpacity onPress={onReset}>
 					<Text size="md" color="darkgray">
@@ -126,7 +150,7 @@ const CalendarFilterPanel = () => {
 					: null}
 
 				<Button
-					onPress={onClose}
+					onPress={applyFilter}
 					style={styles.buttonStyle}
 					title="Apply Filter"
 					variant="info"

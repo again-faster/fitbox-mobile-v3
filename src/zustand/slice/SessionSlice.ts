@@ -19,6 +19,8 @@ const createSessionSlice: StateCreator<
 	headerTitle: null,
 	defaultClassFilter: null,
 	hasPlaceholder: false,
+	venueFiltersToApply: [],
+	classFiltersToApply: [],
 
 	setDefaultClassFilter: data => {
 		setState({ defaultClassFilter: data });
@@ -179,25 +181,37 @@ const createSessionSlice: StateCreator<
 		setState({ classFilters: data });
 	},
 
+	setVenueFiltersToApply: data => {
+		setState({ venueFiltersToApply: data });
+	},
+
+	setClassFiltersToApply: data => {
+		setState({ classFiltersToApply: data });
+	},
+
 	clearFilters: filterType => {
 		// cleared filters
-		const clearedClassFilters = getState().classFilters.map(item => ({
-			...item,
-			is_selected: false,
-		}));
-		const clearedVenueFilters = getState().venueFilters.map(item => ({
-			...item,
-			is_selected: false,
-		}));
+		const clearedClassFilters = getState().classFiltersToApply.map(
+			item => ({
+				...item,
+				is_selected: false,
+			}),
+		);
+		const clearedVenueFilters = getState().venueFiltersToApply.map(
+			item => ({
+				...item,
+				is_selected: false,
+			}),
+		);
 
 		if (filterType === FilterTypeEnum.VENUE) {
-			setState({ venueFilters: clearedVenueFilters });
+			setState({ venueFiltersToApply: clearedVenueFilters });
 		} else if (filterType === FilterTypeEnum.CLASS) {
-			setState({ classFilters: clearedClassFilters });
+			setState({ classFiltersToApply: clearedClassFilters });
 		} else {
 			setState({
-				venueFilters: clearedVenueFilters,
-				classFilters: clearedClassFilters,
+				venueFiltersToApply: clearedVenueFilters,
+				classFiltersToApply: clearedClassFilters,
 			});
 		}
 	},
