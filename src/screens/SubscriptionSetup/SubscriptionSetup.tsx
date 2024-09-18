@@ -316,7 +316,6 @@ const SubscriptionSetup = ({ route, navigation }: MainTabScreenProps) => {
 						<ScrollView
 							contentContainerStyle={{
 								paddingHorizontal: config.metrics.lg,
-								...layout.flex_1,
 							}}
 						>
 							{products.map(

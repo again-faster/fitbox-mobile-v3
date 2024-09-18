@@ -39,6 +39,8 @@ interface SessionStateInterface {
 	headerTitle: string | null;
 	defaultClassFilter: ClassFiltersDataType | null;
 	hasPlaceholder: boolean;
+	venueFiltersToApply: VenueFilter[];
+	classFiltersToApply: ClassFilter[];
 }
 
 interface SessionInterface extends SessionStateInterface {
@@ -48,6 +50,8 @@ interface SessionInterface extends SessionStateInterface {
 	setActiveMonth: (date: string) => void;
 	setVenueFilters: (data: VenueFilter[]) => void;
 	setClassFilters: (data: ClassFilter[]) => void;
+	setVenueFiltersToApply: (data: VenueFilter[]) => void;
+	setClassFiltersToApply: (data: ClassFilter[]) => void;
 	clearFilters: (filterType?: FilterTypeEnum) => void;
 	setHeaderTitle: (title: string) => void;
 	setDefaultClassFilter: (data: ClassFiltersDataType) => void;

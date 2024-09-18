@@ -30,9 +30,32 @@ echo "Merging $BRANCH_DEV into $BRANCH_DEV_BUILD..."
 git checkout $BRANCH_DEV_BUILD
 git merge $BRANCH_DEV --allow-unrelated-histories
 
-# Check for merge conflicts
-if [ $? -ne 0 ]; then
-    handle_error "Merge conflicts occurred. Please resolve them manually."
+# Handle merge conflicts
+# Stage all changes except for the specific file
+echo "Resolving conflicts..."
+
+# Check if there are merge conflicts
+if git ls-files -u | grep -q '^'; then
+    echo "Merge conflicts detected. Attempting to resolve conflicts..."
+
+    # Resolve conflicts by keeping the incoming changes (the dev branch) for all files
+    git diff --name-only --diff-filter=U | while read file; do
+        if [ "$file" != "$PROJECT_PATH" ]; then
+            echo "Resolving conflict for $file by keeping incoming changes"
+            git checkout --theirs "$file"
+        else
+            echo "Retaining current version for $file"
+            git checkout --ours "$file"
+        fi
+    done
+
+    # Add resolved files to the staging area
+    git add .
+
+    # Commit the merge
+    git commit -m "fix: resolve merge conflicts with incoming changes except for $PROJECT_PATH"
+else
+    echo "No merge conflicts detected."
 fi
 
 # Read current build number

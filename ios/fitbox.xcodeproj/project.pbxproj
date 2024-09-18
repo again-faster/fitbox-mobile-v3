@@ -18,6 +18,7 @@
 		CB00A2FA2C242363002C8C5F /* Montserrat-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = CB00A2F82C242363002C8C5F /* Montserrat-Bold.ttf */; };
 		CBF954C32C76F2E900958DA5 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CBF954C22C76F2E900958DA5 /* GoogleService-Info.plist */; };
 		CBF954C42C76F2E900958DA5 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CBF954C22C76F2E900958DA5 /* GoogleService-Info.plist */; };
+
 		DE8D3492226D9C103E95FE4D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 392EDFA95319695B8BF623F9 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
@@ -503,7 +504,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 27;
+				CURRENT_PROJECT_VERSION = 29;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 72JFN8S92U;
@@ -541,7 +542,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 27;
+				CURRENT_PROJECT_VERSION = 29;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 72JFN8S92U;

@@ -707,7 +707,7 @@ const Dashboard = () => {
 
 						<Spacer size="xl" />
 
-						{/* Hide Announcements for now */}
+						{/* NOTE: Hide Announcements for now */}
 						{/* <Text size="lg">Announcements</Text>
 						<Spacer />
 						<DashboardAnnouncements /> */}

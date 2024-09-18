@@ -1,10 +1,11 @@
 /* eslint-disable no-console */
+import { Row, Text } from '@/components/atoms';
 import { SafeScreen } from '@/components/template';
 import { getGymClasses, getGymVenues } from '@/services/gym';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { GymVenueType } from '@/types/schemas/gym';
-import { FilterTypeEnum } from '@/utils/Enum';
+import { FilterTypeEnum, ModalEnum } from '@/utils/Enum';
 import useStore from '@/zustand/Store';
 import {
 	ClassFilter,
@@ -15,12 +16,14 @@ import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { debounce, isArray } from 'lodash';
 import moment from 'moment';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Dimensions, StyleSheet } from 'react-native';
+import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
 import {
 	AgendaList,
 	CalendarProvider,
 	WeekCalendar,
 } from 'react-native-calendars';
+import { Badge } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AgendaItem from './components/AgendaItem';
 import CalendarFilterPanel from './components/CalendarFilterPanel';
 import CalendarFilterSelect from './components/CalendarFilterSelectPanel';
@@ -43,6 +46,9 @@ const Calendar = () => {
 		setClassFilters,
 		setHeaderTitle,
 		defaultClassFilter,
+		setClassFiltersToApply,
+		setVenueFiltersToApply,
+		toggleModal,
 	} = useStore(state => ({
 		classes: state.classes,
 		loggedInUser: state.loggedInUser,
@@ -57,6 +63,9 @@ const Calendar = () => {
 		setClassFilters: state.setClassFilters,
 		setHeaderTitle: state.setHeaderTitle,
 		defaultClassFilter: state.defaultClassFilter,
+		setClassFiltersToApply: state.setClassFiltersToApply,
+		setVenueFiltersToApply: state.setVenueFiltersToApply,
+		toggleModal: state.toggleModal,
 	}));
 
 	const [currentDate, setCurrentDate] = useState<string>(
@@ -119,6 +128,7 @@ const Calendar = () => {
 
 					// set venue filters
 					setVenueFilters(venueFilterList);
+					setVenueFiltersToApply(venueFilterList);
 				}
 			})
 			.catch(err => {
@@ -138,6 +148,7 @@ const Calendar = () => {
 
 					// set class filters
 					setClassFilters(classFilterList);
+					setClassFiltersToApply(classFilterList);
 				} else {
 					throw new Error(res.message);
 				}
@@ -199,6 +210,8 @@ const Calendar = () => {
 
 			setClassFilters(defaultClass);
 			setVenueFilters(defaultVenue);
+			setClassFiltersToApply(defaultClass);
+			setVenueFiltersToApply(defaultVenue);
 			setHeaderTitle(defaultClassFilter.name);
 		}
 	}, [isFocused]);
@@ -233,6 +246,17 @@ const Calendar = () => {
 	);
 
 	const memoizedClasses = useMemo(() => classes, [classes]);
+
+	const numberOfFilters = useMemo(() => {
+		const numOfClassFilters = classFilters.filter(
+			e => e.is_selected,
+		).length;
+		const numOfVenueFilters = venueFilters.filter(
+			e => e.is_selected,
+		).length;
+
+		return numOfClassFilters + numOfVenueFilters;
+	}, [classFilters, venueFilters]);
 
 	return (
 		<SafeScreen>
@@ -277,6 +301,38 @@ const Calendar = () => {
 					/>
 				)}
 			</CalendarProvider>
+			{numberOfFilters > 0 && (
+				<View style={styles.filterContainer}>
+					<TouchableOpacity
+						onPress={() => toggleModal(ModalEnum.CALENDAR_FILTER)}
+					>
+						<Row align="center">
+							<View
+								style={{ marginHorizontal: config.metrics.sm }}
+							>
+								<Icon
+									name="filter-outline"
+									size={25}
+									color={config.backgrounds.darkgray}
+								/>
+								<Badge
+									visible
+									style={styles.badgeStyle}
+									size={14}
+								>
+									{numberOfFilters}
+								</Badge>
+							</View>
+
+							<Text>
+								{numberOfFilters > 1
+									? 'Filters Applied'
+									: 'Filter Applied'}
+							</Text>
+						</Row>
+					</TouchableOpacity>
+				</View>
+			)}
 
 			{/* Modals */}
 			<CalendarFilterPanel />
@@ -294,6 +350,24 @@ const styles = StyleSheet.create({
 		backgroundColor: '#FFF',
 		color: 'grey',
 		fontSize: fonts.metrics.rg,
+	},
+	badgeStyle: {
+		position: 'absolute',
+		top: -2,
+		right: 1,
+	},
+	filterContainer: {
+		padding: config.metrics.xs,
+		paddingTop: config.metrics.sm,
+		backgroundColor: 'white',
+		shadowColor: '#000',
+		shadowOffset: {
+			width: 0,
+			height: 1,
+		},
+		shadowOpacity: 0.2,
+		shadowRadius: 1.41,
+		elevation: 2,
 	},
 });
 

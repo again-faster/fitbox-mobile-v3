@@ -322,7 +322,6 @@ const ApplicationNavigator = () => {
 		}
 		return '';
 	};
-
 	return (
 		<StripeProvider
 			publishableKey={getKeyBasedOnEnv()}
@@ -455,7 +454,6 @@ const ApplicationNavigator = () => {
 								headerLeft: () => null,
 								presentation: 'modal',
 								headerShown: true,
-
 								...(Constant.IS_ANDROID
 									? {
 											cardStyleInterpolator:

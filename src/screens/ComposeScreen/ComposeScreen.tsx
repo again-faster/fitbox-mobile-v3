@@ -200,7 +200,6 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 					</TouchableOpacity>
 				</Row>
 			</View>
-
 			<View
 				style={{
 					padding: config.metrics.md,
@@ -253,21 +252,16 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 						style={styles.disableReplyButtonStyle}
 						onPress={() => setDisableReply(!replyDisabled)}
 					>
-						<Row
-							style={{ paddingHorizontal: config.metrics.rg }}
-							spacing="space-between"
-						>
-							<Text>Disable replies</Text>
-							<View style={styles.checkboxInput}>
-								{replyDisabled ? (
-									<Icon
-										name="checkmark-outline"
-										size={config.metrics.md}
-										color={config.borders.colors.mute}
-										style={styles.disableIcon}
-									/>
-								) : null}
-							</View>
+						<Row style={layout.flex_1} align="center">
+							<Icon
+								name="attach-outline"
+								size={config.metrics.lg}
+								color={config.backgrounds.light}
+								style={{ marginRight: config.metrics.md }}
+							/>
+							<Text color="light" numberOfLines={1}>
+								File Name
+							</Text>
 						</Row>
 					</TouchableOpacity>
 				)}

@@ -5,7 +5,7 @@ import { ApplicationStackParamList } from '@/types/navigation';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import moment from 'moment';
 import { memo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 const { metrics, fonts } = config;
 
@@ -45,61 +45,70 @@ const BookedSessionCard = ({
 
 	const buttonStyle = {
 		backgroundColor: 'white',
-		borderColor: isCoach
-			? config.colors.info
-			: config.fonts.colors.darkgray,
+		borderColor: config.colors.info,
 	};
 
 	return (
-		<View style={styles.container}>
-			<Row style={layout.flex_1}>
-				<View style={layout.justifyCenter}>
-					<Text bold size="sm" center>
-						{moment(startTime).format('DD MMM')}
-					</Text>
-					<Text size="sm" color="mute" center>
-						{moment(startTime).format('ddd')}
-					</Text>
-				</View>
+		<TouchableOpacity onPress={handlePress}>
+			<View style={styles.container}>
+				<Row style={styles.bookingDetails}>
+					<View style={layout.justifyCenter}>
+						<Text bold size="sm" center>
+							{moment(startTime).format('DD MMM')}
+						</Text>
+						<Text size="sm" color="mute" center>
+							{moment(startTime).format('ddd')}
+						</Text>
+					</View>
 
-				<View
-					style={[
-						styles.divider,
-						{ backgroundColor: color || fonts.colors.brand },
-					]}
-				/>
+					<View
+						style={[
+							styles.divider,
+							{ backgroundColor: color || fonts.colors.brand },
+						]}
+					/>
+
+					<View style={layout.flex_1}>
+						<Text bold size="md" numberOfLines={2}>
+							{title}
+						</Text>
+
+						{venue ? (
+							<Text bold color="info" size="rg">
+								{venue}
+							</Text>
+						) : null}
+
+						<Text size="sm">
+							{moment(startTime).format('h:mmA')} -{' '}
+							{moment(endTime).format('h:mmA')}
+						</Text>
+					</View>
+				</Row>
+
+				<Spacer horizontal size="xs" />
 
 				<View style={layout.flex_1}>
-					<Text bold size="md" numberOfLines={2}>
-						{title}
-					</Text>
-
-					{venue ? (
-						<Text bold color="info" size="rg">
-							{venue}
-						</Text>
-					) : null}
-
-					<Text size="sm">
-						{moment(startTime).format('h:mmA')} -{' '}
-						{moment(endTime).format('h:mmA')}
-					</Text>
+					{isCoach ? (
+						<Button
+							title="Coach"
+							style={buttonStyle}
+							labelStyle={{
+								color: config.colors.info,
+							}}
+						/>
+					) : (
+						<Button
+							title="Booked"
+							variant="brand"
+							sm
+							compact
+							mode="contained"
+						/>
+					)}
 				</View>
-			</Row>
-
-			<Spacer horizontal size="xs" />
-
-			<Button
-				title={isCoach ? 'Coach' : 'Open'}
-				style={buttonStyle}
-				labelStyle={{
-					color: isCoach
-						? config.colors.info
-						: config.fonts.colors.darkgray,
-				}}
-				onPress={handlePress}
-			/>
-		</View>
+			</View>
+		</TouchableOpacity>
 	);
 };
 
@@ -131,5 +140,8 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		width: 5,
 		marginHorizontal: metrics.rg,
+	},
+	bookingDetails: {
+		flex: 2.8,
 	},
 });

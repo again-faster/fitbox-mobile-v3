@@ -201,10 +201,10 @@ const PaymentInformation = ({
 				method: method === 'card' ? 'Credit Card' : 'BECS Direct Debit',
 				lastDigits: res.card.last4,
 				name:
-					(res as PaymentMethodType).billing_details.name ||
+					(res as PaymentMethodType)?.billing_details?.name ||
 					(res as CardDetailsType)?.card.name,
 				country:
-					(res as PaymentMethodType).billing_details.address
+					(res as PaymentMethodType)?.billing_details?.address
 						.country || res.card.country,
 			});
 		}

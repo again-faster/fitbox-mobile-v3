@@ -23,7 +23,7 @@ const { width } = Dimensions.get('window');
 const LandingScreen = ({ navigation }: ApplicationScreenProps) => {
 	const { t } = useTranslation(['landing', 'common']);
 	const { getApiUrl, setApiUrl } = useAuth();
-
+  
 	// enable or disable the environment picker by setting the value in Constant.ts
 	const enableEnvPicker = Constant.ENABLE_ENV_PICKER;
 
@@ -65,7 +65,7 @@ const LandingScreen = ({ navigation }: ApplicationScreenProps) => {
 			setApiUrl(Constant.API_URL);
 		}
 	}, []);
-
+    
 	const envList = Object.values(Constant.API_BASE_URLS);
 	const onRotateEnv = () => {
 		const currentIndex = envList.indexOf(getApiUrl());
