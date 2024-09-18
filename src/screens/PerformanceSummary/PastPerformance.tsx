@@ -38,8 +38,8 @@ const PastPerformance = ({ navigation }: PerformanceSummaryScreenProps) => {
 				new Map(
 					d.pages
 						.flatMap(page => page.data)
-						.filter(item => !!item.id) // Exclude items with no id cause backend seems blank items
-						.map(item => [item.id, item]),
+						.filter(item => !!item.past_performance_id) // Exclude items with no id cause backend seems blank items
+						.map(item => [item.past_performance_id, item]),
 				),
 			).map(([, item]) => item);
 
@@ -120,7 +120,8 @@ const PastPerformance = ({ navigation }: PerformanceSummaryScreenProps) => {
 		);
 	};
 
-	const itemExtractor = (item: PastPerformanceHistoryType) => `${item.id}`;
+	const itemExtractor = (item: PastPerformanceHistoryType) =>
+		`${item.past_performance_id}`;
 
 	return (
 		<View style={layout.flex_1}>
