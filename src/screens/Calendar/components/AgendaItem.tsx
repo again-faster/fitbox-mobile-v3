@@ -103,15 +103,17 @@ const AgendaItem: React.FC<AgendaItemProps> = React.memo(
 				return false;
 			}
 
-			const classFilter = useClassFilters.some(
-				filter => filter.id !== classId,
-			);
+			const classFilter =
+				useClassFilters.length === 0 ||
+				useClassFilters.some(filter => filter.id === classId);
 
-			const venueFilter = useVenueFilters.some(
-				filter => filter.id !== venueId && filter.id !== -1,
-			);
+			const venueFilter =
+				useVenueFilters.length === 0 ||
+				useVenueFilters.some(
+					filter => filter.id === venueId || filter.id === -1,
+				);
 
-			return classFilter || venueFilter;
+			return !(classFilter && venueFilter);
 		}, [classFilters, venueFilters]);
 
 		if (hideSchedule || isFiltered) {
