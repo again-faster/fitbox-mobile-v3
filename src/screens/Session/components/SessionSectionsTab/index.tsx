@@ -1,11 +1,13 @@
 import {
 	Button,
+	Card,
 	HTMLRenderer,
 	Row,
 	ScrollView,
 	Spacer,
 	Text,
 } from '@/components/atoms';
+import { Loader } from '@/components/molecules';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { ApplicationStackParamList } from '@/types/navigation';
@@ -20,7 +22,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import { isArray, isEmpty, parseInt } from 'lodash';
 import { useCallback, useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
 import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import WebView from 'react-native-webview';
 
@@ -61,7 +63,7 @@ const SessionsSectionsTab = ({
 		member => member.user_id === loggedInUser?.id,
 	);
 
-	const [isVideoLoading, setIsVideoLoading] = useState(true);
+	const [isVideoLoading, setIsVideoLoading] = useState(false);
 	const [videoModalActive, setVideoModalActive] = useState(false);
 	const [videoUrlCode, setVideoUrlCode] = useState('');
 	const [toggledSections, setToggledSections] = useState<number[]>(() => {
@@ -91,13 +93,6 @@ const SessionsSectionsTab = ({
 		}
 
 		return openSections;
-	});
-
-	// eslint-disable-next-line no-console
-	console.log('testing', {
-		isVideoLoading,
-		videoModalActive,
-		videoUrlCode,
 	});
 
 	const sections = session?.sections ?? 'No Sections Found';
@@ -144,6 +139,14 @@ const SessionsSectionsTab = ({
 		void queryClient.invalidateQueries({
 			queryKey: ['sessionGetScheduleDetail'],
 		});
+	};
+
+	const handleCloseVideo = () => setVideoModalActive(false);
+	const handleVideoOnLoaded = () => setIsVideoLoading(false);
+
+	const handleVideoOnError = () => {
+		Say.err('Error in loading video');
+		setVideoModalActive(false);
 	};
 
 	const submitScore = (section: SessionSectionSchemaType) => {
@@ -382,7 +385,7 @@ const SessionsSectionsTab = ({
 																size={
 																	config
 																		.metrics
-																		.rg
+																		.sm
 																}
 															/>
 														</>
@@ -615,6 +618,53 @@ const SessionsSectionsTab = ({
 							size={fonts.metrics.xl}
 						/>
 					</TouchableOpacity>
+
+					<Modal
+						animationType="fade"
+						transparent
+						visible={videoModalActive}
+					>
+						<View style={styles.videoModal}>
+							<Card
+								// eslint-disable-next-line react-native/no-inline-styles
+								style={{
+									width: isVideoLoading ? null : '100%',
+									height: isVideoLoading
+										? 100
+										: Constant.DEVICEHEIGHT / 2,
+								}}
+							>
+								{isVideoLoading && (
+									<>
+										<Loader size={50} color="brand" />
+										<Spacer size="sm" />
+										<Text>Loading Video..</Text>
+									</>
+								)}
+
+								<WebView
+									javaScriptEnabled
+									domStorageEnabled
+									allowsFullscreenVideo
+									allowsInlineMediaPlayback
+									mediaPlaybackRequiresUserAction={false}
+									onLoadEnd={handleVideoOnLoaded}
+									onError={handleVideoOnError}
+									source={{
+										uri: `https://www.youtube.com/embed/${videoUrlCode}?loop=1`,
+									}}
+								/>
+							</Card>
+
+							{!isVideoLoading && (
+								<Button
+									onPress={handleCloseVideo}
+									title="Close Video"
+									style={styles.handleVideoCloseBtn}
+								/>
+							)}
+						</View>
+					</Modal>
 				</View>
 			);
 		}
@@ -675,5 +725,16 @@ const styles = StyleSheet.create({
 	},
 	logResultBtn: {
 		paddingVertical: fonts.metrics.sm,
+	},
+	videoModal: {
+		backgroundColor: 'rgba(0,0,0,0.3)',
+		flex: 1,
+		padding: 15,
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	handleVideoCloseBtn: {
+		width: '100%',
+		marginTop: config.fonts.metrics.sm,
 	},
 });
