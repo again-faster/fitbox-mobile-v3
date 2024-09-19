@@ -304,7 +304,11 @@ const SessionsSectionsTab = ({
 								) : null}
 
 								{useWodMovements.map((movement, key) => {
-									const { notes, reps } = movement;
+									const {
+										notes,
+										reps,
+										movement_id: movementId,
+									} = movement;
 									const movementDetails = movement.movement;
 
 									// Prepare video url
@@ -319,41 +323,83 @@ const SessionsSectionsTab = ({
 												marginBottom: metrics.lg,
 											}}
 										>
-											<Row spacing="space-between">
+											<Row
+												spacing="space-between"
+												align="center"
+											>
 												<Row
-													style={
-														styles.movementSpacing
-													}
+													style={[
+														styles.movementSpacing,
+														layout.flex_1,
+													]}
 												>
-													<Text
-														size="lg"
-														bold
-														color="info"
-													>
-														{reps}
-													</Text>
-													<Spacer
-														size="sm"
-														horizontal
-													/>
+													{reps ? (
+														<>
+															<Text
+																size="lg"
+																bold
+																color="info"
+															>
+																{reps}
+															</Text>
+															<Spacer
+																size="sm"
+																horizontal
+															/>
+														</>
+													) : null}
 													<Text size="lg" bold>
 														{movementDetails.name}
 													</Text>
 												</Row>
 
-												{!isEmpty(videoUrl) && (
+												<Row>
+													{!isEmpty(videoUrl) ? (
+														<>
+															<TouchableOpacity
+																onPress={() =>
+																	handlePlayVideo(
+																		videoUrl,
+																	)
+																}
+															>
+																<MIcon
+																	name="play-circle-outline"
+																	color={
+																		fonts
+																			.colors
+																			.brand
+																	}
+																	size={
+																		fonts
+																			.metrics
+																			.xxl
+																	}
+																/>
+															</TouchableOpacity>
+															<Spacer
+																horizontal
+																size={
+																	config
+																		.metrics
+																		.rg
+																}
+															/>
+														</>
+													) : null}
 													<TouchableOpacity
-														style={[
-															styles.floatRightBtn,
-														]}
-														onPress={() =>
-															handlePlayVideo(
-																videoUrl,
-															)
-														}
+														onPress={() => {
+															navigation.navigate(
+																'MovementHistory',
+																{
+																	movementId,
+																	name: movementDetails.name,
+																},
+															);
+														}}
 													>
 														<MIcon
-															name="play-circle-outline"
+															name="clock-time-three-outline"
 															color={
 																fonts.colors
 																	.brand
@@ -364,7 +410,7 @@ const SessionsSectionsTab = ({
 															}
 														/>
 													</TouchableOpacity>
-												)}
+												</Row>
 											</Row>
 
 											{section.scoring_type &&
@@ -626,12 +672,6 @@ const styles = StyleSheet.create({
 	},
 	movementSpacing: {
 		width: '80%',
-	},
-	floatRightBtn: {
-		zIndex: 1,
-		position: 'absolute',
-		right: 5,
-		top: 6,
 	},
 	logResultBtn: {
 		paddingVertical: fonts.metrics.sm,

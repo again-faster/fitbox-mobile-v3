@@ -45,6 +45,7 @@ export type ApplicationStackParamList = {
 	PaymentInformationModal: PaymentInformationModalParams;
 	BuyNow: SubscriptionSetupParams;
 	ResultTypesModal: undefined;
+	MovementHistory: MovementHistoryParams;
 };
 export type ApplicationScreenProps =
 	StackScreenProps<ApplicationStackParamList>;
