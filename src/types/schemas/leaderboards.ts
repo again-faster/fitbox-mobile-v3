@@ -130,6 +130,7 @@ export const ScoreResultSchema = z.object({
 	score_type: z.string(),
 	wod_movement_id: z.number().nullish(),
 	wod_section_id: z.number().nullish(),
+	leaderboard_visible: z.number().nullish(),
 });
 
 export const AttendanceReportDataSchema = z.object({

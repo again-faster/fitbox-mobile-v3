@@ -448,6 +448,11 @@ const ScoreComponent = ({
 			}
 		}
 
+		setState(s => ({
+			...s,
+			hideOnLeaderboard: !!record.leaderboard_visible,
+		}));
+
 		section.isRx = record.score_type === 'Rx';
 		setSection(newSection);
 	};
