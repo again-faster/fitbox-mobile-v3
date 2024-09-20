@@ -31,6 +31,8 @@ import CalendarFilterSelect from './components/CalendarFilterSelectPanel';
 const { height } = Dimensions.get('window');
 const { fonts } = config;
 
+const TODAYS_DATE = moment().format('YYYY-MM-DD');
+
 const Calendar = () => {
 	const {
 		classes,
@@ -68,9 +70,9 @@ const Calendar = () => {
 		toggleModal: state.toggleModal,
 	}));
 
-	const [currentDate, setCurrentDate] = useState<string>(
-		moment().format('YYYY-MM-DD'),
-	);
+	const [currentDate, setCurrentDate] = useState<string>(TODAYS_DATE);
+
+	const [isScrolling, setIsScrolling] = useState(false);
 
 	const loadClasses = () => {
 		// Calculate start of the week once
@@ -181,8 +183,8 @@ const Calendar = () => {
 
 			setHasPlaceholder(true);
 
-			if (currentDate !== moment().format('YYYY-MM-DD')) {
-				setCurrentDate(moment().format('YYYY-MM-DD'));
+			if (currentDate !== TODAYS_DATE) {
+				setCurrentDate(TODAYS_DATE);
 			} else {
 				void loadClasses();
 			}
@@ -238,6 +240,7 @@ const Calendar = () => {
 			}
 		}, []),
 	);
+
 	const handleDateChange = useCallback(
 		debounce((date: string) => {
 			setCurrentDate(date);
@@ -262,13 +265,8 @@ const Calendar = () => {
 		<SafeScreen>
 			<CalendarProvider
 				date={currentDate}
-				showTodayButton
 				onDateChanged={handleDateChange}
 				todayBottomMargin={26}
-				theme={{
-					todayButtonTextColor: fonts.colors.brand,
-					todayButtonFontWeight: 'bold',
-				}}
 			>
 				<WeekCalendar
 					firstDay={1}
@@ -284,10 +282,11 @@ const Calendar = () => {
 				/>
 				{classes.length > 0 && hasPlaceholder && (
 					<AgendaList
+						onMomentumScrollBegin={() => setIsScrolling(true)}
+						onMomentumScrollEnd={() => setIsScrolling(false)}
 						sections={memoizedClasses}
 						renderItem={renderItem}
 						sectionStyle={styles.section}
-						viewOffset={-70}
 						windowSize={100}
 						removeClippedSubviews
 						keyExtractor={(item: ClassItemData) =>
@@ -301,6 +300,7 @@ const Calendar = () => {
 					/>
 				)}
 			</CalendarProvider>
+
 			{numberOfFilters > 0 && (
 				<View style={styles.filterContainer}>
 					<TouchableOpacity
@@ -338,9 +338,26 @@ const Calendar = () => {
 			<CalendarFilterPanel />
 			<CalendarFilterSelect type={FilterTypeEnum.CLASS} />
 			<CalendarFilterSelect type={FilterTypeEnum.VENUE} />
+
+			{currentDate !== TODAYS_DATE && (
+				<TouchableOpacity
+					disabled={isScrolling}
+					onPress={() => setCurrentDate(TODAYS_DATE)}
+					style={[
+						isScrolling && styles.opacified,
+						styles.floatingActionBtn,
+					]}
+				>
+					<Text size="sm" bold color="brand">
+						Today
+					</Text>
+				</TouchableOpacity>
+			)}
 		</SafeScreen>
 	);
 };
+
+export default Calendar;
 
 const styles = StyleSheet.create({
 	container: {
@@ -369,6 +386,16 @@ const styles = StyleSheet.create({
 		shadowRadius: 1.41,
 		elevation: 2,
 	},
+	opacified: {
+		opacity: 0.5,
+	},
+	floatingActionBtn: {
+		...layout.shadowMedium,
+		borderRadius: 40,
+		paddingVertical: config.metrics.sm,
+		paddingHorizontal: config.metrics.md,
+		position: 'absolute',
+		bottom: config.metrics.md,
+		left: config.metrics.md,
+	},
 });
-
-export default Calendar;
