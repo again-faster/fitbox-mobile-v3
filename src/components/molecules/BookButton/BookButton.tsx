@@ -423,7 +423,7 @@ const BookButton = ({
 		);
 	}
 
-	if (!isAttending && spotsLeft === 0) {
+	if (!isAttending && spotsLeft === 0 && isSessionWithin72Hours) {
 		if (waitlistBtn) {
 			if (!isWaitlisted) {
 				return (
