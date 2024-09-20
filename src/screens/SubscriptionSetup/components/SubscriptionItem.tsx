@@ -1,13 +1,14 @@
 import { Row, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 type SubscriptionItemProps = {
 	title: string;
 	price: number;
 	description: string;
 	disabled: boolean;
+	plusFees: boolean | number;
 	onPress: () => void;
 };
 
@@ -16,9 +17,11 @@ const SubscriptionItem = ({
 	price,
 	description,
 	disabled,
+	plusFees,
 	onPress,
 }: SubscriptionItemProps) => {
 	const textColor = disabled ? 'lightgrey' : 'darkgray';
+
 	return (
 		<TouchableOpacity
 			style={styles.subscriptionItemStyle}
@@ -32,9 +35,20 @@ const SubscriptionItem = ({
 				>
 					{title}
 				</Text>
-				<Text size="lg" style={styles.textStyle} color={textColor}>
-					{price ? `$${price}` : ''}
-				</Text>
+				<View style={styles.feesContainer}>
+					<Text size="lg" style={styles.textStyle} color={textColor}>
+						{price ? `$${price}` : ''}
+					</Text>
+					{plusFees ? (
+						<Text
+							size="xs"
+							style={styles.textStyle}
+							color={textColor}
+						>
+							+ fees
+						</Text>
+					) : null}
+				</View>
 			</Row>
 
 			{description ? (
@@ -58,6 +72,9 @@ const styles = StyleSheet.create({
 	},
 	textStyle: {
 		fontFamily: 'Alata-Regular',
+	},
+	feesContainer: {
+		alignItems: 'flex-end',
 	},
 });
 

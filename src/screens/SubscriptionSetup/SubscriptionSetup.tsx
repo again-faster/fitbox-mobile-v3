@@ -328,6 +328,7 @@ const SubscriptionSetup = ({ route, navigation }: MainTabScreenProps) => {
 									recurring_interval,
 									payment_gateway,
 									type,
+									apply_transaction_fees_to_member,
 								}) => {
 									const price = price_in_cents / 100;
 									const trialPrice =
@@ -378,6 +379,9 @@ const SubscriptionSetup = ({ route, navigation }: MainTabScreenProps) => {
 											price={subPrice}
 											description={description}
 											disabled={!isEnabled}
+											plusFees={
+												apply_transaction_fees_to_member
+											}
 											onPress={onPress}
 										/>
 									);

@@ -1,11 +1,13 @@
 import { Row, Spacer, Text } from '@/components/atoms';
+import { Modal } from '@/components/molecules';
 import { config } from '@/theme/_config';
 import {
 	SubscriptionType,
 	UserSubscriptionProductsType,
 } from '@/types/schemas/subscription';
 import { isNull } from 'lodash';
-import { StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 const SubscriptionCard = ({
 	data,
@@ -23,6 +25,9 @@ const SubscriptionCard = ({
 	const billingFrequency = `Every${recurringInterval}${
 		data.recurring_interval_unit
 	}${data.recurring_interval > 1 ? 's' : ''}`;
+
+	const [isTransactionFeesVisible, setTransactionFeesVisible] =
+		useState<boolean>(false);
 
 	return (
 		<View style={styles.mainContainer}>
@@ -44,10 +49,8 @@ const SubscriptionCard = ({
 
 			<View style={styles.detailsContainer}>
 				<Row spacing="space-between">
-					<Text size="rg" style={styles.fontAlata}>
-						Initial:
-					</Text>
-					<Text size="rg" color="success" style={styles.fontAlata}>
+					<Text size="rg">Initial:</Text>
+					<Text size="rg" color="success">
 						{setupFee > 0 ? `$${setupFee}` : 'Free'}
 					</Text>
 				</Row>
@@ -57,18 +60,51 @@ const SubscriptionCard = ({
 						spacing="space-between"
 						style={styles.monthlyFeeContainer}
 					>
-						<Text size="rg" style={styles.fontAlata}>
-							Ongoing:
-						</Text>
-						<Text
-							size="rg"
-							color="darkgray"
-							style={styles.fontAlata}
-						>
+						<Text size="rg">Ongoing:</Text>
+						<Text size="rg" color="darkgray">
 							${monthlyFee} ({billingFrequency})
 						</Text>
 					</Row>
 				)}
+
+				{data.apply_transaction_fees_to_member ? (
+					<View style={styles.feesContainer}>
+						<TouchableOpacity
+							onPress={() => setTransactionFeesVisible(true)}
+						>
+							<Text color="brand" style={styles.feesText}>
+								+ Transaction Fees
+							</Text>
+						</TouchableOpacity>
+					</View>
+				) : null}
+
+				<Modal
+					visible={isTransactionFeesVisible}
+					onDismiss={() => setTransactionFeesVisible(false)}
+				>
+					{/* //TODO: We might have to put this somewhere that's easily updated. */}
+					<View style={{ padding: config.metrics.md }}>
+						<Row spacing="space-between" style={styles.fees}>
+							<Text size="rg">Card:</Text>
+							<Text size="rg" color="darkgray">
+								$0.35 + 1.75%
+							</Text>
+						</Row>
+						<Row spacing="space-between" style={styles.fees}>
+							<Text size="rg">Direct-Debit:</Text>
+							<Text size="rg" color="darkgray">
+								$0.35 + 1.0%
+							</Text>
+						</Row>
+						<Row spacing="space-between" style={styles.fees}>
+							<Text size="rg">Failed Payments:</Text>
+							<Text size="rg" color="darkgray">
+								$6.00
+							</Text>
+						</Row>
+					</View>
+				</Modal>
 
 				{!isNull(data.sessions_limit) &&
 					!isNull(data.sessions_limit_frequency) && (
@@ -110,9 +146,17 @@ const styles = StyleSheet.create({
 	},
 	monthlyFeeContainer: {
 		alignItems: 'flex-start',
-		marginBottom: config.metrics.lg,
 	},
 	fontAlata: {
 		fontFamily: 'Alata-Regular',
+	},
+	fees: {
+		marginBottom: config.metrics.sm,
+	},
+	feesContainer: {
+		alignItems: 'flex-end',
+	},
+	feesText: {
+		textDecorationLine: 'underline',
 	},
 });

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { GenderSchema } from './common';
 
 export const SubscriptionSchema = z.object({
+	apply_transaction_fees_to_member: z.number().optional(),
 	expiration_date: z.string().nullable(),
 	expiration_interval: z.number(),
 	expiration_interval_unit: z.string(),
