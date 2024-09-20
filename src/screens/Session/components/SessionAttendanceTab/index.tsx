@@ -1,4 +1,4 @@
-import { Button } from '@/components/atoms';
+import { Button, Text } from '@/components/atoms';
 import { FlatList } from '@/components/molecules';
 import { updateAttendance } from '@/services/leaderboards';
 import { attendSession } from '@/services/session';
@@ -19,7 +19,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { isNil, sortBy } from 'lodash';
 import { useCallback, useRef, useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import SimpleToast from 'react-native-simple-toast';
 import AttendanceItem from './components/AttendanceItem';
 
@@ -276,16 +276,23 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 	}, []);
 
 	const StickyHeaderComponent = (
-		<Button
-			variant="darkgray"
-			mode="outlined"
-			title="+ Add Attendance"
-			onPress={toggleAttendanceModal}
-			style={{
-				marginBottom: metrics.md,
-				marginHorizontal: metrics.lg,
-			}}
-		/>
+		<View>
+			<Text style={styles.slots}>
+				{`Slots: ${bookedMembersRef.current.length} / ${
+					attendanceLimit !== null ? attendanceLimit : '&#8734;'
+				}`}
+			</Text>
+			<Button
+				variant="darkgray"
+				mode="outlined"
+				title="+ Add Attendance"
+				onPress={toggleAttendanceModal}
+				style={{
+					marginBottom: metrics.md,
+					marginHorizontal: metrics.lg,
+				}}
+			/>
+		</View>
 	);
 
 	// Extract the key for each item
@@ -301,5 +308,13 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 		/>
 	);
 };
+
+const styles = StyleSheet.create({
+	slots: {
+		textAlign: 'right',
+		marginRight: config.metrics.lg,
+		marginBottom: config.metrics.md,
+	},
+});
 
 export default SessionAttendanceTab;

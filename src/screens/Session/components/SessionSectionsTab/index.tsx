@@ -23,7 +23,13 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import { isArray, isEmpty, parseInt } from 'lodash';
 import { useCallback, useState } from 'react';
-import { Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+	Modal,
+	StyleSheet,
+	TouchableOpacity,
+	Text as Txt,
+	View,
+} from 'react-native';
 import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import WebView from 'react-native-webview';
 
@@ -203,45 +209,55 @@ const SessionsSectionsTab = ({
 
 				const staffOnly = Boolean(section?.staff_only);
 				const isSectionToggled = toggledSections.includes(index);
+				const sectionHeaderPadding = {
+					paddingBottom: isSectionToggled ? 0 : 15,
+					paddingTop: staffOnly ? 5 : 20,
+				};
 
 				return (
 					<View
 						key={section.id}
-						style={[index % 2 === 0 && styles.grayedContainer]}
+						style={styles.sessionHeaderContainer}
 					>
 						<TouchableOpacity
 							onPress={() => handleToggleSection(index)}
-							style={styles.sessionHeaderComponent}
+							style={[
+								styles.sessionHeaderComponent,
+								sectionHeaderPadding,
+							]}
 						>
-							<Row align="center">
-								<Text
-									size="lg"
-									bold
-									color="sessionBlue"
-									style={layout.flex_1}
+							{staffOnly && (
+								<View style={styles.coachOnlyContainer}>
+									<Text
+										size="xs"
+										bold
+										style={styles.badgeStyle}
+									>
+										Coach Only
+									</Text>
+								</View>
+							)}
+							<Row>
+								<Txt
+									style={{
+										...layout.fontInterBold,
+										fontSize: fonts.metrics.lg,
+
+										...layout.flex_1,
+									}}
 								>
 									{section.name}
-								</Text>
-								<Row style={layout.relative}>
-									{staffOnly && (
-										<Text
-											size="sm"
-											bold
-											style={styles.badgeStyle}
-										>
-											Coach Only
-										</Text>
-									)}
-									<MIcon
-										name={
-											isSectionToggled
-												? 'chevron-up'
-												: 'chevron-down'
-										}
-										color={fonts.colors.darkgray}
-										size={fonts.metrics.xxl}
-									/>
-								</Row>
+								</Txt>
+
+								<MIcon
+									name={
+										isSectionToggled
+											? 'chevron-up'
+											: 'chevron-down'
+									}
+									color={fonts.colors.darkgray}
+									size={fonts.metrics.xxl}
+								/>
 							</Row>
 						</TouchableOpacity>
 
@@ -249,37 +265,74 @@ const SessionsSectionsTab = ({
 							<View style={styles.sessionContainer}>
 								{section.scoring_type &&
 									section.scoring_by === 'section' && (
-										<Text size="md" color="mute">
+										<Txt
+											style={{
+												...layout.fontInterRegular,
+												fontSize:
+													config.fonts.metrics.md,
+												color: config.fonts.colors.mute,
+											}}
+										>
 											{section.scoring_type.name}
-										</Text>
+										</Txt>
 									)}
 
 								<Row>
 									{section.sets !== 0 &&
 										section.sets != null && (
-											<Text size="md" color="mute">
+											<Txt
+												style={{
+													...layout.fontInterRegular,
+													fontSize:
+														config.fonts.metrics.md,
+													color: config.fonts.colors
+														.mute,
+												}}
+											>
 												{section.sets} Set(s){' '}
-											</Text>
+											</Txt>
 										)}
 									{section.rounds !== 0 &&
 										section.rounds != null && (
-											<Text size="md" color="mute">
+											<Txt
+												style={{
+													...layout.fontInterRegular,
+													fontSize:
+														config.fonts.metrics.md,
+													color: config.fonts.colors
+														.mute,
+												}}
+											>
 												{section.rounds} Round(s){' '}
-											</Text>
+											</Txt>
 										)}
 									{section.reps !== '' && (
-										<Text size="md" color="mute">
+										<Txt
+											style={{
+												...layout.fontInterRegular,
+												fontSize:
+													config.fonts.metrics.md,
+												color: config.fonts.colors.mute,
+											}}
+										>
 											{' '}
 											{section.reps} reps
-										</Text>
+										</Txt>
 									)}
 								</Row>
 
 								{section.duration !== 0 &&
 									section.duration != null && (
-										<Text size="md" color="mute">
+										<Txt
+											style={{
+												...layout.fontInterRegular,
+												fontSize:
+													config.fonts.metrics.md,
+												color: config.fonts.colors.mute,
+											}}
+										>
 											{section.duration} min(s)
-										</Text>
+										</Txt>
 									)}
 
 								{isShowEmbed && (
@@ -301,7 +354,10 @@ const SessionsSectionsTab = ({
 								{section.text_section ? (
 									<HTMLRenderer
 										content={String(section.text_section)}
-										index={index}
+										isMarginBottomLess={
+											!isEmpty(section?.member_notes) ||
+											!isEmpty(section?.coach_notes)
+										}
 									/>
 								) : null}
 
@@ -339,24 +395,39 @@ const SessionsSectionsTab = ({
 														layout.flex_1,
 													]}
 												>
-													{reps ? (
+													{reps && reps !== '' && (
 														<>
-															<Text
-																size="lg"
-																bold
-																color="info"
+															<Txt
+																style={{
+																	...layout.fontInterBold,
+																	fontSize:
+																		config
+																			.fonts
+																			.metrics
+																			.lg,
+																	color: config
+																		.colors
+																		.info,
+																}}
 															>
 																{reps}
-															</Text>
+															</Txt>
 															<Spacer
 																size="sm"
 																horizontal
 															/>
 														</>
-													) : null}
-													<Text size="lg" bold>
+													)}
+													<Txt
+														style={{
+															...layout.fontInterBold,
+															fontSize:
+																config.fonts
+																	.metrics.lg,
+														}}
+													>
 														{movementDetails.name}
-													</Text>
+													</Txt>
 												</Row>
 
 												<Row>
@@ -422,15 +493,21 @@ const SessionsSectionsTab = ({
 											{section.scoring_type &&
 												section.scoring_by ===
 													'movement' && (
-													<Text
-														size="md"
-														color="mute"
+													<Txt
+														style={{
+															...layout.fontInterRegular,
+															fontSize:
+																config.fonts
+																	.metrics.md,
+															color: config.fonts
+																.colors.mute,
+														}}
 													>
 														{
 															section.scoring_type
 																.name
 														}
-													</Text>
+													</Txt>
 												)}
 
 											{movementParams.map(mov_param => {
@@ -444,12 +521,22 @@ const SessionsSectionsTab = ({
 																],
 															),
 														) > 0 && (
-															<Text
+															<Txt
 																key={
 																	mov_param.key
 																}
-																size="md"
-																color="mute"
+																style={{
+																	...layout.fontInterRegular,
+																	fontSize:
+																		config
+																			.fonts
+																			.metrics
+																			.md,
+																	color: config
+																		.fonts
+																		.colors
+																		.mute,
+																}}
 															>
 																{
 																	movement[
@@ -463,7 +550,7 @@ const SessionsSectionsTab = ({
 																		`${mov_param.key}_unit`
 																	],
 																)}
-															</Text>
+															</Txt>
 														)
 													);
 												}
@@ -540,6 +627,7 @@ const SessionsSectionsTab = ({
 											marginTop: metrics.xl,
 											marginBottom: metrics.sm,
 										}}
+										align="center"
 									>
 										<MIcon
 											name="account-edit"
@@ -547,9 +635,16 @@ const SessionsSectionsTab = ({
 											size={fonts.metrics.xxl}
 										/>
 										<Spacer horizontal size="xs" />
-										<Text color="info" size="lg" bold>
+										<Txt
+											style={{
+												...layout.fontInterBold,
+												color: config.colors.info,
+												fontSize:
+													config.fonts.metrics.lg,
+											}}
+										>
 											Coach Notes
-										</Text>
+										</Txt>
 									</Row>
 								) : null}
 
@@ -561,7 +656,7 @@ const SessionsSectionsTab = ({
 												String(section.member_notes),
 											)
 										}
-										style={{ marginBottom: metrics.rg }}
+										style={{ marginVertical: metrics.rg }}
 									>
 										<MIcon
 											name="clipboard-outline"
@@ -569,9 +664,16 @@ const SessionsSectionsTab = ({
 											size={fonts.metrics.xxl}
 										/>
 										<Spacer horizontal size="xs" />
-										<Text color="info" size="lg" bold>
+										<Txt
+											style={{
+												...layout.fontInterBold,
+												color: config.colors.info,
+												fontSize:
+													config.fonts.metrics.lg,
+											}}
+										>
 											Member Notes
-										</Text>
+										</Txt>
 									</Row>
 								) : null}
 
@@ -725,6 +827,12 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 20,
 		paddingBottom: 10,
 	},
+	sessionHeaderContainer: {
+		borderColor: config.borders.colors.lightgrey,
+		borderWidth: 1,
+		marginHorizontal: config.metrics.rg,
+		marginBottom: config.metrics.rg,
+	},
 	sessionHeaderComponent: {
 		padding: 20,
 	},
@@ -734,16 +842,16 @@ const styles = StyleSheet.create({
 	badgeStyle: {
 		padding: 5,
 		borderRadius: 8,
-		overflow: 'hidden',
 		color: fonts.colors.light,
 		backgroundColor: fonts.colors.brand,
-		position: 'absolute',
-		top: -23,
-		right: 5,
+		minWidth: 75,
+		textAlign: 'center',
+		right: -10,
 	},
 	embedYoutube: {
 		height: 200,
 		marginVertical: metrics.sm,
+		marginBottom: metrics.lg,
 	},
 	movementSpacing: {
 		width: '80%',
@@ -768,10 +876,13 @@ const styles = StyleSheet.create({
 	},
 	resultBtn: {
 		backgroundColor: config.colors.brand,
-		flex: 0.15,
 		borderRadius: 6,
-		marginLeft: 10,
+		marginLeft: 5,
 		alignItems: 'center',
 		justifyContent: 'center',
+		paddingHorizontal: 15,
+	},
+	coachOnlyContainer: {
+		alignItems: 'flex-end',
 	},
 });

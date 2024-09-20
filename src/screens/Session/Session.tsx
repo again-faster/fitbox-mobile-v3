@@ -58,7 +58,7 @@ const Session = ({ route }: ApplicationScreenProps) => {
 
 	// const sections = useMemo(() => session?.sections, [session]);
 	const attendanceView = session?.attendance_view ?? false;
-	const attendanceLimit = session?.attendance_limit ?? null;
+	// const attendanceLimit = session?.attendance_limit ?? null;
 
 	const hasLeaderboard = useMemo(() => {
 		if (session?.sections && isArray(session.sections)) {
@@ -178,7 +178,6 @@ const Session = ({ route }: ApplicationScreenProps) => {
 				isLimited={isLimited}
 				allowLeaderboards={allowLeaderboards}
 				attendanceView={attendanceView}
-				attendanceLimit={attendanceLimit}
 				bookedMembers={
 					bookedMembers as SessionMemberAttendanceSchemaType[]
 				}

@@ -34,9 +34,9 @@
 	<key>NSCameraUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs access to your Camera.</string>
 	<key>NSDocumentsFolderUsageDescription</key>
-	<string></string>
+	<string/>
 	<key>NSDownloadsFolderUsageDescription</key>
-	<string></string>
+	<string/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>${PRODUCT_NAME} needs your location to help determine your address and provide accurate location-based services.</string>
 	<key>NSMicrophoneUsageDescription</key>
@@ -66,6 +66,11 @@
 		<string>Fontisto.ttf</string>
 		<string>Montserrat-Regular.ttf</string>
 		<string>Montserrat-Bold.ttf</string>
+		<string>Barlow-Light.ttf</string>
+		<string>Roboto-Regular.ttf</string>
+		<string>Barlow-Bold.ttf</string>
+		<string>Roboto-Bold.ttf</string>
+		<string>Inter-VariableFont_opsz,wght.ttf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>
@@ -91,6 +96,6 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 	<key>ITSAppUsesNonExemptEncryption</key>
-    <false/>
+	<false/>
 </dict>
 </plist>

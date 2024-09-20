@@ -1,16 +1,24 @@
 import { config } from '@/theme/_config';
 import { Constant } from '@/utils';
 import { Alert, Linking } from 'react-native';
-import RenderHTML, { defaultSystemFonts } from 'react-native-render-html';
+import RenderHTML, {
+	defaultSystemFonts,
+	MixedStyleRecord,
+} from 'react-native-render-html';
 
 interface HTMLViewProps {
 	content: string;
-	index?: number | null;
+	isMarginBottomLess?: boolean;
 }
 
-const HTMLRenderer = ({ content, index = null }: HTMLViewProps) => {
-	const backgroundColor =
-		index !== null && index % 2 === 0 ? '#F5F5F5' : '#FFFFFF';
+const HTMLRenderer = ({
+	content,
+	isMarginBottomLess = false,
+}: HTMLViewProps) => {
+	const updatedString = content.replace(
+		/<br\s*\/?>/g,
+		'<div class="spacer"></div>',
+	);
 
 	const renderContent = `
         <html>
@@ -18,32 +26,42 @@ const HTMLRenderer = ({ content, index = null }: HTMLViewProps) => {
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		</head>
 		<body>
-		${content}
+		${updatedString}
 		</body>
         </html>`;
 	const systemFonts = [
 		...defaultSystemFonts,
 		'Montserrat-Regular',
 		'Montserrat-Bold',
+		'Roboto-Regular',
+		'Barlow-Light',
+		'Roboto-Bold',
+		'Barlow-Bold',
+		'Inter-Variable',
 	];
+
+	const classsesStyles = {
+		spacer: {
+			marginBottom: 10,
+		},
+	};
 
 	const tagsStyles = {
 		body: {
-			fontFamily: 'Montserrat-Regular',
+			fontFamily: 'Inter-Variable',
 			fontSize: config.metrics.lg,
-			margin: 0,
-			paddingBottom: 10,
-			backgroundColor,
-			lineHeight: config.metrics.lg * 1.2,
+			lineHeight: 20,
+			marginBottom: isMarginBottomLess ? 0 : 25,
+			marginTop: 10,
 		},
 		ul: {
 			listStyleType: 'disc',
 			marginLeft: -10,
 		},
 		li: {
-			fontFamily: 'Montserrat-Regular',
+			fontFamily: 'Inter-Variable',
 			fontSize: config.metrics.lg,
-			lineHeight: config.metrics.lg * 1.2,
+			lineHeight: 20,
 		},
 		blockquote: {
 			padding: 10,
@@ -51,6 +69,11 @@ const HTMLRenderer = ({ content, index = null }: HTMLViewProps) => {
 			fontSize: 17.5,
 			borderLeftWidth: 5,
 			borderLeftColor: '#eeeeee',
+		},
+		strong: {
+			fontFamily: 'Inter-Variable',
+			fontSize: config.metrics.lg,
+			fontWeight: 'bold',
 		},
 	};
 
@@ -74,8 +97,9 @@ const HTMLRenderer = ({ content, index = null }: HTMLViewProps) => {
 		<RenderHTML
 			source={{ html: renderContent }}
 			contentWidth={Constant.DEVICEWIDTH}
-			tagsStyles={tagsStyles}
+			tagsStyles={tagsStyles as MixedStyleRecord}
 			systemFonts={systemFonts}
+			classesStyles={classsesStyles}
 			renderersProps={{
 				a: {
 					onPress: (_event, href) => {

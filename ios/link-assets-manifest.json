@@ -2,12 +2,36 @@
     "migIndex": 1,
     "data": [
         {
+            "path": "src/theme/assets/fonts/Barlow-Bold.ttf",
+            "sha1": "96c3afeacb8f95ec015157419aed8b31ccf5ed46"
+        },
+        {
+            "path": "src/theme/assets/fonts/Barlow-Light.ttf",
+            "sha1": "3b2340ed98714d79c2ddd7fee8120cd4198b971a"
+        },
+        {
+            "path": "src/theme/assets/fonts/Inter-VariableFont_opsz,wght.ttf",
+            "sha1": "ee5c2e22ffeddefc433c9aa4c76779bb73a5c682"
+        },
+        {
             "path": "src/theme/assets/fonts/Montserrat-Bold.ttf",
             "sha1": "98c66622226025f539568865af96df5175e2979c"
         },
         {
             "path": "src/theme/assets/fonts/Montserrat-Regular.ttf",
             "sha1": "bb895d19b8a1fbe1c57fc89cac5da82fdc8fdef4"
+        },
+        {
+            "path": "src/theme/assets/fonts/Roboto-Bold.ttf",
+            "sha1": "1e8baa650d943f2b78f1b77dbfe3ba1fb590e21a"
+        },
+        {
+            "path": "src/theme/assets/fonts/Roboto-Regular.ttf",
+            "sha1": "ce57fc6c6705cb20661ac325fac5d4598b6efbca"
+        },
+        {
+            "path": "src/theme/assets/fonts/fitbox 2024-06-28 09-11-01/fitbox.ipa",
+            "sha1": "7559e79ab5e544e6ff1d695387b4cbce9c33ead1"
         }
     ]
 }

@@ -93,12 +93,27 @@ export default {
 	z10: {
 		zIndex: 10,
 	},
+	// TODO: Remove unused font files once design is confirmed
 	/* Fonts */
 	fontMontserratRegular: {
 		fontFamily: 'Montserrat-Regular',
 	},
 	fontMontserratBold: {
 		fontFamily: 'Montserrat-Bold',
+	},
+	fontRobotoRegular: {
+		fontFamily: 'Roboto-Regular',
+	},
+	fontBarlowLight: {
+		fontFamily: 'Barlow-Light',
+	},
+	fontInterRegular: {
+		fontFamily: 'Inter-Variable',
+		fontWeight: '400',
+	},
+	fontInterBold: {
+		fontFamily: 'Inter-Variable',
+		fontWeight: 'bold',
 	},
 	/* Shadows */
 	shadowLight: {
