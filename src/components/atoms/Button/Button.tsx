@@ -15,6 +15,7 @@ interface ButtonProps extends ButtonTypeWithoutChildren {
 	rounded?: boolean;
 	variant?: ButtonVariant;
 	fullWidth?: boolean;
+	bold?: boolean;
 }
 
 const contrastColor = (color: string) => {
@@ -35,6 +36,7 @@ const Button = ({
 	title,
 	mode,
 	style,
+	bold,
 	...rest
 }: ButtonProps) => {
 	const { fonts: colors } = useTheme();
@@ -67,7 +69,7 @@ const Button = ({
 			: contrastColor(customStyle.backgroundColor as string), // default is white
 		...(sm ? { fontSize: config.fonts.metrics.sm } : {}),
 		...(rest.labelStyle as TextStyle),
-		...layout.fontMontserratRegular,
+		...(bold ? layout.fontMontserratBold : layout.fontMontserratRegular),
 	};
 
 	return (

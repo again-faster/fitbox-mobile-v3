@@ -17,6 +17,7 @@ import {
 	SessionWODMovementSchemaType,
 } from '@/types/schemas/session';
 import { Constant, Func, Say } from '@/utils';
+import { SessionTabsEnum } from '@/utils/Enum';
 import useStore from '@/zustand/Store';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
@@ -45,11 +46,13 @@ const WarningText = ({ text }: { text: string }) => (
 interface SessionsSectionsTabProps {
 	session: SessionDetailSchemaType;
 	refreshing: boolean;
+	handleTabChange: (tab: SessionTabsEnum) => void;
 }
 
 const SessionsSectionsTab = ({
 	session,
 	refreshing,
+	handleTabChange,
 }: SessionsSectionsTabProps) => {
 	const navigation =
 		useNavigation<NavigationProp<ApplicationStackParamList>>();
@@ -575,12 +578,34 @@ const SessionsSectionsTab = ({
 								{section.scored && isAttend && (
 									<>
 										<Spacer />
-										<Button
-											variant="info"
-											title="Add Result"
-											onPress={() => submitScore(section)}
-											labelStyle={styles.logResultBtn}
-										/>
+										<Row>
+											<Button
+												title="Add Result"
+												onPress={() =>
+													submitScore(section)
+												}
+												labelStyle={styles.logResultBtn}
+												style={
+													styles.logResultBtnContainer
+												}
+												bold
+											/>
+
+											<TouchableOpacity
+												onPress={() =>
+													handleTabChange(
+														SessionTabsEnum.RESULTS,
+													)
+												}
+												style={styles.resultBtn}
+											>
+												<MIcon
+													name="trophy"
+													size={20}
+													color={fonts.colors.light}
+												/>
+											</TouchableOpacity>
+										</Row>
 									</>
 								)}
 							</View>
@@ -724,7 +749,11 @@ const styles = StyleSheet.create({
 		width: '80%',
 	},
 	logResultBtn: {
-		paddingVertical: fonts.metrics.sm,
+		fontSize: fonts.metrics.sm,
+	},
+	logResultBtnContainer: {
+		height: 40,
+		flex: 1,
 	},
 	videoModal: {
 		backgroundColor: 'rgba(0,0,0,0.3)',
@@ -736,5 +765,13 @@ const styles = StyleSheet.create({
 	handleVideoCloseBtn: {
 		width: '100%',
 		marginTop: config.fonts.metrics.sm,
+	},
+	resultBtn: {
+		backgroundColor: config.colors.brand,
+		flex: 0.15,
+		borderRadius: 6,
+		marginLeft: 10,
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
 });

@@ -196,6 +196,7 @@ const Session = ({ route }: ApplicationScreenProps) => {
 				<SessionSectionsTab
 					session={session as SessionDetailSchemaType}
 					refreshing={refreshing}
+					handleTabChange={handleTabChange}
 				/>
 			) : null}
 
