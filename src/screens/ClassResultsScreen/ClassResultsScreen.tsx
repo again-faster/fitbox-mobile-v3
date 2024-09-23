@@ -571,6 +571,12 @@ const ClassResultsScreen = ({
 		}, 500);
 	};
 
+	const handleGenderFilter = () => {
+		if (state.gender === 'Male') return 'Female';
+		if (state.gender === 'Female') return '';
+		return 'Male';
+	};
+
 	const renderVenuePanel = () => {
 		const { venueFilters, venues } = state;
 
@@ -670,51 +676,11 @@ const ClassResultsScreen = ({
 									  "Today's"}{' '}
 								Results
 							</Text>
-							<Row
-								spacing="space-between"
-								style={{ marginTop: config.metrics.md }}
-							>
-								<TouchableOpacity
-									style={{
-										...styles.allGenderBtns,
-										backgroundColor:
-											state.gender === ''
-												? config.colors.info
-												: config.backgrounds.light,
-									}}
-									onPress={() => setGender('')}
-								>
-									<View
-										style={{
-											backgroundColor:
-												state.gender === ''
-													? config.colors.info
-													: config.backgrounds.light,
-										}}
-									>
-										<Text
-											style={{
-												color:
-													state.gender === ''
-														? config.fonts.colors
-																.light
-														: config.fonts.colors
-																.lightgrey,
-											}}
-											bold={state.gender === ''}
-										>
-											All
-										</Text>
-									</View>
-								</TouchableOpacity>
+							<Row style={{ marginTop: config.metrics.md }}>
 								<TouchableOpacity
 									style={styles.maleFemaleBtns}
 									onPress={() =>
-										setGender(
-											state.gender === 'Male'
-												? 'Female'
-												: 'Male',
-										)
+										setGender(handleGenderFilter())
 									}
 								>
 									<View
@@ -1107,15 +1073,6 @@ const styles = StyleSheet.create({
 		// alignSelf: 'flex-end',
 		// paddingHorizontal: 20,
 		// paddingVertical: 3,
-		borderWidth: 1,
-	},
-	allGenderBtns: {
-		borderColor: config.colors.info,
-		borderRadius: 2,
-		flexDirection: 'row',
-		alignSelf: 'flex-end',
-		paddingHorizontal: 20,
-		paddingVertical: 3,
 		borderWidth: 1,
 	},
 	genderText: {
