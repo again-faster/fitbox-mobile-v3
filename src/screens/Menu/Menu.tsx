@@ -7,9 +7,10 @@ import layout from '@/theme/layout';
 import { MainTabScreenProps } from '@/types/navigation';
 import { Constant } from '@/utils';
 import useStore from '@/zustand/Store';
+import { isEmpty } from 'lodash';
 import { Alert, Linking, StyleSheet, View } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import { List } from 'react-native-paper';
+import { Badge, List } from 'react-native-paper';
 import SimpleToast from 'react-native-simple-toast';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -136,13 +137,14 @@ const menuOptions = [
 const Menu = ({ navigation }: MainTabScreenProps) => {
 	const { variant, changeTheme } = useTheme();
 	const { signOut, getApiUrl } = useAuth();
-	const { shopUrl, clearStates } = useStore(state => ({
+	const { shopUrl, clearStates, emptyRequiredFields } = useStore(state => ({
 		shopUrl: state.shopUrl,
 		clearStates: () => {
 			state.clearClasses();
 			state.clearAppState();
 			state.clearFilters();
 		},
+		emptyRequiredFields: state.emptyRequiredFields,
 	}));
 
 	const version = DeviceInfo.getVersion();
@@ -264,30 +266,43 @@ const Menu = ({ navigation }: MainTabScreenProps) => {
 		return <View style={styles.iconContainer}>{useIcon}</View>;
 	};
 
-	const renderRightIcon = () => (
-		<List.Icon
-			icon="chevron-right"
-			color="#777"
-			style={styles.menuOptionRightIcon}
-		/>
+	const renderRightIcon = (badge: boolean) => (
+		<>
+			<List.Icon
+				icon="chevron-right"
+				color="#777"
+				style={styles.menuOptionRightIcon}
+			/>
+			{badge && <Badge visible style={styles.badgeStyle} size={14} />}
+		</>
 	);
+
+	const getOptionBadge = (id: string) => {
+		if (id === 'information' && !isEmpty(emptyRequiredFields)) {
+			return true;
+		}
+		return false;
+	};
 
 	const apiUrl = getApiUrl();
 
 	return (
 		<ScrollView contentContainerStyle={styles.container}>
 			{menuOptions.map((op, i) => {
-				const options = op.items.map(item => (
-					<List.Item
-						key={item.id}
-						style={styles.menuOption}
-						title={item.name}
-						titleStyle={layout.fontMontserratRegular}
-						onPress={() => onClick(item.id)}
-						left={() => renderLeftIcon(item)}
-						right={renderRightIcon}
-					/>
-				));
+				const options = op.items.map(item => {
+					const showBadge = getOptionBadge(item.id);
+					return (
+						<List.Item
+							key={item.id}
+							style={styles.menuOption}
+							title={item.name}
+							titleStyle={layout.fontMontserratRegular}
+							onPress={() => onClick(item.id)}
+							left={() => renderLeftIcon(item)}
+							right={() => renderRightIcon(showBadge)}
+						/>
+					);
+				});
 
 				if (!op?.hideTitle) {
 					return (
@@ -361,5 +376,12 @@ const styles = StyleSheet.create({
 	environment: {
 		marginTop: config.metrics.lg,
 		color: config.colors.danger,
+	},
+
+	badgeStyle: {
+		position: 'absolute',
+		top: -16,
+		right: -22,
+		backgroundColor: config.colors.brand,
 	},
 });
