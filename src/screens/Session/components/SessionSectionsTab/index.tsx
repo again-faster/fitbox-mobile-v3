@@ -828,10 +828,11 @@ const styles = StyleSheet.create({
 		paddingBottom: 10,
 	},
 	sessionHeaderContainer: {
-		borderColor: config.borders.colors.lightgrey,
+		borderColor: '#F2F2F2',
 		borderWidth: 1,
 		marginHorizontal: config.metrics.rg,
 		marginBottom: config.metrics.rg,
+		...layout.shadowLight,
 	},
 	sessionHeaderComponent: {
 		padding: 20,
