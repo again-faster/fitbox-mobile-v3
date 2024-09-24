@@ -719,23 +719,20 @@ const SessionsSectionsTab = ({
 									) : null}
 
 									{section.scored && isAttend && (
-										<>
-											<Spacer />
-											<Row>
-												<Button
-													title="Add Result"
-													onPress={() =>
-														submitScore(section)
-													}
-													labelStyle={
-														styles.logResultBtn
-													}
-													style={
-														styles.logResultBtnContainer
-													}
-													bold
-												/>
+										<Row>
+											<Button
+												title="Add Result"
+												onPress={() =>
+													submitScore(section)
+												}
+												labelStyle={styles.logResultBtn}
+												style={
+													styles.logResultBtnContainer
+												}
+												bold
+											/>
 
+											{section.is_leaderboard && (
 												<TouchableOpacity
 													onPress={() =>
 														handleTabChange(
@@ -752,8 +749,8 @@ const SessionsSectionsTab = ({
 														}
 													/>
 												</TouchableOpacity>
-											</Row>
-										</>
+											)}
+										</Row>
 									)}
 								</View>
 							)}
