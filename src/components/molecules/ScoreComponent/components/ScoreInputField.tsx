@@ -350,7 +350,7 @@ const ScoreInputField = ({
 			<View style={styles.inputMainContainer}>
 				<FieldInput
 					title="Reps"
-					keyboardType="numbers-and-punctuation"
+					keyboardType="numeric"
 					value={displayValue}
 					onChangeText={val => {
 						handler.roundsOrDistanceEntered(val, movementId);
