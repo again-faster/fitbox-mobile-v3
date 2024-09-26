@@ -57,6 +57,7 @@
         "react-native-google-recaptcha": "^1.0.8",
         "react-native-htmlview": "^0.17.0",
         "react-native-image-crop-picker": "^0.40.3",
+        "react-native-keyboard-controller": "^1.13.4",
         "react-native-lightbox-v2": "^0.9.0",
         "react-native-mmkv": "^3.0.0-beta.6",
         "react-native-modal-datetime-picker": "^17.1.0",
