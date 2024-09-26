@@ -117,6 +117,7 @@ const Dashboard = () => {
 		void initializeAppStates();
 		void getUpcomingSessions();
 		void getClassFiltersFn();
+		void fetchAttendanceReport();
 	};
 
 	const initializeAppStates = async () => {
@@ -376,6 +377,7 @@ const Dashboard = () => {
 		await initializeAppStates();
 		await getUpcomingSessions();
 		await getClassFiltersFn();
+
 		PushNotification.cancelAllLocalNotifications();
 	};
 
@@ -387,6 +389,7 @@ const Dashboard = () => {
 			}, 2000);
 
 			void onFocusTasks();
+			void fetchAttendanceReport();
 		}, []),
 	);
 
@@ -403,10 +406,8 @@ const Dashboard = () => {
 	};
 
 	// get filter options every gym switch
-	// get attendance report
 	useEffect(() => {
 		void fetchFilterOptions();
-		void fetchAttendanceReport();
 		void onMountTasks();
 		NotificationService.setGymFetcher(initializeAppStates);
 	}, []);
