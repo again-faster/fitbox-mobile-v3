@@ -187,6 +187,10 @@ const isSessionWithin72Hours = (startDate: string): boolean => {
 	return moment(startDate).isAfter(moment().subtract(72, 'hours'));
 };
 
+const isSessionFromPast = (startDate: string): boolean => {
+	return moment(startDate).isBefore(moment());
+};
+
 export default {
 	decodeHtml,
 	stripHtmlTags,
@@ -202,4 +206,5 @@ export default {
 	getFileExt,
 	getNextPageParam,
 	isSessionWithin72Hours,
+	isSessionFromPast,
 };

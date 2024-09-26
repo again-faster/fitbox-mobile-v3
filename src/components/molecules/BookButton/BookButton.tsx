@@ -333,6 +333,8 @@ const BookButton = ({
 	 */
 	const isSessionWithin72Hours = Func.isSessionWithin72Hours(startDate);
 
+	const isSessionFromPast = Func.isSessionFromPast(startDate);
+
 	if (isBookingLocked && isPreviewMode) {
 		return <Button sm mode="outlined" title="Booking Locked" disabled />;
 	}
@@ -380,17 +382,19 @@ const BookButton = ({
 			);
 		}
 
-		return (
-			<Button
-				sm
-				title="Unbook"
-				onPress={() => handleBook()}
-				loading={isLoading}
-				compact
-				fullWidth
-				mode="contained"
-			/>
-		);
+		if (!isSessionFromPast) {
+			return (
+				<Button
+					sm
+					title="Unbook"
+					onPress={() => handleBook()}
+					loading={isLoading}
+					compact
+					fullWidth
+					mode="contained"
+				/>
+			);
+		}
 	}
 
 	if (spotsLeft === null || !isNumber(spotsLeft)) {
