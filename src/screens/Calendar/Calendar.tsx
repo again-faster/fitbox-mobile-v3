@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
 		paddingVertical: config.metrics.sm,
 		paddingHorizontal: config.metrics.md,
 		position: 'absolute',
-		bottom: config.metrics.md,
+		bottom: '7%',
 		left: config.metrics.md,
 	},
 });
