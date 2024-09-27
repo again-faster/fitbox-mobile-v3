@@ -5,6 +5,7 @@ import { getGymClasses, getGymVenues } from '@/services/gym';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { GymVenueType } from '@/types/schemas/gym';
+import { Constant } from '@/utils';
 import { FilterTypeEnum, ModalEnum } from '@/utils/Enum';
 import useStore from '@/zustand/Store';
 import {
@@ -13,25 +14,43 @@ import {
 	VenueFilter,
 } from '@/zustand/interface/SessionInterface';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
-import { debounce, isArray } from 'lodash';
+import { FlashList } from '@shopify/flash-list';
+import { isArray } from 'lodash';
 import moment from 'moment';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
 import {
-	AgendaList,
-	CalendarProvider,
-	WeekCalendar,
-} from 'react-native-calendars';
+	SetStateAction,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react';
+import {
+	Dimensions,
+	StyleSheet,
+	TouchableOpacity,
+	View,
+	ViewToken,
+} from 'react-native';
+import { CalendarProvider, WeekCalendar } from 'react-native-calendars';
 import { Badge } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AgendaItem from './components/AgendaItem';
 import CalendarFilterPanel from './components/CalendarFilterPanel';
 import CalendarFilterSelect from './components/CalendarFilterSelectPanel';
+import CalendarSkeletonLoader from './components/CalendarSkeletonLoader';
 
 const { height } = Dimensions.get('window');
 const { fonts } = config;
 
-const TODAYS_DATE = moment().format('YYYY-MM-DD');
+const TODAYS_DATE = moment().format(Constant.DEFAULT_DATE_FORMAT);
+
+const WEEK_CALENDAR_THEME = {
+	selectedDayBackgroundColor: fonts.colors.brand,
+	todayTextColor: fonts.colors.brand,
+	textDayFontFamily: layout.fontMontserratRegular.fontFamily,
+	textDayHeaderFontFamily: layout.fontMontserratBold.fontFamily,
+};
 
 const Calendar = () => {
 	const {
@@ -71,29 +90,36 @@ const Calendar = () => {
 	}));
 
 	const [currentDate, setCurrentDate] = useState<string>(TODAYS_DATE);
-
+	const [isNavigating, setIsNavigating] = useState(false);
 	const [isScrolling, setIsScrolling] = useState(false);
+	const [isInitialLoading, setIsInitialLoading] = useState(true);
+	const [isInitialLoadingComplete, setIsInitialLoadingComplete] =
+		useState(false);
+	const [isWeekCalendarScrolling, setIsWeekCalendarScrolling] =
+		useState(false);
+
+	const flashListRef = useRef<FlashList<string | ClassItemData>>(null);
 
 	const loadClasses = () => {
-		// Calculate start of the week once
-		const weekStartDate = moment(currentDate);
+		// create a range from current date to 3 days ago and 3 days ahead
+		let startDate = moment(currentDate);
+		if (isInitialLoadingComplete) {
+			startDate = moment(currentDate).subtract(3, 'days');
+		}
+		const endDate = moment(currentDate).add(3, 'days');
 
-		const isPrevious = moment(currentDate).isBefore(moment(), 'day');
-		if (isPrevious) {
-			weekStartDate.startOf('week').add(1, 'day');
-		} else {
-			weekStartDate.startOf('week').subtract(1, 'day');
+		// Generate an array of dates from startDate to endDate
+		const week = [];
+		let date = startDate;
+
+		while (date.isSameOrBefore(endDate)) {
+			week.push(date.format(Constant.DEFAULT_DATE_FORMAT));
+			date = date.add(1, 'day');
 		}
 
-		// Generate the dates for the whole week based on the current date
-		const week = Array.from({ length: 9 }, (_, i) =>
-			weekStartDate.clone().add(i, 'days').format('YYYY-MM-DD'),
-		);
-
-		// Fetch classes for each date with a delay
-		week.forEach(date => {
-			if (moment(date).isSameOrAfter(moment(currentDate))) {
-				getClassesByDate(date, loggedInUser!.id);
+		week.forEach(wDate => {
+			if (moment(wDate).isSameOrAfter(moment(currentDate))) {
+				getClassesByDate(wDate, loggedInUser!.id);
 			}
 		});
 	};
@@ -161,34 +187,64 @@ const Calendar = () => {
 	};
 
 	useEffect(() => {
-		setActiveMonth(moment(currentDate).format('MMMM'));
-		void loadClasses();
+		if (isInitialLoadingComplete) {
+			void loadClasses();
+		}
+
+		if (!isWeekCalendarScrolling) {
+			return;
+		}
+
+		if (!flashListRef.current) {
+			return;
+		}
+
+		const dateIndex = memoizedClasses.findIndex(
+			item => typeof item === 'string' && item === currentDate,
+		);
+
+		if (dateIndex !== -1) {
+			setIsNavigating(true);
+			flashListRef.current.scrollToIndex({
+				index: dateIndex,
+				animated: true,
+			});
+
+			setTimeout(() => {
+				setIsNavigating(false);
+			}, 1000);
+		}
+
+		setIsWeekCalendarScrolling(false);
 	}, [currentDate]);
 
 	useEffect(() => {
+		if (hasPlaceholder) {
+			return;
+		}
+
+		setIsInitialLoading(true);
+		setIsInitialLoadingComplete(false);
+
 		void fetchFilterOptions();
 
-		if (!hasPlaceholder) {
-			// Start of month and monday
-			const sDate = moment().startOf('month');
-			const nextMonth = sDate.clone().add(1, 'months');
-			const dates = Array.from(
-				{ length: nextMonth.diff(sDate, 'days') },
-				(_, i) => sDate.clone().add(i, 'days').format('YYYY-MM-DD'),
-			);
+		// Start of month and monday
+		const startDate = moment().startOf('month');
+		const endingDate = startDate.clone().add(2, 'months');
+		const dates = Array.from(
+			{ length: endingDate.diff(startDate, 'days') },
+			(_, i) =>
+				startDate
+					.clone()
+					.add(i, 'days')
+					.format(Constant.DEFAULT_DATE_FORMAT),
+		);
 
-			dates.forEach(date => {
-				setClasses(date, [{ isLoading: true } as ClassItemData]);
-			});
+		dates.forEach(date => {
+			setClasses(date, [{ isLoading: true } as ClassItemData]);
+		});
 
-			setHasPlaceholder(true);
-
-			if (currentDate !== TODAYS_DATE) {
-				setCurrentDate(TODAYS_DATE);
-			} else {
-				void loadClasses();
-			}
-		}
+		setHasPlaceholder(true);
 	}, [hasPlaceholder]);
 
 	const isFocused = useIsFocused();
@@ -229,7 +285,22 @@ const Calendar = () => {
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const renderItem = useCallback(({ item }: any) => {
-		return <AgendaItem item={item as ClassItemData} />;
+		if (typeof item === 'string') {
+			const isToday = moment(item).isSame(moment(), 'day');
+			return (
+				<Text bold style={styles.section}>
+					{isToday ? 'Today' : ''}
+					{moment(item).format(`${!isToday ? 'dddd' : ''}, MMM DD`)}
+				</Text>
+			);
+		}
+
+		const useItem = item as ClassItemData;
+		return <AgendaItem key={useItem.eventId} item={useItem} />;
+	}, []);
+
+	const getItemType = useCallback((item: string | ClassItemData) => {
+		return typeof item === 'string' ? 'sectionHeader' : 'row';
 	}, []);
 
 	useFocusEffect(
@@ -240,15 +311,6 @@ const Calendar = () => {
 			}
 		}, []),
 	);
-
-	const handleDateChange = useCallback(
-		debounce((date: string) => {
-			setCurrentDate(date);
-		}, 1000),
-		[],
-	);
-
-	const memoizedClasses = useMemo(() => classes, [classes]);
 
 	const numberOfFilters = useMemo(() => {
 		const numOfClassFilters = classFilters.filter(
@@ -261,42 +323,129 @@ const Calendar = () => {
 		return numOfClassFilters + numOfVenueFilters;
 	}, [classFilters, venueFilters]);
 
+	const memoizedClasses = useMemo(() => {
+		const formattedClasses: (string | ClassItemData)[] = [];
+		classes.forEach(section => {
+			formattedClasses.push(section.title);
+			formattedClasses.push(...section.data);
+		});
+		return formattedClasses;
+	}, [classes]);
+
+	const stickyHeaderIndices = memoizedClasses
+		.map((item, index) => {
+			if (typeof item === 'string') {
+				return index;
+			}
+
+			return null;
+		})
+		.filter(item => item !== null) as number[];
+
+	const handleDateChange = useCallback((date: SetStateAction<string>) => {
+		setCurrentDate(date);
+	}, []);
+
+	useEffect(() => {
+		if (!isInitialLoading) return;
+
+		const todayIndex = memoizedClasses.findIndex(
+			item => typeof item === 'string' && item === TODAYS_DATE,
+		);
+
+		setTimeout(() => {
+			if (todayIndex !== -1 && flashListRef.current) {
+				flashListRef.current.scrollToIndex({
+					index: todayIndex,
+					animated: false,
+				});
+
+				setTimeout(() => {
+					setIsInitialLoadingComplete(true);
+				}, 50);
+			}
+		}, 1000);
+
+		handleDateChange(TODAYS_DATE);
+		setIsInitialLoading(false);
+	}, [memoizedClasses]);
+
+	const onViewableItemsChanged = ({
+		viewableItems,
+	}: {
+		viewableItems: ViewToken[];
+	}) => {
+		if (isNavigating || !hasPlaceholder) {
+			return;
+		}
+
+		const firstItem = viewableItems[0];
+		if (!firstItem) {
+			return;
+		}
+
+		let newDate: string | null = firstItem.item as string;
+
+		if (typeof firstItem.item === 'object') {
+			if ('startDate' in firstItem.item) {
+				const newDateObj = newDate as ClassItemData;
+				newDate = newDateObj.startDate ?? '';
+			} else if ('isLoading' in firstItem.item) {
+				const newDateObj = firstItem.item as ClassItemData;
+
+				if (newDateObj.isLoading) {
+					newDate = null;
+				}
+			}
+		}
+
+		if (!!newDate && moment(newDate).isValid()) {
+			handleDateChange(
+				moment(newDate).format(Constant.DEFAULT_DATE_FORMAT),
+			);
+		}
+	};
+
 	return (
 		<SafeScreen>
+			{isInitialLoading ||
+				(!isInitialLoadingComplete && <CalendarSkeletonLoader />)}
+
 			<CalendarProvider
-				date={currentDate}
 				onDateChanged={handleDateChange}
-				todayBottomMargin={26}
+				onMonthChange={month =>
+					setActiveMonth(moment(month.dateString).format('MMMM'))
+				}
+				date={currentDate}
 			>
 				<WeekCalendar
 					firstDay={1}
 					allowShadow={false}
-					theme={{
-						selectedDayBackgroundColor: fonts.colors.brand,
-						todayTextColor: fonts.colors.brand,
-						textDayFontFamily:
-							layout.fontMontserratRegular.fontFamily,
-						textDayHeaderFontFamily:
-							layout.fontMontserratBold.fontFamily,
+					current={currentDate}
+					theme={WEEK_CALENDAR_THEME}
+					onMomentumScrollBegin={() =>
+						setIsWeekCalendarScrolling(true)
+					}
+					onMomentumScrollEnd={() =>
+						setIsWeekCalendarScrolling(false)
+					}
+					onDayPress={() => {
+						setIsWeekCalendarScrolling(true);
 					}}
 				/>
-				{classes.length > 0 && hasPlaceholder && (
-					<AgendaList
-						onMomentumScrollBegin={() => setIsScrolling(true)}
-						onMomentumScrollEnd={() => setIsScrolling(false)}
-						sections={memoizedClasses}
-						renderItem={renderItem}
-						sectionStyle={styles.section}
-						windowSize={100}
-						removeClippedSubviews
-						viewOffset={-50}
-						initialNumToRender={10}
-						maxToRenderPerBatch={5}
-						keyExtractor={(item: ClassItemData) =>
-							String(item.eventId)
-						}
-					/>
-				)}
+				<FlashList
+					ref={flashListRef}
+					data={memoizedClasses}
+					stickyHeaderHiddenOnScroll
+					renderItem={renderItem}
+					getItemType={getItemType}
+					keyExtractor={(_, index) => index.toString()}
+					stickyHeaderIndices={stickyHeaderIndices}
+					estimatedItemSize={83}
+					onMomentumScrollBegin={() => setIsScrolling(true)}
+					onMomentumScrollEnd={() => setIsScrolling(false)}
+					onViewableItemsChanged={onViewableItemsChanged}
+				/>
 			</CalendarProvider>
 
 			{numberOfFilters > 0 && (
@@ -340,7 +489,7 @@ const Calendar = () => {
 			{currentDate !== TODAYS_DATE && (
 				<TouchableOpacity
 					disabled={isScrolling}
-					onPress={() => setCurrentDate(TODAYS_DATE)}
+					onPress={() => handleDateChange(TODAYS_DATE)}
 					style={[
 						isScrolling && styles.opacified,
 						styles.floatingActionBtn,
@@ -365,6 +514,7 @@ const styles = StyleSheet.create({
 		backgroundColor: '#FFF',
 		color: 'grey',
 		fontSize: fonts.metrics.rg,
+		padding: config.metrics.md,
 	},
 	badgeStyle: {
 		position: 'absolute',

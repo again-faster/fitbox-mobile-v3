@@ -5,7 +5,6 @@ import NotificationService from '@/utils/NotificationService';
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import 'react-native-gesture-handler';
-import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { configureFonts, Provider } from 'react-native-paper';
 import PushNotification from 'react-native-push-notification';
 import 'react-native-reanimated';
@@ -73,11 +72,9 @@ function App() {
 			<AuthProvider storage={mmkvStorage}>
 				<ThemeProvider storage={mmkvStorage}>
 					<Provider theme={customTheme}>
-						<KeyboardProvider>
-							<KeyboardVisibilityProvider>
-								<ApplicationNavigator />
-							</KeyboardVisibilityProvider>
-						</KeyboardProvider>
+						<KeyboardVisibilityProvider>
+							<ApplicationNavigator />
+						</KeyboardVisibilityProvider>
 					</Provider>
 				</ThemeProvider>
 			</AuthProvider>

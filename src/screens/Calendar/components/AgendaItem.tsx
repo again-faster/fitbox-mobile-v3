@@ -38,6 +38,9 @@ const AgendaItem: React.FC<AgendaItemProps> = React.memo(
 			color,
 		},
 	}: AgendaItemProps) => {
+		// console.log('--------------------------------');
+		// console.log('AgendaItem re-render', start, title);
+
 		const navigation =
 			useNavigation<NavigationProp<ApplicationStackParamList>>();
 
@@ -59,36 +62,6 @@ const AgendaItem: React.FC<AgendaItemProps> = React.memo(
 				waitlistTime: Number(waitlistTime),
 			});
 		}, []);
-
-		const renderButton = useCallback(
-			() => (
-				<BookButton
-					eventId={eventId as number}
-					classId={classId as number}
-					isSubscribed={isSubscribed}
-					isCoach={isCoach as boolean}
-					spotsLeft={spotsLeft as number}
-					isWaitlisted={isWaitlisted as boolean}
-					startDate={startDate as string}
-					isBookingLocked={isBookingLocked as boolean}
-					waitlistBtn={waitlistBtn as boolean}
-					isAttending={isAttending}
-					setAttending={setIsAttending}
-					handleViewSession={handleViewSession}
-				/>
-			),
-			[
-				isAttending,
-				isSubscribed,
-				isCoach,
-				spotsLeft,
-				isWaitlisted,
-				startDate,
-				isBookingLocked,
-				waitlistBtn,
-				eventId,
-			],
-		);
 
 		const isFiltered = useMemo(() => {
 			const useClassFilters = classFilters.filter(
@@ -159,7 +132,20 @@ const AgendaItem: React.FC<AgendaItemProps> = React.memo(
 						) : null}
 					</View>
 					<View style={styles.itemButtonContainer}>
-						{renderButton()}
+						<BookButton
+							eventId={eventId as number}
+							classId={classId as number}
+							isSubscribed={isSubscribed}
+							isCoach={isCoach as boolean}
+							spotsLeft={spotsLeft as number}
+							isWaitlisted={isWaitlisted as boolean}
+							startDate={startDate as string}
+							isBookingLocked={isBookingLocked as boolean}
+							waitlistBtn={waitlistBtn as boolean}
+							isAttending={isAttending}
+							setAttending={setIsAttending}
+							handleViewSession={handleViewSession}
+						/>
 					</View>
 				</TouchableOpacity>
 			</Animated.View>
@@ -190,7 +176,7 @@ const styles = StyleSheet.create({
 	},
 	itemLoader: {
 		marginLeft: 20,
-		marginTop: 10,
+		marginBottom: 15,
 	},
 	timeContainer: {
 		width: '18%',
@@ -208,6 +194,7 @@ const styles = StyleSheet.create({
 	contentContainer: {
 		justifyContent: 'center',
 		flex: 1,
+		paddingRight: fonts.metrics.sm,
 	},
 	itemTitleText: {
 		color: 'black',

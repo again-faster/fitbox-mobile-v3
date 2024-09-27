@@ -1,6 +1,5 @@
 import { createContext, useEffect, useMemo, useState } from 'react';
-import { ViewProps } from 'react-native';
-import { KeyboardEvents } from 'react-native-keyboard-controller';
+import { Keyboard, ViewProps } from 'react-native';
 
 type Context = {
 	isKeyboardVisible: boolean;
@@ -14,19 +13,19 @@ const KeyboardVisibilityProvider = ({ children }: ViewProps) => {
 	const [isKeyboardVisible, setKeyboardVisible] = useState<boolean>(false);
 
 	useEffect(() => {
-		const keyboardWillShowListener = KeyboardEvents.addListener(
-			'keyboardWillShow',
+		const keyboardDidShowListener = Keyboard.addListener(
+			'keyboardDidShow',
 			() => setKeyboardVisible(true),
 		);
-		const keyboardWillHideListener = KeyboardEvents.addListener(
-			'keyboardWillHide',
+		const keyboardDidHideListener = Keyboard.addListener(
+			'keyboardDidHide',
 			() => setKeyboardVisible(false),
 		);
 
 		// Cleanup function
 		return () => {
-			keyboardWillShowListener.remove();
-			keyboardWillHideListener.remove();
+			keyboardDidShowListener.remove();
+			keyboardDidHideListener.remove();
 		};
 	}, []);
 

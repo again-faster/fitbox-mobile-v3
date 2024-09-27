@@ -60,6 +60,11 @@ const SORT_OPTIONS = [
 ];
 
 /**
+ * Default date format
+ */
+const DEFAULT_DATE_FORMAT = 'YYYY-MM-DD';
+
+/**
  * Tenor API Key
  */
 const TENOR_API_KEY = 'AIzaSyCe3wcxBWD8Oe5SBfBz7qhR2680gYvIqEA';
@@ -121,6 +126,7 @@ export default {
 	HELP_URL: process.env.HELP_URL ?? '',
 	IS_ANDROID: Platform.OS === 'android',
 	SORT_OPTIONS,
+	DEFAULT_DATE_FORMAT,
 	TENOR_API_KEY,
 	API_BASE_URLS,
 	DEVICEHEIGHT,
