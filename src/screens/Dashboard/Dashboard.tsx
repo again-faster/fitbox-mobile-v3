@@ -622,6 +622,13 @@ const Dashboard = () => {
 									marginBottom: config.metrics.xl,
 								}}
 							>
+								<Text
+									bold
+									style={{ marginBottom: config.metrics.sm }}
+								>
+									Sessions:
+								</Text>
+
 								<Row spacing="space-evenly">
 									<View
 										style={[

@@ -48,6 +48,7 @@ export const SubscriptionDetailsSchema = z.object({
 	next_payment_date: z.string().nullable(),
 	price_in_cents: z.number(),
 	recurring_interval: z.number(),
+	recurring_interval_friendly: z.string().nullable().optional(),
 	recurring_interval_unit: z.string().nullable(),
 	sessions_count: z.number().nullable(),
 	sessions_limit: z.number().nullable(),

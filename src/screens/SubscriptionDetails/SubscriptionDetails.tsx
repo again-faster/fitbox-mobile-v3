@@ -51,7 +51,9 @@ const SubscriptionDetails = ({ route }: MenuStackNavigatorProps) => {
 	}
 
 	let billingFrequencyValue;
-	if (data?.recurring_interval_unit === 'per-billing-cycle') {
+	if (data?.recurring_interval_friendly) {
+		billingFrequencyValue = data?.recurring_interval_friendly;
+	} else if (data?.recurring_interval_unit === 'per-billing-cycle') {
 		billingFrequencyValue = 'Per Billing Cycle';
 	} else if (data?.recurring_interval_unit?.toLowerCase() === 'day') {
 		billingFrequencyValue = 'Daily';
@@ -91,8 +93,8 @@ const SubscriptionDetails = ({ route }: MenuStackNavigatorProps) => {
 					title="Membership Expires"
 					value={subscriptionExpiresValue}
 				/>
-				{data?.recurring_interval_unit &&
-					data?.recurring_interval_unit !== '' && (
+				{data?.recurring_interval_friendly &&
+					data?.recurring_interval_friendly !== '' && (
 						<SubscriptionRowDetail
 							title="Billing Frequency"
 							value={billingFrequencyValue}
