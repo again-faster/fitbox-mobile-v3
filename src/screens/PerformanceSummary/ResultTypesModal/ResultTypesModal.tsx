@@ -95,10 +95,7 @@ const ResultTypesModal = ({ navigation }: PerformanceSummaryScreenProps) => {
 				<Text color="gray200" size="xs" transform="uppercase">
 					{item.type.slice(0, -1)}
 				</Text>
-				<Text>
-					{item.name}
-					{item.id}
-				</Text>
+				<Text>{item.name}</Text>
 			</View>
 			<Icon
 				name="plus"
