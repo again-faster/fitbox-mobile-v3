@@ -47,7 +47,7 @@ const WODAddAttendance = ({ route }: AddAttendanceProps) => {
 		override = false,
 	) => {
 		// attendance limit
-		const attendanceLimit = Number(session?.attendance_limit);
+		const attendanceLimit = session?.attendance_limit;
 
 		// check if user is already booked
 		const isAttend = !bookedMembers.some(
@@ -62,7 +62,7 @@ const WODAddAttendance = ({ route }: AddAttendanceProps) => {
 
 		// check if session is already full
 		if (
-			bookedMembers.length >= attendanceLimit &&
+			bookedMembers.length >= (attendanceLimit as number) &&
 			attendanceLimit !== null &&
 			isAttend
 		) {

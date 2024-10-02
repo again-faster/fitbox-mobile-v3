@@ -33,7 +33,7 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 		useNavigation<NavigationProp<ApplicationStackParamList>>();
 	const loggedInUser = useStore(state => state.loggedInUser);
 	const isStaff = loggedInUser?.user_data.is_staff;
-	const attendanceLimit = Number(session?.attendance_limit);
+	const attendanceLimit = session?.attendance_limit;
 	const [processingMembers, setProcessingMembers] = useState<number[]>([]);
 	const [bookedMembers, setBookedMembers] = useState<
 		SessionMemberAttendanceSchemaType[]
@@ -78,7 +78,7 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 
 		// check if session is already full
 		if (
-			bookedMembersRef.current.length >= attendanceLimit &&
+			bookedMembersRef.current.length >= (attendanceLimit as number) &&
 			attendanceLimit !== null &&
 			isAttend
 		) {
@@ -251,9 +251,8 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 
 	// Determine if the add button should be shown
 	const showAddButton =
-		bookedMembers?.length < attendanceLimit &&
-		attendanceLimit !== null &&
-		isStaff;
+		bookedMembers?.length < (attendanceLimit as number) ||
+		(attendanceLimit === null && isStaff);
 
 	const renderItem = useCallback(
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -283,7 +282,9 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 		<View>
 			<Text style={styles.slots}>
 				{`${bookedMembersRef.current.length} / ${
-					attendanceLimit !== null ? attendanceLimit : '&#8734;'
+					attendanceLimit !== null
+						? attendanceLimit
+						: String.fromCharCode(8734)
 				}`}
 			</Text>
 			<Button
