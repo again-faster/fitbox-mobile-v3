@@ -89,6 +89,8 @@ const CalendarWeek = ({
 		<View>
 			<SwiperFlatList
 				ref={swiper}
+				// TODO: Temporarily disabling gesture
+				disableGesture
 				autoplayLoop={false}
 				showPagination={false}
 				onMomentumScrollBegin={onMomentumScrollBegin}
