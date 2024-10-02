@@ -146,12 +146,12 @@ export const UpdateUserProfilePayloadSchema = z.object({
 	dob: z.string().optional(),
 	gender: GenderSchema.optional(),
 	email: z.string().optional(),
-	contact_phone: z.string().optional(),
+	contact_phone: z.string().nullable().optional(),
 	height: z.number().optional(),
 	current_weight: z.number().optional(),
 	weight_unit: z.string().optional(),
-	emergency_contact_name: z.string().optional(),
-	emergency_contact_number: z.string().optional(),
+	emergency_contact_name: z.string().nullable().optional(),
+	emergency_contact_number: z.string().nullable().optional(),
 	default_team_id: z.number().optional(),
 });
 

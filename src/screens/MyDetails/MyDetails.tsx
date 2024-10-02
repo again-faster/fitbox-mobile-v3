@@ -168,7 +168,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 					});
 				}
 				setIsLoading(false);
-			} catch {
+			} catch (e) {
 				setIsLoading(false);
 			}
 		})();

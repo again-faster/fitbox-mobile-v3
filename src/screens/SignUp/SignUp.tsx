@@ -264,11 +264,7 @@ const SignUp = ({ navigation }: ApplicationScreenProps) => {
 		SimpleToast.show('Please wait...', SimpleToast.SHORT);
 
 		const payload = {
-			email: (fields as Fields).email,
-			firstname: (fields as Fields).firstname,
-			lastname: (fields as Fields).lastname,
-			password: (fields as Fields).password,
-			password_confirmation: (fields as Fields).password_confirmation,
+			...fields,
 			team_id: Number(code),
 			role,
 		};
@@ -285,7 +281,10 @@ const SignUp = ({ navigation }: ApplicationScreenProps) => {
 			void Say.okThen('Successfully Registered!').then(async () => {
 				SimpleToast.show('Signing in...', SimpleToast.SHORT);
 
-				await signIn(payload.email, payload.password).then(user => {
+				await signIn(
+					payload.email as string,
+					payload.password as string,
+				).then(user => {
 					if (user) navigation.navigate('Startup');
 				});
 			});
@@ -317,11 +316,7 @@ const SignUp = ({ navigation }: ApplicationScreenProps) => {
 		SimpleToast.show('Please wait...', SimpleToast.SHORT);
 
 		const payload = {
-			email: (fields as Fields).email,
-			firstname: (fields as Fields).firstname,
-			lastname: (fields as Fields).lastname,
-			password: (fields as Fields).password,
-			password_confirmation: (fields as Fields).password_confirmation,
+			...fields,
 			team_id: Number(code),
 			role,
 		};
@@ -338,7 +333,10 @@ const SignUp = ({ navigation }: ApplicationScreenProps) => {
 			void Say.okThen('Successfully Registered!').then(async () => {
 				SimpleToast.show('Signing in...', SimpleToast.SHORT);
 
-				await signIn(payload.email, payload.password).then(user => {
+				await signIn(
+					payload.email as string,
+					payload.password as string,
+				).then(user => {
 					if (user) navigation.navigate('Startup');
 				});
 			});
