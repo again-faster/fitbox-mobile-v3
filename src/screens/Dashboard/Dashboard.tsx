@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import useAuth from '@/auth/hooks/useAuth';
-import { Row, ScrollView, Spacer, Text } from '@/components/atoms';
+import {
+	Row,
+	ScrollView,
+	SkeletonView,
+	Spacer,
+	Text,
+} from '@/components/atoms';
 import { SafeScreen } from '@/components/template';
 import { navigate } from '@/navigators/NavigationRef';
 import { savePushToken } from '@/services/auth';
@@ -112,6 +118,9 @@ const Dashboard = () => {
 
 	const [attendanceReport, setAttendanceReport] =
 		useState<AttendanceReportDataType | null>(null);
+
+	const [presetFiltersIsLoaded, setPresetFiltersIsLoaded] =
+		useState<boolean>(false);
 
 	const onRefresh = () => {
 		void initializeAppStates();
@@ -508,6 +517,8 @@ const Dashboard = () => {
 			setDefaultClassFilter(defaultItem as ClassFiltersDataType);
 		} catch (e) {
 			Say.err(e as string);
+		} finally {
+			setPresetFiltersIsLoaded(true);
 		}
 	};
 
@@ -617,7 +628,7 @@ const Dashboard = () => {
 							) : null} */}
 						</Row>
 
-						{attendanceReport && (
+						{attendanceReport ? (
 							<View
 								style={{
 									marginTop: config.metrics.lg,
@@ -689,9 +700,18 @@ const Dashboard = () => {
 									</View>
 								</Row>
 							</View>
+						) : (
+							<View
+								style={{
+									marginTop: config.metrics.lg,
+									marginBottom: config.metrics.xl,
+								}}
+							>
+								<SkeletonView height={65} width="100%" />
+							</View>
 						)}
 
-						{upcomingSessions.length > 0 && (
+						{upcomingSessions.length > 0 ? (
 							<>
 								<Spacer size="md" />
 								<View style={styles.bookedSessionsContainer}>
@@ -705,9 +725,14 @@ const Dashboard = () => {
 										))}
 								</View>
 							</>
+						) : (
+							<>
+								<Spacer size="md" />
+								<SkeletonView height={81} width="100%" />
+							</>
 						)}
 
-						{!loading && upcomingSessions.length > 0 && (
+						{!loading && upcomingSessions.length > 0 ? (
 							<TouchableOpacity
 								style={styles.viewMoreButton}
 								onPress={() => navigate('Bookings')}
@@ -716,19 +741,30 @@ const Dashboard = () => {
 									{t('dashboard:sessions.member.viewAll')}
 								</Text>
 							</TouchableOpacity>
+						) : (
+							<View style={styles.viewMoreButton}>
+								<SkeletonView height={17.2} width="40%" />
+							</View>
 						)}
 
 						<Spacer size="xl" />
 
-						<Row
-							spacing="space-between"
-							style={styles.presetFilters}
-						>
-							{isEmpty(classFiltersData) && renderActionButtons}
-							{classFiltersData.map(item =>
-								renderPresetFilters(item),
-							)}
-						</Row>
+						{presetFiltersIsLoaded ? (
+							<Row
+								spacing="space-between"
+								style={styles.presetFilters}
+							>
+								{isEmpty(classFiltersData) &&
+									renderActionButtons}
+								{classFiltersData.map(item =>
+									renderPresetFilters(item),
+								)}
+							</Row>
+						) : (
+							<View style={{ marginTop: config.metrics.xl }}>
+								<SkeletonView height={165} width="100%" />
+							</View>
+						)}
 
 						<Spacer size="xl" />
 
