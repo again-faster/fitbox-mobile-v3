@@ -31,10 +31,10 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 type PaymentStateType = {
 	isLoading: boolean;
 	hasPaymentMethod: boolean;
-	lastDigits: string;
+	lastDigits: string | undefined;
 	method: string;
 	name: string | null | undefined;
-	country: string;
+	country: string | undefined;
 };
 
 const PaymentInformation = ({
@@ -117,11 +117,11 @@ const PaymentInformation = ({
 				},
 				allowsDelayedPaymentMethods: true,
 				applePay: {
-					merchantCountryCode: state.country,
+					merchantCountryCode: state.country as string,
 				},
 				googlePay: {
-					merchantCountryCode: state.country,
-					currencyCode: getCurrency(state.country),
+					merchantCountryCode: state.country as string,
+					currencyCode: getCurrency(state.country as string),
 					testEnv: true,
 				},
 			});
@@ -155,17 +155,22 @@ const PaymentInformation = ({
 					} as UserSchemaType);
 
 					if (
-						routeParams.onSuccessCallback &&
-						typeof routeParams.onSuccessCallback === 'function'
+						routeParams?.onSuccessCallback &&
+						typeof routeParams?.onSuccessCallback === 'function'
 					) {
 						goBack();
 
 						setTimeout(() => {
-							routeParams.onSuccessCallback!();
+							routeParams?.onSuccessCallback!();
 						}, 500);
 					}
 				})
-				.catch(e => Say.err(e as string));
+				.catch(e => {
+					Say.err(e as string);
+				})
+				.finally(() => {
+					void setUpPaymentIntent();
+				});
 		}
 	};
 
@@ -199,13 +204,18 @@ const PaymentInformation = ({
 				isLoading: false,
 				hasPaymentMethod: true,
 				method: method === 'card' ? 'Credit Card' : 'BECS Direct Debit',
-				lastDigits: res.card.last4,
+				lastDigits:
+					method === 'card'
+						? res?.card?.last4
+						: (res as PaymentMethodType)?.au_becs_debit?.last4,
 				name:
 					(res as PaymentMethodType)?.billing_details?.name ||
 					(res as CardDetailsType)?.card.name,
 				country:
 					(res as PaymentMethodType)?.billing_details?.address
-						.country || res.card.country,
+						.country ||
+					res?.card?.country ||
+					'AU',
 			});
 		}
 	};

@@ -23,37 +23,49 @@ export const ApplePayWalletSchema = z.object({
 	type: z.string(),
 });
 
-export const CardSchema = z.object({
-	brand: z.string(),
-	checks: z.object({
-		address_line1_check: z.string().nullable(),
-		address_postal_code_check: z.string().nullable(),
-		cvc_check: z.string().nullable(),
-	}),
-	country: z.string(),
-	display_brand: z.string(),
-	exp_month: z.number(),
-	exp_year: z.number(),
-	fingerprint: z.string(),
-	funding: z.string(),
-	generated_from: z.string().nullable(),
-	last4: z.string(),
-	networks: z.object({
-		available: z.array(z.string()),
-		preferred: z.string().nullable(),
-	}),
-	three_d_secure_usage: z.object({
-		supported: z.boolean(),
-	}),
-	wallet: z.union([z.string(), ApplePayWalletSchema]).nullable(),
-});
+export const CardSchema = z
+	.object({
+		brand: z.string(),
+		checks: z.object({
+			address_line1_check: z.string().nullable(),
+			address_postal_code_check: z.string().nullable(),
+			cvc_check: z.string().nullable(),
+		}),
+		country: z.string(),
+		display_brand: z.string(),
+		exp_month: z.number(),
+		exp_year: z.number(),
+		fingerprint: z.string(),
+		funding: z.string(),
+		generated_from: z.string().nullable(),
+		last4: z.string(),
+		networks: z.object({
+			available: z.array(z.string()),
+			preferred: z.string().nullable(),
+		}),
+		three_d_secure_usage: z.object({
+			supported: z.boolean(),
+		}),
+		wallet: z.union([z.string(), ApplePayWalletSchema]).nullable(),
+	})
+	.optional();
+
+export const BECSDebitSchema = z
+	.object({
+		bsb_number: z.string(),
+		fingerprint: z.string(),
+		last4: z.string(),
+	})
+	.optional();
+
+export type BECSDebitType = z.infer<typeof BECSDebitSchema>;
 
 export const PaymentMethodSchema = z.object({
 	allow_redisplay: z.string(),
 	billing_details: z.object({
 		address: z.object({
 			city: z.string().nullable(),
-			country: z.string(),
+			country: z.string().nullable(),
 			line1: z.string().nullable(),
 			line2: z.string().nullable(),
 			postal_code: z.string().nullable(),
@@ -64,6 +76,7 @@ export const PaymentMethodSchema = z.object({
 		phone: z.string().nullable(),
 	}),
 	card: CardSchema,
+	au_becs_debit: BECSDebitSchema,
 	created: z.number(),
 	customer: z.string().nullable(),
 	id: z.string(),
