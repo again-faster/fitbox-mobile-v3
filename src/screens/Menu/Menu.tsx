@@ -1,5 +1,6 @@
 import useAuth from '@/auth/hooks/useAuth';
 import { ScrollView, Text } from '@/components/atoms';
+import useSwitchableUsers from '@/hooks/useSwitchableUsers';
 import { resetRoot } from '@/navigators/NavigationRef';
 import { useTheme } from '@/theme';
 import { config } from '@/theme/_config';
@@ -144,6 +145,7 @@ const menuOptions = [
 const Menu = ({ navigation }: MainTabScreenProps) => {
 	const { variant, changeTheme } = useTheme();
 	const { signOut, getApiUrl } = useAuth();
+	const { hasSwitchableUsers } = useSwitchableUsers();
 	const { shopUrl, clearStates, emptyRequiredFields } = useStore(state => ({
 		shopUrl: state.shopUrl,
 		clearStates: () => {
@@ -301,6 +303,11 @@ const Menu = ({ navigation }: MainTabScreenProps) => {
 			{menuOptions.map((op, i) => {
 				const options = op.items.map(item => {
 					const showBadge = getOptionBadge(item.id);
+					const hideItem =
+						item.id === 'child-account' && !hasSwitchableUsers;
+
+					if (hideItem) return null;
+
 					return (
 						<List.Item
 							key={item.id}

@@ -28,6 +28,9 @@ const SwitchableUserProvider = ({ children }: ViewProps) => {
 			const { is_parent: isUserParent, from_parent: isUserFromParent } =
 				loggedInUser.user_data;
 
+			setIsParent(isUserParent);
+			setFromParent(!!isUserFromParent);
+
 			const enableSwitch = isUserFromParent || isUserParent;
 
 			// if switch enabled fetch users
@@ -62,16 +65,6 @@ const SwitchableUserProvider = ({ children }: ViewProps) => {
 			setIsParent(false);
 			setFromParent(false);
 		};
-	}, []);
-
-	useEffect(() => {
-		if (!loggedInUser?.user_data) return;
-
-		const { is_parent: isUserParent, from_parent: isUserFromParent } =
-			loggedInUser.user_data;
-
-		setIsParent(isUserParent);
-		setFromParent(!!isUserFromParent);
 	}, [loggedInUser]);
 
 	const value = useMemo(
