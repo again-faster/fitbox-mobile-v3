@@ -606,37 +606,77 @@ const Dashboard = () => {
 		);
 	};
 
-	const renderDashboardComponents = () => {
-		const allSectionsLoaded =
+	const allSectionsLoaded = useMemo(() => {
+		return (
 			!upcomingSessionsIsLoading &&
 			presetFiltersIsLoaded &&
-			!attendanceReportIsLoading;
+			!attendanceReportIsLoading
+		);
+	}, [
+		upcomingSessionsIsLoading,
+		attendanceReportIsLoading,
+		classFiltersData,
+	]);
 
+	const renderDashboardComponents = () => {
 		if (!allSectionsLoaded) {
 			return (
 				<>
-					<View
-						style={{
-							marginTop: config.metrics.lg,
-							marginBottom: config.metrics.xl,
-						}}
-					>
-						<SkeletonView height={65} width="100%" />
-					</View>
+					<Row align="center" spacing="space-between">
+						<SkeletonView height={40} width="40%" />
+						<SkeletonView
+							height={50}
+							width={50}
+							borderRadius={100}
+						/>
+					</Row>
+					<Spacer size="xxl" />
+					<SkeletonView height={14} width="30%" />
+					<Spacer size="sm" />
+					<Row spacing="space-between">
+						<SkeletonView height={65} width="48%" />
+						<SkeletonView height={65} width="48%" />
+					</Row>
 					<Spacer size="md" />
 					<SkeletonView height={81} width="100%" />
 					<View style={styles.viewMoreButton}>
 						<SkeletonView height={17.2} width="40%" />
 					</View>
-					<View style={{ marginTop: config.metrics.xl }}>
-						<SkeletonView height={165} width="100%" />
-					</View>
+					<Spacer size="md" />
+					<SkeletonView height={165} width="100%" />
 				</>
 			);
 		}
 
 		return (
 			<>
+				<Row
+					align="center"
+					spacing="space-between"
+					style={{ marginBottom: config.metrics.lg }}
+				>
+					<View>
+						<Text bold size="xxl">
+							{t('dashboard:sessions.member.greeting', {
+								name: user?.user_data.first_name ?? '',
+							})}
+						</Text>
+					</View>
+
+					{hasSwitchableUsers && allSectionsLoaded ? (
+						<TouchableOpacity
+							activeOpacity={1}
+							onPress={() => navigate('SwitchUser')}
+						>
+							<Avatar source={avatarImage} />
+							<Icon
+								name="swap-horizontal"
+								style={styles.switchIcon}
+							/>
+						</TouchableOpacity>
+					) : null}
+				</Row>
+
 				{attendanceReport && (
 					<View
 						style={{
@@ -741,33 +781,6 @@ const Dashboard = () => {
 			<ScrollView refreshing={refreshing} onRefresh={onRefresh}>
 				<View style={styles.section}>
 					<View>
-						<Row
-							align="center"
-							spacing="space-between"
-							style={{ marginBottom: config.metrics.lg }}
-						>
-							<View>
-								<Text bold size="xxl">
-									{t('dashboard:sessions.member.greeting', {
-										name: user?.user_data.first_name ?? '',
-									})}
-								</Text>
-							</View>
-
-							{hasSwitchableUsers ? (
-								<TouchableOpacity
-									activeOpacity={1}
-									onPress={() => navigate('SwitchUser')}
-								>
-									<Avatar source={avatarImage} />
-									<Icon
-										name="swap-horizontal"
-										style={styles.switchIcon}
-									/>
-								</TouchableOpacity>
-							) : null}
-						</Row>
-
 						{renderDashboardComponents()}
 						<Spacer size="xl" />
 

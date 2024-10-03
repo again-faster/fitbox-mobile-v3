@@ -47,8 +47,8 @@ export const UserSchema = z.object({
 	from_parent: z.boolean().optional(),
 	parent_id: z.number(),
 	onboarding_gym_ids: z.array(z.number()).optional(),
-	emergency_contact_name: z.string().nullable().optional(),
-	emergency_contact_number: z.string().nullable().optional(),
+	emergency_contact_name: z.string().nullish(),
+	emergency_contact_number: z.string().nullish(),
 });
 
 export const UserProfileSchema = z.object({
@@ -63,8 +63,8 @@ export const UserProfileSchema = z.object({
 		timezone_type: z.number(),
 	}),
 	email: z.string(),
-	emergency_contact_name: z.string().nullable(),
-	emergency_contact_number: z.string().nullable(),
+	emergency_contact_name: z.string().nullish(),
+	emergency_contact_number: z.string().nullish(),
 	eula_accepted: z.number().optional(),
 	face_id: z.any().optional(),
 	first_name: z.string(),
@@ -113,8 +113,8 @@ export const RegisterUserDataSchema = z.object({
 	created_by: z.number().optional(),
 	default_team_id: z.number().optional(),
 	email: z.string().optional(),
-	emergency_contact_name: z.string().optional(),
-	emergency_contact_number: z.string().optional(),
+	emergency_contact_name: z.string().nullish(),
+	emergency_contact_number: z.string().nullish(),
 	firstname: z.string().optional(),
 	id: z.number().optional(),
 	lastname: z.string().optional(),

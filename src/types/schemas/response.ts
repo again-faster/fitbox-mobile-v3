@@ -150,8 +150,8 @@ export const UpdateUserProfilePayloadSchema = z.object({
 	height: z.number().optional(),
 	current_weight: z.number().optional(),
 	weight_unit: z.string().optional(),
-	emergency_contact_name: z.string().nullable().optional(),
-	emergency_contact_number: z.string().nullable().optional(),
+	emergency_contact_name: z.string().nullish(),
+	emergency_contact_number: z.string().nullish(),
 	default_team_id: z.number().optional(),
 });
 

@@ -377,8 +377,11 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 
 			if (!res.error) {
 				Say.ok('Profile Image Changed!');
-
 				setData({ ...data, imageToken: new Date().getTime() });
+
+				updateUser({
+					profile_image: data.user.profile_image,
+				} as UserSchemaType);
 			} else {
 				let error = 'Something went wrong while uploading image';
 				if (res?.message) {
