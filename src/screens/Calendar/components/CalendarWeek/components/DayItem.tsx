@@ -56,6 +56,7 @@ const DayItem = ({
 					color={isFirstOrLastDayOfMonth ? 'brand' : 'gray100'}
 					bold
 					size="xs"
+					allowFontScaling={false}
 				>
 					{topDisplay}
 				</Text>
@@ -67,6 +68,7 @@ const DayItem = ({
 					]}
 				>
 					<Text
+						allowFontScaling={false}
 						center
 						color={
 							// eslint-disable-next-line no-nested-ternary

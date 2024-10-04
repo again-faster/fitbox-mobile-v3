@@ -700,12 +700,17 @@ const Dashboard = () => {
 										source={resources.icon.monthToDate}
 										style={styles.attendanceIcon}
 									/>
-									<Text style={styles.attendanceValue} bold>
+									<Text
+										style={styles.attendanceValue}
+										bold
+										allowFontScaling={false}
+									>
 										{attendanceReport?.monthToDate}
 									</Text>
 									<Text
 										size="md"
 										style={styles.attendanceText}
+										allowFontScaling={false}
 									>
 										this month
 									</Text>
@@ -723,12 +728,17 @@ const Dashboard = () => {
 										source={resources.icon.yearToDate}
 										style={styles.attendanceIcon}
 									/>
-									<Text style={styles.attendanceValue} bold>
+									<Text
+										style={styles.attendanceValue}
+										bold
+										allowFontScaling={false}
+									>
 										{attendanceReport?.yearToDate}
 									</Text>
 									<Text
 										size="md"
 										style={styles.attendanceText}
+										allowFontScaling={false}
 									>
 										this year
 									</Text>
