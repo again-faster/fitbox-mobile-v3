@@ -91,6 +91,7 @@ const CalendarWeek = ({
 			<FlashList
 				ref={swiper}
 				horizontal
+				showsHorizontalScrollIndicator={false}
 				onMomentumScrollBegin={onMomentumScrollBegin}
 				onMomentumScrollEnd={onMomentumScrollEnd}
 				decelerationRate="fast"

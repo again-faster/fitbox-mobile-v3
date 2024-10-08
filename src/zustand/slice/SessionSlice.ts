@@ -160,7 +160,12 @@ const createSessionSlice: StateCreator<
 						};
 					});
 
-					setClasses(date, classesData);
+					setClasses(
+						date,
+						classesData.length > 0
+							? classesData
+							: [{ isLoading: false }],
+					);
 				}
 			})
 			.catch(err => {

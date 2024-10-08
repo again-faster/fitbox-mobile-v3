@@ -2,11 +2,12 @@ import { SkeletonView, Text } from '@/components/atoms';
 import { BookButton } from '@/components/molecules';
 import { config } from '@/theme/_config';
 import { ApplicationStackParamList } from '@/types/navigation';
-import useStore from '@/zustand/Store';
 import { ClassItemData } from '@/zustand/interface/SessionInterface';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+
+export const AGENDA_ITEM_HEIGHT = 84;
 
 const { metrics, fonts } = config;
 
@@ -33,22 +34,12 @@ const AgendaItem: React.FC<AgendaItemProps> = React.memo(
 			eventId,
 			waitlistBtn,
 			classId,
-			venueId,
 			isCoach,
 			color,
 		},
 	}: AgendaItemProps) => {
-		// console.log('--------------------------------');
-		// console.log('AgendaItem re-render', start, title);
-
 		const navigation =
 			useNavigation<NavigationProp<ApplicationStackParamList>>();
-
-		const { classFilters, venueFilters } = useStore(e => ({
-			classFilters: e.classFilters,
-			venueFilters: e.venueFilters,
-			getClassesByDate: e.getClassesByDate,
-		}));
 
 		const [isAttending, setIsAttending] = useState<boolean>(
 			!!isAttendingProp,
@@ -63,37 +54,11 @@ const AgendaItem: React.FC<AgendaItemProps> = React.memo(
 			});
 		}, []);
 
-		const isFiltered = useMemo(() => {
-			const useClassFilters = classFilters.filter(
-				filter => filter.is_selected,
-			);
-
-			const useVenueFilters = venueFilters.filter(
-				filter => filter.is_selected,
-			);
-
-			if (useClassFilters.length === 0 && useVenueFilters.length === 0) {
-				return false;
-			}
-
-			const classFilter =
-				useClassFilters.length === 0 ||
-				useClassFilters.some(filter => filter.id === classId);
-
-			const venueFilter =
-				useVenueFilters.length === 0 ||
-				useVenueFilters.some(
-					filter => filter.id === venueId || filter.id === -1,
-				);
-
-			return !(classFilter && venueFilter);
-		}, [classFilters, venueFilters]);
-
-		if (hideSchedule || isFiltered) {
+		if (hideSchedule) {
 			return null;
 		}
 
-		if (isLoading) {
+		if (isLoading === true) {
 			return (
 				<View style={styles.itemLoaderContainer}>
 					<SkeletonView
@@ -101,6 +66,14 @@ const AgendaItem: React.FC<AgendaItemProps> = React.memo(
 						width={50}
 						style={styles.itemLoader}
 					/>
+				</View>
+			);
+		}
+
+		if (isLoading === false) {
+			return (
+				<View style={styles.itemLoaderContainer}>
+					<Text color="lightgrey">No classes found</Text>
 				</View>
 			);
 		}
@@ -120,7 +93,7 @@ const AgendaItem: React.FC<AgendaItemProps> = React.memo(
 					]}
 				/>
 				<View style={styles.contentContainer}>
-					<Text bold size="md">
+					<Text bold size="md" numberOfLines={2} ellipsizeMode="tail">
 						{title}
 					</Text>
 					{location ? (
@@ -170,14 +143,14 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 1,
 		borderBottomColor: 'lightgrey',
 		flexDirection: 'row',
+		height: AGENDA_ITEM_HEIGHT,
 	},
 	itemLoaderContainer: {
+		marginLeft: config.metrics.md,
 		paddingTop: config.metrics.md,
-		height: 84,
-		justifyContent: 'center',
+		height: AGENDA_ITEM_HEIGHT,
 	},
 	itemLoader: {
-		marginLeft: 20,
 		marginBottom: 15,
 	},
 	timeContainer: {

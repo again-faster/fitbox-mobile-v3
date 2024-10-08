@@ -34,14 +34,14 @@ import {
 } from 'react-native';
 import { Badge } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import AgendaItem from './components/AgendaItem';
+import AgendaItem, { AGENDA_ITEM_HEIGHT } from './components/AgendaItem';
 import CalendarFilterPanel from './components/CalendarFilterPanel';
 import CalendarFilterSelect from './components/CalendarFilterSelectPanel';
 import CalendarSkeletonLoader from './components/CalendarSkeletonLoader';
 import CalendarWeek from './components/CalendarWeek';
+import { FilterCriteria, shouldIncludeClass } from './utils/functions';
 
 const { height } = Dimensions.get('window');
-const { fonts } = config;
 
 const TODAYS_DATE = moment().format(Constant.DEFAULT_DATE_FORMAT);
 
@@ -91,7 +91,12 @@ const Calendar = () => {
 
 	const flashListRef = useRef<FlashList<string | ClassItemData>>(null);
 
-	const loadClasses = () => {
+	const loadClasses = useCallback(() => {
+		if (!isScrolling) {
+			getClassesByDate(currentDate, loggedInUser!.id);
+			return;
+		}
+
 		// create a range from current date to 3 days ago and 3 days ahead
 		let startDate = moment(currentDate).startOf('isoWeek');
 		if (isInitialLoadingComplete) {
@@ -113,7 +118,7 @@ const Calendar = () => {
 				getClassesByDate(wDate, loggedInUser!.id);
 			}
 		});
-	};
+	}, [isScrolling]);
 
 	const fetchFilterOptions = () => {
 		const selectedVenueIds = venueFilters
@@ -238,7 +243,7 @@ const Calendar = () => {
 				await new Promise(resolve => {
 					flashListRef.current?.scrollToIndex({
 						index: dateIndex,
-						animated: true,
+						animated: false,
 					});
 
 					setTimeout(resolve, 1500);
@@ -293,10 +298,14 @@ const Calendar = () => {
 		if (typeof item === 'string') {
 			const isToday = moment(item).isSame(moment(), 'day');
 			return (
-				<Text bold style={styles.section}>
-					{isToday ? 'Today' : ''}
-					{moment(item).format(`${!isToday ? 'dddd' : ''}, MMM DD`)}
-				</Text>
+				<View style={styles.section}>
+					<Text bold color="darkgray">
+						{isToday ? 'Today' : ''}
+						{moment(item).format(
+							`${!isToday ? 'dddd' : ''}, MMM DD`,
+						)}
+					</Text>
+				</View>
 			);
 		}
 
@@ -330,12 +339,35 @@ const Calendar = () => {
 
 	const memoizedClasses = useMemo(() => {
 		const formattedClasses: (string | ClassItemData)[] = [];
+
+		// Define filter criteria
+		const criteria: FilterCriteria = {
+			selectedClassIds: classFilters
+				.filter(filter => filter.is_selected)
+				.map(filter => filter.id)
+				.filter((id): id is number => id !== null),
+			selectedVenueIds: venueFilters
+				.filter(filter => filter.is_selected)
+				.map(filter => filter.id)
+				.filter((id): id is number => id !== null),
+		};
+
 		classes.forEach(section => {
 			formattedClasses.push(section.title);
-			formattedClasses.push(...section.data);
+
+			// Filter classes based on criteria
+			const filteredClasses = section.data.filter(item =>
+				shouldIncludeClass(item, criteria),
+			);
+
+			if (filteredClasses.length > 0) {
+				formattedClasses.push(...filteredClasses);
+			} else {
+				formattedClasses.push({ isLoading: false } as ClassItemData);
+			}
 		});
 		return formattedClasses;
-	}, [classes]);
+	}, [classes, classFilters, venueFilters]);
 
 	const stickyHeaderIndices = memoizedClasses
 		.map((item, index) => {
@@ -398,15 +430,13 @@ const Calendar = () => {
 				const newDateObj = newDate as ClassItemData;
 				newDate = newDateObj.startDate ?? '';
 			} else if ('isLoading' in firstItem.item) {
-				const newDateObj = firstItem.item as ClassItemData;
-
-				if (newDateObj.isLoading) {
-					newDate = null;
-				}
+				newDate = null;
 			}
 		}
 
 		if (!!newDate && moment(newDate).isValid()) {
+			console.log('navigating to', newDate);
+
 			handleDateChange(
 				moment(newDate).format(Constant.DEFAULT_DATE_FORMAT),
 			);
@@ -447,11 +477,11 @@ const Calendar = () => {
 					onMomentumScrollEnd={() => setIsScrolling(false)}
 					onViewableItemsChanged={onViewableItemsChanged}
 					viewabilityConfig={{ itemVisiblePercentThreshold: 100 }}
-					estimatedItemSize={84}
+					estimatedItemSize={AGENDA_ITEM_HEIGHT}
 					// eslint-disable-next-line @typescript-eslint/no-shadow
 					overrideItemLayout={layout => {
 						// eslint-disable-next-line no-param-reassign
-						layout.size = 84; // Set a fixed height for each item
+						layout.size = AGENDA_ITEM_HEIGHT; // Set a fixed height for each item
 					}}
 				/>
 			</View>
@@ -522,10 +552,11 @@ const styles = StyleSheet.create({
 		height: height - 100,
 	},
 	section: {
-		backgroundColor: '#FFF',
-		color: 'grey',
-		fontSize: fonts.metrics.rg,
-		padding: config.metrics.md,
+		height: AGENDA_ITEM_HEIGHT,
+		justifyContent: 'flex-end',
+		backgroundColor: 'white',
+		paddingLeft: config.metrics.md,
+		paddingBottom: config.metrics.lg,
 	},
 	badgeStyle: {
 		position: 'absolute',
