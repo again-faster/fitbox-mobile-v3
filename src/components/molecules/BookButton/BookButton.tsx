@@ -89,6 +89,7 @@ const BookButton = ({
 	 * If the user has payment details, it will navigate to the BuyNow screen to book the session.
 	 */
 	const handleBook = (showSuccessToast = true) => {
+		let showToast = showSuccessToast;
 		if (isLoading) return;
 
 		setIsLoading(true);
@@ -100,6 +101,8 @@ const BookButton = ({
 		})
 			.then(res => {
 				if (res.error) {
+					showToast = false;
+
 					// check error code and verify if waitlist on class is enabled
 					if (res.error_code === 'SFULL01' && waitlistBtn) {
 						Alert.alert(
@@ -140,18 +143,6 @@ const BookButton = ({
 						);
 					} else {
 						Say.warn(res.message.replace('box', 'gym'));
-					}
-
-					if (res?.error_code === 'AB001') {
-						// Show alert if user is already booked for this
-						SimpleToast.show(
-							'You are already booked for this session',
-							SimpleToast.SHORT,
-						);
-					}
-
-					if (res.message) {
-						Say.warn(res.message, 'Oops!');
 					}
 				} else {
 					setAttending(!isAttending);
@@ -212,7 +203,7 @@ const BookButton = ({
 				// 	this.toggleProcessingMember(currentUserId);
 
 				// show toast
-				if (showSuccessToast) {
+				if (showToast) {
 					const bookAction = !isAttending ? 'booked' : 'unbooked';
 
 					SimpleToast.show(
