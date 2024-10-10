@@ -1,4 +1,6 @@
+import { Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
+import layout from '@/theme/layout';
 import { Constant } from '@/utils';
 import useStore from '@/zustand/Store';
 import { FlashList } from '@shopify/flash-list';
@@ -91,7 +93,7 @@ const CalendarWeek = ({
 	}, [currentDate]);
 
 	return (
-		<View>
+		<View style={layout.shadowLight}>
 			<FlashList
 				ref={swiper}
 				horizontal
@@ -106,11 +108,15 @@ const CalendarWeek = ({
 				snapToInterval={Constant.DEVICEWIDTH}
 				renderItem={renderItem}
 				estimatedItemSize={Constant.DEVICEWIDTH}
-				overrideItemLayout={layout => {
+				overrideItemLayout={l => {
 					// eslint-disable-next-line no-param-reassign
-					layout.size = Constant.DEVICEWIDTH; // Set a fixed height for each item
+					l.size = Constant.DEVICEWIDTH; // Set a fixed height for each item
 				}}
 			/>
+
+			<View style={styles.currentDay}>
+				<Text bold>{moment(currentDate).format('dddd MMM DD')}</Text>
+			</View>
 		</View>
 	);
 };
@@ -122,6 +128,11 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
+	},
+	currentDay: {
+		justifyContent: 'flex-end',
+		backgroundColor: 'white',
+		padding: config.metrics.md,
 	},
 	itemDay: {
 		borderRadius: 100,

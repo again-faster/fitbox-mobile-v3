@@ -44,7 +44,7 @@ const DayItem = ({
 	}, [activeMonth]);
 
 	return (
-		<TouchableWithoutFeedback onPressIn={onPress}>
+		<TouchableWithoutFeedback onPress={onPress}>
 			<View
 				pointerEvents="box-only"
 				style={[

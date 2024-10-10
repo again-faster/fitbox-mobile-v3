@@ -414,13 +414,6 @@ const styles = StyleSheet.create({
 	container: {
 		height: height - 100,
 	},
-	section: {
-		height: AGENDA_ITEM_HEIGHT,
-		justifyContent: 'flex-end',
-		backgroundColor: 'white',
-		paddingLeft: config.metrics.md,
-		paddingBottom: config.metrics.lg,
-	},
 	badgeStyle: {
 		position: 'absolute',
 		top: -2,
