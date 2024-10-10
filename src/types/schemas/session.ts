@@ -455,7 +455,8 @@ const MemberActiveSubscriptionSchema = z.object({
 			show_after_signup: boolOrOneZero,
 			show_existing_users: boolOrOneZero,
 		})
-		.nullable(),
+		.nullable()
+		.optional(),
 });
 
 const SessionMemberAttendanceUseSchema = z.object({
@@ -463,7 +464,7 @@ const SessionMemberAttendanceUseSchema = z.object({
 	firstname: z.string(),
 	lastname: z.string(),
 	profile_image: z.string().url(),
-	email: z.string(),
+	email: z.string().optional(),
 	payments: z.array(paymentSchema),
 });
 
