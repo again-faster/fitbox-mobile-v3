@@ -1,3 +1,4 @@
+import useAuth from '@/auth/hooks/useAuth';
 import { Avatar, Row, Spacer, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
@@ -22,8 +23,15 @@ type InboxItemProps = {
 };
 
 const InboxItem = ({ index, data, onPress }: InboxItemProps) => {
+	const { user: userFromAuth } = useAuth();
 	// Prepare list of users in the conversation and filter userId
 	let listOfUsers = data.user_list;
+
+	const isGifUrl = (url: string) => {
+		return /\.(gif)$/i.test(url);
+	};
+
+	const isFromUser = data.sender_id === userFromAuth?.user_data.user_id;
 
 	// Prepare sender info
 	let senderInfo =
@@ -61,12 +69,24 @@ const InboxItem = ({ index, data, onPress }: InboxItemProps) => {
 		}
 
 		if (isArray(attachments) && attachments.length > 0) {
-			if (attachments[0]?.type === 'image') message = 'Sent an image';
-			else if (attachments[0]?.type === 'video') message = 'Sent a video';
-			else message = 'Sent a file';
+			if (attachments[0]?.type === 'image') {
+				if (isFromUser) message = 'You sent an image';
+				else message = `${data.firstname} sent an image`;
+			} else if (attachments[0]?.type === 'video') {
+				if (isFromUser) message = 'You sent a video';
+				else message = `${data.firstname} sent a video`;
+			} else if (isFromUser) message = 'You sent a file';
+			else message = `${data.firstname} sent a file`;
 		}
 	}
 
+	if (isGifUrl(message)) {
+		if (isFromUser) {
+			message = 'You sent a GIF';
+		} else {
+			message = `${data.firstname} sent a GIF`;
+		}
+	}
 	// Prepare display name
 	const displayName = `${senderInfo?.firstname} ${senderInfo?.lastname}`;
 
@@ -116,8 +136,8 @@ const InboxItem = ({ index, data, onPress }: InboxItemProps) => {
 						<Text size="md" bold numberOfLines={1}>
 							{data.subject}
 						</Text>
-						<Text color="mute" numberOfLines={2}>
-							{Func.stripHtmlTags('testing')}
+						<Text color="mute" numberOfLines={1}>
+							{Func.stripHtmlTags(message)}
 						</Text>
 						<Spacer size="sm" />
 					</View>
