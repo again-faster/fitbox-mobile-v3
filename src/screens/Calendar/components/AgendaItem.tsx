@@ -13,6 +13,7 @@ const { metrics, fonts } = config;
 
 interface AgendaItemProps {
 	item: ClassItemData;
+	setIsFromSession?: (isFromSession: boolean) => void;
 }
 
 const AgendaItem: React.FC<AgendaItemProps> = React.memo(
@@ -37,6 +38,7 @@ const AgendaItem: React.FC<AgendaItemProps> = React.memo(
 			isCoach,
 			color,
 		},
+		setIsFromSession,
 	}: AgendaItemProps) => {
 		const navigation =
 			useNavigation<NavigationProp<ApplicationStackParamList>>();
@@ -52,6 +54,10 @@ const AgendaItem: React.FC<AgendaItemProps> = React.memo(
 				waitlistEnabled: !!waitlistBtn,
 				waitlistTime: Number(waitlistTime),
 			});
+
+			if (setIsFromSession) {
+				setIsFromSession(true);
+			}
 		}, []);
 
 		if (hideSchedule || isLoading === true) {

@@ -250,9 +250,11 @@ const Calendar = () => {
 		setCurrentDate(TODAYS_DATE);
 	}, [isInitialLoadingComplete, currentDate]);
 
+	const [isFromSessions, setIsFromSessions] = useState(false);
+
 	const isFocused = useIsFocused();
 	useEffect(() => {
-		if (!isFocused && defaultClassFilter) {
+		if (!isFocused && defaultClassFilter && !isFromSessions) {
 			let defaultClass = [];
 			let defaultVenue = [];
 
@@ -274,6 +276,10 @@ const Calendar = () => {
 			setClassFiltersToApply(defaultClass);
 			setVenueFiltersToApply(defaultVenue);
 			setHeaderTitle(defaultClassFilter.name);
+			setIsFromSessions(false);
+		}
+		if (isFocused && isFromSessions) {
+			setIsFromSessions(false);
 		}
 	}, [isFocused]);
 
@@ -293,7 +299,13 @@ const Calendar = () => {
 		}
 
 		const useItem = item as ClassItemData;
-		return <AgendaItem key={useItem.eventId} item={useItem} />;
+		return (
+			<AgendaItem
+				key={useItem.eventId}
+				item={useItem}
+				setIsFromSession={setIsFromSessions}
+			/>
+		);
 	}, []);
 
 	useFocusEffect(
