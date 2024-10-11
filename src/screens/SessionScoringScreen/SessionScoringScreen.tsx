@@ -7,7 +7,10 @@ import { getPastPerformance } from '@/services/users';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { ApplicationScreenProps, ScoringParams } from '@/types/navigation';
-import BottomSheet, { BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import BottomSheet, {
+	BottomSheetBackdrop,
+	BottomSheetScrollView,
+} from '@gorhom/bottom-sheet';
 import { BottomSheetDefaultBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types';
 import { useFocusEffect } from '@react-navigation/native';
 import { JSX, useCallback, useEffect, useState } from 'react';
@@ -111,11 +114,14 @@ const SessionScoringScreen = ({ route }: ApplicationScreenProps) => {
 						animateOnMount={false}
 						backdropComponent={renderBackdrop}
 					>
-						<WODPastPerformance
-							isLoading={isLoadingHistory}
-							section={section}
-							results={results}
-						/>
+						{/* TODO: instad of putting scrollview add it under the list so it wouldnt affect the onerm */}
+						<BottomSheetScrollView>
+							<WODPastPerformance
+								isLoading={isLoadingHistory}
+								section={section}
+								results={results}
+							/>
+						</BottomSheetScrollView>
 					</BottomSheet>
 				)}
 			</>

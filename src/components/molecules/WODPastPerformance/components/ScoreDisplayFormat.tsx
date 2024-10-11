@@ -117,7 +117,7 @@ const ScoreDisplayFormat = ({ data }: ScoreDisplayFormatProps) => {
 			);
 		case 20: {
 			// For Load
-			const weight = data?.one_rm?.weight ?? data?.weight ?? data.value;
+			const weight = data?.weight ?? data.value;
 			return (
 				<Row>
 					<Text size="md" color="darkgray">
