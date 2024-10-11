@@ -1,4 +1,4 @@
-import { HR, ScrollView, Spacer, Text } from '@/components/atoms';
+import { HR, Row, ScrollView, Spacer, Text } from '@/components/atoms';
 import { goBack } from '@/navigators/NavigationRef';
 import { getSubscriptionDetails } from '@/services/subscription';
 import { config } from '@/theme/_config';
@@ -7,6 +7,7 @@ import {
 	SubscriptionDetailsParams,
 } from '@/types/navigation';
 import { SubscriptionDetailsType } from '@/types/schemas/subscription';
+import { Constant } from '@/utils';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
@@ -18,6 +19,8 @@ const SubscriptionDetails = ({ route }: MenuStackNavigatorProps) => {
 	const [data, setData] = useState<SubscriptionDetailsType>();
 
 	const { id, type } = route.params as SubscriptionDetailsParams;
+
+	const { CARD, DIRECT_DEBIT, FAILED_PAYMENTS } = Constant.TRANSACTION_FEES;
 
 	useEffect(() => {
 		void (async () => {
@@ -60,6 +63,38 @@ const SubscriptionDetails = ({ route }: MenuStackNavigatorProps) => {
 	} else {
 		billingFrequencyValue = `${data?.recurring_interval_unit ?? ''}ly`;
 	}
+
+	const renderTransactionFess = () => (
+		<View style={{ padding: config.metrics.md }}>
+			<Row
+				spacing="space-between"
+				style={{ marginBottom: config.metrics.sm }}
+			>
+				<Text size="rg">{CARD.title}</Text>
+				<Text size="rg" color="darkgray">
+					{CARD.value}
+				</Text>
+			</Row>
+			<Row
+				spacing="space-between"
+				style={{ marginBottom: config.metrics.sm }}
+			>
+				<Text size="rg">{DIRECT_DEBIT.title}</Text>
+				<Text size="rg" color="darkgray">
+					{DIRECT_DEBIT.value}
+				</Text>
+			</Row>
+			<Row
+				spacing="space-between"
+				style={{ marginBottom: config.metrics.sm }}
+			>
+				<Text size="rg">{FAILED_PAYMENTS.title}</Text>
+				<Text size="rg" color="darkgray">
+					{FAILED_PAYMENTS.value}
+				</Text>
+			</Row>
+		</View>
+	);
 
 	return isLoading ? (
 		<View style={styles.loaderStyle}>
@@ -105,6 +140,8 @@ const SubscriptionDetails = ({ route }: MenuStackNavigatorProps) => {
 					<SubscriptionRowDetail
 						title="Transaction fees"
 						value="Added to invoice (in Stripe)"
+						isClickable
+						renderPopup={renderTransactionFess}
 					/>
 				)}
 				{data?.sessions_count !== null && (

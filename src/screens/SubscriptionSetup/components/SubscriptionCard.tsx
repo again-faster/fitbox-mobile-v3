@@ -5,6 +5,7 @@ import {
 	SubscriptionType,
 	UserSubscriptionProductsType,
 } from '@/types/schemas/subscription';
+import { Constant } from '@/utils';
 import { isNull } from 'lodash';
 import { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -28,6 +29,8 @@ const SubscriptionCard = ({
 
 	const [isTransactionFeesVisible, setTransactionFeesVisible] =
 		useState<boolean>(false);
+
+	const { CARD, DIRECT_DEBIT, FAILED_PAYMENTS } = Constant.TRANSACTION_FEES;
 
 	return (
 		<View style={styles.mainContainer}>
@@ -86,21 +89,21 @@ const SubscriptionCard = ({
 					{/* //TODO: We might have to put this somewhere that's easily updated. */}
 					<View style={{ padding: config.metrics.md }}>
 						<Row spacing="space-between" style={styles.fees}>
-							<Text size="rg">Card:</Text>
+							<Text size="rg">{CARD.title}</Text>
 							<Text size="rg" color="darkgray">
-								$0.35 + 1.75%
+								{CARD.value}
 							</Text>
 						</Row>
 						<Row spacing="space-between" style={styles.fees}>
-							<Text size="rg">Direct-Debit:</Text>
+							<Text size="rg">{DIRECT_DEBIT.title}</Text>
 							<Text size="rg" color="darkgray">
-								$0.35 + 1.0%
+								{DIRECT_DEBIT.value}
 							</Text>
 						</Row>
 						<Row spacing="space-between" style={styles.fees}>
-							<Text size="rg">Failed Payments:</Text>
+							<Text size="rg">{FAILED_PAYMENTS.title}</Text>
 							<Text size="rg" color="darkgray">
-								$6.00
+								{FAILED_PAYMENTS.value}
 							</Text>
 						</Row>
 					</View>

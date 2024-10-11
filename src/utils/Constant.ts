@@ -126,6 +126,22 @@ const RESPONSE_TIMEOUT = {
 	PROD: 20000,
 };
 
+// Transaction Fees in subscription details
+const TRANSACTION_FEES = {
+	CARD: {
+		title: 'Card:',
+		value: '$0.35 + 1.75%',
+	},
+	DIRECT_DEBIT: {
+		title: 'Direct-Debit:',
+		value: '$0.35 + 1.0%',
+	},
+	FAILED_PAYMENTS: {
+		title: 'Failed Payments:',
+		value: '$6.00',
+	},
+};
+
 export default {
 	ENABLE_ENV_PICKER,
 	MASQUERADE_USER_API_TOKEN,
@@ -145,4 +161,5 @@ export default {
 	NOTIFICATION_SETTINGS,
 	MOVEMENT_PARAMS,
 	RESPONSE_TIMEOUT,
+	TRANSACTION_FEES,
 };
