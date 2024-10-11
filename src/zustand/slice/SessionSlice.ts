@@ -85,6 +85,8 @@ const createSessionSlice: StateCreator<
 		getScheduleList(date, date)
 			.then(res => {
 				if (!res.error) {
+					// TODO: Check if deepequal on everything something is not equal purge everything only when there is data
+
 					const classesData = res.data.map(item => {
 						// Get duration
 

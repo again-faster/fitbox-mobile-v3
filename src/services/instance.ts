@@ -2,12 +2,13 @@ import { resetRoot } from '@/navigators/NavigationRef';
 import { mmkvStorage } from '@/storage';
 import { Constant } from '@/utils';
 import ky from 'ky';
+import DeviceInfo from 'react-native-device-info';
 import SimpleToast from 'react-native-simple-toast';
 
 /**
  * Get the API token from the storage
  */
-const xAppVersion = `${process.env.APP_VERSION ? process.env.APP_VERSION : ''}`;
+const xAppVersion = `${DeviceInfo.getVersion()}-(${DeviceInfo.getBuildNumber()})`;
 
 /**
  * Get the API token from the storage
