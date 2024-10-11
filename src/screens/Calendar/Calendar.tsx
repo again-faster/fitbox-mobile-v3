@@ -41,9 +41,47 @@ import CalendarSkeletonLoader from './components/CalendarSkeletonLoader';
 import CalendarWeek, { CalendarWeekRef } from './components/CalendarWeek';
 import { FilterCriteria, shouldIncludeClass } from './utils/functions';
 
+// TODO: Use this later
+// const NextWeekListFooterComponent = ({ onPress }: { onPress: () => void }) => {
+// 	return (
+// 		<TouchableOpacity
+// 			style={[
+// 				{
+// 					height: AGENDA_ITEM_HEIGHT,
+// 					padding: config.metrics.lg,
+// 				},
+// 				layout.itemsEnd,
+// 				layout.justifyCenter,
+// 			]}
+// 			onPress={onPress}
+// 		>
+// 			<Row
+// 				style={{
+// 					backgroundColor: config.fonts.colors.brand,
+// 					padding: config.fonts.metrics.xs,
+// 				}}
+// 			>
+// 				<Text center size="sm" color="light">
+// 					Go to Next Week
+// 				</Text>
+// 				<Spacer horizontal size="xs" />
+// 				<Icon
+// 					name="chevron-right"
+// 					size={config.fonts.metrics.sm}
+// 					color="white"
+// 				/>
+// 			</Row>
+// 		</TouchableOpacity>
+// 	);
+// };
+
 const { height } = Dimensions.get('window');
 
 const TODAYS_DATE = moment().format(Constant.DEFAULT_DATE_FORMAT);
+
+const ListFooterComponent = () => {
+	return <View style={{ height: AGENDA_ITEM_HEIGHT }} />;
+};
 
 const Calendar = () => {
 	const {
@@ -334,6 +372,16 @@ const Calendar = () => {
 		memoizedClasses.some(e => typeof e === 'object' && e.isLoading) ||
 		memoizedClasses.length === 0;
 
+	const showTodayButton = currentDate !== TODAYS_DATE;
+
+	const listFooterComponent = useMemo(() => {
+		if (showTodayButton) {
+			return <ListFooterComponent />;
+		}
+
+		return null;
+	}, [showTodayButton, currentDate]);
+
 	return (
 		<SafeScreen>
 			{(isInitialLoading || !isInitialLoadingComplete) && (
@@ -364,6 +412,7 @@ const Calendar = () => {
 					data={memoizedClasses}
 					renderItem={renderItem}
 					estimatedItemSize={AGENDA_ITEM_HEIGHT}
+					ListFooterComponent={listFooterComponent}
 				/>
 			</View>
 
@@ -405,7 +454,7 @@ const Calendar = () => {
 			<CalendarFilterSelect type={FilterTypeEnum.CLASS} />
 			<CalendarFilterSelect type={FilterTypeEnum.VENUE} />
 
-			{currentDate !== TODAYS_DATE && (
+			{showTodayButton && (
 				<TouchableOpacity
 					onPress={() => {
 						handleDateChange(TODAYS_DATE);
