@@ -28,6 +28,7 @@ import { ClassFiltersDataType } from '@/types/schemas/session';
 import { UserSchemaType } from '@/types/schemas/user';
 import { Constant, Func, Say } from '@/utils';
 import NotificationService from '@/utils/NotificationService';
+import { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
 import { ClassFilter, VenueFilter } from '@/zustand/interface/SessionInterface';
 import messaging, { firebase } from '@react-native-firebase/messaging';
@@ -357,7 +358,7 @@ const Dashboard = () => {
 				});
 			}
 		} catch (err) {
-			Say.err(String(err));
+			Say.err(err as ICatchError);
 		} finally {
 			// sort sessions by start time
 			memberSessions.sort((sessionA, sessionB) => {
@@ -485,10 +486,10 @@ const Dashboard = () => {
 					}
 				})
 				.catch(err => {
-					Say.err(err as string);
+					Say.err(err as ICatchError);
 				});
 		} catch (e) {
-			Say.err(e as string);
+			Say.err(e as ICatchError);
 		} finally {
 			setTimeout(() => {
 				setAttendanceReportIsLoading(false);
@@ -531,7 +532,7 @@ const Dashboard = () => {
 				}
 			})
 			.catch(err => {
-				Say.err(err as string);
+				Say.err(err as ICatchError);
 			});
 
 		getGymClasses()
@@ -552,7 +553,7 @@ const Dashboard = () => {
 				}
 			})
 			.catch(err => {
-				Say.err(err as string);
+				Say.err(err as ICatchError);
 			});
 	};
 
@@ -582,7 +583,7 @@ const Dashboard = () => {
 				setDefaultClassFilter({} as ClassFiltersDataType);
 			}
 		} catch (e) {
-			Say.err(e as string);
+			Say.err(e as ICatchError);
 		} finally {
 			setPresetFiltersIsLoaded(true);
 		}

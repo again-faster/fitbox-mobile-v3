@@ -12,6 +12,7 @@ import {
 	ContactMembersType,
 } from '@/types/schemas/message';
 import { Constant, Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
 import { sortBy as _sortBy } from 'lodash';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -126,7 +127,7 @@ const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 			groups = res.data.groups;
 			list = res.data.members;
 		} catch (e) {
-			Say.err(e as string);
+			Say.err(e as ICatchError);
 		}
 
 		if (sort === '') {

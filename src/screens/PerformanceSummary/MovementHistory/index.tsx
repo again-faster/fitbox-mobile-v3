@@ -5,6 +5,7 @@ import layout from '@/theme/layout';
 import { PerformanceSummaryParamList } from '@/types/navigation';
 import { PastPerformanceResultType } from '@/types/schemas/leaderboards';
 import { Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 import BottomSheet, { WINDOW_HEIGHT } from '@gorhom/bottom-sheet';
 import { StackScreenProps } from '@react-navigation/stack';
 import { useQueryClient } from '@tanstack/react-query';
@@ -52,8 +53,7 @@ const MovementHistory = ({ route, navigation }: MovementHistoryProps) => {
 				}
 			})
 			.catch(e => {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-				Say.err(e);
+				Say.err(e as ICatchError);
 			})
 			.finally(() => {
 				setIsLoading(false);

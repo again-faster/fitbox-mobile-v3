@@ -3,6 +3,7 @@ import { resetPassword } from '@/services/auth';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 import { useState } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { TextInput } from 'react-native-paper';
@@ -28,7 +29,7 @@ const ResetPassword = () => {
 			return Say.some(res.message);
 		} catch (e) {
 			setProcessing(false);
-			return Say.err(e as string);
+			return Say.err(e as ICatchError);
 		}
 	};
 

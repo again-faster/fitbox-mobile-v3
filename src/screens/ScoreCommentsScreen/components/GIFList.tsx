@@ -4,6 +4,7 @@ import layout from '@/theme/layout';
 import { GIFItemType } from '@/types/schemas/message';
 import { SearchGIFResponseType } from '@/types/schemas/response';
 import { Constant, Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 import { debounce, isEmpty } from 'lodash';
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
 import {
@@ -45,7 +46,7 @@ const GIFList = ({
 				if (gifList.length > 0)
 					gifRef.current?.scrollToIndex({ animated: true, index: 0 });
 			} catch (e) {
-				Say.err(e as string);
+				Say.err(e as ICatchError);
 			}
 		}, 500);
 

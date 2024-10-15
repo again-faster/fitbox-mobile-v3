@@ -121,9 +121,9 @@ const MOVEMENT_PARAMS = [
 
 // Timeout in milliseconds for getting a response
 const RESPONSE_TIMEOUT = {
-	DEV: 60000,
-	STG: 60000,
-	PROD: 20000,
+	DEV: 70000,
+	STG: 70000,
+	PROD: 30000,
 };
 
 // Transaction Fees in subscription details

@@ -6,6 +6,7 @@ import layout from '@/theme/layout';
 import { ComposeScreenProps } from '@/types/navigation';
 import { FitboxGalleryFilesType } from '@/types/schemas/message';
 import { Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
@@ -32,7 +33,7 @@ const FitboxGalleryScreen = ({ navigation }: ComposeScreenProps) => {
 		try {
 			list = (await getFitboxGallery()).data.files;
 		} catch (e) {
-			Say.err(e as string);
+			Say.err(e as ICatchError);
 		}
 
 		setState({ list, loading: false });

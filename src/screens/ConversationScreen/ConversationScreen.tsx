@@ -19,6 +19,7 @@ import {
 } from '@/types/schemas/message';
 import { NotificationsType } from '@/types/schemas/notifications';
 import { Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
 import Clipboard from '@react-native-clipboard/clipboard';
 import messaging from '@react-native-firebase/messaging';
@@ -166,7 +167,7 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 				setGIFUrl('');
 			}
 		} catch (e) {
-			Say.err(e as string);
+			Say.err(e as ICatchError);
 		}
 		return setState(prevState => ({ ...prevState, sending: false }));
 	};
@@ -342,7 +343,7 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 
 			list = res.data;
 		} catch (e) {
-			Say.err(e as string);
+			Say.err(e as ICatchError);
 		}
 
 		setState(prevState => ({

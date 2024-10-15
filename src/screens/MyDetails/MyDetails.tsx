@@ -21,6 +21,7 @@ import { MenuStackNavigatorProps } from '@/types/navigation';
 import { GenderType } from '@/types/schemas/common';
 import { UserProfileType, UserSchemaType } from '@/types/schemas/user';
 import { Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
 import { isEmpty } from 'lodash';
 import moment from 'moment';
@@ -403,7 +404,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 				throw new Error(error);
 			}
 		} catch (err) {
-			Say.err(err as string);
+			Say.err(err as ICatchError);
 		} finally {
 			setIsUploading(false);
 		}

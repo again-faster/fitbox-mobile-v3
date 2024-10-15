@@ -12,7 +12,7 @@ import messaging, {
 } from '@react-native-firebase/messaging';
 import { Platform } from 'react-native';
 import PushNotification from 'react-native-push-notification';
-import Say from './Say';
+import Say, { ICatchError } from './Say';
 
 let fetchGymAssets: (() => Promise<void>) | null = null;
 
@@ -23,7 +23,7 @@ const initialize = () => {
 			if (remoteMessage) void notificationHandler(remoteMessage);
 		})
 		.catch(error => {
-			Say.err(error as string);
+			Say.err(error as ICatchError);
 		});
 
 	messaging().onNotificationOpenedApp(message => {
@@ -101,7 +101,7 @@ const notificationHandler = async (
 			}
 		}
 	} catch (e) {
-		Say.err(e as string);
+		Say.err(e as ICatchError);
 	}
 };
 

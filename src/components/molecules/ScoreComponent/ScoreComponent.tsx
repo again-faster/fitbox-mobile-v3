@@ -15,6 +15,7 @@ import {
 	WODSectionSchemaType,
 } from '@/types/schemas/session';
 import { Constant, Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
 import { useFocusEffect } from '@react-navigation/native';
 import { isArray, isNaN, parseInt } from 'lodash';
@@ -429,7 +430,7 @@ const ScoreComponent = ({
 				goBack();
 			}
 		} catch (error) {
-			Say.err(String(error));
+			Say.err(error as ICatchError);
 		}
 	};
 

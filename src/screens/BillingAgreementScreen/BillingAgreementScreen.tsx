@@ -4,6 +4,7 @@ import { acceptBillingAgreement } from '@/services/billing';
 import { config } from '@/theme/_config';
 import { ApplicationScreenProps } from '@/types/navigation';
 import { Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 import { useState } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
 
@@ -34,7 +35,7 @@ const BillingAgreementScreen = ({ navigation }: ApplicationScreenProps) => {
 			}
 			return true;
 		} catch (e) {
-			Say.err(e as string);
+			Say.err(e as ICatchError);
 			return false;
 		}
 	};

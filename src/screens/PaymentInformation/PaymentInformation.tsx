@@ -22,6 +22,7 @@ import {
 } from '@/types/schemas/payment';
 import { UserSchemaType } from '@/types/schemas/user';
 import { Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 import Stripe from '@/utils/Stripe';
 import { PaymentSheet, useStripe } from '@stripe/stripe-react-native';
 import { isEmpty } from 'lodash';
@@ -80,7 +81,7 @@ const PaymentInformation = ({
 				void setPaymentInfo(res.data as PaymetInfoDatatype);
 			}
 		} catch (e) {
-			Say.err(e as string);
+			Say.err(e as ICatchError);
 		}
 	};
 
@@ -132,7 +133,7 @@ const PaymentInformation = ({
 				Say.err('Something went wrong');
 			}
 		} catch (e) {
-			Say.err(e as string);
+			Say.err(e as ICatchError);
 		}
 	};
 
@@ -166,7 +167,7 @@ const PaymentInformation = ({
 					}
 				})
 				.catch(e => {
-					Say.err(e as string);
+					Say.err(e as ICatchError);
 				})
 				.finally(() => {
 					void setUpPaymentIntent();

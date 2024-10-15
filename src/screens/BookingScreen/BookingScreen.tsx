@@ -4,6 +4,7 @@ import { ScrollView } from '@/components/atoms';
 import { getBookedSessions } from '@/services/users';
 import { config } from '@/theme/_config';
 import { Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 import moment from 'moment-timezone';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
@@ -90,7 +91,7 @@ const BookingScreen = () => {
 				});
 			}
 		} catch (err) {
-			Say.err(String(err));
+			Say.err(err as ICatchError);
 		} finally {
 			// sort sessions by start time
 			memberSessions.sort((sessionA, sessionB) => {

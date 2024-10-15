@@ -1,4 +1,7 @@
+import { TimeoutError } from 'ky';
 import { Alert } from 'react-native';
+
+export type ICatchError = Error | TimeoutError | string;
 
 const some = (message: string, title = 'Alert') => {
 	Alert.alert(title, message);
@@ -18,8 +21,15 @@ const warn = (message: string, title = 'Oops!') => {
 	Alert.alert(title, message);
 };
 
-const err = (error: string | Error, title = 'Error') => {
-	Alert.alert(title, error instanceof Error ? error.message : error);
+const err = (error: ICatchError, title = 'Error') => {
+	if (error instanceof TimeoutError) {
+		Alert.alert(
+			title,
+			'Request timed out. Please refresh the page or try again.',
+		);
+	} else {
+		Alert.alert(title, error instanceof Error ? error.message : error);
+	}
 };
 
 export default {

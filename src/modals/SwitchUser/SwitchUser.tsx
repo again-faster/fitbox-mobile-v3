@@ -6,6 +6,7 @@ import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { GetChildInfoType, GetParentInfoType } from '@/types/schemas/response';
 import { Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
@@ -62,7 +63,7 @@ const SwitchUser = () => {
 
 				setIsLoading(false);
 			} catch (e) {
-				Say.err(e as string);
+				Say.err(e as ICatchError);
 				setIsLoading(false);
 			}
 		})();
@@ -97,7 +98,7 @@ const SwitchUser = () => {
 			return true;
 		} catch (e) {
 			setIsLoading(false);
-			return Say.err(e as string);
+			return Say.err(e as ICatchError);
 		}
 	};
 

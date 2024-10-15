@@ -8,6 +8,7 @@ import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { ApplicationScreenProps, LoginParams } from '@/types/navigation';
 import { Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 
 import { isArray, isEmpty } from 'lodash';
 import { useState } from 'react';
@@ -119,7 +120,7 @@ const Login = ({ navigation, route }: ApplicationScreenProps) => {
 				}
 			})
 			.catch(error => {
-				Say.err(error as Error);
+				Say.err(error as ICatchError);
 			})
 			.finally(() => {
 				setFetching(false);

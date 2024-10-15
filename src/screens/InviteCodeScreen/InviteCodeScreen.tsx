@@ -12,6 +12,7 @@ import {
 	ValidateInviteCodeResponseType,
 } from '@/types/schemas/user';
 import { Constant, Func, Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
 import { capitalize, isEmpty } from 'lodash';
 import { useEffect, useState } from 'react';
@@ -130,7 +131,7 @@ const InviteCodeScreen = ({ navigation }: MainTabScreenProps) => {
 				if (res.data.accepted) {
 					Say.okThen('Successfully Registered')
 						.then(() => void onSubmitCallback())
-						.catch(error => Say.err(error as string));
+						.catch(error => Say.err(error as ICatchError));
 				}
 			}
 		} catch (error) {

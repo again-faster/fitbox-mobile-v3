@@ -7,6 +7,7 @@ import layout from '@/theme/layout';
 import { ComposeParams, ComposeScreenProps } from '@/types/navigation';
 import { ContactMembersType } from '@/types/schemas/message';
 import { Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
 import { isEmpty } from 'lodash';
 import { useEffect, useLayoutEffect, useState } from 'react';
@@ -157,7 +158,7 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 				}
 
 				await sendConversationMessage(payload).catch(e =>
-					Say.err(e as string),
+					Say.err(e as ICatchError),
 				);
 
 				setState(prevState => ({ ...prevState, message: '' }));
