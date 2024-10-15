@@ -280,10 +280,13 @@ const ScoreComponent = ({
 					};
 				}
 
-				if (newMovement.value === '' && newMovement.scored) {
-					newMovement.value = '0';
-					saveMovements.push(newMovement);
-				} else if (newMovement.value !== '') {
+				// NOTE: This was asked to be removed
+				// if (newMovement.value === '' && newMovement.scored) {
+				// 	newMovement.value = '0';
+				// 	saveMovements.push(newMovement);
+				// } else
+
+				if (newMovement.value !== '') {
 					saveMovements.push(newMovement);
 				}
 
