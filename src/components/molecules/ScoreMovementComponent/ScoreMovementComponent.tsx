@@ -637,6 +637,11 @@ const ScoreMovementComponent = ({
 				}}
 			/>
 
+			{/* 
+				TODO: Create a component for this and use this on:
+				- https://github.com/again-faster/fitbox-mobile-v2/blob/dev/src/screens/PerformanceSummary/MovementHistory/index.tsx#L82 
+				- https://github.com/again-faster/fitbox-mobile-v2/blob/1ef385f513a4de0e5ac3ea70fd36c258511fcf5d/src/screens/PerformanceSummary/WorkoutHistory/index.tsx#L147
+			*/}
 			{!editMode && (
 				<Row
 					spacing="space-between"
@@ -758,7 +763,7 @@ export default ScoreMovementComponent;
 
 const styles = StyleSheet.create({
 	headerContainer: {
-		paddingHorizontal: config.metrics.lg,
+		paddingHorizontal: config.metrics.md,
 		paddingVertical: config.metrics.md,
 		borderBottomWidth: 0.5,
 		borderColor: '#eee',

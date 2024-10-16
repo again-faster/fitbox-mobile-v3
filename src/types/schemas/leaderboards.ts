@@ -87,7 +87,11 @@ export const PrResultSchema = z.object({
 	prMessage: z.string().optional(),
 });
 
+export type PastPerformanceResultSchemaType = z.infer<
+	typeof PastPerformanceResultSchema
+>;
 export const PastPerformanceResultSchema = z.object({
+	movement_id: z.number().nullish(),
 	isResult: boolOrOneZero,
 	scored: boolOrOneZero,
 	comments: z.string().nullish(),
@@ -99,7 +103,7 @@ export const PastPerformanceResultSchema = z.object({
 	wod_score_id: boolOrOneZero,
 	value: z.string().nullish(),
 	time: z.string().nullish(),
-	reps: z.string().nullish(),
+	reps: z.union([z.string(), z.number()]),
 	wod_score_reps: z.number().nullish(),
 	rounds: z.number().nullish(),
 	sets: z.number().nullish(),
@@ -111,12 +115,15 @@ export const PastPerformanceResultSchema = z.object({
 	movement_name: z.string().nullish(),
 	one_rm: z
 		.object({
-			weight: z.string().nullish(),
+			weight: z.number().nullish(),
 			// other fields
 		})
 		.nullish(),
 });
 
+export type GetPastPerformanceResultSchemaType = z.infer<
+	typeof GetPastPerformanceResultSchema
+>;
 export const GetPastPerformanceResultSchema = z.object({
 	section_scores: z.array(PastPerformanceResultSchema).optional(),
 	user_movement: z.array(PastPerformanceResultSchema).optional(),

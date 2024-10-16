@@ -1,7 +1,6 @@
 import { Row, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import { PastPerformanceResultType } from '@/types/schemas/leaderboards';
-import { isEmpty } from 'lodash';
 import Icon from 'react-native-vector-icons/Feather';
 
 type ScoreDisplayFormatProps = {
@@ -39,9 +38,9 @@ const ScoreDisplayFormat = ({ data }: ScoreDisplayFormatProps) => {
 							rounds{' '}
 						</Text>
 						<Text size="md" color="darkgray" bold>
-							{!isEmpty(data.reps)
-								? data.reps
-								: data?.wod_score_reps}{' '}
+							{!data.reps || data.reps === '0'
+								? 1
+								: data.reps ?? data?.wod_score_reps}{' '}
 						</Text>
 						<Text size="md" color="darkgray">
 							reps

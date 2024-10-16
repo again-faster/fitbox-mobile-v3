@@ -1,8 +1,9 @@
 import { createContext, useEffect, useMemo, useState } from 'react';
-import { Keyboard, ViewProps } from 'react-native';
+import { Keyboard, KeyboardStatic, ViewProps } from 'react-native';
 
 type Context = {
 	isKeyboardVisible: boolean;
+	keyboard: KeyboardStatic;
 };
 
 export const KeyboardVisibilityContext = createContext<Context | undefined>(
@@ -29,7 +30,10 @@ const KeyboardVisibilityProvider = ({ children }: ViewProps) => {
 		};
 	}, []);
 
-	const value = useMemo(() => ({ isKeyboardVisible }), [isKeyboardVisible]);
+	const value = useMemo(
+		() => ({ isKeyboardVisible, keyboard: Keyboard }),
+		[isKeyboardVisible, Keyboard],
+	);
 
 	return (
 		<KeyboardVisibilityContext.Provider value={value}>

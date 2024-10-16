@@ -73,6 +73,7 @@ interface ScoreComponentProps {
 	editMode: boolean;
 	editData?: IEditData;
 	wod_id?: number | null;
+	date?: string;
 }
 
 const ScoreComponent = ({
@@ -83,6 +84,7 @@ const ScoreComponent = ({
 	section: sectionProp,
 	independentScoring = false,
 	wod_id = null,
+	date,
 }: ScoreComponentProps) => {
 	const { allowComments, lastRxValue, setAppState } = useStore(state => ({
 		allowComments: state.allowComments,
@@ -351,6 +353,11 @@ const ScoreComponent = ({
 					comments: section.comments,
 					movements: saveMovements,
 				};
+
+				// only add date if it is provided
+				if (date) {
+					payload.created_at = date;
+				}
 			}
 		} else {
 			payload.session_id = sessionId;

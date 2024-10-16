@@ -5,6 +5,7 @@ import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { PerformanceSummaryScreenProps } from '@/types/navigation';
 import { PastPerformanceHistoryType } from '@/types/schemas/leaderboards';
+import { WorkoutSchemaType } from '@/types/schemas/session';
 import { Func } from '@/utils';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { debounce } from 'lodash';
@@ -13,10 +14,13 @@ import { useEffect, useState } from 'react';
 import { ListRenderItemInfo, StyleSheet, View } from 'react-native';
 import { Searchbar } from 'react-native-paper';
 import SimpleToast from 'react-native-simple-toast';
+import { useWorkouts } from './components/ResultTypesModal/hooks/useWorkouts';
 
 const PastPerformance = ({ navigation }: PerformanceSummaryScreenProps) => {
 	const queryClient = useQueryClient();
 	const [searchQuery, setSearchQuery] = useState<string>('');
+
+	const { data: workoutsData, isLoading: isLoadingWorkouts } = useWorkouts();
 
 	const {
 		data,
@@ -78,14 +82,34 @@ const PastPerformance = ({ navigation }: PerformanceSummaryScreenProps) => {
 		}
 
 		switch (result.type) {
-			case 'movement':
+			case 'movement': {
 				navigation.navigate('MovementHistory', {
 					movementId: result.id, // Movement ID is required but we've already checked for it in select using filter see line 68
 					name: result.displayName,
 				});
 				break;
+			}
+			case 'benchmark': {
+				const sectionData = workoutsData?.data.benchmark.find(
+					workout => workout.id === result.id,
+				);
+
+				if (!sectionData) {
+					SimpleToast.show(
+						'Section not found, try again later',
+						SimpleToast.SHORT,
+					);
+					break;
+				}
+
+				navigation.navigate('WorkoutHistory', {
+					data: sectionData as WorkoutSchemaType,
+				});
+				break;
+			}
+			// TODO: Add the following:
 			// section
-			// benchmark
+			// benchmark, section
 			default:
 				SimpleToast.show('Coming soon!', SimpleToast.SHORT);
 				break;
@@ -95,13 +119,17 @@ const PastPerformance = ({ navigation }: PerformanceSummaryScreenProps) => {
 	const renderItem = ({
 		item,
 	}: ListRenderItemInfo<PastPerformanceHistoryType>) => {
+		if (!item.id) {
+			return null;
+		}
+
 		return (
 			<Row
 				spacing="space-between"
 				style={styles.result}
 				onPress={() => onResultClick(item)}
 			>
-				<View>
+				<View style={layout.flex_1}>
 					<Text color="gray200" size="xs" transform="uppercase">
 						{item.type}
 					</Text>
@@ -142,7 +170,7 @@ const PastPerformance = ({ navigation }: PerformanceSummaryScreenProps) => {
 			</View>
 
 			<FlatList
-				loading={refreshing}
+				loading={refreshing || isLoadingWorkouts}
 				data={data?.data || []}
 				renderItem={renderItem}
 				extractor={itemExtractor}

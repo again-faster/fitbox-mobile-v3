@@ -36,13 +36,14 @@ const ResultTypesModal = ({ navigation }: PerformanceSummaryScreenProps) => {
 					});
 					break;
 				}
-				case 'benchmarks': {
-					const sectionData = workoutsData?.data.benchmark.find(
+				case 'favourites': {
+					const sectionData = workoutsData?.data.favorite.find(
 						section => section.id === item.id,
 					);
+
 					if (!sectionData) {
 						SimpleToast.show(
-							'Section not found, try again later',
+							'Favourite not found',
 							SimpleToast.SHORT,
 						);
 						break;
@@ -50,6 +51,26 @@ const ResultTypesModal = ({ navigation }: PerformanceSummaryScreenProps) => {
 
 					navigation.navigate('WorkoutHistory', {
 						data: sectionData as WorkoutSchemaType,
+						addResult: true,
+					});
+					break;
+				}
+				case 'benchmarks': {
+					const sectionData = workoutsData?.data.benchmark.find(
+						section => section.id === item.id,
+					);
+
+					if (!sectionData) {
+						SimpleToast.show(
+							'Section not found',
+							SimpleToast.SHORT,
+						);
+						break;
+					}
+
+					navigation.navigate('WorkoutHistory', {
+						data: sectionData as WorkoutSchemaType,
+						addResult: true,
 					});
 					break;
 				}

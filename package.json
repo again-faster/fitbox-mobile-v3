@@ -19,7 +19,7 @@
         "devtools": "npx react-devtools"
     },
     "dependencies": {
-        "@gorhom/bottom-sheet": "^5.0.0",
+        "@gorhom/bottom-sheet": "^5.0.2",
         "@ptomasroos/react-native-multi-slider": "^2.2.2",
         "@react-native-clipboard/clipboard": "^1.14.1",
         "@react-native-community/datetimepicker": "^8.1.1",

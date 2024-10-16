@@ -4,93 +4,188 @@ import OneRMComponent from '@/components/molecules/WODPastPerformance/components
 import ScoreDisplayFormat from '@/components/molecules/WODPastPerformance/components/ScoreDisplayFormat';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
-import { PastPerformanceResultType } from '@/types/schemas/leaderboards';
+import {
+	GetPastPerformanceResultSchemaType,
+	PastPerformanceResultSchemaType,
+} from '@/types/schemas/leaderboards';
 import BottomSheet, {
 	BottomSheetScrollView,
 	BottomSheetView,
-	TouchableOpacity,
 } from '@gorhom/bottom-sheet';
 import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import moment from 'moment';
 import { Dispatch, RefObject, SetStateAction } from 'react';
 import { StyleSheet, View } from 'react-native';
-import SimpleToast from 'react-native-simple-toast';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
+type ScoresData = PastPerformanceResultSchemaType & {
+	wod_score_id: boolean;
+};
+
 interface WorkoutHistoryBSProps {
-	movements: PastPerformanceResultType[];
 	sheetRef: RefObject<BottomSheetMethods>;
 	sheetIndex: number;
+	results: GetPastPerformanceResultSchemaType;
 	setSheetIndex: Dispatch<SetStateAction<number>>;
-	movementName: string;
-	oneRm: number;
 	bottomOffset: number;
 	isLoading: boolean;
+	title: string;
+	scoringBy: string;
 }
 
 const WorkoutHistoryBS = ({
 	sheetRef,
 	sheetIndex,
 	setSheetIndex,
-	movements,
-	movementName,
-	oneRm,
+	results,
 	bottomOffset,
 	isLoading,
+	title,
+	scoringBy,
 }: WorkoutHistoryBSProps) => {
-	const renderMovements = () => {
-		return movements.length ? (
-			movements.map((data, i) => {
+	const renderScoresData = (data: ScoresData[]) =>
+		Array(data).length &&
+		data
+			.filter(d => d.scored)
+			.sort((a, b) => moment(b.date_input).diff(moment(a.date_input)))
+			.map((values, index) => {
+				const notes = values.comments ? values.comments : values.notes;
 				return (
-					<TouchableOpacity
-						key={i}
-						onPress={() =>
-							SimpleToast.show(
-								'Edit Score Coming Soon!',
-								SimpleToast.SHORT,
-							)
-						}
-						activeOpacity={0.9}
+					<Row
+						spacing="space-between"
+						style={{ marginBottom: config.metrics.lg }}
+						key={index}
 					>
-						<Row
-							spacing="space-between"
-							style={{
-								...styles.movementInfo,
-								...(data.wod_score_id == null
-									? layout.shadowMedium
-									: null),
-							}}
-						>
-							<View style={layout.flex_1}>
-								<ScoreDisplayFormat data={data} />
-
-								{data.notes !== '' && (
-									<Text
-										size="rg"
-										color="darkgray"
-										style={{
-											marginTop: config.metrics.sm,
-										}}
-									>
-										{data.notes}
-									</Text>
-								)}
-							</View>
-
-							<Spacer horizontal size="sm" />
-
-							<Text size="rg" color="darkgray">
-								{moment(data.date_input).format('DD MMM YYYY')}
-							</Text>
-						</Row>
-					</TouchableOpacity>
+						<View style={layout.flex_1}>
+							<ScoreDisplayFormat data={values} />
+							{notes ? (
+								<Text
+									size="rg"
+									color="darkgray"
+									style={{ marginTop: config.metrics.sm }}
+								>
+									{notes}
+								</Text>
+							) : null}
+						</View>
+						<Text size="rg" color="darkgray">
+							{values.date_input
+								? moment(values.date_input).format(
+										'DD MMM YYYY',
+								  )
+								: moment(values.created_at).format(
+										'DD MMM YYYY',
+								  )}
+						</Text>
+					</Row>
 				);
-			})
-		) : (
-			<Text size="md" color="mute" center>
-				No movement record yet
-			</Text>
-		);
+			});
+
+	const renderSectionScores = () => {
+		const showResults: ScoresData[] = [];
+
+		results.section_scores?.forEach(res => {
+			showResults.push({
+				...res,
+				wod_score_id: true,
+			});
+		});
+
+		if (showResults.length) {
+			return (
+				<View style={styles.scoreContainerStyle}>
+					{renderScoresData(showResults)}
+				</View>
+			);
+		}
+
+		throw new Error('No section scores');
+	};
+
+	const renderMovementScores = () => {
+		const userMovement = results.user_movement; // use user_movement if scored by 'movement'
+		const showResults: Record<string, PastPerformanceResultSchemaType[]> =
+			{};
+
+		userMovement?.forEach(d => {
+			// Changed from map to forEach
+			const slug = (d.movement_name || '').replace(/ /g, '_');
+
+			if (slug !== '') {
+				if (!showResults[slug]) {
+					showResults[slug] = [];
+				}
+
+				showResults[slug]!.push(d);
+			}
+		});
+
+		if (Object.keys(showResults).length) {
+			throw new Error('No movement scores');
+		}
+
+		const oneRMs: Record<
+			string,
+			PastPerformanceResultSchemaType['one_rm']
+		> = {};
+
+		Object.keys(showResults).forEach(movement_type => {
+			if (showResults[movement_type]) {
+				showResults[movement_type]!.forEach(mov => {
+					if (mov.one_rm && !oneRMs[movement_type]) {
+						oneRMs[movement_type] = mov.one_rm;
+					}
+				});
+			}
+		});
+
+		// return false;
+		return Object.entries(showResults).map(([movement, showMovements]) => {
+			const hasData = showMovements.some(d => d.scored && d.isResult);
+
+			return (
+				<View key={movement} style={styles.scoreContainerStyle}>
+					<Text
+						size="lg"
+						bold
+						color="darkgray"
+						transform="capitalize"
+					>
+						{movement.replace(/_/g, ' ').trim()}
+					</Text>
+
+					<Spacer size="sm" />
+
+					{oneRMs[movement]?.weight && (
+						<OneRMComponent
+							weight={oneRMs[movement]?.weight as number}
+						/>
+					)}
+
+					{hasData || oneRMs[movement] ? (
+						renderScoresData(showMovements.splice(0, 5))
+					) : (
+						<Text size="rg" color="darkgray">
+							No results yet
+						</Text>
+					)}
+				</View>
+			);
+		});
+	};
+
+	const renderResults = () => {
+		try {
+			if (scoringBy === 'section') return renderSectionScores();
+			if (scoringBy === 'movement') return renderMovementScores();
+			return null;
+		} catch (error) {
+			return (
+				<Text center size="md" color="darkgray">
+					History Unavailable
+				</Text>
+			);
+		}
 	};
 
 	const isSheetOpened = sheetIndex === 1;
@@ -116,7 +211,7 @@ const WorkoutHistoryBS = ({
 						bold
 						style={{ marginVertical: config.fonts.metrics.md }}
 					>
-						{isSheetOpened ? movementName : 'History'}
+						{isSheetOpened ? title : 'History'}
 					</Text>
 
 					<Row
@@ -144,16 +239,17 @@ const WorkoutHistoryBS = ({
 					</Row>
 				</Row>
 
-				<BottomSheetScrollView>
-					{oneRm ? <OneRMComponent weight={oneRm} /> : null}
-					{renderMovements()}
-				</BottomSheetScrollView>
-
 				{isLoading ? (
 					<View style={styles.loaderContainer}>
 						<Loader size={config.metrics.xl} />
 					</View>
-				) : null}
+				) : (
+					<BottomSheetScrollView
+						style={{ paddingHorizontal: config.metrics.rg }}
+					>
+						{renderResults()}
+					</BottomSheetScrollView>
+				)}
 			</BottomSheetView>
 		</BottomSheet>
 	);
@@ -183,5 +279,9 @@ const styles = StyleSheet.create({
 		top: 0,
 		justifyContent: 'center',
 		alignItems: 'center',
+	},
+	scoreContainerStyle: {
+		paddingHorizontal: config.metrics.sm,
+		marginBottom: config.metrics.xl,
 	},
 });
