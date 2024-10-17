@@ -1,18 +1,20 @@
 import { z } from 'zod';
 import { GenderSchema, boolOrOneZero } from './common';
 
-export const ScoringTypeSchema = z.object({
-	id: z.number(),
-	context_id: z.number().optional(),
-	name: z.string(),
-	unit_type: z.string(),
-	method: z.string(),
-	default_param: z.unknown().optional(),
-	created_at: z.unknown().optional(),
-	updated_at: z.string().nullable(),
-	sort_type: z.string(),
-	hidden_to: z.unknown().optional(),
-});
+export const ScoringTypeSchema = z
+	.object({
+		id: z.number(),
+		context_id: z.number().optional(),
+		name: z.string(),
+		unit_type: z.string(),
+		method: z.string(),
+		default_param: z.unknown().optional(),
+		created_at: z.unknown().optional(),
+		updated_at: z.string().nullable(),
+		sort_type: z.string(),
+		hidden_to: z.unknown().optional(),
+	})
+	.optional();
 
 export const SectionSchema = z.object({
 	id: z.number(),

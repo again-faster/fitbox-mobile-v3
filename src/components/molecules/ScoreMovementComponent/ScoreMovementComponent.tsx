@@ -103,7 +103,7 @@ const ScoreMovementComponent = ({
 	const toggleDatePicker = () => setDatePicker(visible => !visible);
 
 	const getScoringTypeInfo = (id: number): IScoringType | undefined =>
-		scoringTypes.find(type => type.id === id);
+		scoringTypes.find(type => type?.id === id);
 
 	const setDatePickerVal = (date: moment.MomentInput) => {
 		setDateInput(moment(date).format('YYYY-MM-DD'));
@@ -225,28 +225,34 @@ const ScoreMovementComponent = ({
 		return returnFields;
 	};
 
-	const setScoringTypeFields = (typeId: number) => {
+	const setScoringTypeFields = (typeId?: number) => {
 		const finalFields: IFields = {};
 
-		getFields(typeId)
-			.filter(f => f.recordable)
-			.forEach(f => {
-				if (f.type === 'checkbox') {
-					finalFields[f.key] = editMode ? !!editData[f.key] : false;
-				} else {
-					finalFields[f.key] = editMode ? `${editData[f.key]}` : '';
-				}
+		if (typeId) {
+			getFields(typeId)
+				.filter(f => f.recordable)
+				.forEach(f => {
+					if (f.type === 'checkbox') {
+						finalFields[f.key] = editMode
+							? !!editData[f.key]
+							: false;
+					} else {
+						finalFields[f.key] = editMode
+							? `${editData[f.key]}`
+							: '';
+					}
 
-				if (f.with_unit) {
-					finalFields[`${f.key}_unit`] = (
-						editMode ? editData[`${f.key}_unit`] : f.with_unit
-					) as string;
-				}
-			});
+					if (f.with_unit) {
+						finalFields[`${f.key}_unit`] = (
+							editMode ? editData[`${f.key}_unit`] : f.with_unit
+						) as string;
+					}
+				});
 
-		setSelectedScoringType(typeId);
-		setFields(finalFields);
-		setSearchModal(false);
+			setSelectedScoringType(typeId);
+			setFields(finalFields);
+			setSearchModal(false);
+		}
 	};
 
 	const fetchScoringTypes = () =>
@@ -468,7 +474,7 @@ const ScoreMovementComponent = ({
 		}
 
 		const unitFields = getFields(
-			(editMode ? editData.scoring_type_id : typeInfo.id) as number,
+			(editMode ? editData.scoring_type_id : typeInfo?.id) as number,
 		);
 
 		return (
@@ -602,7 +608,7 @@ const ScoreMovementComponent = ({
 
 	const renderScoringTypes = () => {
 		const results = scoringTypes.filter(type =>
-			type.name.toLowerCase().includes(searchQuery.toLowerCase()),
+			type?.name.toLowerCase().includes(searchQuery.toLowerCase()),
 		);
 
 		return !results.length ? ( // If no query/results found
@@ -613,9 +619,9 @@ const ScoreMovementComponent = ({
 			results.map((type, index) => (
 				<RowItem
 					key={index}
-					title={type.name}
+					title={type?.name || ''}
 					rightIcon="plus"
-					onPress={() => setScoringTypeFields(type.id)}
+					onPress={() => setScoringTypeFields(type?.id)}
 				/>
 			))
 		);
@@ -637,9 +643,9 @@ const ScoreMovementComponent = ({
 				}}
 			/>
 
-			{/* 
+			{/*
 				TODO: Create a component for this and use this on:
-				- https://github.com/again-faster/fitbox-mobile-v2/blob/dev/src/screens/PerformanceSummary/MovementHistory/index.tsx#L82 
+				- https://github.com/again-faster/fitbox-mobile-v2/blob/dev/src/screens/PerformanceSummary/MovementHistory/index.tsx#L82
 				- https://github.com/again-faster/fitbox-mobile-v2/blob/1ef385f513a4de0e5ac3ea70fd36c258511fcf5d/src/screens/PerformanceSummary/WorkoutHistory/index.tsx#L147
 			*/}
 			{!editMode && (
