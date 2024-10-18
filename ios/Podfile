@@ -49,6 +49,8 @@ target 'fitbox' do
 
   pod 'FirebaseCore', :modular_headers => true;
   pod 'GoogleUtilities', :modular_headers => true;
+  pod 'Protobuf', '= 3.22.1' # Pinned version for Firebase Messaging
+
 
   use_react_native!(
     :path => config[:reactNativePath],

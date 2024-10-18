@@ -93,11 +93,15 @@ const AuthProvider = ({ children, storage }: Props) => {
 
 		// remove push token from server
 		try {
-			await deletePushToken(
-				pushToken,
-				id,
-				Func.getEnv(storage.getString('apiUrl') || Constant.API_URL),
-			);
+			if (pushToken) {
+				await deletePushToken(
+					pushToken,
+					id,
+					Func.getEnv(
+						storage.getString('apiUrl') || Constant.API_URL,
+					),
+				);
+			}
 
 			// remove all tokens from storage
 			storage.delete('apiToken');

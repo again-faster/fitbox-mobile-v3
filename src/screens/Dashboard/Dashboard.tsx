@@ -421,12 +421,14 @@ const Dashboard = () => {
 
 	const savePushNotificationToken = async () => {
 		const authStatus = await messaging().requestPermission();
+
 		const enabled =
 			authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
 			authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
 		if (enabled) {
 			const token = await firebase.app().messaging().getToken();
+
 			if (token && token !== pushToken) {
 				try {
 					const res = await savePushToken(
@@ -471,8 +473,8 @@ const Dashboard = () => {
 	}, [notifSettings]);
 
 	const onMountTasks = async () => {
-		await initializeNotificationSettings();
 		await savePushNotificationToken();
+		await initializeNotificationSettings();
 		AppState.addEventListener('change', () => {
 			void checkNotificationStatus();
 		});
