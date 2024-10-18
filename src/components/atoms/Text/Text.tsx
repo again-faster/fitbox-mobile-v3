@@ -61,6 +61,7 @@ const Text = ({
 				...customStyle,
 				...(style as TextStyle),
 			}}
+			allowFontScaling={false}
 		>
 			{children}
 		</Txt>

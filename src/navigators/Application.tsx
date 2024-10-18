@@ -117,6 +117,7 @@ const tabBarIconRender = ({
 					visible={Number(unreadMessages) > 0}
 					size={14}
 					style={styles.badgeStyle}
+					allowFontScaling={false}
 				>
 					{unreadMessages}
 				</Badge>

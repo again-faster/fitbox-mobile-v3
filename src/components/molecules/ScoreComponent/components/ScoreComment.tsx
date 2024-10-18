@@ -73,6 +73,7 @@ const ScoreComment = ({
 					value={commentValue || ''}
 					placeholder="Comments/Notes"
 					multiline
+					allowFontScaling={false}
 				/>
 			</View>
 

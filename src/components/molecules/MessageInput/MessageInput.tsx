@@ -69,6 +69,7 @@ const MessageInput = (props: MessageInputProps) => {
 					placeholder="Type your message here..."
 					underlineColorAndroid="transparent"
 					multiline
+					allowFontScaling={false}
 				/>
 
 				{!sending && (

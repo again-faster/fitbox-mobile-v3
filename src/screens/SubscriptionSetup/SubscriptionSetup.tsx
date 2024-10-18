@@ -487,6 +487,7 @@ const SubscriptionSetup = ({ route, navigation }: MainTabScreenProps) => {
 									},
 								}}
 								disabled
+								allowFontScaling={false}
 							/>
 							<Spacer horizontal />
 							<Icon

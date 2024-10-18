@@ -283,6 +283,7 @@ const ScoreCommentsScreen = ({
 									commentValue: value,
 								}))
 							}
+							allowFontScaling={false}
 						/>
 					</View>
 					<TouchableOpacity

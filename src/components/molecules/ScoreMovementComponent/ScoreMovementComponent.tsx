@@ -527,6 +527,7 @@ const ScoreMovementComponent = ({
 									{...(fields[field.key] && {
 										defaultValue: `${fields[field.key]}`,
 									})}
+									allowFontScaling={false}
 								/>
 							)
 						)}
@@ -735,6 +736,7 @@ const ScoreMovementComponent = ({
 								placeholder="Start typing.."
 								onChangeText={sq => setSearchQuery(sq)}
 								value={searchQuery}
+								allowFontScaling={false}
 							/>
 							{searchQuery !== '' && (
 								<Icon

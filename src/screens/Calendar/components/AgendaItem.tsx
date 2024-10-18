@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 1,
 		borderBottomColor: 'lightgrey',
 		flexDirection: 'row',
-		height: AGENDA_ITEM_HEIGHT,
+		minHeight: AGENDA_ITEM_HEIGHT,
 	},
 	itemLoaderContainer: {
 		marginLeft: config.metrics.md,

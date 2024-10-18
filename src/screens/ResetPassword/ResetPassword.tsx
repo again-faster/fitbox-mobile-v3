@@ -51,6 +51,7 @@ const ResetPassword = () => {
 					autoCapitalize="none"
 					keyboardType="email-address"
 					underlineColor="transparent"
+					allowFontScaling={false}
 				/>
 				<Spacer size="lg" />
 				<Button

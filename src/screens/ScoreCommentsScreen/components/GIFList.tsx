@@ -99,6 +99,7 @@ const GIFList = ({
 						value={searchQuery as string}
 						onChangeText={text => setSearchQuery(text)}
 						inputStyle={styles.searchInputGIF}
+						allowFontScaling={false}
 					/>
 					<FlatList
 						horizontal

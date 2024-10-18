@@ -73,6 +73,7 @@ const InputCell = ({
 					placeholder={placeholder}
 					textAlign="center"
 					style={[textInputStyle, layout.fontMontserratRegular]}
+					allowFontScaling={false}
 				/>
 			)}
 

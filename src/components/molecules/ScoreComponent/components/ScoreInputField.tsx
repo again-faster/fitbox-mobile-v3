@@ -61,6 +61,7 @@ const FieldInput = ({
 					onChangeText={e => onChangeText(e)}
 					value={value}
 					{...rest}
+					allowFontScaling={false}
 				/>
 			) : (
 				<View style={[layout.fullWidth, layout.justifyCenter]}>

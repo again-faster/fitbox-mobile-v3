@@ -499,6 +499,7 @@ const Calendar = () => {
 									visible
 									style={styles.badgeStyle}
 									size={14}
+									allowFontScaling={false}
 								>
 									{numberOfFilters}
 								</Badge>

@@ -427,6 +427,7 @@ const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 					value={state.searchQuery}
 					style={styles.searchBar}
 					inputStyle={styles.searchBarInput}
+					allowFontScaling={false}
 				/>
 			) : (
 				renderNothingToDisplay()

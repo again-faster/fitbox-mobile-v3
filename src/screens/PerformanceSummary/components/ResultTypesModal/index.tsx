@@ -117,6 +117,7 @@ const ResultTypesModal = ({ navigation }: PerformanceSummaryScreenProps) => {
 					style={styles.searchBar}
 					inputStyle={styles.searchBarInput}
 					placeholderTextColor={config.fonts.colors.gray200}
+					allowFontScaling={false}
 				/>
 			</View>
 

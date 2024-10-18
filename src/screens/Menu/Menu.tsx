@@ -296,7 +296,14 @@ const Menu = ({ navigation }: MainTabScreenProps) => {
 				color="#777"
 				style={styles.menuOptionRightIcon}
 			/>
-			{badge && <Badge visible style={styles.badgeStyle} size={14} />}
+			{badge && (
+				<Badge
+					visible
+					style={styles.badgeStyle}
+					size={14}
+					allowFontScaling={false}
+				/>
+			)}
 		</>
 	);
 

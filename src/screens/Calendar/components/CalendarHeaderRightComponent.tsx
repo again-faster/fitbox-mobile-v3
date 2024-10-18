@@ -35,6 +35,7 @@ const CalendarHeaderRightComponent = () => {
 					visible={numberOfFilters > 0}
 					style={styles.badgeStyle}
 					size={16}
+					allowFontScaling={false}
 				>
 					{numberOfFilters}
 				</Badge>

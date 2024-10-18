@@ -127,6 +127,7 @@ const InboxItem = ({ index, data, onPress }: InboxItemProps) => {
 							<Badge
 								size={fonts.metrics.md}
 								style={styles.badgeStyle}
+								allowFontScaling={false}
 							/>
 						)}
 					</View>

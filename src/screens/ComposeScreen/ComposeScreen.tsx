@@ -215,6 +215,7 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 					underlineColorAndroid="transparent"
 					style={layout.fontMontserratRegular}
 					keyboardType="twitter"
+					allowFontScaling={false}
 				/>
 			</View>
 			<View style={styles.footerContainer}>

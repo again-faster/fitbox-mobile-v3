@@ -109,6 +109,7 @@ const SessionTabButtons = ({
 							visible={bookedMembers.length > 0}
 							style={styles.badgeStyle}
 							size={18}
+							allowFontScaling={false}
 						>
 							{bookedMembers.length}
 						</Badge>

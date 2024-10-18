@@ -498,6 +498,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 								onChangeText={firstName =>
 									onInputChange('first_name', firstName)
 								}
+								allowFontScaling={false}
 							>
 								{data.user.first_name}
 							</TextInput>
@@ -511,6 +512,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 								onChangeText={lastName =>
 									onInputChange('last_name', lastName)
 								}
+								allowFontScaling={false}
 							>
 								{data.user.last_name}
 							</TextInput>
@@ -583,6 +585,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 								onInputChange('email', email)
 							}
 							autoCapitalize="none"
+							allowFontScaling={false}
 						>
 							{data.user.email}
 						</TextInput>
@@ -596,6 +599,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 							onChangeText={phone =>
 								onInputChange('contact_phone', phone)
 							}
+							allowFontScaling={false}
 						>
 							{data.user.contact_phone}
 						</TextInput>
@@ -619,6 +623,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 								onChangeText={height =>
 									onInputChange('height', height)
 								}
+								allowFontScaling={false}
 							>
 								{data.user.height}
 							</TextInput>
@@ -639,6 +644,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 								onChangeText={weight =>
 									onInputChange('current_weight', weight)
 								}
+								allowFontScaling={false}
 							>
 								{data.user.current_weight}
 							</TextInput>
@@ -661,6 +667,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 									emergencyName,
 								)
 							}
+							allowFontScaling={false}
 						>
 							{data.user.emergency_contact_name}
 						</TextInput>
@@ -677,6 +684,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 									emergencyNumber,
 								)
 							}
+							allowFontScaling={false}
 						>
 							{data.user.emergency_contact_number}
 						</TextInput>

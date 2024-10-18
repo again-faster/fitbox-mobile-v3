@@ -664,6 +664,7 @@ const ClassResultsScreen = ({
 										<Badge
 											size={8}
 											style={styles.badgeConStyle}
+											allowFontScaling={false}
 										/>
 									)}
 								</TouchableOpacity>
@@ -941,6 +942,7 @@ const ClassResultsScreen = ({
 												ageFrom: age,
 											}));
 										}}
+										allowFontScaling={false}
 									/>
 								</View>
 								<Spacer horizontal />
@@ -958,6 +960,7 @@ const ClassResultsScreen = ({
 												ageTo: age,
 											}))
 										}
+										allowFontScaling={false}
 									/>
 								</View>
 							</Row>

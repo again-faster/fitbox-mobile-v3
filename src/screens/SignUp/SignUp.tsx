@@ -728,6 +728,7 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 							onChangeText={value => void handleOnChange(value)}
 							style={styles.enterCodeTextInput}
 							maxLength={MAX_CODE_LENGTH}
+							allowFontScaling={false}
 						/>
 						<Icon
 							name={code ? 'close' : 'qrcode-scan'}

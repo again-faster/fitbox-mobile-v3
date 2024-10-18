@@ -239,6 +239,7 @@ const WODAddAttendance = ({ route }: AddAttendanceProps) => {
 				value={searchQuery}
 				style={styles.searchBar}
 				inputStyle={styles.searchBarInput}
+				allowFontScaling={false}
 			/>
 
 			<FlatList

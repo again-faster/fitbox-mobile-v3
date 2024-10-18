@@ -182,6 +182,7 @@ const Login = ({ navigation, route }: ApplicationScreenProps) => {
 								returnKeyType="next"
 								keyboardType="email-address"
 								theme={inputCustomTheme}
+								allowFontScaling={false}
 							/>
 
 							<View style={style.showPasswordBtn}>
@@ -230,6 +231,7 @@ const Login = ({ navigation, route }: ApplicationScreenProps) => {
 										autoCapitalize="none"
 										underlineColor="white"
 										theme={inputCustomTheme}
+										allowFontScaling={false}
 									/>
 
 									{password ? (

@@ -338,6 +338,7 @@ const InviteCodeScreen = ({ navigation }: MainTabScreenProps) => {
 							textAlign="center"
 							style={style.codeInput}
 							onChangeText={code => handleOnChange(code)}
+							allowFontScaling={false}
 						/>
 					</View>
 					<Spacer />
@@ -420,10 +421,16 @@ const InviteCodeScreen = ({ navigation }: MainTabScreenProps) => {
 										],
 									)
 								}
+								allowFontScaling={false}
 							/>
 						</View>
 						{fieldsError[field.id as keyof UserDetailsType] && (
-							<HelperText key={field.id} type="error" visible>
+							<HelperText
+								key={field.id}
+								type="error"
+								visible
+								allowFontScaling={false}
+							>
 								{fieldsError[field.id as keyof UserDetailsType]}
 							</HelperText>
 						)}

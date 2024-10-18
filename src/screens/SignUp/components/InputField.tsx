@@ -165,6 +165,7 @@ const InputField = ({
 				error={!isEmpty(fieldsError[field.id])}
 				disabled={disabled}
 				contentStyle={{ ...layout.fontMontserratRegular }}
+				allowFontScaling={false}
 			/>
 			{isEmailField && !isNull(validatingEmail) && (
 				<View style={styles.inputRightContainer}>{renderIcon()}</View>
@@ -201,6 +202,7 @@ const InputField = ({
 					error={!isEmpty(fieldsError[field.id])}
 					disabled
 					contentStyle={{ ...layout.fontMontserratRegular }}
+					allowFontScaling={false}
 				/>
 
 				<View style={styles.inputRightContainer}>
