@@ -195,6 +195,10 @@ const isGymCode = (code: string) => code.length === 4 && /^\d+$/.test(code);
 
 const isHTML = RegExp.prototype.test.bind(/(<([^>]+)>)/i);
 
+const addTimeStamp = (url: string) => {
+	return `${url}?t=${moment().toISOString()}`;
+};
+
 const getEnv = (url: string) => {
 	if (url?.includes('dev.fitbox.iq')) {
 		return 'DEV';
@@ -227,4 +231,5 @@ export default {
 	isGymCode,
 	isHTML,
 	getEnv,
+	addTimeStamp,
 };
