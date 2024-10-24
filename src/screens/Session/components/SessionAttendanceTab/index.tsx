@@ -34,6 +34,7 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 	const loggedInUser = useStore(state => state.loggedInUser);
 	const isStaff = loggedInUser?.user_data.is_staff;
 	const attendanceLimit = session?.attendance_limit;
+
 	const [processingMembers, setProcessingMembers] = useState<number[]>([]);
 	const [bookedMembers, setBookedMembers] = useState<
 		SessionMemberAttendanceSchemaType[]
@@ -286,16 +287,18 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 					{`${bookedMembersRef.current.length} / ${attendanceLimit}`}
 				</Text>
 			)}
-			<Button
-				variant="darkgray"
-				mode="outlined"
-				title="+ Add Attendance"
-				onPress={toggleAttendanceModal}
-				style={{
-					marginBottom: metrics.md,
-					marginHorizontal: metrics.lg,
-				}}
-			/>
+			{showAddButton && (
+				<Button
+					variant="darkgray"
+					mode="outlined"
+					title="+ Add Attendance"
+					onPress={toggleAttendanceModal}
+					style={{
+						marginBottom: metrics.md,
+						marginHorizontal: metrics.lg,
+					}}
+				/>
+			)}
 		</View>
 	);
 
@@ -305,10 +308,12 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 
 	return (
 		<FlatList
-			data={sortBy(bookedMembersRef.current, 'user_data.first_name')}
+			data={sortBy(bookedMembersRef.current, item =>
+				item.user.firstname.toLowerCase(),
+			)}
 			renderItem={renderItem}
 			extractor={keyExtractor}
-			ListHeaderComponent={showAddButton ? StickyHeaderComponent : null}
+			ListHeaderComponent={StickyHeaderComponent}
 		/>
 	);
 };

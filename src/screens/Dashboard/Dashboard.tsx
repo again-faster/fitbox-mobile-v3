@@ -742,7 +742,9 @@ const Dashboard = () => {
 											style={styles.attendanceText}
 											allowFontScaling={false}
 										>
-											this month
+											{Constant.DEVICEWIDTH < 365
+												? 'month'
+												: 'this month'}
 										</Text>
 									</Row>
 								</View>
@@ -770,7 +772,9 @@ const Dashboard = () => {
 											style={styles.attendanceText}
 											allowFontScaling={false}
 										>
-											this year
+											{Constant.DEVICEWIDTH < 365
+												? 'year'
+												: 'this year'}
 										</Text>
 									</Row>
 								</View>

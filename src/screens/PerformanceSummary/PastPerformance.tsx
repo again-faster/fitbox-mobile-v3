@@ -155,7 +155,8 @@ const PastPerformance = ({ navigation }: PerformanceSummaryScreenProps) => {
 	const renderItem = ({
 		item,
 	}: ListRenderItemInfo<PastPerformanceHistoryType>) => {
-		if (!item.id) {
+		// TODO: unfilter section if section is ready
+		if (!item.id || item.type === 'section') {
 			return null;
 		}
 
