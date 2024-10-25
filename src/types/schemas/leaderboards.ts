@@ -105,7 +105,7 @@ export const PastPerformanceResultSchema = z.object({
 	wod_score_id: boolOrOneZero,
 	value: z.string().nullish(),
 	time: z.string().nullish(),
-	reps: z.union([z.string(), z.number()]),
+	reps: z.union([z.string(), z.number()]).nullable(),
 	wod_score_reps: z.number().nullish(),
 	rounds: z.number().nullish(),
 	sets: z.number().nullish(),

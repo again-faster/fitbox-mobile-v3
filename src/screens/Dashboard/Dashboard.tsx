@@ -450,9 +450,9 @@ const Dashboard = () => {
 		}, []),
 	);
 
-	useEffect(() => {
-		void getUpcomingSessions();
-	}, [notifSettings]);
+	// useEffect(() => {
+	// 	void getUpcomingSessions();
+	// }, [notifSettings]);
 
 	const onMountTasks = async () => {
 		await savePushNotificationToken();

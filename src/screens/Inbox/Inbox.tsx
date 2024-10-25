@@ -274,6 +274,8 @@ const Inbox = ({ navigation }: InboxScreenProps) => {
 				onSelect={({ id }: Gym) => {
 					setActiveGymId(id);
 					setSelectGymModal(false);
+					setList([]);
+					void fetchGyms();
 				}}
 			/>
 

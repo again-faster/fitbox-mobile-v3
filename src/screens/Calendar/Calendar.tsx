@@ -509,9 +509,17 @@ const Calendar = () => {
 					}}
 					style={[styles.floatingActionBtn]}
 				>
-					<Text size="sm" bold color="brand">
-						Go to today
-					</Text>
+					<Row>
+						<Text size="sm" bold color="brand">
+							Today
+						</Text>
+						<Icon
+							name="arrow-right"
+							size={15}
+							color={config.backgrounds.brand}
+							style={{ marginLeft: config.metrics.xs }}
+						/>
+					</Row>
 				</TouchableOpacity>
 			)}
 		</SafeScreen>
