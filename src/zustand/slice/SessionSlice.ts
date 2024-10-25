@@ -23,6 +23,15 @@ const createSessionSlice: StateCreator<
 	classFiltersToApply: [],
 	benchmarks: [],
 	favorites: [],
+	bookButtonCallback: () => {},
+	isAttendingCallback: () => {},
+	setIsAttendingCallback: data => {
+		setState({ isAttendingCallback: data });
+	},
+
+	setBookButtonCallback: data => {
+		setState({ bookButtonCallback: data });
+	},
 
 	setWorkoutData: data => {
 		setState({ benchmarks: data.benchmark, favorites: data.favorite });

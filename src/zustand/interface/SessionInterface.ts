@@ -72,6 +72,10 @@ interface SessionInterface extends SessionStateInterface {
 	setHeaderTitle: (title: string) => void;
 	setDefaultClassFilter: (data: ClassFiltersDataType) => void;
 	setHasPlaceholder: (value: boolean) => void;
+	bookButtonCallback: () => void;
+	setBookButtonCallback: (callback: () => void) => void;
+	isAttendingCallback: (value: boolean) => void;
+	setIsAttendingCallback: (callback: (value: boolean) => void) => void;
 }
 
 export type {

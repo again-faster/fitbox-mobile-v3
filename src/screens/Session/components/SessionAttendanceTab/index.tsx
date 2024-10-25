@@ -32,6 +32,7 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 	const navigation =
 		useNavigation<NavigationProp<ApplicationStackParamList>>();
 	const loggedInUser = useStore(state => state.loggedInUser);
+	const bookButtonCallback = useStore(state => state.bookButtonCallback);
 	const isStaff = loggedInUser?.user_data.is_staff;
 	const attendanceLimit = session?.attendance_limit;
 
@@ -90,97 +91,108 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 		// add user to processingMembers
 		addProcessingMember(userId);
 
-		// otherwise use toggle attendance
+		if (userId === loggedInUser?.id) {
+			try {
+				bookButtonCallback();
+			} catch (e) {
+				Say.err(e as string);
+			} finally {
+				removeProcessingMember(userId);
+			}
+		} else {
+			// Prepare payload
+			const payload = {
+				event_id: session?.id,
+				is_attend: isAttend,
+				user_id: userId,
+				admin_override: override,
+			};
 
-		// Prepare payload
-		const payload = {
-			event_id: session?.id,
-			is_attend: isAttend,
-			user_id: userId,
-			admin_override: override,
-		};
+			await attendSession(payload)
+				.then(response => {
+					if (!response.error) {
+						// if booking success
+						let newNotBookedMembers = [];
+						let newBookedMembers = [];
 
-		await attendSession(payload)
-			.then(response => {
-				if (!response.error) {
-					// if booking success
-					let newNotBookedMembers = [];
-					let newBookedMembers = [];
+						if (isAttend) {
+							newNotBookedMembers = notBookedMembers.filter(
+								member => member.user_id !== userId,
+							);
 
-					if (isAttend) {
-						newNotBookedMembers = notBookedMembers.filter(
-							member => member.user_id !== userId,
+							// New booked members
+							const addMember = notBookedMembers.find(
+								member => member.user_id === userId,
+							) as SessionMemberAttendanceSchemaType;
+							newBookedMembers = [
+								...bookedMembersRef.current,
+								addMember,
+							];
+						} else {
+							newBookedMembers = bookedMembersRef.current.filter(
+								member => member.user_id !== userId,
+							);
+
+							// New not booked members
+							const addMember = bookedMembersRef.current.find(
+								member => member.user_id === userId,
+							) as NotBookedMemberSchemaType;
+							newNotBookedMembers = [
+								...notBookedMembers,
+								addMember,
+							];
+						}
+
+						setNotBookedMembers(newNotBookedMembers);
+						setBookedMembers(newBookedMembers);
+
+						// Show success message
+						SimpleToast.show(
+							`Successfully ${
+								isAttend ? 'checked-in' : 'removed'
+							} user`,
+							SimpleToast.SHORT,
 						);
 
-						// New booked members
-						const addMember = notBookedMembers.find(
-							member => member.user_id === userId,
-						) as SessionMemberAttendanceSchemaType;
-						newBookedMembers = [
-							...bookedMembersRef.current,
-							addMember,
-						];
+						// Invalidate the session query
+						void queryClient.invalidateQueries({
+							queryKey: ['sessionGetScheduleDetail'],
+						});
+					} else if (response.allow_override) {
+						Alert.alert(
+							'Error!',
+							`Reason: ${String(
+								response.message,
+							)}\n\nAs an admin you can override and force check-in. Would you like to continue?`,
+							[
+								{
+									text: 'Yes',
+									onPress: () => {
+										void handleToggleUserAttendance(
+											userId,
+											true,
+										);
+									},
+								},
+								{ text: 'Cancel', style: 'cancel' },
+							],
+							{ cancelable: true },
+						);
 					} else {
-						newBookedMembers = bookedMembersRef.current.filter(
-							member => member.user_id !== userId,
-						);
-
-						// New not booked members
-						const addMember = bookedMembersRef.current.find(
-							member => member.user_id === userId,
-						) as NotBookedMemberSchemaType;
-						newNotBookedMembers = [...notBookedMembers, addMember];
+						throw new Error(response.message);
 					}
-
-					setNotBookedMembers(newNotBookedMembers);
-					setBookedMembers(newBookedMembers);
-
-					// Show success message
+				})
+				.catch(error => {
+					// Show error message
 					SimpleToast.show(
-						`Successfully ${
-							isAttend ? 'checked-in' : 'removed'
-						} user`,
+						`Failed to book user: ${String(error)}`,
 						SimpleToast.SHORT,
 					);
-
-					// Invalidate the session query
-					void queryClient.invalidateQueries({
-						queryKey: ['sessionGetScheduleDetail'],
-					});
-				} else if (response.allow_override) {
-					Alert.alert(
-						'Error!',
-						`Reason: ${String(
-							response.message,
-						)}\n\nAs an admin you can override and force check-in. Would you like to continue?`,
-						[
-							{
-								text: 'Yes',
-								onPress: () => {
-									void handleToggleUserAttendance(
-										userId,
-										true,
-									);
-								},
-							},
-							{ text: 'Cancel', style: 'cancel' },
-						],
-						{ cancelable: true },
-					);
-				} else {
-					throw new Error(response.message);
-				}
-			})
-			.catch(error => {
-				// Show error message
-				SimpleToast.show(
-					`Failed to book user: ${String(error)}`,
-					SimpleToast.SHORT,
-				);
-			})
-			.finally(() => {
-				removeProcessingMember(userId);
-			});
+				})
+				.finally(() => {
+					removeProcessingMember(userId);
+				});
+		}
 	};
 
 	const handleCheckInUser = async (userId: number) => {

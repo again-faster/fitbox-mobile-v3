@@ -12,7 +12,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import { isNumber } from 'lodash';
 import moment from 'moment';
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import SimpleToast from 'react-native-simple-toast';
 
@@ -56,10 +56,18 @@ const BookButton = ({
 
 	const queryClient = useQueryClient();
 
-	const { setClasses, getClassesByDate, loggedInUser } = useStore(state => ({
+	const {
+		setClasses,
+		getClassesByDate,
+		loggedInUser,
+		setBookButtonCallback,
+		setIsAttendingCallback,
+	} = useStore(state => ({
 		setClasses: state.setClasses,
 		getClassesByDate: state.getClassesByDate,
 		loggedInUser: state.loggedInUser,
+		setBookButtonCallback: state.setBookButtonCallback,
+		setIsAttendingCallback: state.setIsAttendingCallback,
 	}));
 
 	/**
@@ -85,6 +93,11 @@ const BookButton = ({
 		getClassesByDate(setDate, loggedInUser!.id, true);
 	};
 
+	useEffect(() => {
+		setBookButtonCallback(handleBook);
+		setIsAttendingCallback(setAttending);
+	}, []);
+
 	/**
 	 * Handles the logic for booking a session after the user has pressed the "Book Now" button.
 	 * If the user does not have payment details, it will prompt the user to add payment details.
@@ -93,7 +106,6 @@ const BookButton = ({
 	const handleBook = (showSuccessToast = true) => {
 		let showToast = showSuccessToast;
 		if (isLoading) return;
-
 		setIsLoading(true);
 		// TODO: for booking modal this.toggleProcessingMember(currentUserId);
 

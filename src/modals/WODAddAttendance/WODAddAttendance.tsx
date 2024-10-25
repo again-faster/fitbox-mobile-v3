@@ -12,6 +12,7 @@ import {
 import { Say } from '@/utils';
 import useStore from '@/zustand/Store';
 import { useQueryClient } from '@tanstack/react-query';
+import { sortBy } from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Searchbar } from 'react-native-paper';
@@ -22,8 +23,8 @@ const { fonts, metrics } = config;
 
 const WODAddAttendance = ({ route }: AddAttendanceProps) => {
 	const { session } = route.params as AddAttendanceParams;
-	const currentUserId = useStore(state => state.loggedInUser?.id);
 	const queryClient = useQueryClient();
+	const isAttendingCallback = useStore(state => state.isAttendingCallback);
 
 	const [searchQuery, setSearchQuery] = useState('');
 	const [processingMembers, setProcessingMembers] = useState<number[]>([]);
@@ -123,6 +124,8 @@ const WODAddAttendance = ({ route }: AddAttendanceProps) => {
 						SimpleToast.SHORT,
 					);
 
+					isAttendingCallback(true);
+
 					if (!override) {
 						await updateAttendance({
 							event_id: payload.event_id,
@@ -188,7 +191,6 @@ const WODAddAttendance = ({ route }: AddAttendanceProps) => {
 			const { user } = item as NotBookedMemberSchemaType;
 			const loading = processingMembers.includes(user.id);
 
-			if (currentUserId === user.id) return null;
 			return (
 				<TouchableOpacity
 					key={user.id}
@@ -243,7 +245,7 @@ const WODAddAttendance = ({ route }: AddAttendanceProps) => {
 			/>
 
 			<FlatList
-				data={data}
+				data={sortBy(data, item => item.user.firstname.toLowerCase())}
 				renderItem={renderItem}
 				extractor={(item: NotBookedMemberSchemaType) =>
 					item.user.id.toString()
