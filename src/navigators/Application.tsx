@@ -69,7 +69,7 @@ import HeaderCloseButton from './components/HeaderCloseButton';
 import { CommonHeaderOptions, TabHeaderOptions } from './utils/options';
 
 const linking: LinkingOptions<ApplicationStackParamList> = {
-	prefixes: ['com.fitbox://', 'https://fitbox.iq', 'http://fitbox.iq'],
+	prefixes: ['appfitbox://', 'https://fitbox.iq', 'http://fitbox.iq'],
 	config: {
 		initialRouteName: 'Main',
 		screens: {
