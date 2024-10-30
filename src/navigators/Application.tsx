@@ -71,7 +71,7 @@ import { CommonHeaderOptions, TabHeaderOptions } from './utils/options';
 const linking: LinkingOptions<ApplicationStackParamList> = {
 	prefixes: ['appfitbox://', 'https://fitbox.iq', 'http://fitbox.iq'],
 	config: {
-		initialRouteName: 'Main',
+		initialRouteName: 'Landing',
 		screens: {
 			Login: {
 				path: 'auth/login/:emailFromSignin',
@@ -363,6 +363,7 @@ const ApplicationNavigator = () => {
 					linking={linking}
 					ref={navigationRef}
 					theme={navigationTheme}
+					fallback={<Loader cover />}
 				>
 					<Stack.Navigator key={variant} initialRouteName="Startup">
 						<Stack.Group

@@ -5,6 +5,7 @@
 #import <UserNotifications/UserNotifications.h>
 #import <RNCPushNotificationIOS.h>
 #import <Firebase.h>
+#import <React/RCTLinkingManager.h>
 
 @implementation AppDelegate
 
@@ -81,5 +82,13 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
    }
    return [RCTLinkingManager application:application openURL:url options:options];
  }
+
+- (BOOL)application:(UIApplication *)application continueUserActivity:(nonnull NSUserActivity *)userActivity
+ restorationHandler:(nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
+{
+ return [RCTLinkingManager application:application
+                  continueUserActivity:userActivity
+                    restorationHandler:restorationHandler];
+}
 
 @end

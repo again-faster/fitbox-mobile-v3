@@ -10,7 +10,6 @@ import {
 	SessionMemberAttendanceSchemaType,
 } from '@/types/schemas/session';
 import { Say } from '@/utils';
-import useStore from '@/zustand/Store';
 import { useQueryClient } from '@tanstack/react-query';
 import { sortBy } from 'lodash';
 import { useCallback, useMemo, useState } from 'react';
@@ -24,7 +23,6 @@ const { fonts, metrics } = config;
 const WODAddAttendance = ({ route }: AddAttendanceProps) => {
 	const { session } = route.params as AddAttendanceParams;
 	const queryClient = useQueryClient();
-	const isAttendingCallback = useStore(state => state.isAttendingCallback);
 
 	const [searchQuery, setSearchQuery] = useState('');
 	const [processingMembers, setProcessingMembers] = useState<number[]>([]);
@@ -123,8 +121,6 @@ const WODAddAttendance = ({ route }: AddAttendanceProps) => {
 						} user`,
 						SimpleToast.SHORT,
 					);
-
-					isAttendingCallback(true);
 
 					if (!override) {
 						await updateAttendance({
