@@ -35,11 +35,34 @@ def node_require(script)
      )", __dir__]).strip
  end
 
-
-
 # Use it to require both react-native's and this package's scripts:
  node_require('react-native/scripts/react_native_pods.rb')
  node_require('react-native-permissions/scripts/setup.rb')
+
+ # ⬇️ uncomment the permissions you need
+setup_permissions([
+  # 'AppTrackingTransparency',
+  # 'Bluetooth',
+  # 'Calendars',
+  # 'CalendarsWriteOnly',
+  'Camera',
+  # 'Contacts',
+  # 'FaceID',
+  # 'LocationAccuracy',
+  # 'LocationAlways',
+  'LocationWhenInUse',
+  # 'MediaLibrary',
+  'Microphone',
+  # 'Motion',
+  'Notifications',
+  'PhotoLibrary',
+  # 'PhotoLibraryAddOnly',
+  # 'Reminders',
+  # 'Siri',
+  # 'SpeechRecognition',
+  # 'StoreKit',
+])
+
 
 target 'fitbox' do
   config = use_native_modules!
