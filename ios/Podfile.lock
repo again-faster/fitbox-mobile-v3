@@ -1377,7 +1377,7 @@ PODS:
     - Yoga
   - react-native-render-html (6.3.4):
     - React-Core
-  - react-native-safe-area-context (4.12.0):
+  - react-native-safe-area-context (4.13.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1390,8 +1390,8 @@ PODS:
     - React-featureflags
     - React-graphics
     - React-ImageManager
-    - react-native-safe-area-context/common (= 4.12.0)
-    - react-native-safe-area-context/fabric (= 4.12.0)
+    - react-native-safe-area-context/common (= 4.13.1)
+    - react-native-safe-area-context/fabric (= 4.13.1)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -1400,7 +1400,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-safe-area-context/common (4.12.0):
+  - react-native-safe-area-context/common (4.13.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1421,7 +1421,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-safe-area-context/fabric (4.12.0):
+  - react-native-safe-area-context/fabric (4.13.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1903,7 +1903,7 @@ PODS:
     - React-Core
     - React-RCTImage
     - TOCropViewController
-  - RNPermissions (5.0.2):
+  - RNPermissions (5.1.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2056,6 +2056,29 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - RNSentry (6.1.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Sentry/HybridSDK (= 8.38.0)
+    - Yoga
   - RNVectorIcons (10.2.0):
     - DoubleConversion
     - glog
@@ -2078,43 +2101,43 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - Sentry/HybridSDK (8.38.0)
-  - SocketRocket (0.7.0)
-  - Stripe (23.28.3):
-    - StripeApplePay (= 23.28.3)
-    - StripeCore (= 23.28.3)
-    - StripePayments (= 23.28.3)
-    - StripePaymentsUI (= 23.28.3)
-    - StripeUICore (= 23.28.3)
-  - stripe-react-native (0.38.4):
+  - SocketRocket (0.7.1)
+  - Stripe (23.30.0):
+    - StripeApplePay (= 23.30.0)
+    - StripeCore (= 23.30.0)
+    - StripePayments (= 23.30.0)
+    - StripePaymentsUI (= 23.30.0)
+    - StripeUICore (= 23.30.0)
+  - stripe-react-native (0.39.0):
     - React-Core
-    - Stripe (~> 23.28.0)
-    - StripeApplePay (~> 23.28.0)
-    - StripeFinancialConnections (~> 23.28.0)
-    - StripePayments (~> 23.28.0)
-    - StripePaymentSheet (~> 23.28.0)
-    - StripePaymentsUI (~> 23.28.0)
-  - StripeApplePay (23.28.3):
-    - StripeCore (= 23.28.3)
-  - StripeCore (23.28.3)
-  - StripeFinancialConnections (23.28.3):
-    - StripeCore (= 23.28.3)
-    - StripeUICore (= 23.28.3)
-  - StripePayments (23.28.3):
-    - StripeCore (= 23.28.3)
-    - StripePayments/Stripe3DS2 (= 23.28.3)
-  - StripePayments/Stripe3DS2 (23.28.3):
-    - StripeCore (= 23.28.3)
-  - StripePaymentSheet (23.28.3):
-    - StripeApplePay (= 23.28.3)
-    - StripeCore (= 23.28.3)
-    - StripePayments (= 23.28.3)
-    - StripePaymentsUI (= 23.28.3)
-  - StripePaymentsUI (23.28.3):
-    - StripeCore (= 23.28.3)
-    - StripePayments (= 23.28.3)
-    - StripeUICore (= 23.28.3)
-  - StripeUICore (23.28.3):
-    - StripeCore (= 23.28.3)
+    - Stripe (~> 23.30.0)
+    - StripeApplePay (~> 23.30.0)
+    - StripeFinancialConnections (~> 23.30.0)
+    - StripePayments (~> 23.30.0)
+    - StripePaymentSheet (~> 23.30.0)
+    - StripePaymentsUI (~> 23.30.0)
+  - StripeApplePay (23.30.0):
+    - StripeCore (= 23.30.0)
+  - StripeCore (23.30.0)
+  - StripeFinancialConnections (23.30.0):
+    - StripeCore (= 23.30.0)
+    - StripeUICore (= 23.30.0)
+  - StripePayments (23.30.0):
+    - StripeCore (= 23.30.0)
+    - StripePayments/Stripe3DS2 (= 23.30.0)
+  - StripePayments/Stripe3DS2 (23.30.0):
+    - StripeCore (= 23.30.0)
+  - StripePaymentSheet (23.30.0):
+    - StripeApplePay (= 23.30.0)
+    - StripeCore (= 23.30.0)
+    - StripePayments (= 23.30.0)
+    - StripePaymentsUI (= 23.30.0)
+  - StripePaymentsUI (23.30.0):
+    - StripeCore (= 23.30.0)
+    - StripePayments (= 23.30.0)
+    - StripeUICore (= 23.30.0)
+  - StripeUICore (23.30.0):
+    - StripeCore (= 23.30.0)
   - Toast (4.1.1)
   - TOCropViewController (2.7.4)
   - VisionCamera (4.5.3):
@@ -2478,7 +2501,7 @@ SPEC CHECKSUMS:
   react-native-blob-util: 356047c561b3506396852bc0d7988243f74dd77d
   react-native-mmkv: fb501d25ce65d16a1fad3296f7fc69150a1f0788
   react-native-render-html: 984dfe2294163d04bf5fe25d7c9f122e60e05ebe
-  react-native-safe-area-context: 908ee3cf872b29ed987a0514f1a6ccbf57f0fef4
+  react-native-safe-area-context: b7c0ac799a7718ed070974ad6d0c8045c455838a
   react-native-simple-toast: 4abe0a2cf59e2e4617720752ce8da62c659c1df7
   react-native-video: 88a9199e21fed8ef57841c4837eacb504c4f1af9
   react-native-webview: 64479bd56c0730e2be2908835ee968d6d83b1fb3
@@ -2519,22 +2542,22 @@ SPEC CHECKSUMS:
   RNFlashList: b85e7b9e77c3b6d9169f88d60ed6dca0a479a822
   RNGestureHandler: 598e45cedb905b157e9764acbef0b5e365693451
   RNImageCropPicker: e7ab6fb43d2fc3e84651e786ef4a080d63b0ed3d
-  RNPermissions: 5b4e1a1ba6cfe1cca0a7425d81d32afcededbfe3
-  RNReanimated: e488d8f3996ea4242c70e613e4da83bc23fd6206
-  RNScreens: b74adbe90f8c42be1665490d0021572fb17013da
-  RNSentry: cd7b90e4a5251a2bb9ac83ccf08e5ab8466b930e
-  RNVectorIcons: a2d149e9adaeec7259f1bbbe876a4577a6dff7ab
+  RNPermissions: 54fed0f96f14d46c974b5b7847a0b934c985c449
+  RNReanimated: bbfc101f2f9f69e403c581a4dd8ddfec31134e15
+  RNScreens: f493b156fe5de2434806b5a2c410800b2cd76c0e
+  RNSentry: ea223a3a0de43084ad8a6f5f00bbd0eb159a6a0e
+  RNVectorIcons: 8c7af262a73890caabbac2bb081ddbaa1b8a768c
   Sentry: 205813e7e758b53df157cedb8c55b31a14300645
-  SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
-  Stripe: cdf416cf2efe286f532a6306de0fcaa0ecc8c71a
-  stripe-react-native: 3479d62b758ac162b4465cb0aed313b525a575f3
-  StripeApplePay: efb62ffc08e6cd4f161d77ddb45de2451075c54e
-  StripeCore: 9731f05e327c3dcaf7d7abd116840ceaa9482bbe
-  StripeFinancialConnections: 46c0049aaab3a179193502bce4a8096eb7b73f55
-  StripePayments: dd1867a620b0b8b5e294e9ff2f1f7b7770765f47
-  StripePaymentSheet: d155dfde74e90784d054deffb4f561a1f6dd638f
-  StripePaymentsUI: c24f990b03a68a7f6fe704b15dd487e7bb6b603e
-  StripeUICore: f2d514e900c37436dc5427fdf2c29d68ab1c2935
+  SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
+  Stripe: 9757efc154de1d9615cbea4836d590bc4034d3a4
+  stripe-react-native: de0e4bc24122da31406bff20a1bff16994aa9796
+  StripeApplePay: ca33933601302742623762157d587b79b942d073
+  StripeCore: 2af250a2366ff2bbf64d4243c5f9bbf2a98b2aaf
+  StripeFinancialConnections: 3ab1ef6182ec44e71c29e9a2100b663f9713ac20
+  StripePayments: 658a16bd34d20c8185aa281866227b9e1743300e
+  StripePaymentSheet: eac031f76d7fbb4f52df9b9c39be5be671ca4c07
+  StripePaymentsUI: 7d7cffb2ecfc0d6b5ac3a4488c02893a5ff6cc77
+  StripeUICore: bb102d453b1e1a10a37f810bc0a9aa0675fb17fd
   Toast: 1f5ea13423a1e6674c4abdac5be53587ae481c4e
   TOCropViewController: 80b8985ad794298fb69d3341de183f33d1853654
   VisionCamera: cb84d0d8485b3e67c91b62931d3aa88f49747c92
