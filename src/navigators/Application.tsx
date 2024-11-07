@@ -488,7 +488,12 @@ const ApplicationNavigator = () => {
 							<Stack.Screen
 								name="SubscriptionSetup"
 								component={SubscriptionSetup}
-								options={{ title: 'Buy Subscription' }}
+								options={{
+									...TabHeaderOptions,
+									headerBackTitleVisible: false,
+									title: 'Setup Subscription',
+								}}
+								initialParams={{ setupSubscription: true }}
 							/>
 							<Stack.Screen
 								name="PaymentSetup"

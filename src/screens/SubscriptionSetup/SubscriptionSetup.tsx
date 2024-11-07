@@ -59,6 +59,7 @@ const SubscriptionSetup = ({ route, navigation }: MainTabScreenProps) => {
 	const params = route.params as SubscriptionSetupParams;
 
 	const fromSubscription = params?.fromSubscription ?? false;
+	const setupSubscription = params?.setupSubscription ?? false;
 	const onSuccessPurchase = params?.onSuccessPurchase ?? (() => {});
 	const sessionDate = params?.sessionDate ?? initialStartDate;
 	const sessionId = params?.sessionId ?? undefined;
@@ -92,13 +93,15 @@ const SubscriptionSetup = ({ route, navigation }: MainTabScreenProps) => {
 			headerLeft: () => null,
 		};
 
-		if (fromSubscription) {
+		if (setupSubscription) {
+			navOptions = {
+				title: 'Setup Subscription',
+			};
+		} else if (fromSubscription) {
 			navOptions = {
 				title: 'New Subscription',
 			};
-		}
-
-		if (state.isBuyNow) {
+		} else if (state.isBuyNow) {
 			navOptions = {
 				title: 'Buy Now',
 			};
