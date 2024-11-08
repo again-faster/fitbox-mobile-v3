@@ -1,5 +1,5 @@
 import { Button, Card, HR, Row, Spacer, Text } from '@/components/atoms';
-import { BottomPanel } from '@/components/molecules';
+import { BottomPanel, Modal } from '@/components/molecules';
 import { getGymClasses, getGymVenues } from '@/services/gym';
 import { applauseScore } from '@/services/leaderboards';
 import getClassLeaderboards from '@/services/leaderboards/getClassLeaderboards';
@@ -15,7 +15,6 @@ import moment from 'moment';
 import { useEffect, useRef, useState } from 'react';
 import {
 	ActivityIndicator,
-	Modal,
 	Platform,
 	RefreshControl,
 	ScrollView,
@@ -742,11 +741,7 @@ const ClassResultsScreen = ({
 					</ScrollView>
 
 					{/* Search Modal */}
-					<Modal
-						animationType="fade"
-						transparent
-						visible={state.classesModal}
-					>
+					<Modal visible={state.classesModal}>
 						<View style={styles.modalContainer}>
 							<TouchableWithoutFeedback
 								onPress={toggleClassesModal}

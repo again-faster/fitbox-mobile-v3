@@ -1,7 +1,7 @@
 import { Text } from '@/components/atoms';
 import { Constant } from '@/utils';
 import { useIsFocused } from '@react-navigation/native';
-import { Alert, Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
 	Camera,
@@ -10,6 +10,7 @@ import {
 	useCameraDevice,
 	useCodeScanner,
 } from 'react-native-vision-camera';
+import Modal from '../Modal/Modal';
 
 const QRCamera = ({
 	visible,
@@ -40,7 +41,7 @@ const QRCamera = ({
 	};
 
 	return (
-		<Modal animationType="fade" visible={visible}>
+		<Modal visible={visible}>
 			<Camera
 				style={styles.cameraStyle}
 				onError={onError}

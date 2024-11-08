@@ -7,7 +7,7 @@ import {
 	Spacer,
 	Text,
 } from '@/components/atoms';
-import { Loader } from '@/components/molecules';
+import { Loader, Modal } from '@/components/molecules';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { ApplicationStackParamList } from '@/types/navigation';
@@ -23,13 +23,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import { isArray, isEmpty, parseInt } from 'lodash';
 import { useCallback, useState } from 'react';
-import {
-	Modal,
-	StyleSheet,
-	TouchableOpacity,
-	Text as Txt,
-	View,
-} from 'react-native';
+import { StyleSheet, TouchableOpacity, Text as Txt, View } from 'react-native';
 import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import WebView from 'react-native-webview';
 
@@ -797,11 +791,7 @@ const SessionsSectionsTab = ({
 						/>
 					</TouchableOpacity>
 
-					<Modal
-						animationType="fade"
-						transparent
-						visible={videoModalActive}
-					>
+					<Modal visible={videoModalActive}>
 						<View style={styles.videoModal}>
 							<Card
 								// eslint-disable-next-line react-native/no-inline-styles

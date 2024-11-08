@@ -29,7 +29,6 @@ import moment from 'moment';
 import { useEffect, useRef, useState } from 'react';
 import {
 	Keyboard,
-	Modal,
 	Platform,
 	StyleProp,
 	StyleSheet,
@@ -45,6 +44,7 @@ import SimpleToast from 'react-native-simple-toast';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Modal from '../Modal/Modal';
 import RowItem from '../RowItem/RowItem';
 import ScoreComment from '../ScoreComponent/components/ScoreComment';
 
@@ -719,13 +719,13 @@ const ScoreMovementComponent = ({
 				/>
 			) : null}
 
-			<Modal animationType="fade" transparent visible={searchModal}>
+			<Modal visible={searchModal}>
 				<View style={styles.modalContainer}>
 					<TouchableWithoutFeedback onPress={toggleSearchModal}>
 						<View style={[layout.flex_1, layout.fullWidth]} />
 					</TouchableWithoutFeedback>
 
-					<Card style={styles.modalStyle}>
+					<Card style={styles.modalStyle} elevated={false}>
 						<View style={[styles.searchContainerStyle]}>
 							<FeatherIcon
 								name="arrow-left"
@@ -796,7 +796,8 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 15,
 		borderRadius: 4,
 		height: 40,
-		...layout.shadowMedium,
+		borderWidth: 1,
+		borderColor: '#eee',
 	},
 	inputCheckboxStyle: {
 		borderRadius: 6,
@@ -835,7 +836,6 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		top: '13%',
 		maxHeight: Constant.DEVICEHEIGHT / 1.5,
-		...layout.shadowHeavy,
 	},
 	searchInput: {
 		backgroundColor: 'white',

@@ -1,4 +1,5 @@
 import { config } from '@/theme/_config';
+import layout from '@/theme/layout';
 import React from 'react';
 import {
 	StyleProp,
@@ -13,9 +14,16 @@ interface CardProps {
 	children: React.ReactNode;
 	style?: StyleProp<ViewStyle>;
 	activeOpacity?: number;
+	elevated?: boolean;
 }
 
-const Card = ({ onPress, style, activeOpacity, children }: CardProps) => {
+const Card = ({
+	onPress,
+	style,
+	activeOpacity,
+	children,
+	elevated,
+}: CardProps) => {
 	const opacity = activeOpacity || 0.5;
 	if (onPress) {
 		return (
@@ -29,7 +37,13 @@ const Card = ({ onPress, style, activeOpacity, children }: CardProps) => {
 		);
 	}
 
-	return <View style={[styles.container, style]}>{children}</View>;
+	return (
+		<View
+			style={[styles.container, style, elevated && layout.shadowMedium]}
+		>
+			{children}
+		</View>
+	);
 };
 
 const styles = StyleSheet.create({
@@ -38,10 +52,6 @@ const styles = StyleSheet.create({
 		borderRadius: config.metrics.sm,
 		padding: config.metrics.rg,
 		marginVertical: config.metrics.xs,
-		elevation: 2, // this only works on android
-		shadowOffset: { width: 0.5, height: 0.5 },
-		shadowColor: 'black',
-		shadowOpacity: 0.2,
 	},
 });
 

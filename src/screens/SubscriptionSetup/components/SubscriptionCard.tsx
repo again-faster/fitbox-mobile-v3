@@ -86,26 +86,27 @@ const SubscriptionCard = ({
 					visible={isTransactionFeesVisible}
 					onDismiss={() => setTransactionFeesVisible(false)}
 				>
-					{/* //TODO: We might have to put this somewhere that's easily updated. */}
-					<View style={{ padding: config.metrics.md }}>
-						<Row spacing="space-between" style={styles.fees}>
-							<Text size="rg">{CARD.title}</Text>
-							<Text size="rg" color="darkgray">
-								{CARD.value}
-							</Text>
-						</Row>
-						<Row spacing="space-between" style={styles.fees}>
-							<Text size="rg">{DIRECT_DEBIT.title}</Text>
-							<Text size="rg" color="darkgray">
-								{DIRECT_DEBIT.value}
-							</Text>
-						</Row>
-						<Row spacing="space-between" style={styles.fees}>
-							<Text size="rg">{FAILED_PAYMENTS.title}</Text>
-							<Text size="rg" color="darkgray">
-								{FAILED_PAYMENTS.value}
-							</Text>
-						</Row>
+					<View style={styles.modalContainer}>
+						<View style={{ padding: config.metrics.md }}>
+							<Row spacing="space-between" style={styles.fees}>
+								<Text size="rg">{CARD.title}</Text>
+								<Text size="rg" color="darkgray">
+									{CARD.value}
+								</Text>
+							</Row>
+							<Row spacing="space-between" style={styles.fees}>
+								<Text size="rg">{DIRECT_DEBIT.title}</Text>
+								<Text size="rg" color="darkgray">
+									{DIRECT_DEBIT.value}
+								</Text>
+							</Row>
+							<Row spacing="space-between" style={styles.fees}>
+								<Text size="rg">{FAILED_PAYMENTS.title}</Text>
+								<Text size="rg" color="darkgray">
+									{FAILED_PAYMENTS.value}
+								</Text>
+							</Row>
+						</View>
 					</View>
 				</Modal>
 
@@ -151,5 +152,12 @@ const styles = StyleSheet.create({
 	},
 	feesText: {
 		textDecorationLine: 'underline',
+	},
+	modalContainer: {
+		padding: config.metrics.sm,
+		backgroundColor: 'white',
+		borderRadius: config.metrics.md,
+		width: '90%',
+		alignSelf: 'center',
 	},
 });

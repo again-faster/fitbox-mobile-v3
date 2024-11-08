@@ -3,8 +3,6 @@ import { config } from '@/theme/_config';
 import React from 'react';
 import {
 	DimensionValue,
-	Modal,
-	Platform,
 	SafeAreaView,
 	StyleProp,
 	StyleSheet,
@@ -14,6 +12,7 @@ import {
 	ViewStyle,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import Modal from '../Modal/Modal';
 
 type BottomPanelProps = {
 	visible: boolean;
@@ -38,17 +37,12 @@ const BottomPanel = ({
 	style,
 	children,
 }: BottomPanelProps) => {
-	const isAndroid = Platform.OS === 'android';
-
 	const customStyle: StyleProp<ViewStyle> = {
 		backgroundColor: noMask ? 'transparent' : 'rgba(0,0,0,0.3)',
 	};
+
 	return (
-		<Modal
-			animationType={isAndroid ? 'fade' : 'none'}
-			transparent
-			visible={visible}
-		>
+		<Modal visible={visible}>
 			<SafeAreaView
 				style={{
 					...styles.modalContainer,
@@ -102,14 +96,6 @@ const styles = StyleSheet.create({
 	},
 	modalStyle: {
 		backgroundColor: 'white',
-		shadowColor: '#000',
-		shadowOffset: {
-			width: 0,
-			height: 4,
-		},
-		shadowOpacity: 0.3,
-		shadowRadius: 4.65,
-		elevation: 8,
 	},
 	backgroundView: {
 		flex: 1,

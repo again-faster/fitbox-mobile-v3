@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import useAuth from '@/auth/hooks/useAuth';
 import { HR, KeyboardSpacer, Row, Text } from '@/components/atoms';
-import { ChatMessage, MessageInput, Modal } from '@/components/molecules';
+import { BottomPanel, ChatMessage, MessageInput } from '@/components/molecules';
 import HeaderButtonGroup from '@/components/template/Header/HeaderButtonGroup';
 import {
 	checkConversationReplyStatus,
@@ -540,9 +540,9 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 					<Text>Replies to this conversation have been disabled</Text>
 				</View>
 			)}
-			<Modal
+			<BottomPanel
 				visible={state.selectedMessage !== null}
-				onDismiss={() =>
+				onClose={() =>
 					setState(prevState => ({
 						...prevState,
 						selectedMessage: null,
@@ -554,7 +554,7 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 						state.selectedMessage as number
 					] as SendMessageDataType,
 				)}
-			</Modal>
+			</BottomPanel>
 			{Platform.OS === 'ios' && <KeyboardSpacer />}
 		</View>
 	);
@@ -564,7 +564,8 @@ const styles = StyleSheet.create({
 	optionItemStyle: {
 		borderBottomWidth: 1,
 		borderBottomColor: '#EEEEEE',
-		paddingVertical: 10,
+		paddingVertical: config.metrics.lg,
+		paddingHorizontal: config.metrics.md,
 	},
 	conversationContainer: {
 		flex: 1,

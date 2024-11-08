@@ -1,40 +1,30 @@
 import { ComponentProps } from 'react';
-import {
-	Modal as RnModal,
-	SafeAreaView,
-	StyleSheet,
-	TouchableOpacity,
-	View,
-} from 'react-native';
-import { gestureHandlerRootHOC } from 'react-native-gesture-handler';
-import { Card } from 'react-native-paper';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Portal, Modal as RnModal } from 'react-native-paper';
 
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 
 const Modal = ({
-	onDismiss,
-	transparent = true,
-	animationType = 'fade',
 	children,
+	visible,
+	onDismiss,
 	...rest
 }: ComponentProps<typeof RnModal>) => {
-	const SafeAreaViewWithGestures = gestureHandlerRootHOC(SafeAreaView);
-
 	return (
-		<RnModal
-			{...rest}
-			transparent={transparent}
-			animationType={animationType}
-		>
-			<SafeAreaViewWithGestures style={styles.safeArea}>
+		<Portal>
+			<RnModal
+				visible={visible}
+				dismissable={false}
+				contentContainerStyle={layout.fullHeight}
+				{...rest}
+			>
 				<TouchableOpacity onPress={onDismiss} style={styles.backDrop}>
 					<View style={layout.flex_1} />
 				</TouchableOpacity>
-
-				<Card style={styles.card}>{children}</Card>
-			</SafeAreaViewWithGestures>
-		</RnModal>
+				{children}
+			</RnModal>
+		</Portal>
 	);
 };
 
@@ -42,13 +32,13 @@ export default Modal;
 
 const styles = StyleSheet.create({
 	card: {
+		backgroundColor: 'white',
+		borderRadius: config.metrics.md,
 		padding: config.metrics.md,
 		width: '90%',
 		alignSelf: 'center',
 	},
 	safeArea: {
-		flex: 1,
-		backgroundColor: 'rgba(0,0,0,0.3)',
 		justifyContent: 'center',
 	},
 	backDrop: {

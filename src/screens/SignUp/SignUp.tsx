@@ -509,8 +509,6 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 				contentContainerStyle={{ padding: config.metrics.lg }}
 				keyboardShouldPersistTaps="handled"
 			>
-				{/* Modals */}
-
 				<Modal
 					animationType="fade"
 					transparent

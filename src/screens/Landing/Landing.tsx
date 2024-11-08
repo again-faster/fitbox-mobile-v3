@@ -10,13 +10,13 @@ import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 // import useAuth from '@/auth/hooks/useAuth';
 import useAuth from '@/auth/hooks/useAuth';
 import { Button, ImageVariant, Row, Spacer, Text } from '@/components/atoms';
+import { Modal } from '@/components/molecules';
 import { navigate } from '@/navigators/NavigationRef';
 import { config } from '@/theme/_config';
 import LogoImage from '@/theme/assets/images/logo_with_name.png';
 import { ApplicationScreenProps } from '@/types/navigation';
 import { Constant } from '@/utils';
 import { useTranslation } from 'react-i18next';
-import { Modal, Portal } from 'react-native-paper';
 
 const { width } = Dimensions.get('window');
 
@@ -111,37 +111,34 @@ const LandingScreen = ({ navigation }: ApplicationScreenProps) => {
 				</View>
 			</View>
 
-			{/* TODO: Think about making an organism component for this bit, depending if its useful for other screens */}
-			<Portal>
-				<Modal
-					visible={optionsVisibility}
-					onDismiss={toggleOptionVisibility}
-				>
-					<View style={styles.card}>
-						<Row spacing="space-between">
-							<Text size="lg">{t('landing:modal.title')}</Text>
-							<MIcon
-								name="close"
-								size={25}
-								onPress={toggleOptionVisibility}
-							/>
-						</Row>
-						<Spacer size="rg" />
-						<Button
-							title={t('landing:modal.button.gym')}
-							onPress={() => navigateToPage('SignUp')}
-							labelStyle={styles.optionLabelStyle}
+			<Modal
+				visible={optionsVisibility}
+				onDismiss={toggleOptionVisibility}
+			>
+				<View style={styles.card}>
+					<Row spacing="space-between">
+						<Text size="lg">{t('landing:modal.title')}</Text>
+						<MIcon
+							name="close"
+							size={25}
+							onPress={toggleOptionVisibility}
 						/>
-						<Spacer size="sm" />
-						<Button
-							title={t('landing:modal.button.invite')}
-							mode="outlined"
-							onPress={() => navigateToPage('Invite')}
-							labelStyle={styles.optionLabelStyle}
-						/>
-					</View>
-				</Modal>
-			</Portal>
+					</Row>
+					<Spacer size="rg" />
+					<Button
+						title={t('landing:modal.button.gym')}
+						onPress={() => navigateToPage('SignUp')}
+						labelStyle={styles.optionLabelStyle}
+					/>
+					<Spacer size="sm" />
+					<Button
+						title={t('landing:modal.button.invite')}
+						mode="outlined"
+						onPress={() => navigateToPage('Invite')}
+						labelStyle={styles.optionLabelStyle}
+					/>
+				</View>
+			</Modal>
 		</View>
 	);
 };

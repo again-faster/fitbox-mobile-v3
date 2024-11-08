@@ -9,6 +9,7 @@ import {
 	Spacer,
 	Text,
 } from '@/components/atoms';
+import { Modal } from '@/components/molecules';
 import { SafeScreen } from '@/components/template';
 import {
 	changeProfileImage,
@@ -31,7 +32,6 @@ import {
 	Alert,
 	Dimensions,
 	Keyboard,
-	Modal,
 	SafeAreaView,
 	StyleProp,
 	StyleSheet,
@@ -694,7 +694,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 				</SafeScreen>
 			</ScrollView>
 			{/* Modals */}
-			<Modal animationType="fade" transparent visible={pictureOptions}>
+			<Modal visible={pictureOptions}>
 				<SafeAreaView style={styles.modalContainer}>
 					<TouchableWithoutFeedback
 						onPress={() => setPictureOptions(!pictureOptions)}
@@ -740,11 +740,7 @@ const MyDetails = ({ navigation }: MenuStackNavigatorProps) => {
 					</Card>
 				</SafeAreaView>
 			</Modal>
-			<Modal
-				animationType="fade"
-				transparent
-				visible={data.genderOptions}
-			>
+			<Modal visible={data.genderOptions}>
 				<SafeAreaView style={styles.modalContainer}>
 					<TouchableWithoutFeedback
 						onPress={() =>
@@ -820,6 +816,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'flex-end',
 		paddingLeft: 20,
 		paddingRight: 20,
+		paddingBottom: 20,
 	},
 	flexOne: {
 		flex: 1,

@@ -1,12 +1,13 @@
 import { Button, Spacer, Text } from '@/components/atoms';
+import { Modal } from '@/components/molecules';
 import { navigate } from '@/navigators/NavigationRef';
 import { config } from '@/theme/_config';
-import { Modal, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 
 const StripeSuccess = () => {
 	return (
-		<Modal>
+		<Modal visible>
 			<View style={styles.container}>
 				<Icon
 					name="check-circle"

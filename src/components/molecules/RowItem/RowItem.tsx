@@ -36,7 +36,7 @@ const RowItem = ({
 	return (
 		<TouchableOpacity
 			activeOpacity={0.8}
-			style={[styles.rowItemStyle, layout.shadowLight, containerStyle]}
+			style={[styles.rowItemStyle, containerStyle]}
 			onPress={onPress}
 		>
 			<Text size="md" color="darkgray" style={[layout.flex_1, textStyle]}>
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		paddingHorizontal: 10,
 		paddingVertical: 13,
-		marginBottom: 5,
+		marginBottom: 10,
 		borderRadius: 4,
 		justifyContent: 'space-between',
 		flexDirection: 'row',

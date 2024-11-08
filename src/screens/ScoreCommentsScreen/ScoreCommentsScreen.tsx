@@ -7,6 +7,7 @@ import {
 	Spacer,
 	Text,
 } from '@/components/atoms';
+import { Modal } from '@/components/molecules';
 import {
 	commentScore,
 	getScoreApplauses,
@@ -33,7 +34,6 @@ import {
 	ActivityIndicator,
 	ImageSourcePropType,
 	Keyboard,
-	Modal,
 	Platform,
 	RefreshControl,
 	ScrollView,
@@ -425,7 +425,7 @@ const ScoreCommentsScreen = ({
 					</View>
 				</Row>
 			</View>
-			<Modal animationType="fade" transparent visible={showReactions}>
+			<Modal visible={showReactions}>
 				<View style={styles.modalContainer}>
 					<TouchableWithoutFeedback
 						onPress={() => setShowReactions(false)}

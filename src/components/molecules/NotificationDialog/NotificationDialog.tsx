@@ -5,12 +5,12 @@ import layout from '@/theme/layout';
 import { NotificationsType } from '@/types/schemas/notifications';
 import useStore from '@/zustand/Store';
 import {
-	Modal,
 	SafeAreaView,
 	StyleSheet,
 	TouchableWithoutFeedback,
 	View,
 } from 'react-native';
+import Modal from '../Modal/Modal';
 
 const NotificationDialog = ({
 	notification,
@@ -45,7 +45,7 @@ const NotificationDialog = ({
 	};
 
 	return (
-		<Modal animationType="fade" transparent visible>
+		<Modal visible>
 			<SafeAreaView style={styles.container}>
 				<TouchableWithoutFeedback
 					onPress={() => setAppState('showModalNotification', false)}

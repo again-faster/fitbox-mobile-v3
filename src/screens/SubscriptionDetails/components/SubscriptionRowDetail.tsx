@@ -3,7 +3,7 @@ import { Modal } from '@/components/molecules';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { useState } from 'react';
-import { StyleSheet, TextStyle, TouchableOpacity } from 'react-native';
+import { StyleSheet, TextStyle, TouchableOpacity, View } from 'react-native';
 
 type RowDetailTypes = {
 	title: string;
@@ -53,7 +53,9 @@ const SubscriptionRowDetail = ({
 				</TouchableOpacity>
 			</Row>
 			<Modal visible={showPopup} onDismiss={() => setShowPopup(false)}>
-				{showPopup && renderPopup && renderPopup()}
+				<View style={styles.modalContainer}>
+					{showPopup && renderPopup && renderPopup()}
+				</View>
 			</Modal>
 		</>
 	);
@@ -61,6 +63,13 @@ const SubscriptionRowDetail = ({
 
 const styles = StyleSheet.create({
 	valueContainer: { flex: 1.5 },
+	modalContainer: {
+		padding: config.metrics.sm,
+		backgroundColor: 'white',
+		borderRadius: config.metrics.md,
+		width: '90%',
+		alignSelf: 'center',
+	},
 });
 
 export default SubscriptionRowDetail;
