@@ -22,6 +22,11 @@ export const ApplePayWalletSchema = z.object({
 	dynamic_last4: z.string(),
 	type: z.string(),
 });
+export const GooglePayWalletSchema = z.object({
+	// google_pay //not used so not going to validate
+	dynamic_last4: z.string(),
+	type: z.string(),
+});
 
 export const CardSchema = z
 	.object({
@@ -46,7 +51,9 @@ export const CardSchema = z
 		three_d_secure_usage: z.object({
 			supported: z.boolean(),
 		}),
-		wallet: z.union([z.string(), ApplePayWalletSchema]).nullable(),
+		wallet: z
+			.union([z.string(), ApplePayWalletSchema, GooglePayWalletSchema])
+			.nullable(),
 	})
 	.optional();
 
