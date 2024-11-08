@@ -1,4 +1,4 @@
-import { Text } from '@/components/atoms';
+import { Button, Text } from '@/components/atoms';
 import { ScoreComponent } from '@/components/molecules';
 import WODPastPerformance from '@/components/molecules/WODPastPerformance/WODPastPerformance';
 import useKeyboardVisibility from '@/hooks/useKeyboardVisibility';
@@ -13,9 +13,10 @@ import BottomSheet, {
 } from '@gorhom/bottom-sheet';
 import { BottomSheetDefaultBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types';
 import { useFocusEffect } from '@react-navigation/native';
-import { JSX, useCallback, useEffect, useMemo, useState } from 'react';
+import { JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import SimpleToast from 'react-native-simple-toast';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const { fonts } = config;
 
@@ -33,6 +34,18 @@ const SessionScoringScreen = ({ route }: ApplicationScreenProps) => {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		user_movement?: any[];
 	}>({});
+	const [isBottomSheetOpen, setBottomSheetOpen] = useState(false);
+	const bottomSheetRef = useRef<BottomSheet>(null);
+
+	const handleOpenBottomSheet = () => {
+		bottomSheetRef.current?.expand(); // Use 'expand' to open it to the first snap point that isn't '0%'
+		setBottomSheetOpen(true);
+	};
+
+	const handleCloseBottomSheet = () => {
+		bottomSheetRef.current?.close(); // This closes the bottom sheet completely
+		setBottomSheetOpen(false);
+	};
 
 	const fetchDetails = () =>
 		getPastPerformance(section.id)
@@ -62,6 +75,12 @@ const SessionScoringScreen = ({ route }: ApplicationScreenProps) => {
 			setResults({});
 		};
 	}, []);
+
+	useEffect(() => {
+		if (isKeyboardVisible) {
+			handleCloseBottomSheet();
+		}
+	}, [isKeyboardVisible]);
 
 	useFocusEffect(
 		useCallback(() => {
@@ -95,14 +114,29 @@ const SessionScoringScreen = ({ route }: ApplicationScreenProps) => {
 	const renderBottomSheet = useMemo(
 		() => (
 			<BottomSheet
+				ref={bottomSheetRef}
+				index={-1}
 				snapPoints={
-					isKeyboardVisible ? ['1%'] : [bottomSheetSpacing, '90%']
+					isKeyboardVisible ? ['1%'] : [bottomSheetSpacing, '60%']
 				}
 				backgroundStyle={styles.pastPerformanceContainer}
 				animateOnMount={false}
 				backdropComponent={renderBackdrop}
 				enableDynamicSizing={false}
+				enablePanDownToClose
+				onClose={handleCloseBottomSheet}
 			>
+				<Icon
+					name="arrow-down"
+					size={20}
+					color={config.backgrounds.brand}
+					// eslint-disable-next-line react-native/no-inline-styles
+					style={{
+						marginLeft: config.metrics.xs,
+						alignSelf: 'center',
+					}}
+					onPress={handleCloseBottomSheet}
+				/>
 				<BottomSheetScrollView>
 					<WODPastPerformance
 						isLoading={isLoadingHistory}
@@ -115,11 +149,34 @@ const SessionScoringScreen = ({ route }: ApplicationScreenProps) => {
 		[isKeyboardVisible, isLoadingHistory, section, results],
 	);
 
+	const renderBottomSheetButton = useMemo(
+		() =>
+			((results?.section_scores?.length ?? 0) > 0 ||
+				(results?.user_movement?.length ?? 0) > 0) &&
+			!isKeyboardVisible && (
+				<Button
+					title={
+						isBottomSheetOpen
+							? 'Close Past Performance'
+							: 'View Past Performance'
+					}
+					onPress={
+						isBottomSheetOpen
+							? handleCloseBottomSheet
+							: handleOpenBottomSheet
+					}
+					style={styles.bottomSheetButton}
+				/>
+			),
+		[isBottomSheetOpen, isKeyboardVisible, results],
+	);
+
 	const scoringBy = section.scoring_by;
 	if (scoringBy === 'section' || scoringBy === 'movement') {
 		return (
 			<>
 				{renderScoreComponent}
+				{renderBottomSheetButton}
 				{renderBottomSheet}
 			</>
 		);
@@ -156,5 +213,9 @@ const styles = StyleSheet.create({
 		borderRadius: 0,
 		borderTopWidth: 1,
 		borderColor: config.fonts.colors.gray200,
+	},
+	bottomSheetButton: {
+		margin: config.metrics.rg,
+		marginTop: -config.metrics.sm,
 	},
 });
