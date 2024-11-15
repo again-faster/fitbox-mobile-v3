@@ -55,6 +55,8 @@ const PaymentInformation = ({
 	const routeParams = route.params as PaymentInformationParams;
 	const { user, updateUser, getApiUrl } = useAuth();
 	const currentApi = getApiUrl();
+	const [hasDirecDebitMethod, setHasDirecDebitMethod] =
+		useState<boolean>(false);
 
 	const [state, setState] = useState<PaymentStateType>({
 		isLoading: true,
@@ -140,6 +142,10 @@ const PaymentInformation = ({
 	const setUpPaymentIntent = async () => {
 		try {
 			const res = await setupPaymentIntent();
+			const hasDirectDebit =
+				res?.paymentMethodType?.includes('au_becs_debit');
+			setHasDirecDebitMethod(hasDirectDebit as boolean);
+
 			const initResponse = await initPaymentSheet({
 				merchantDisplayName: 'fitbox',
 				setupIntentClientSecret: res.clientSecret || '',
@@ -176,7 +182,14 @@ const PaymentInformation = ({
 		}
 	};
 
-	const handleAddPaymentClick = () => {
+	const handleAddPaymentClick = async () => {
+		if (hasDirecDebitMethod && !Constant.IS_ANDROID) {
+			await Say.okThen(
+				'If you select Direct Debit, Stripe requires at least 9 digits for account numbers. Please add 0s at the front of your account number as required.',
+				'Direct Debit',
+			);
+		}
+
 		void openPaymentSheet();
 	};
 

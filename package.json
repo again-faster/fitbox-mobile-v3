@@ -1,6 +1,6 @@
 {
 	"name": "fitbox",
-	"version": "0.0.1",
+	"version": "4.0.10",
 	"private": true,
 	"scripts": {
 		"android": "react-native run-android",
@@ -17,7 +17,11 @@
 		"prepare": "husky install",
 		"postinstall": "patch-package",
 		"devtools": "npx react-devtools",
-		"clean": "react-native-clean-project"
+		"clean": "react-native-clean-project",
+		"release:patch": "standard-version --release-as patch --tag-prefix '' && yarn update-versions",
+		"release:minor": "standard-version --release-as minor --tag-prefix '' && yarn update-versions",
+		"release:major": "standard-version --release-as major --tag-prefix '' && yarn update-versions",
+		"update-versions": "node scripts/update_versions.js"
 	},
 	"dependencies": {
 		"@gorhom/bottom-sheet": "^5.0.2",
@@ -122,6 +126,7 @@
 		"prettier-eslint": "^16.1.2",
 		"react-native-clean-project": "^4.0.3",
 		"react-test-renderer": "18.3.1",
+		"standard-version": "^9.5.0",
 		"ts-jest": "^29.1.1",
 		"typescript": "^4.4.4"
 	},

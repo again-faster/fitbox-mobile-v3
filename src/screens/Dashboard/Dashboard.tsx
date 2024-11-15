@@ -132,6 +132,8 @@ const Dashboard = () => {
 	const [refreshing, setRefreshing] = useState<boolean>(true);
 	const [gymBanner, setGymBanner] = useState<string>('');
 	const [gymLogo, setGymLogo] = useState<string>('');
+	const [showAttendanceReport, setShowAttendanceReport] =
+		useState<boolean>(false);
 
 	const [upcomingSessionsIsLoading, setUpcomingSessionsIsLoading] =
 		useState<boolean>(true);
@@ -231,6 +233,8 @@ const Dashboard = () => {
 			// set gym logo and banner
 			setGymLogo(Func.addTimeStamp(gymInfo.logo));
 			setGymBanner(Func.addTimeStamp(String(gymInfo.banner)));
+
+			setShowAttendanceReport(gymInfo.allow_attendance_report);
 		}
 	};
 
@@ -696,95 +700,105 @@ const Dashboard = () => {
 					) : null}
 				</Row>
 
-				{attendanceReportIsLoading && isEmpty(attendanceReportState) ? (
-					<>
-						<Spacer size="xxl" />
-						<SkeletonView height={14} width="30%" />
-						<Spacer size="sm" />
-						<Row spacing="space-between">
-							<SkeletonView height={65} width="48%" />
-							<SkeletonView height={65} width="48%" />
-						</Row>
-					</>
-				) : (
-					!isEmpty(attendanceReportState) && (
-						<View
-							style={{
-								marginTop: config.metrics.lg,
-								marginBottom: config.metrics.xl,
-							}}
-						>
-							<Text
-								bold
-								style={{ marginBottom: config.metrics.sm }}
-							>
-								Attendance:
-							</Text>
-
-							<Row spacing="space-evenly">
-								<View
-									style={[
-										layout.flex_1,
-										styles.attendanceContainer,
-									]}
-								>
-									<Row align="flex-end">
-										<Image
-											source={resources.icon.monthToDate}
-											style={styles.attendanceIcon}
-										/>
-										<Text
-											style={styles.attendanceValue}
-											bold
-											allowFontScaling={false}
-										>
-											{attendanceReportState?.monthToDate}
-										</Text>
-										<Text
-											size="md"
-											style={styles.attendanceText}
-											allowFontScaling={false}
-										>
-											{Constant.DEVICEWIDTH < 365
-												? 'month'
-												: 'this month'}
-										</Text>
-									</Row>
-								</View>
-
-								<View
-									style={[
-										layout.flex_1,
-										styles.attendanceContainer,
-									]}
-								>
-									<Row align="flex-end">
-										<Image
-											source={resources.icon.yearToDate}
-											style={styles.attendanceIcon}
-										/>
-										<Text
-											style={styles.attendanceValue}
-											bold
-											allowFontScaling={false}
-										>
-											{attendanceReportState?.yearToDate}
-										</Text>
-										<Text
-											size="md"
-											style={styles.attendanceText}
-											allowFontScaling={false}
-										>
-											{Constant.DEVICEWIDTH < 365
-												? 'year'
-												: 'this year'}
-										</Text>
-									</Row>
-								</View>
+				{showAttendanceReport &&
+					(attendanceReportIsLoading &&
+					isEmpty(attendanceReportState) ? (
+						<>
+							<Spacer size="xxl" />
+							<SkeletonView height={14} width="30%" />
+							<Spacer size="sm" />
+							<Row spacing="space-between">
+								<SkeletonView height={65} width="48%" />
+								<SkeletonView height={65} width="48%" />
 							</Row>
-						</View>
-					)
-				)}
+						</>
+					) : (
+						!isEmpty(attendanceReportState) && (
+							<View
+								style={{
+									marginTop: config.metrics.lg,
+									marginBottom: config.metrics.xl,
+								}}
+							>
+								<Text
+									bold
+									style={{ marginBottom: config.metrics.sm }}
+								>
+									Attendance:
+								</Text>
+
+								<Row spacing="space-evenly">
+									<View
+										style={[
+											layout.flex_1,
+											styles.attendanceContainer,
+										]}
+									>
+										<Row align="flex-end">
+											<Image
+												source={
+													resources.icon.monthToDate
+												}
+												style={styles.attendanceIcon}
+											/>
+											<Text
+												style={styles.attendanceValue}
+												bold
+												allowFontScaling={false}
+											>
+												{
+													attendanceReportState?.monthToDate
+												}
+											</Text>
+											<Text
+												size="md"
+												style={styles.attendanceText}
+												allowFontScaling={false}
+											>
+												{Constant.DEVICEWIDTH < 365
+													? 'month'
+													: 'this month'}
+											</Text>
+										</Row>
+									</View>
+
+									<View
+										style={[
+											layout.flex_1,
+											styles.attendanceContainer,
+										]}
+									>
+										<Row align="flex-end">
+											<Image
+												source={
+													resources.icon.yearToDate
+												}
+												style={styles.attendanceIcon}
+											/>
+											<Text
+												style={styles.attendanceValue}
+												bold
+												allowFontScaling={false}
+											>
+												{
+													attendanceReportState?.yearToDate
+												}
+											</Text>
+											<Text
+												size="md"
+												style={styles.attendanceText}
+												allowFontScaling={false}
+											>
+												{Constant.DEVICEWIDTH < 365
+													? 'year'
+													: 'this year'}
+											</Text>
+										</Row>
+									</View>
+								</Row>
+							</View>
+						)
+					))}
 
 				{upcomingSessionsIsLoading && isEmpty(upcomingSessionsState) ? (
 					<>

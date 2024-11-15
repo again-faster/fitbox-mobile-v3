@@ -28,6 +28,7 @@ export const GymInfoSchema = z.object({
 	online_store: z.string(),
 	name: z.string().optional(),
 	website: z.string().optional(),
+	allow_attendance_report: boolOrOneZero.optional().default(1),
 });
 
 export type GymInfoType = z.infer<typeof GymInfoSchema>;

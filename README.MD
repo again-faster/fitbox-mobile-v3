@@ -1,10 +1,54 @@
 # fitbox v2
 
-Complete rebuil
+## DEVELOPMENT
+
+### Android
+
+```bash
+yarn android
+```
+
+### iOS
+
+```bash
+yarn ios
+```
+
+## RELEASE
+
+### Patch: 0.0.X
+
+```
+yarn release:patch
+```
+
+### Minor: 0.X.0
+
+```
+yarn release:minor
+```
+
+### Major: X.0.0
+
+```
+yarn release:major
+```
+
+### PUSH TO GIT :bangbang: :bangbang:
+
+```bash
+git push --follow-tags origin [branch-name]
+```
+
+## CONVENTIONAL COMMITS:
+
+In creating commits, always follow the conventional commits.
+
+Please refer to: https://kapeli.com/cheat_sheets/Conventional_Commits.docset/Contents/Resources/Documents/index
 
 ## TRANSLATION
 
-Make sure to place text to translations files. 
+Make sure to place text to translations files.
 
 :bangbang: On-hold, to speed up development, we will not be using translations for now. :bangbang:
 
@@ -32,9 +76,3 @@ Molecules come together to form organisms, which are relatively complex UI compo
 ### Templates
 
 These are groups of organisms stitched together to form pages or sections of an interface. Templates provide a context for organisms to interact and serve as the backbone of a design system.
-
-## Conventional commits:
-
-In creating commits, always follow the conventional commits.
-
-Please refer to: https://kapeli.com/cheat_sheets/Conventional_Commits.docset/Contents/Resources/Documents/index

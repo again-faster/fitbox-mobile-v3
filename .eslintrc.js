@@ -17,7 +17,7 @@ module.exports = {
 		'plugin:react/jsx-runtime',
 	],
 	parser: '@typescript-eslint/parser',
-	ignorePatterns: ['plugins/**/*', 'metro.config.js'],
+	ignorePatterns: ['plugins/**/*', 'metro.config.js', 'scripts/**/*.js'],
 	parserOptions: {
 		ecmaFeatures: {
 			jsx: true,
