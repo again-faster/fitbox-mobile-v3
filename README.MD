@@ -18,11 +18,7 @@ yarn ios
 
 Run `yarn release:[type]` to bump the version and create a new release. This will also update native version codes. (e.g. build.gradle, Info.plist)
 
-```
-yarn release:patch
-```
-
-### Patch: 0.0.X
+### `yarn release:patch` Patch 0.0.X
 
 For `bug fixes or small changes` that do not affect existing features or APIs.
 These changes are backward-compatible and do not add new features.
@@ -33,14 +29,7 @@ Examples:
 -   Correcting typos or minor UI alignment issues.
 -   Resolving security vulnerabilities without altering functionality.
 
-<br />
-<b>Run command:</b>
-
-```
-yarn release:patch
-```
-
-### Minor: 0.X.0
+### `yarn release:minor` Minor: 0.X.0
 
 For `new features or enhancements` that are added in a _backward-compatible_ way.
 The existing app still works as before, but with additional functionality.
@@ -51,14 +40,7 @@ Examples:
 -   Improving app performance without breaking compatibility.
 -   Introducing new APIs while keeping old ones functional.
 
-<br />
-<b>Run command:</b>
-
-```
-yarn release:minor
-```
-
-### Major: X.0.0
+### `yarn release:major` Major: X.0.0
 
 For `breaking changes` that are introduced in a non-backward-compatible manner.
 These changes are not backward-compatible and may require updates to the app's codebase.
