@@ -1,6 +1,6 @@
 {
 	"name": "fitbox",
-	"version": "4.0.10",
+	"version": "4.1.0",
 	"private": true,
 	"scripts": {
 		"android": "react-native run-android",
