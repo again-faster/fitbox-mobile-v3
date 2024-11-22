@@ -150,10 +150,15 @@ dependencies {
     // For Google Play - Stripe
     implementation 'com.stripe:stripe-android:21.0.1'
 
+    // For Firebase
     implementation 'com.google.firebase:firebase-analytics:17.3.0'
     implementation "com.google.firebase:firebase-messaging:17.6.0"
     implementation "com.google.firebase:firebase-core:16.0.8"
 
+    // react-native-version-check
+    implementation project(':react-native-version-check')
+
+    // react-native-push-notification
     implementation project(':react-native-push-notification')
 
     if (hermesEnabled.toBoolean()) {

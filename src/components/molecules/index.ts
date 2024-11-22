@@ -14,3 +14,4 @@ export { default as RowItem } from './RowItem/RowItem';
 export { default as RowSelectItem } from './RowSelectItem/RowSelectItem';
 export { default as ScoreComponent } from './ScoreComponent/ScoreComponent';
 export { default as ScoreMovementComponent } from './ScoreMovementComponent/ScoreMovementComponent';
+export { default as UpdateDialog } from './UpdateDialog/UpdateDialog';

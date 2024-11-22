@@ -380,3 +380,8 @@ export const GetWorkoutResponseSchema = apiResponseSchema(
 		favorite: z.array(WorkoutSchema),
 	}),
 );
+
+export const GetMinVersionSchema = z.object({
+	minVersion: z.string(),
+	depth: z.number(),
+});

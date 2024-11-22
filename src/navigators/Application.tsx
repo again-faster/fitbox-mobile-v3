@@ -37,6 +37,7 @@ import {
 } from '@react-navigation/stack';
 
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
+import VersionCheck from 'react-native-version-check';
 
 import { SwitchGym, SwitchUser, WODAddAttendance } from '@/modals';
 
@@ -45,9 +46,14 @@ import CalendarHeaderRightComponent from '@/screens/Calendar/components/Calendar
 import ShopHeaderRightComponent from '@/screens/Shop/components/ShopHeaderRightComponent';
 
 import useAuth from '@/auth/hooks/useAuth';
-import { Loader, NotificationDialog } from '@/components/molecules';
+import {
+	Loader,
+	NotificationDialog,
+	UpdateDialog,
+} from '@/components/molecules';
 import MovementHistory from '@/screens/PerformanceSummary/MovementHistory';
 import ResultTypesModal from '@/screens/PerformanceSummary/components/ResultTypesModal';
+import { minVersion } from '@/services/auth';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import type {
@@ -56,11 +62,12 @@ import type {
 	InboxParamList,
 	MainTabParamList,
 } from '@/types/navigation';
-import { Constant } from '@/utils';
+import { Constant, Func } from '@/utils';
 import useStore from '@/zustand/Store';
 import { StripeProvider } from '@stripe/stripe-react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
 import { Badge } from 'react-native-paper';
 import DashboardStackNavigator, { ResetToDashboard } from './DashboardStack';
 import MenuStackNavigator from './MenuStack';
@@ -340,6 +347,8 @@ const ApplicationNavigator = () => {
 		showModalNotification: state.showModalNotification,
 	}));
 
+	const [showUpdateDialog, setShowUpdateDialog] = useState<boolean>(false);
+
 	const url = getApiUrl();
 	const getKeyBasedOnEnv = () => {
 		if (url.includes('dev.fitbox.iq')) {
@@ -353,6 +362,45 @@ const ApplicationNavigator = () => {
 		}
 		return '';
 	};
+
+	useEffect(() => {
+		const checkIfUpdateNeeded = async () => {
+			const needUpdateConfig: Record<string, string | number> = {
+				depth: 2,
+			};
+
+			if (Constant.MIN_VERSION_URL) {
+				try {
+					const res = await minVersion();
+					if (res.minVersion) {
+						needUpdateConfig.minVersion = res.minVersion;
+					} else if (res.depth) {
+						needUpdateConfig.depth = res.depth;
+					}
+				} catch (error) {
+					// eslint-disable-next-line no-console
+					console.log('Error fetching minVersion:', error);
+					// Handle error if necessary
+				}
+			}
+
+			if (needUpdateConfig.minVersion) {
+				const currentVersion = DeviceInfo.getVersion();
+				const useMinVersion = needUpdateConfig.minVersion as string;
+
+				if (Func.isVersionOutdated(currentVersion, useMinVersion)) {
+					setShowUpdateDialog(true);
+				}
+				return;
+			}
+
+			const res = await VersionCheck.needUpdate(needUpdateConfig);
+			setShowUpdateDialog(res?.isNeeded);
+		};
+
+		void checkIfUpdateNeeded();
+	}, []);
+
 	return (
 		<StripeProvider
 			publishableKey={getKeyBasedOnEnv()}
@@ -577,9 +625,12 @@ const ApplicationNavigator = () => {
 						/>
 					</Stack.Navigator>
 				</NavigationContainer>
+
 				{showModalNotification && (
 					<NotificationDialog notification={notifications} />
 				)}
+
+				{showUpdateDialog && <UpdateDialog />}
 			</>
 		</StripeProvider>
 	);

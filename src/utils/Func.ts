@@ -212,6 +212,26 @@ const getEnv = (url: string) => {
 	return 'PROD';
 };
 
+const isVersionOutdated = (
+	currentVersion: string,
+	minVersion: string,
+): boolean => {
+	const currentVersionParts = currentVersion.split('.').map(Number);
+	const minVersionParts = minVersion.split('.').map(Number);
+
+	for (
+		let i = 0;
+		i < Math.max(currentVersionParts.length, minVersionParts.length);
+		i++
+	) {
+		const currentVersionPart = currentVersionParts[i] || 0;
+		const minVersionPart = minVersionParts[i] || 0;
+		if (currentVersionPart < minVersionPart) return true;
+		if (currentVersionPart > minVersionPart) return false;
+	}
+	return false;
+};
+
 export default {
 	decodeHtml,
 	stripHtmlTags,
@@ -232,4 +252,5 @@ export default {
 	isHTML,
 	getEnv,
 	addTimeStamp,
+	isVersionOutdated,
 };
