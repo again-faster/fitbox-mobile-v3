@@ -18,9 +18,9 @@
 		"postinstall": "patch-package",
 		"devtools": "npx react-devtools",
 		"clean": "react-native-clean-project",
-		"release:patch": "standard-version --release-as patch --tag-prefix '' && yarn update-versions",
-		"release:minor": "standard-version --release-as minor --tag-prefix '' && yarn update-versions",
-		"release:major": "standard-version --release-as major --tag-prefix '' && yarn update-versions",
+		"release:patch": "standard-version --release-as patch --tag-prefix ''",
+		"release:minor": "standard-version --release-as minor --tag-prefix ''",
+		"release:major": "standard-version --release-as major --tag-prefix ''",
 		"update-versions": "node scripts/update_versions.js"
 	},
 	"dependencies": {
