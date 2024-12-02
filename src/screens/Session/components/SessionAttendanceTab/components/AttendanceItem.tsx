@@ -1045,7 +1045,11 @@ const AttendanceItem = ({
 															}
 														>
 															<Text>
-																{`$${item.amount}`}
+																$
+																{(
+																	item.amount /
+																	100
+																).toFixed(2)}
 															</Text>
 															{item.apply_transaction_fees_to_member && (
 																<Text size="xs">
