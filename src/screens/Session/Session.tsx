@@ -171,8 +171,19 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 	};
 
 	useEffect(() => {
+		if (isLimited) {
+			setActiveTab(SessionTabsEnum.INFO);
+		}
+	}, [isLimited]);
+
+	useEffect(() => {
 		if (isSuccess) {
-			if (data.sections && data.sections.length > 0 && firstLoad) {
+			if (
+				data.sections &&
+				data.sections.length > 0 &&
+				firstLoad &&
+				!isLimited
+			) {
 				setActiveTab(SessionTabsEnum.SECTIONS);
 				setFirstLoad(false);
 			}
