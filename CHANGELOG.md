@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.1.2](https://github.com/again-faster/fitbox-mobile-v2/compare/4.1.1...4.1.2) (2024-12-09)
+
+
+### Bug Fixes
+
+* (5390) calendar navigating to next year issue ([9f188ce](https://github.com/again-faster/fitbox-mobile-v2/commit/9f188ce865ede36646a3f57cbd6fbc6da9742dd0))
+
 ### 4.1.1 (2024-12-03)
 
 
