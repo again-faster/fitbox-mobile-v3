@@ -17,6 +17,7 @@ import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import { isArray } from 'lodash';
 import moment from 'moment';
+import momentTimezone from 'moment-timezone';
 import {
 	SetStateAction,
 	useCallback,
@@ -117,9 +118,12 @@ const Calendar = () => {
 		setVenueFiltersToApply: state.setVenueFiltersToApply,
 		toggleModal: state.toggleModal,
 	}));
+
+	const timezone = momentTimezone.tz.guess();
 	const [today, setToday] = useState(
-		moment().format(Constant.DEFAULT_DATE_FORMAT),
+		momentTimezone.utc().tz(timezone).format(Constant.DEFAULT_DATE_FORMAT),
 	); // State for today
+
 	const [currentDate, setCurrentDate] = useState<string>(today);
 	const [isInitialLoading, setIsInitialLoading] = useState(true);
 	const [isInitialLoadingComplete, setIsInitialLoadingComplete] =
@@ -130,7 +134,12 @@ const Calendar = () => {
 	useEffect(() => {
 		const handleAppStateChange = (nextAppState: AppStateStatus) => {
 			if (nextAppState === 'active') {
-				setToday(moment().format(Constant.DEFAULT_DATE_FORMAT));
+				setToday(
+					momentTimezone
+						.utc()
+						.tz(timezone)
+						.format(Constant.DEFAULT_DATE_FORMAT),
+				);
 				handleDateChange(today);
 			}
 		};
@@ -146,7 +155,12 @@ const Calendar = () => {
 	}, []);
 	useEffect(() => {
 		const interval = setInterval(() => {
-			setToday(moment().format(Constant.DEFAULT_DATE_FORMAT));
+			setToday(
+				momentTimezone
+					.utc()
+					.tz(timezone)
+					.format(Constant.DEFAULT_DATE_FORMAT),
+			);
 		}, 60000); // Update every minute
 
 		return () => clearInterval(interval); // Clear interval on unmount
