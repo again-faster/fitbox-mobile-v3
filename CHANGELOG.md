@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.1.3](https://github.com/again-faster/fitbox-mobile-v2/compare/4.1.2...4.1.3) (2024-12-12)
+
+
+### Features
+
+* (5393) hide members and groups tab for members ([#228](https://github.com/again-faster/fitbox-mobile-v2/issues/228)) ([8d20576](https://github.com/again-faster/fitbox-mobile-v2/commit/8d2057647d2e841a9275eedd81e85a4b5ff4efcd))
+
 ### [4.1.2](https://github.com/again-faster/fitbox-mobile-v2/compare/4.1.1...4.1.2) (2024-12-09)
 
 

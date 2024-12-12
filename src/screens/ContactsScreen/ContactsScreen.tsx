@@ -53,6 +53,14 @@ const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 	const [selectAll, setSelectAll] = useState<boolean>(false);
 	const [isContactsNotEmpty, setIsContactsNotEmpty] = useState<boolean>();
 
+	const isStaff = user?.user_data.is_staff;
+	const recipientTabs = () => {
+		if (isStaff) {
+			return Constant.SORT_OPTIONS;
+		}
+		return Constant.SORT_OPTIONS.filter(tab => tab.value === 'staff');
+	};
+
 	const renderHeaderComposeButton = () => (
 		<TouchableOpacity
 			style={{ paddingHorizontal: config.metrics.lg }}
@@ -396,10 +404,12 @@ const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 	return (
 		<View style={layout.flex_1}>
 			<Row>
-				{Constant.SORT_OPTIONS.map((by, index) => {
+				{recipientTabs().map((by, index) => {
 					const tabBorder = {
 						borderColor:
-							by.value === state.sortBy ? 'black' : '#e5e5e5',
+							by.value === state.sortBy && isStaff
+								? 'black'
+								: '#e5e5e5',
 					};
 					return (
 						<TouchableOpacity
@@ -409,6 +419,7 @@ const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 								...styles.tabStyle,
 							}}
 							onPress={() => handleTabPress(by.value)}
+							disabled={!isStaff}
 						>
 							<Text>{by.name}</Text>
 						</TouchableOpacity>
