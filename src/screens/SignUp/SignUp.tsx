@@ -151,6 +151,8 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 		activeFieldInput: null,
 	});
 
+	const [allowPassword, setAllowPassword] = useState<boolean>();
+
 	const roleModalRef: RefObject<ModalComponent> = createRef();
 	const stateRef = useRef<State>();
 	stateRef.current = state;
@@ -249,14 +251,23 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 	};
 
 	const onCaptchaVerified = async () => {
-		setState(prevState => ({ ...prevState, verified: true }));
-
-		setState(prevState => ({ ...prevState, fieldsError: {} }));
+		setState(prevState => ({
+			...prevState,
+			fieldsError: {},
+			verified: true,
+		}));
 		const { fields, role, code } = stateRef.current as State;
 
 		const hasEmptyFields = validateFields();
 		if (hasEmptyFields) {
 			Say.warn('Please fill up all required fields');
+			return false;
+		}
+
+		if (!allowPassword) {
+			Say.warn(
+				'Invalid password. Ensure it meets the required guidelines.',
+			);
 			return false;
 		}
 
@@ -309,6 +320,13 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 		const hasEmptyFields = validateFields();
 		if (hasEmptyFields) {
 			Say.warn('Please fill up all required fields');
+			return false;
+		}
+
+		if (!allowPassword) {
+			Say.warn(
+				'Invalid password. Ensure it meets the required guidelines.',
+			);
 			return false;
 		}
 
@@ -615,6 +633,8 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 						handleCheckUserEmail={handleCheckUserEmail}
 						fieldsError={state.fieldsError}
 						setState={setState}
+						allowPassword={allowPassword}
+						setAllowPassword={setAllowPassword}
 					/>
 				))}
 
@@ -641,6 +661,8 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 						handleCheckUserEmail={handleCheckUserEmail}
 						fieldsError={state.fieldsError}
 						setState={setState}
+						allowPassword={allowPassword}
+						setAllowPassword={setAllowPassword}
 					/>
 				))}
 

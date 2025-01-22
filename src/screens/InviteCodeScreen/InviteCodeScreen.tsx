@@ -268,6 +268,32 @@ const InviteCodeScreen = ({ navigation, route }: MainTabScreenProps) => {
 		}
 	};
 
+	const validatePassword = (password: string) => {
+		// Check for each of the four character types
+		const hasLowercase = /[a-z]/.test(password);
+		const hasUppercase = /[A-Z]/.test(password);
+		const hasNumber = /\d/.test(password);
+		// eslint-disable-next-line no-useless-escape
+		const hasSymbol = /[!@#$%^&*()_+={}\[\]:;"'|,.<>?/-]/.test(password);
+
+		// Count how many character types are present
+		const conditionsMet = [
+			hasLowercase,
+			hasUppercase,
+			hasNumber,
+			hasSymbol,
+		].filter(Boolean).length;
+
+		if (
+			conditionsMet >= 3 &&
+			password.length >= 8 &&
+			password.length <= 256
+		) {
+			return true;
+		}
+		return false;
+	};
+
 	const checkForEmptyFields = () => {
 		const { fields, fieldsError, isLoggedIn } = state;
 		let hasError = false;
@@ -281,8 +307,9 @@ const InviteCodeScreen = ({ navigation, route }: MainTabScreenProps) => {
 		});
 
 		if (!isLoggedIn && fields.password) {
-			if (fields.password.length < 6) {
-				fieldsError.password = 'Password must be at least 6 characters';
+			if (!validatePassword(fields.password)) {
+				fieldsError.password =
+					'Password must be between 8-256 characters and include at least three of the following: lowercase, uppercase, numbers, and symbols.';
 				hasError = true;
 			}
 
@@ -387,7 +414,7 @@ const InviteCodeScreen = ({ navigation, route }: MainTabScreenProps) => {
 				{inputFields.map(field => (
 					<>
 						<View
-							key={field.id}
+							key={field.label}
 							style={{ marginBottom: field.marginBottom ?? 0 }}
 						>
 							<PaperInput
