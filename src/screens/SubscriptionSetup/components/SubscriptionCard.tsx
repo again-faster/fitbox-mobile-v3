@@ -58,7 +58,7 @@ const SubscriptionCard = ({
 					</Text>
 				</Row>
 
-				{monthlyFee > 0 && (
+				{monthlyFee > 0 && data.expiration_interval !== 1 && (
 					<Row
 						spacing="space-between"
 						style={styles.monthlyFeeContainer}

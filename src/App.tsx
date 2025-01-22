@@ -25,6 +25,7 @@ const build = DeviceInfo.getBuildNumber();
 Sentry.init({
 	dsn: 'https://19b5c61b50338b655de3d662a7b7d995@o4503926725607424.ingest.us.sentry.io/4508237654982657',
 	release: `fitbox@${version}+${build}`,
+	debug: true,
 
 	// start - disable this lines for HMD devices
 	// _experiments: {

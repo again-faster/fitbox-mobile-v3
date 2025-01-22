@@ -14,6 +14,7 @@ import {
 	VenueFilter,
 } from '@/zustand/interface/SessionInterface';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import { FlashList } from '@shopify/flash-list';
 import { isArray } from 'lodash';
 import moment from 'moment';
@@ -124,12 +125,26 @@ const Calendar = () => {
 		momentTimezone.utc().tz(timezone).format(Constant.DEFAULT_DATE_FORMAT),
 	); // State for today
 
-	const [currentDate, setCurrentDate] = useState<string>(today);
+	const [currentDate, setCurrentDate] = useState<string>(
+		momentTimezone.utc().tz(timezone).format(Constant.DEFAULT_DATE_FORMAT),
+	);
 	const [isInitialLoading, setIsInitialLoading] = useState(true);
 	const [isInitialLoadingComplete, setIsInitialLoadingComplete] =
 		useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 	const calendarWeekRef = useRef<CalendarWeekRef>(null);
+
+	useEffect(() => {
+		Sentry.addBreadcrumb({
+			category: 'Calendar',
+			message: `Today: ${today}, Current Date: ${currentDate}`,
+			level: 'info',
+		});
+
+		Sentry.captureMessage(
+			`Calendar Screen Loaded -  Today: ${today}, Current Date: ${currentDate}`,
+		);
+	}, [today, currentDate]);
 
 	useEffect(() => {
 		const handleAppStateChange = (nextAppState: AppStateStatus) => {
@@ -140,7 +155,15 @@ const Calendar = () => {
 						.tz(timezone)
 						.format(Constant.DEFAULT_DATE_FORMAT),
 				);
-				handleDateChange(today);
+				handleDateChange(
+					momentTimezone
+						.utc()
+						.tz(timezone)
+						.format(Constant.DEFAULT_DATE_FORMAT),
+				);
+				Sentry.captureMessage(
+					`Calendar Screen From Background-  Today: ${today}, Current Date: ${currentDate}`,
+				);
 			}
 		};
 

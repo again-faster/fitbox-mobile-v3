@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.1.4](https://github.com/again-faster/fitbox-mobile-v2/compare/4.1.3...4.1.4) (2024-12-20)
+
+
+### Bug Fixes
+
+* Calendar 'Today' bug ([#230](https://github.com/again-faster/fitbox-mobile-v2/issues/230)) ([c495a36](https://github.com/again-faster/fitbox-mobile-v2/commit/c495a3638ab9c2571d368f0e69af132f33700eb4))
+
 ### [4.1.3](https://github.com/again-faster/fitbox-mobile-v2/compare/4.1.2...4.1.3) (2024-12-12)
 
 

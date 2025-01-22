@@ -129,7 +129,8 @@ const SubscriptionDetails = ({ route }: MenuStackNavigatorProps) => {
 					value={subscriptionExpiresValue}
 				/>
 				{data?.recurring_interval_friendly &&
-					data?.recurring_interval_friendly !== '' && (
+					data?.recurring_interval_friendly !== '' &&
+					data.expiration_interval !== 1 && (
 						<SubscriptionRowDetail
 							title="Billing Frequency"
 							value={billingFrequencyValue}
