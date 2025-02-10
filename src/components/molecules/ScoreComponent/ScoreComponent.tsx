@@ -976,7 +976,7 @@ const ScoreComponent = ({
 
 	return (
 		<>
-			<View style={layout.flex_1}>
+			<View style={styles.scoreCommentHeight}>
 				<ScoreHeader
 					title={section.name}
 					hideRxSwitch={hideRxSwitch}
@@ -1030,7 +1030,11 @@ const ScoreComponent = ({
 					</TouchableOpacity>
 				) : null}
 
-				<View style={{ padding: config.metrics.rg }}>
+				<View
+					style={{
+						padding: config.metrics.rg,
+					}}
+				>
 					<Button
 						onPress={() => void submitScore()}
 						loading={submitting}
@@ -1159,5 +1163,8 @@ const styles = StyleSheet.create({
 	scrollIndicator: {
 		width: '100%',
 		backgroundColor: config.fonts.colors.info,
+	},
+	scoreCommentHeight: {
+		height: '55%',
 	},
 });

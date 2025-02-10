@@ -1,12 +1,10 @@
 import { Button, Row, Text } from '@/components/atoms';
 import { FlatList } from '@/components/molecules';
-import getWorkouts from '@/services/leaderboards/getWorkouts';
 import { getPastPerformanceHistory } from '@/services/users';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { PerformanceSummaryScreenProps } from '@/types/navigation';
 import { PastPerformanceHistoryType } from '@/types/schemas/leaderboards';
-import { WorkoutSchemaType } from '@/types/schemas/session';
 import { Func } from '@/utils';
 import useStore from '@/zustand/Store';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
@@ -24,9 +22,6 @@ const PastPerformance = ({ navigation }: PerformanceSummaryScreenProps) => {
 	const { benchmarks, favorites } = useStore(s => ({
 		benchmarks: s.benchmarks,
 		favorites: s.favorites,
-	}));
-	const { setWorkoutData } = useStore(s => ({
-		setWorkoutData: s.setWorkoutData,
 	}));
 
 	const {
@@ -60,17 +55,6 @@ const PastPerformance = ({ navigation }: PerformanceSummaryScreenProps) => {
 			};
 		},
 	});
-
-	const fetchWorkouts = () =>
-		getWorkouts().then(res =>
-			setWorkoutData({
-				benchmark: res.data.benchmark as WorkoutSchemaType[],
-				favorite: res.data.favorite as WorkoutSchemaType[],
-			}),
-		);
-	useEffect(() => {
-		void fetchWorkouts();
-	}, []);
 
 	useEffect(() => {
 		const handler = debounce(() => {

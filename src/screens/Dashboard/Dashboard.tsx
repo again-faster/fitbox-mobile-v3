@@ -15,6 +15,7 @@ import { navigate } from '@/navigators/NavigationRef';
 import { betaActive, savePushToken } from '@/services/auth';
 import { getGymClasses, getGymVenues } from '@/services/gym';
 import { getAttendanceReport } from '@/services/leaderboards';
+import getWorkouts from '@/services/leaderboards/getWorkouts';
 import { getClassFilters } from '@/services/session';
 import { getBookedSessions, getUserGymInfo } from '@/services/users';
 import { config } from '@/theme/_config';
@@ -23,7 +24,10 @@ import resources from '@/theme/resources';
 import { ApplicationStackParamList } from '@/types/navigation';
 import { GymVenueType } from '@/types/schemas/gym';
 import { NotificationSettingsState } from '@/types/schemas/notifications';
-import { ClassFiltersDataType } from '@/types/schemas/session';
+import {
+	ClassFiltersDataType,
+	WorkoutSchemaType,
+} from '@/types/schemas/session';
 import { UserSchemaType } from '@/types/schemas/user';
 import { Constant, Func, Say } from '@/utils';
 import NotificationService from '@/utils/NotificationService';
@@ -114,6 +118,7 @@ const Dashboard = () => {
 		attendanceReportState,
 		classFiltersDataState,
 		upcomingSessionsState,
+		setWorkoutData,
 	} = useStore(state => ({
 		setAppState: state.setAppState,
 		classFilters: state.classFilters,
@@ -129,6 +134,7 @@ const Dashboard = () => {
 		attendanceReportState: state.attendanceReportState,
 		classFiltersDataState: state.classFiltersDataState,
 		upcomingSessionsState: state.upcomingSessionsState,
+		setWorkoutData: state.setWorkoutData,
 	}));
 
 	const [refreshing, setRefreshing] = useState<boolean>(true);
@@ -158,6 +164,14 @@ const Dashboard = () => {
 			checkBetaActive();
 		}
 	};
+
+	const fetchWorkouts = () =>
+		getWorkouts().then(res =>
+			setWorkoutData({
+				benchmark: res.data.benchmark as WorkoutSchemaType[],
+				favorite: res.data.favorite as WorkoutSchemaType[],
+			}),
+		);
 
 	const checkBetaActive = () => {
 		betaActive()
@@ -472,6 +486,7 @@ const Dashboard = () => {
 	useEffect(() => {
 		void fetchFilterOptions();
 		void onMountTasks();
+		void fetchWorkouts();
 		if (betaBuild) {
 			checkBetaActive();
 		}

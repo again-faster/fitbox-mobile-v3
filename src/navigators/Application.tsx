@@ -55,6 +55,7 @@ import {
 	UpdateDialog,
 } from '@/components/molecules';
 import MovementHistory from '@/screens/PerformanceSummary/MovementHistory';
+import WorkoutHistory from '@/screens/PerformanceSummary/WorkoutHistory';
 import ResultTypesModal from '@/screens/PerformanceSummary/components/ResultTypesModal';
 import { minVersion } from '@/services/auth';
 import { config } from '@/theme/_config';
@@ -637,6 +638,11 @@ const ApplicationNavigator = () => {
 							<Stack.Screen
 								name="MovementHistory"
 								component={MovementHistory}
+								options={{ title: 'Past Performance' }}
+							/>
+							<Stack.Screen
+								name="WorkoutHistory"
+								component={WorkoutHistory}
 								options={{ title: 'Past Performance' }}
 							/>
 						</Stack.Group>

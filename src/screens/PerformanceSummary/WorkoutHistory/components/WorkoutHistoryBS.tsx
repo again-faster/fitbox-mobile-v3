@@ -203,13 +203,12 @@ const WorkoutHistoryBS = ({
 				<Row
 					align="center"
 					spacing="space-between"
-					style={{ paddingHorizontal: config.metrics.md }}
+					style={{
+						paddingHorizontal: config.metrics.md,
+						paddingVertical: config.metrics.md,
+					}}
 				>
-					<Text
-						size="md"
-						bold
-						style={{ marginVertical: config.fonts.metrics.md }}
-					>
+					<Text size="md" bold>
 						{isSheetOpened ? title : 'History'}
 					</Text>
 

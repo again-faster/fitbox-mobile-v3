@@ -60,6 +60,10 @@ const SessionsSectionsTab = ({
 	const queryClient = useQueryClient();
 
 	const loggedInUser = useStore(s => s.loggedInUser);
+	const { benchmarks, favorites } = useStore(s => ({
+		benchmarks: s.benchmarks,
+		favorites: s.favorites,
+	}));
 
 	// check if user is already booked
 	const isAttend = !!session.member_attendance.some(
@@ -207,6 +211,15 @@ const SessionsSectionsTab = ({
 					paddingBottom: isSectionToggled ? 0 : 15,
 					paddingTop: staffOnly ? 5 : 20,
 				};
+				const benchmarkData = benchmarks.find(
+					item => item.id === sData.fb_wod?.id,
+				);
+
+				const favoritesData = favorites.find(
+					item => item.id === sData.fb_wod?.id,
+				);
+
+				const isLeaderboard = sData.is_leaderboard;
 
 				return (
 					<>
@@ -259,82 +272,153 @@ const SessionsSectionsTab = ({
 
 							{isSectionToggled && (
 								<View style={styles.sessionContainer}>
-									{section.scoring_type &&
-										section.scoring_by === 'section' && (
-											<Text
-												style={{
-													...layout.fontInterRegular,
-													fontSize:
-														config.fonts.metrics.md,
-													color: config.fonts.colors
-														.mute,
-												}}
-											>
-												{section.scoring_type.name}
-											</Text>
-										)}
+									<View
+										style={[
+											layout.row,
+											layout.justifyBetween,
+										]}
+									>
+										<View>
+											{section.scoring_type &&
+												section.scoring_by ===
+													'section' && (
+													<Text
+														style={{
+															...layout.fontInterRegular,
+															fontSize:
+																config.fonts
+																	.metrics.md,
+															color: config.fonts
+																.colors.mute,
+														}}
+													>
+														{
+															section.scoring_type
+																.name
+														}
+													</Text>
+												)}
 
-									<Row>
-										{section.sets !== 0 &&
-											section.sets != null && (
-												<Text
-													style={{
-														...layout.fontInterRegular,
-														fontSize:
-															config.fonts.metrics
-																.md,
-														color: config.fonts
-															.colors.mute,
-													}}
-												>
-													{section.sets} Set(s){' '}
-												</Text>
-											)}
-										{section.rounds !== 0 &&
-											section.rounds != null && (
-												<Text
-													style={{
-														...layout.fontInterRegular,
-														fontSize:
-															config.fonts.metrics
-																.md,
-														color: config.fonts
-															.colors.mute,
-													}}
-												>
-													{section.rounds} Round(s){' '}
-												</Text>
-											)}
-										{section.reps !== '' && (
-											<Text
-												style={{
-													...layout.fontInterRegular,
-													fontSize:
-														config.fonts.metrics.md,
-													color: config.fonts.colors
-														.mute,
-												}}
-											>
-												{' '}
-												{section.reps} reps
-											</Text>
-										)}
-									</Row>
+											<Row>
+												{section.sets !== 0 &&
+													section.sets != null && (
+														<Text
+															style={{
+																...layout.fontInterRegular,
+																fontSize:
+																	config.fonts
+																		.metrics
+																		.md,
+																color: config
+																	.fonts
+																	.colors
+																	.mute,
+															}}
+														>
+															{section.sets}{' '}
+															Set(s){' '}
+														</Text>
+													)}
+												{section.rounds !== 0 &&
+													section.rounds != null && (
+														<Text
+															style={{
+																...layout.fontInterRegular,
+																fontSize:
+																	config.fonts
+																		.metrics
+																		.md,
+																color: config
+																	.fonts
+																	.colors
+																	.mute,
+															}}
+														>
+															{section.rounds}{' '}
+															Round(s){' '}
+														</Text>
+													)}
+												{section.reps !== '' && (
+													<Text
+														style={{
+															...layout.fontInterRegular,
+															fontSize:
+																config.fonts
+																	.metrics.md,
+															color: config.fonts
+																.colors.mute,
+														}}
+													>
+														{' '}
+														{section.reps} reps
+													</Text>
+												)}
+											</Row>
 
-									{section.duration !== 0 &&
-										section.duration != null && (
-											<Text
-												style={{
-													...layout.fontInterRegular,
-													fontSize:
-														config.fonts.metrics.md,
-													color: config.fonts.colors
-														.mute,
+											{section.duration !== 0 &&
+												section.duration != null && (
+													<Text
+														style={{
+															...layout.fontInterRegular,
+															fontSize:
+																config.fonts
+																	.metrics.md,
+															color: config.fonts
+																.colors.mute,
+														}}
+													>
+														{section.duration}{' '}
+														min(s)
+													</Text>
+												)}
+										</View>
+
+										{section.fb_wod?.is_benchmark &&
+										benchmarkData ? (
+											<TouchableOpacity
+												onPress={() => {
+													navigation.navigate(
+														'WorkoutHistory',
+														{
+															data: benchmarkData,
+														},
+													);
 												}}
+												style={
+													styles.navPastPerformance
+												}
 											>
-												{section.duration} min(s)
-											</Text>
-										)}
+												<MIcon
+													name="clock-time-three-outline"
+													color={fonts.colors.brand}
+													size={fonts.metrics.xxl}
+												/>
+											</TouchableOpacity>
+										) : null}
+
+										{!section.fb_wod?.is_benchmark &&
+										favoritesData ? (
+											<TouchableOpacity
+												onPress={() => {
+													navigation.navigate(
+														'WorkoutHistory',
+														{
+															data: favoritesData,
+														},
+													);
+												}}
+												style={
+													styles.navPastPerformance
+												}
+											>
+												<MIcon
+													name="clock-time-three-outline"
+													color={fonts.colors.brand}
+													size={fonts.metrics.xxl}
+												/>
+											</TouchableOpacity>
+										) : null}
+									</View>
 
 									{isShowEmbed && (
 										<View style={styles.embedYoutube}>
@@ -732,7 +816,7 @@ const SessionsSectionsTab = ({
 												bold
 											/>
 
-											{section.is_leaderboard && (
+											{isLeaderboard && (
 												<TouchableOpacity
 													onPress={() =>
 														handleTabChange(
@@ -927,5 +1011,9 @@ const styles = StyleSheet.create({
 	},
 	coachOnlyContainer: {
 		alignItems: 'flex-end',
+	},
+	navPastPerformance: {
+		marginLeft: 5,
+		height: fonts.metrics.xxl,
 	},
 });
