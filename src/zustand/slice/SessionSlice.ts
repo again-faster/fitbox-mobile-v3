@@ -23,6 +23,10 @@ const createSessionSlice: StateCreator<
 	classFiltersToApply: [],
 	benchmarks: [],
 	favorites: [],
+	sections: [],
+	setSections: data => {
+		setState({ sections: data });
+	},
 	bookButtonCallback: () => {},
 	isAttendingCallback: () => {},
 	toLeaderboardsCallback: () => {},
