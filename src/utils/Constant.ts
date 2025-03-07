@@ -6,12 +6,11 @@
 
 import { NotificationSettings } from '@/types/schemas/notifications';
 import { Dimensions, Platform } from 'react-native';
-import { FA5Style } from 'react-native-vector-icons/FontAwesome5';
 
 /**
  * This is to enable the environment picker in the login screen to switch between different environments
  */
-const ENABLE_ENV_PICKER = FA5Style;
+const ENABLE_ENV_PICKER = false;
 
 /**
  * This is the API token for the masquerade user

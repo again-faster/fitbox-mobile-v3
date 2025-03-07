@@ -1,5 +1,13 @@
 import useAuth from '@/auth/hooks/useAuth';
-import { Avatar, Button, Card, Row, Spacer, Text } from '@/components/atoms';
+import {
+	Avatar,
+	Button,
+	Card,
+	KeyboardSpacer,
+	Row,
+	Spacer,
+	Text,
+} from '@/components/atoms';
 import { BottomPanel, QRCamera } from '@/components/molecules';
 import { checkEmail, register } from '@/services/auth';
 import { getUserGymInfoV2 } from '@/services/users';
@@ -130,6 +138,7 @@ const SIGNUP_CUSTOM_INPUT_FIELDS = {
 };
 
 const MAX_CODE_LENGTH = 4;
+const MINIMUM_DATE = '1900-01-01';
 
 const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 	const [state, setState] = useState<State>({
@@ -150,6 +159,10 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 		requiredFields: [],
 		activeFieldInput: null,
 	});
+
+	const [dateValue, setDateValue] = useState<string>(
+		moment().subtract(10, 'years').format(Constant.DEFAULT_DATE_FORMAT),
+	);
 
 	const [allowPassword, setAllowPassword] = useState<boolean>();
 
@@ -523,184 +536,198 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 		};
 
 		return (
-			<ScrollView
-				contentContainerStyle={{ padding: config.metrics.lg }}
-				keyboardShouldPersistTaps="handled"
-			>
-				<Modal
-					animationType="fade"
-					transparent
-					visible={state.roleModal}
+			<>
+				<ScrollView
+					contentContainerStyle={{ padding: config.metrics.lg }}
+					keyboardShouldPersistTaps="handled"
 				>
-					<View style={styles.roleModalConStyle}>
-						<TouchableWithoutFeedback onPress={toggleRoleModal}>
-							<View style={styles.modalMemberRole} />
-						</TouchableWithoutFeedback>
-
-						<Card
-							style={[
-								styles.modalStyle,
-								{ top: state.roleModalTopHeight },
-							]}
-						>
-							{rolesList?.map((roleItem, rIndex) => (
-								<TouchableOpacity
-									key={rIndex}
-									style={styles.roleSelectStyle}
-									onPress={() =>
-										handleOnRolePress(roleItem.id)
-									}
-									disabled={processing}
-								>
-									<Text>{roleItem.name}</Text>
-									{roleItem.id === currentRole?.id && (
-										<Icon
-											name="check"
-											color={config.colors.brand}
-											size={config.metrics.sm}
-										/>
-									)}
-								</TouchableOpacity>
-							))}
-						</Card>
-					</View>
-				</Modal>
-
-				{/* Date Modal */}
-				<DateTimePicker
-					mode="date"
-					isVisible={activeFieldInput?.type === 'date'}
-					onConfirm={date => {
-						handleTextOnChange(
-							activeFieldInput?.id as string,
-							moment(date).format(Constant.DEFAULT_DATE_FORMAT),
-						);
-						clearActiveField();
-					}}
-					onCancel={clearActiveField}
-					maximumDate={new Date()}
-				/>
-
-				{/* Select Modal */}
-				<BottomPanel
-					visible={activeFieldInput?.type === 'select'}
-					onClose={clearActiveField}
-				>
-					<View>
-						{activeFieldInput?.data?.options?.map(
-							(option: string, index: number) => (
-								<TouchableOpacity
-									key={index}
-									onPress={() => {
-										handleTextOnChange(
-											activeFieldInput?.id,
-											option,
-										);
-										clearActiveField();
-									}}
-									style={styles.bottomPanelTouch}
-								>
-									<Text size="rg">{option}</Text>
-								</TouchableOpacity>
-							),
-						)}
-					</View>
-				</BottomPanel>
-
-				<GoogleRecaptcha
-					siteKey={Constant.RECAPTCHA.siteKey}
-					baseUrl={Constant.RECAPTCHA.baseURL}
-					ref={recaptchaRef}
-					onVerify={() => void onCaptchaVerified()}
-					onError={onCaptchaError}
-					onExpire={onCaptchaError}
-				/>
-
-				<Text size="md" center>
-					Let&apos;s grab some details
-				</Text>
-				<Spacer />
-
-				{SIGNUP_INPUT_FIELDS.map((field, index) => (
-					<InputField
-						key={index}
-						field={field as RequiredFields}
-						processing={state.processing}
-						allowEmail={state.allowEmail}
-						fields={state.fields}
-						handleTextOnChange={handleTextOnChange}
-						validatingEmail={state.validatingEmail as boolean}
-						handleCheckUserEmail={handleCheckUserEmail}
-						fieldsError={state.fieldsError}
-						setState={setState}
-						allowPassword={allowPassword}
-						setAllowPassword={setAllowPassword}
-					/>
-				))}
-
-				{state.requiredFields.length > 0 && (
-					<Text
-						center
-						size="md"
-						color="darkgray"
-						style={{ marginTop: config.metrics.xl }}
+					<Modal
+						animationType="fade"
+						transparent
+						visible={state.roleModal}
 					>
-						Your gym requires the following
+						<View style={styles.roleModalConStyle}>
+							<TouchableWithoutFeedback onPress={toggleRoleModal}>
+								<View style={styles.modalMemberRole} />
+							</TouchableWithoutFeedback>
+
+							<Card
+								style={[
+									styles.modalStyle,
+									{ top: state.roleModalTopHeight },
+								]}
+							>
+								{rolesList?.map((roleItem, rIndex) => (
+									<TouchableOpacity
+										key={rIndex}
+										style={styles.roleSelectStyle}
+										onPress={() =>
+											handleOnRolePress(roleItem.id)
+										}
+										disabled={processing}
+									>
+										<Text>{roleItem.name}</Text>
+										{roleItem.id === currentRole?.id && (
+											<Icon
+												name="check"
+												color={config.colors.brand}
+												size={config.metrics.sm}
+											/>
+										)}
+									</TouchableOpacity>
+								))}
+							</Card>
+						</View>
+					</Modal>
+
+					{/* Date Modal */}
+					<DateTimePicker
+						mode="date"
+						isVisible={activeFieldInput?.type === 'date'}
+						onConfirm={date => {
+							handleTextOnChange(
+								activeFieldInput?.id as string,
+								moment(date).format(
+									Constant.DEFAULT_DATE_FORMAT,
+								),
+							);
+							setDateValue(
+								moment(date).format(
+									Constant.DEFAULT_DATE_FORMAT,
+								),
+							);
+							clearActiveField();
+						}}
+						onCancel={clearActiveField}
+						maximumDate={new Date()}
+						minimumDate={new Date(MINIMUM_DATE)}
+						date={new Date(dateValue)}
+					/>
+
+					{/* Select Modal */}
+					<BottomPanel
+						visible={activeFieldInput?.type === 'select'}
+						onClose={clearActiveField}
+					>
+						<View>
+							{activeFieldInput?.data?.options?.map(
+								(option: string, index: number) => (
+									<TouchableOpacity
+										key={index}
+										onPress={() => {
+											handleTextOnChange(
+												activeFieldInput?.id,
+												option,
+											);
+											clearActiveField();
+										}}
+										style={styles.bottomPanelTouch}
+									>
+										<Text size="rg">{option}</Text>
+									</TouchableOpacity>
+								),
+							)}
+						</View>
+					</BottomPanel>
+
+					<GoogleRecaptcha
+						siteKey={Constant.RECAPTCHA.siteKey}
+						baseUrl={Constant.RECAPTCHA.baseURL}
+						ref={recaptchaRef}
+						onVerify={() => void onCaptchaVerified()}
+						onError={onCaptchaError}
+						onExpire={onCaptchaError}
+					/>
+
+					<Text size="md" center>
+						Let&apos;s grab some details
 					</Text>
-				)}
+					<Spacer />
 
-				{state.requiredFields.map((field, index) => (
-					<InputField
-						key={index}
-						field={field}
-						processing={state.processing}
-						allowEmail={state.allowEmail}
-						fields={state.fields}
-						handleTextOnChange={handleTextOnChange}
-						validatingEmail={state.validatingEmail as boolean}
-						handleCheckUserEmail={handleCheckUserEmail}
-						fieldsError={state.fieldsError}
-						setState={setState}
-						allowPassword={allowPassword}
-						setAllowPassword={setAllowPassword}
+					{SIGNUP_INPUT_FIELDS.map((field, index) => (
+						<InputField
+							key={index}
+							field={field as RequiredFields}
+							processing={state.processing}
+							allowEmail={state.allowEmail}
+							fields={state.fields}
+							handleTextOnChange={handleTextOnChange}
+							validatingEmail={state.validatingEmail as boolean}
+							handleCheckUserEmail={handleCheckUserEmail}
+							fieldsError={state.fieldsError}
+							setState={setState}
+							allowPassword={allowPassword}
+							setAllowPassword={setAllowPassword}
+						/>
+					))}
+
+					{state.requiredFields.length > 0 && (
+						<Text
+							center
+							size="md"
+							color="darkgray"
+							style={{ marginTop: config.metrics.xl }}
+						>
+							Your gym requires the following
+						</Text>
+					)}
+
+					{state.requiredFields.map((field, index) => (
+						<InputField
+							key={index}
+							field={field}
+							processing={state.processing}
+							allowEmail={state.allowEmail}
+							fields={state.fields}
+							handleTextOnChange={handleTextOnChange}
+							validatingEmail={state.validatingEmail as boolean}
+							handleCheckUserEmail={handleCheckUserEmail}
+							fieldsError={state.fieldsError}
+							setState={setState}
+							allowPassword={allowPassword}
+							setAllowPassword={setAllowPassword}
+						/>
+					))}
+
+					<Spacer size="lg" />
+
+					<Row align="center" spacing="center">
+						<Icon
+							name={
+								state.verified
+									? 'checkbox-outline'
+									: 'checkbox-blank-outline'
+							}
+							color={
+								state.allowEmail
+									? config.colors.brand
+									: config.backgrounds.lightgrey
+							}
+							size={25}
+							onPress={() =>
+								!state.verified && state.allowEmail
+									? recaptchaRef.current?.open()
+									: Say.err(
+											'Please enter a valid email address',
+										)
+							}
+						/>
+						<Spacer horizontal size="sm" />
+						<Text size="lg">I am not a robot</Text>
+					</Row>
+
+					<Button
+						title="Submit"
+						sm
+						loading={state.processing}
+						disabled={!state.allowEmail}
+						labelStyle={{ color: config.backgrounds.light }}
+						style={submitButtonStyle}
+						onPress={() => void onSubmit()}
 					/>
-				))}
-
-				<Spacer size="lg" />
-
-				<Row align="center" spacing="center">
-					<Icon
-						name={
-							state.verified
-								? 'checkbox-outline'
-								: 'checkbox-blank-outline'
-						}
-						color={
-							state.allowEmail
-								? config.colors.brand
-								: config.backgrounds.lightgrey
-						}
-						size={25}
-						onPress={() =>
-							!state.verified && state.allowEmail
-								? recaptchaRef.current?.open()
-								: Say.err('Please enter a valid email address')
-						}
-					/>
-					<Spacer horizontal size="sm" />
-					<Text size="lg">I am not a robot</Text>
-				</Row>
-
-				<Button
-					title="Submit"
-					sm
-					loading={state.processing}
-					disabled={!state.allowEmail}
-					labelStyle={{ color: config.backgrounds.light }}
-					style={submitButtonStyle}
-					onPress={() => void onSubmit()}
-				/>
-			</ScrollView>
+				</ScrollView>
+				<KeyboardSpacer />
+			</>
 		);
 	};
 
