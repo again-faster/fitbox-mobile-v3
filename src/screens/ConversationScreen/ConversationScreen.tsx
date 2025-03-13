@@ -37,7 +37,7 @@ import {
 } from 'react-native';
 import PushNotification from 'react-native-push-notification';
 import Icon from 'react-native-vector-icons/Ionicons';
-import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type State = {
 	list: SendMessageDataType[];
@@ -98,6 +98,8 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 		sending: false,
 	});
 	const [gifUrl, setGIFUrl] = useState<string>('');
+	const isStaff = user?.user_data.is_staff;
+	const [disableReply, setDisableReply] = useState(false);
 
 	const { attachedFiles, setAppState, unreadMessageCallback } = useStore(
 		store => ({
@@ -114,7 +116,7 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 	const handleSendMessage = async () => {
 		try {
 			let { message, list } = state;
-			const { subject, convoId, sending } = state;
+			const { subject, convoId, sending, recipientIds } = state;
 
 			if (sending) return false;
 			message = message.trim();
@@ -131,10 +133,14 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 					message: string;
 					convo_id?: number;
 					mediaAttachments: string[];
+					disable_reply: boolean;
+					recipients: string;
 				} = {
 					subject,
 					message: conversationMessage,
 					convo_id: convoId,
+					disable_reply: disableReply,
+					recipients: recipientIds.join(','),
 					mediaAttachments: [],
 				};
 
@@ -163,13 +169,22 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 				});
 
 				setAppState('attachedFiles', []);
-				setState(prevState => ({ ...prevState, message: '', list }));
+				setState(prevState => ({
+					...prevState,
+					message: '',
+					list,
+					allowReply: !disableReply,
+				}));
 				setGIFUrl('');
 			}
 		} catch (e) {
 			Say.err(e as ICatchError);
 		}
-		return setState(prevState => ({ ...prevState, sending: false }));
+
+		return setState(prevState => ({
+			...prevState,
+			sending: false,
+		}));
 	};
 
 	const handleDelete = (index: number, messageId: number) => {
@@ -213,7 +228,7 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 	const renderInfoButton = () => {
 		return (
 			<HeaderButtonGroup>
-				<Ionicons
+				<MaterialIcons
 					name="information-outline"
 					onPress={toggleViewUsers}
 					size={24}
@@ -290,7 +305,7 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 
 	const handleEndReach = async () => {
 		setState(prevState => ({ ...prevState, page: prevState.page + 1 }));
-		await getData(state.page);
+		await getData(state.page + 1);
 	};
 
 	const handleRefresh = () => {
@@ -313,6 +328,7 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 				allowReply: !displayReply,
 				inputReady: true,
 			}));
+			setDisableReply(!!displayReply);
 		})();
 
 		return () => setAppState('attachedFiles', []);
@@ -332,13 +348,13 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 		);
 	};
 
-	const getData = async (page?: number) => {
+	const getData = async (page: number = 0) => {
 		let list: SendMessageDataType[] = [];
 		try {
 			const { convo_id: conversationId } = conversation;
 			const res = await getConversationMessages({
 				conversationId,
-				page: page || 0,
+				page,
 			});
 
 			list = res.data;
@@ -417,7 +433,7 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 					data={state.list}
 					renderItem={renderItem}
 					refreshing={state.refreshing}
-					onEndReached={void handleEndReach}
+					onEndReached={() => void handleEndReach()}
 					onEndReachedThreshold={0.5}
 				/>
 			);
@@ -450,7 +466,7 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 							<Text size="md" style={{ color: item.color }}>
 								{item.text}
 							</Text>
-							<Ionicons
+							<MaterialIcons
 								name={item.icon}
 								size={config.metrics.lg}
 								color={item.color}
@@ -524,6 +540,32 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 						);
 					})}
 			</View>
+
+			{isStaff && state.allowReply && state.inputReady && (
+				<TouchableOpacity
+					style={styles.disableReplyContainer}
+					onPress={() => setDisableReply(!disableReply)}
+				>
+					<Row
+						style={{ paddingHorizontal: config.metrics.rg }}
+						spacing="space-between"
+					>
+						<Text>Disable replies</Text>
+						<View style={styles.disableReplyIcon}>
+							<MaterialIcons
+								name={
+									!disableReply
+										? 'checkbox-blank-outline'
+										: 'checkbox-outline'
+								}
+								color={config.backgrounds.mute}
+								size={20}
+							/>
+						</View>
+					</Row>
+				</TouchableOpacity>
+			)}
+
 			{state.allowReply && state.inputReady && (
 				<MessageInput
 					message={state.message}
@@ -582,6 +624,15 @@ const styles = StyleSheet.create({
 	closeAttachmentIcon: {
 		marginLeft: config.metrics.md,
 		alignSelf: 'center',
+	},
+	disableReplyIcon: {
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	disableReplyContainer: {
+		paddingVertical: config.metrics.rg,
+		borderTopWidth: StyleSheet.hairlineWidth,
+		borderColor: '#DDD',
 	},
 });
 

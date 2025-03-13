@@ -10,11 +10,12 @@ export default async (payload: {
 	convo_id?: number;
 	mediaAttachments?: string[];
 }) => {
+	const url = ApiRoutes.sendConversationMessage;
 	const response = await securedInstance()
-		.post(`${ApiRoutes.sendConversationMessage}`, {
+		.post(url, {
 			body: JSON.stringify(payload),
+			throwHttpErrors: false,
 		})
 		.json();
-
 	return SendConversationMessageSchema.parse(response);
 };
