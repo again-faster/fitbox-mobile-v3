@@ -2,7 +2,11 @@ import { Row, Text } from '@/components/atoms';
 import { FlatList, Loader } from '@/components/molecules';
 import useSwitchableUsers from '@/hooks/useSwitchableUsers';
 import { resetRoot } from '@/navigators/NavigationRef';
-import { getUserGyms, updateUserProfile } from '@/services/users';
+import {
+	getUserGymInfo,
+	getUserGyms,
+	updateUserProfile,
+} from '@/services/users';
 import { config } from '@/theme/_config';
 import { ApplicationStackParamList } from '@/types/navigation';
 import { Gym } from '@/types/schemas/gym';
@@ -48,25 +52,47 @@ const SwitchGym = () => {
 		updateUserProfile({ default_team_id: id })
 			.then(res => {
 				if (!res.error) {
-					setLoggedInUser({
-						...user,
-						user_data: {
-							...user.user_data,
-							is_staff: res.user_data.is_staff as boolean,
-						},
+					void getUserGymInfo().then(gymInfoRes => {
+						if (!gymInfoRes.error) {
+							setLoggedInUser({
+								...user,
+								user_data: {
+									...user.user_data,
+									is_staff: res.user_data.is_staff as boolean,
+									waiver_accepted:
+										gymInfoRes.user_data.waiver_accepted,
+									has_payment_details:
+										gymInfoRes.user_data
+											.has_payment_details,
+									has_waived_subscriptions:
+										gymInfoRes.user_data
+											.has_waived_subscriptions,
+									show_subscription_form:
+										!gymInfoRes.user_data
+											.has_paid_subscriptions &&
+										!gymInfoRes.user_data
+											.has_waived_subscriptions,
+									has_previous_subscriptions:
+										gymInfoRes.user_data
+											.has_previous_subscriptions,
+								},
+							});
+
+							// clear calendar state
+							clearClasses();
+
+							// clear global state
+							clearStates();
+
+							// clear filter state
+							clearFilters();
+
+							// reset navigation to home
+							resetRoot();
+						} else {
+							Say.err(gymInfoRes.message);
+						}
 					});
-
-					// clear calendar state
-					clearClasses();
-
-					// clear global state
-					clearStates();
-
-					// clear filter state
-					clearFilters();
-
-					// reset navigation to home
-					resetRoot();
 				} else {
 					// Or return error
 					Say.err(res.message);

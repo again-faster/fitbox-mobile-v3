@@ -48,6 +48,7 @@ export const UserSchema = z.object({
 	onboarding_gym_ids: z.array(z.number()).optional(),
 	emergency_contact_name: z.string().nullish(),
 	emergency_contact_number: z.string().nullish(),
+	has_previous_subscriptions: z.boolean().default(false),
 });
 
 export const UserProfileSchema = z.object({

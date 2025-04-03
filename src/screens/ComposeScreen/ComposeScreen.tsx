@@ -20,6 +20,7 @@ import {
 	View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type State = {
 	message: string;
@@ -104,12 +105,7 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 		try {
 			let { subject, message } = state;
 
-			const {
-				recipients,
-				recipientIds,
-				disable_reply: disableReply,
-				sending,
-			} = state;
+			const { recipients, recipientIds, sending } = state;
 
 			if (sending) return false;
 
@@ -141,7 +137,7 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 					subject,
 					message: composeMessage,
 					recipients: recipientIds.join(','),
-					disable_reply: !!disableReply,
+					disable_reply: !!replyDisabled,
 				};
 
 				if (attachedFiles.length > 0) {
@@ -254,16 +250,22 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 						style={styles.disableReplyButtonStyle}
 						onPress={() => setDisableReply(!replyDisabled)}
 					>
-						<Row style={layout.flex_1} align="center">
-							<Icon
-								name="attach-outline"
-								size={config.metrics.lg}
-								color={config.backgrounds.light}
-								style={{ marginRight: config.metrics.md }}
-							/>
-							<Text color="light" numberOfLines={1}>
-								File Name
-							</Text>
+						<Row
+							style={{ paddingHorizontal: config.metrics.rg }}
+							spacing="space-between"
+						>
+							<Text>Disable replies</Text>
+							<View style={styles.disableReplyIcon}>
+								<MaterialIcons
+									name={
+										!replyDisabled
+											? 'checkbox-blank-outline'
+											: 'checkbox-outline'
+									}
+									color={config.backgrounds.mute}
+									size={20}
+								/>
+							</View>
 						</Row>
 					</TouchableOpacity>
 				)}
@@ -317,6 +319,10 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'flex-end',
 		maxHeight: '100%',
+	},
+	disableReplyIcon: {
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
 });
 

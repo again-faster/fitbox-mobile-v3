@@ -16,7 +16,11 @@ import {
 import { resetRoot } from '@/navigators/NavigationRef';
 import { checkEmail, register } from '@/services/auth';
 import { inviteEmail, joinGym } from '@/services/gym';
-import { getUserGymInfoV2, updateUserProfile } from '@/services/users';
+import {
+	getUserGymInfo,
+	getUserGymInfoV2,
+	updateUserProfile,
+} from '@/services/users';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { ApplicationScreenProps, SignUpParams } from '@/types/navigation';
@@ -361,40 +365,67 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 			.then(res => {
 				if (res.error) {
 					Say.err(res.message);
+					setJoiningGym(false);
 				} else {
 					void updateUserProfile({
 						default_team_id: Number(state.code),
 					}).then(updateUserRes => {
 						if (!updateUserRes.error) {
-							updateUser({
-								...loggedInUserConst.user_data,
-								is_staff: updateUserRes.user_data
-									.is_staff as boolean,
-								waiver_accepted:
-									!!updateUserRes.user_data.waiver_accepted,
-								has_payment_details:
-									!!updateUserRes.user_data
-										.has_payment_details,
+							void getUserGymInfo().then(gymInfoRes => {
+								if (!gymInfoRes.error) {
+									updateUser({
+										...loggedInUserConst.user_data,
+										is_staff: updateUserRes.user_data
+											.is_staff as boolean,
+										waiver_accepted:
+											gymInfoRes.user_data
+												.waiver_accepted,
+										has_payment_details:
+											gymInfoRes.user_data
+												.has_payment_details,
+										has_waived_subscriptions:
+											gymInfoRes.user_data
+												.has_waived_subscriptions,
+										show_subscription_form:
+											!gymInfoRes.user_data
+												.has_paid_subscriptions &&
+											!gymInfoRes.user_data
+												.has_waived_subscriptions,
+										has_previous_subscriptions:
+											gymInfoRes.user_data
+												.has_previous_subscriptions,
+									});
+									// clear calendar state
+									clearClasses();
+
+									// clear global state
+									clearStates();
+
+									// clear filter state
+									clearFilters();
+
+									setJoiningGym(false);
+
+									SimpleToast.show(
+										'Successfully joined gym',
+										SimpleToast.SHORT,
+									);
+									navigation.navigate('Startup');
+
+									// reset navigation to home
+								} else {
+									Say.err(gymInfoRes.message);
+									setJoiningGym(false);
+								}
 							});
-							// clear calendar state
-							clearClasses();
-
-							// clear global state
-							clearStates();
-
-							// clear filter state
-							clearFilters();
-
-							// reset navigation to home
-							navigation.navigate('Startup');
 						}
 					});
 				}
 			})
 			.catch(err => {
 				Say.err(err as ICatchError);
-			})
-			.finally(() => setJoiningGym(false));
+				setJoiningGym(false);
+			});
 	};
 
 	const onSubmit = async () => {
@@ -758,6 +789,7 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 							<Text bold size="md" center>
 								Email already in use
 							</Text>
+							<Spacer />
 							<Text size="rg" center>
 								It looks like you already have a fitbox account.
 							</Text>
@@ -768,7 +800,8 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 										● Log in{' '}
 									</Text>
 									<Text size="rg">
-										to continue with your existing account.
+										with your existing credentials and then
+										add your new gym.
 									</Text>
 								</Text>
 							</Row>
@@ -1034,6 +1067,8 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 							onPress={onPressConfirmButton}
 							style={styles.buttonStyle}
 							loading={joiningGym}
+							disabled={joiningGym}
+							variant={joiningGym ? 'mute' : 'brand'}
 						/>
 					</View>
 				)}

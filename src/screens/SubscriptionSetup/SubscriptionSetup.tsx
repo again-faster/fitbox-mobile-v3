@@ -86,6 +86,7 @@ const SubscriptionSetup = ({ route, navigation }: MainTabScreenProps) => {
 		sessionId,
 	});
 	const [hasPaymentDetails, setHasPaymentDetails] = useState<boolean>(false);
+	const hasPreviousSubscriptions = user?.user_data.has_previous_subscriptions;
 
 	useLayoutEffect(() => {
 		let navOptions: Record<string, unknown> = {
@@ -130,7 +131,7 @@ const SubscriptionSetup = ({ route, navigation }: MainTabScreenProps) => {
 			}
 
 			const res =
-				fromSubscription || state.isBuyNow
+				fromSubscription || state.isBuyNow || hasPreviousSubscriptions
 					? await getUserSubscriptionProducts(sessionId)
 					: await getSubscriptionProducts();
 
@@ -153,7 +154,11 @@ const SubscriptionSetup = ({ route, navigation }: MainTabScreenProps) => {
 				if (selectedProductId) {
 					setState({ ...state, selectedProductId });
 				}
-			} else if (fromSubscription || state.isBuyNow) {
+			} else if (
+				fromSubscription ||
+				state.isBuyNow ||
+				hasPreviousSubscriptions
+			) {
 				void Say.okThen(
 					'There are no available subscriptions at the moment.',
 					'Sorry',

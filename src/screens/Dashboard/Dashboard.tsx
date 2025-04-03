@@ -99,7 +99,7 @@ const { metrics, fonts } = config;
 
 const Dashboard = () => {
 	const { t } = useTranslation(['dashboard']);
-	const { user, getApiUrl, signOut } = useAuth();
+	const { user, getApiUrl, signOut, updateUser } = useAuth();
 	const timezone = user?.user_data.dob.timezone as string;
 	// const headerHeight = useHeaderHeight();
 
@@ -128,6 +128,7 @@ const Dashboard = () => {
 		setWorkoutData,
 		joiningOtherGym,
 		emptyRequiredFieldsState,
+		loggedInUser,
 	} = useStore(state => ({
 		setAppState: state.setAppState,
 		classFilters: state.classFilters,
@@ -146,6 +147,7 @@ const Dashboard = () => {
 		setWorkoutData: state.setWorkoutData,
 		joiningOtherGym: state.joiningOtherGym,
 		emptyRequiredFieldsState: state.emptyRequiredFields,
+		loggedInUser: state.loggedInUser,
 	}));
 
 	const [failedInvoicesRefreshing, setFailedInvoicesRefreshing] =
@@ -248,6 +250,21 @@ const Dashboard = () => {
 
 			// set refresh unread callback, this will be called when unread messages are updated
 			// this.props.setUnreadMsgCb(this.initializeAppStates);
+			if (
+				!res.user_data.waiver_accepted &&
+				loggedInUser?.user_data.waiver_accepted
+			) {
+				void Say.okThen(
+					'Please review the waiver to continue',
+					'Waiver Updated',
+				).then(() => {
+					updateUser({
+						...loggedInUser?.user_data,
+						waiver_accepted: res.user_data.waiver_accepted,
+					});
+					navigate('Startup');
+				});
+			}
 			const { gym_info: gymInfo } = res;
 			setAppState(
 				'emptyRequiredFields',
@@ -522,7 +539,7 @@ const Dashboard = () => {
 			void fetchAttendanceReport();
 
 			return () => clearTimeout(timer);
-		}, []),
+		}, [user]),
 	);
 
 	// useEffect(() => {
