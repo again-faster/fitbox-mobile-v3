@@ -41,7 +41,6 @@ import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type State = {
 	list: SendMessageDataType[];
-	recipientIds: string[];
 	subject: string;
 	message: string;
 	page: number;
@@ -80,10 +79,12 @@ const longPressOptions = [
 
 const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 	const { conversation } = route.params as ConversationParams;
+	const recipientIds = conversation.user_list
+		.filter(user => user.id !== conversation.userId)
+		.map(user => user.id);
 	const { user } = useAuth();
 	const [state, setState] = useState<State>({
 		list: [],
-		recipientIds: [],
 		subject: conversation.subject,
 		message: '',
 		page: 0,
@@ -101,14 +102,14 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 	const isStaff = user?.user_data.is_staff;
 	const [disableReply, setDisableReply] = useState(false);
 
-	const { attachedFiles, setAppState, unreadMessageCallback } = useStore(
-		store => ({
+	const { attachedFiles, setAppState, unreadMessageCallback, inboxTeamId } =
+		useStore(store => ({
 			attachedFiles: store.attachedFiles,
 			setAppState: store.setAppState,
 			showModalNotification: store.showModalNotification,
 			unreadMessageCallback: store.unreadMessageCallback,
-		}),
-	);
+			inboxTeamId: store.inboxTeamId,
+		}));
 
 	const handleEnterMessage = (message: string) =>
 		setState(prevState => ({ ...prevState, message }));
@@ -116,7 +117,7 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 	const handleSendMessage = async () => {
 		try {
 			let { message, list } = state;
-			const { subject, convoId, sending, recipientIds } = state;
+			const { subject, convoId, sending } = state;
 
 			if (sending) return false;
 			message = message.trim();
@@ -135,6 +136,7 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 					mediaAttachments: string[];
 					disable_reply: boolean;
 					recipients: string;
+					team_id: number;
 				} = {
 					subject,
 					message: conversationMessage,
@@ -142,6 +144,7 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 					disable_reply: disableReply,
 					recipients: recipientIds.join(','),
 					mediaAttachments: [],
+					team_id: inboxTeamId,
 				};
 
 				if (attachedFiles.length > 0) {

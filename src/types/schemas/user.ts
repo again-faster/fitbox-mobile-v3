@@ -79,6 +79,7 @@ export const UserProfileSchema = z.object({
 	user_id: z.number(),
 	waiver_accepted: z.number().optional(),
 	is_staff: boolOrOneZero.optional(),
+	is_new: z.boolean().optional(),
 });
 
 export const ChildrenInfoSchema = z.object({

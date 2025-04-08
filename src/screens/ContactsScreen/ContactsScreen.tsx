@@ -35,8 +35,9 @@ type State = {
 };
 const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 	const { user } = useAuth();
-	const { setAppState } = useStore(state => ({
+	const { setAppState, inboxTeamId } = useStore(state => ({
 		setAppState: state.setAppState,
+		inboxTeamId: state.inboxTeamId,
 	}));
 	const [state, setState] = useState<State>({
 		groups: [],
@@ -131,7 +132,7 @@ const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 		let groups: ContactGroupType[] = [];
 		let sort = '';
 		try {
-			const res = await getContacts();
+			const res = await getContacts(inboxTeamId);
 			groups = res.data.groups;
 			list = res.data.members;
 		} catch (e) {

@@ -34,14 +34,19 @@ type State = {
 };
 
 const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
-	const { setAppState, storeMessage, storeSubject, attachedFiles } = useStore(
-		state => ({
-			setAppState: state.setAppState,
-			storeMessage: state.message,
-			storeSubject: state.subject,
-			attachedFiles: state.attachedFiles,
-		}),
-	);
+	const {
+		setAppState,
+		storeMessage,
+		storeSubject,
+		attachedFiles,
+		inboxTeamId,
+	} = useStore(state => ({
+		setAppState: state.setAppState,
+		storeMessage: state.message,
+		storeSubject: state.subject,
+		attachedFiles: state.attachedFiles,
+		inboxTeamId: state.inboxTeamId,
+	}));
 	const { user } = useAuth();
 	const { contacts } = route.params as ComposeParams;
 	const [replyDisabled, setDisableReply] = useState(false);
@@ -133,11 +138,13 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 					disable_reply?: boolean;
 					convo_id?: number;
 					mediaAttachments?: string[];
+					team_id: number;
 				} = {
 					subject,
 					message: composeMessage,
 					recipients: recipientIds.join(','),
 					disable_reply: !!replyDisabled,
+					team_id: inboxTeamId,
 				};
 
 				if (attachedFiles.length > 0) {

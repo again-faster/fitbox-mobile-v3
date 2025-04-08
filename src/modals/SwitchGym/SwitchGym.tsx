@@ -28,9 +28,10 @@ const SwitchGym = () => {
 	const clearClasses = useStore(state => state.clearClasses);
 	const clearFilters = useStore(state => state.clearFilters);
 	const clearStates = useStore(state => state.clearAppState);
-	const { loggedInUser, setLoggedInUser } = useStore(state => ({
+	const { loggedInUser, setLoggedInUser, setAppState } = useStore(state => ({
 		loggedInUser: state.loggedInUser,
 		setLoggedInUser: state.setLoggedInUser,
+		setAppState: state.setAppState,
 	}));
 	const [switching, setSwitching] = useState(false);
 
@@ -62,8 +63,11 @@ const SwitchGym = () => {
 									waiver_accepted:
 										gymInfoRes.user_data.waiver_accepted,
 									has_payment_details:
-										gymInfoRes.user_data
-											.has_payment_details,
+										user.user_data.has_payment_details ===
+										'skipped'
+											? 'skipped'
+											: gymInfoRes.user_data
+													.has_payment_details,
 									has_waived_subscriptions:
 										gymInfoRes.user_data
 											.has_waived_subscriptions,
@@ -87,6 +91,10 @@ const SwitchGym = () => {
 							// clear filter state
 							clearFilters();
 
+							if (res.user_data.is_new) {
+								setAppState('fromAcceptInvite', true);
+							}
+
 							// reset navigation to home
 							resetRoot();
 						} else {
@@ -109,7 +117,7 @@ const SwitchGym = () => {
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const renderItem = useCallback(({ item }: any) => {
-		const { id, logo, name } = item as Gym;
+		const { id, logo, name, status } = item as Gym;
 
 		return (
 			<SelectGymItem
@@ -118,6 +126,7 @@ const SwitchGym = () => {
 				image={logo}
 				selected={teamId === id}
 				text={name}
+				isNew={status === 'pending'}
 			/>
 		);
 	}, []);

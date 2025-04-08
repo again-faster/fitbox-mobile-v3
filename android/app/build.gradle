@@ -96,7 +96,7 @@ android {
         applicationId "com.wa.fitbox"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 116
+        versionCode 117
         versionName "4.1.7"
         vectorDrawables.useSupportLibrary = true
         // manifestPlaceholders = [

@@ -6,6 +6,7 @@ export const GymSchema = z.object({
 	id: z.number(),
 	logo: z.string(),
 	name: z.string(),
+	status: z.string(),
 });
 
 export const MemberRolesSchema = z.object({
