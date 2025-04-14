@@ -64,8 +64,14 @@ const Login = ({ navigation, route }: ApplicationScreenProps) => {
 	};
 
 	const handleCheckUserEmail = () => {
+		const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+		const isValidEmail = (input: string) => emailRegex.test(input);
 		// check if email is empty then don't continue
 		if (isEmpty(email)) return;
+		if (!isValidEmail(email)) {
+			Say.warn('Please enter a valid email address');
+			return;
+		}
 
 		// show loading indicator
 		setFetching(true);
@@ -130,7 +136,6 @@ const Login = ({ navigation, route }: ApplicationScreenProps) => {
 			Say.err('Please complete all information');
 		else {
 			setProcessing(true);
-
 			// call auth service to sign in
 			signIn(useEmail, usePassword)
 				.then(res => {

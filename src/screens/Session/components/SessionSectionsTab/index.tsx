@@ -22,7 +22,7 @@ import useStore from '@/zustand/Store';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import { isArray, isEmpty, parseInt } from 'lodash';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import WebView from 'react-native-webview';
@@ -60,9 +60,10 @@ const SessionsSectionsTab = ({
 	const queryClient = useQueryClient();
 
 	const loggedInUser = useStore(s => s.loggedInUser);
-	const { benchmarks, favorites } = useStore(s => ({
+	const { benchmarks, favorites, setSections } = useStore(s => ({
 		benchmarks: s.benchmarks,
 		favorites: s.favorites,
+		setSections: s.setSections,
 	}));
 
 	// check if user is already booked
@@ -103,6 +104,10 @@ const SessionsSectionsTab = ({
 	});
 
 	const sections = session?.sections ?? 'No Sections Found';
+
+	useEffect(() => {
+		setSections(session.sections as SessionSectionSchemaType[]);
+	}, []);
 
 	const handleToggleAllSections = () => {
 		if (toggledSections.length === 0) {
@@ -818,11 +823,11 @@ const SessionsSectionsTab = ({
 
 											{isLeaderboard && (
 												<TouchableOpacity
-													onPress={() =>
+													onPress={() => {
 														handleTabChange(
 															SessionTabsEnum.RESULTS,
-														)
-													}
+														);
+													}}
 													style={styles.resultBtn}
 												>
 													<MIcon

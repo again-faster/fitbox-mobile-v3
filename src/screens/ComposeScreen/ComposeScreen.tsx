@@ -20,6 +20,7 @@ import {
 	View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type State = {
 	message: string;
@@ -33,14 +34,19 @@ type State = {
 };
 
 const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
-	const { setAppState, storeMessage, storeSubject, attachedFiles } = useStore(
-		state => ({
-			setAppState: state.setAppState,
-			storeMessage: state.message,
-			storeSubject: state.subject,
-			attachedFiles: state.attachedFiles,
-		}),
-	);
+	const {
+		setAppState,
+		storeMessage,
+		storeSubject,
+		attachedFiles,
+		inboxTeamId,
+	} = useStore(state => ({
+		setAppState: state.setAppState,
+		storeMessage: state.message,
+		storeSubject: state.subject,
+		attachedFiles: state.attachedFiles,
+		inboxTeamId: state.inboxTeamId,
+	}));
 	const { user } = useAuth();
 	const { contacts } = route.params as ComposeParams;
 	const [replyDisabled, setDisableReply] = useState(false);
@@ -104,12 +110,7 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 		try {
 			let { subject, message } = state;
 
-			const {
-				recipients,
-				recipientIds,
-				disable_reply: disableReply,
-				sending,
-			} = state;
+			const { recipients, recipientIds, sending } = state;
 
 			if (sending) return false;
 
@@ -137,11 +138,13 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 					disable_reply?: boolean;
 					convo_id?: number;
 					mediaAttachments?: string[];
+					team_id: number;
 				} = {
 					subject,
 					message: composeMessage,
 					recipients: recipientIds.join(','),
-					disable_reply: !!disableReply,
+					disable_reply: !!replyDisabled,
+					team_id: inboxTeamId,
 				};
 
 				if (attachedFiles.length > 0) {
@@ -254,16 +257,22 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 						style={styles.disableReplyButtonStyle}
 						onPress={() => setDisableReply(!replyDisabled)}
 					>
-						<Row style={layout.flex_1} align="center">
-							<Icon
-								name="attach-outline"
-								size={config.metrics.lg}
-								color={config.backgrounds.light}
-								style={{ marginRight: config.metrics.md }}
-							/>
-							<Text color="light" numberOfLines={1}>
-								File Name
-							</Text>
+						<Row
+							style={{ paddingHorizontal: config.metrics.rg }}
+							spacing="space-between"
+						>
+							<Text>Disable replies</Text>
+							<View style={styles.disableReplyIcon}>
+								<MaterialIcons
+									name={
+										!replyDisabled
+											? 'checkbox-blank-outline'
+											: 'checkbox-outline'
+									}
+									color={config.backgrounds.mute}
+									size={20}
+								/>
+							</View>
 						</Row>
 					</TouchableOpacity>
 				)}
@@ -317,6 +326,10 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'flex-end',
 		maxHeight: '100%',
+	},
+	disableReplyIcon: {
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
 });
 

@@ -2,7 +2,7 @@ import { Row, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { memo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Dimensions, StyleSheet, View } from 'react-native';
 import { Switch } from 'react-native-paper';
 
 interface ScoreHeaderProps {
@@ -18,9 +18,19 @@ const ScoreHeader = ({
 	isRx,
 	onRxChange,
 }: ScoreHeaderProps) => {
+	const { width } = Dimensions.get('window');
+	const characterLimit = width < 400 ? 20 : 30;
+	const titleFontSize = title.length > characterLimit ? 'lg' : 'xl';
+	const numberOfLines = title.length > characterLimit ? 4 : 0;
+
 	return (
 		<View style={styles.titleContainer}>
-			<Text size="xl" bold style={layout.flex_1}>
+			<Text
+				size={titleFontSize}
+				bold
+				style={layout.flex_1}
+				numberOfLines={numberOfLines}
+			>
 				{title}
 			</Text>
 

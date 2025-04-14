@@ -7,6 +7,7 @@ import { getPastPerformance } from '@/services/users';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { ApplicationScreenProps, ScoringParams } from '@/types/navigation';
+import useStore from '@/zustand/Store';
 import BottomSheet, {
 	BottomSheetBackdrop,
 	BottomSheetScrollView,
@@ -26,6 +27,10 @@ const SessionScoringScreen = ({ route }: ApplicationScreenProps) => {
 	const { section, sessionId } = route.params as ScoringParams;
 	const { isKeyboardVisible } = useKeyboardVisibility();
 
+	const { setScoringBottomSheet } = useStore(state => ({
+		setScoringBottomSheet: state.setScoringBottomSheet,
+	}));
+
 	// Prepare state variables
 	const [isLoadingHistory, setLoadingHistory] = useState(true);
 	const [results, setResults] = useState<{
@@ -36,6 +41,10 @@ const SessionScoringScreen = ({ route }: ApplicationScreenProps) => {
 	}>({});
 	const [isBottomSheetOpen, setBottomSheetOpen] = useState(false);
 	const bottomSheetRef = useRef<BottomSheet>(null);
+
+	useEffect(() => {
+		setScoringBottomSheet(isBottomSheetOpen);
+	}, [isBottomSheetOpen]);
 
 	const handleOpenBottomSheet = () => {
 		bottomSheetRef.current?.expand(); // Use 'expand' to open it to the first snap point that isn't '0%'

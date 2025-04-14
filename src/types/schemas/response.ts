@@ -103,6 +103,13 @@ export const GetUserGymInfoResponseSchema = z.object({
 	gym_info: GymInfoSchema,
 	message: z.string(),
 	error: z.boolean(),
+	user_data: z.object({
+		has_paid_subscriptions: z.boolean(),
+		has_payment_details: boolOrOneZero,
+		has_waived_subscriptions: z.boolean(),
+		waiver_accepted: boolOrOneZero,
+		has_previous_subscriptions: z.boolean(),
+	}),
 });
 
 export const GetUserGymInfoV2ResponseSchema = z.object({

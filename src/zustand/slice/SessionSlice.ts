@@ -23,6 +23,14 @@ const createSessionSlice: StateCreator<
 	classFiltersToApply: [],
 	benchmarks: [],
 	favorites: [],
+	sections: [],
+	scoringBottomSheet: false,
+	setScoringBottomSheet: data => {
+		setState({ scoringBottomSheet: data });
+	},
+	setSections: data => {
+		setState({ sections: data });
+	},
 	bookButtonCallback: () => {},
 	isAttendingCallback: () => {},
 	toLeaderboardsCallback: () => {},

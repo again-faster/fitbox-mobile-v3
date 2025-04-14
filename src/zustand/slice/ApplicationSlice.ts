@@ -31,6 +31,8 @@ const defaultState: ApplicationStateInterface = {
 	upcomingSessionsState: [],
 	countryCode: '',
 	randomAnimation: { uri: {} as AnimationObject, index: 0 },
+	joiningOtherGym: false,
+	inboxTeamId: 0,
 };
 
 const createApplicationSlice: StateCreator<

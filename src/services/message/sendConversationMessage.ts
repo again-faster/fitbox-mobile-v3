@@ -9,12 +9,14 @@ export default async (payload: {
 	disable_reply?: boolean;
 	convo_id?: number;
 	mediaAttachments?: string[];
+	team_id: number;
 }) => {
+	const url = ApiRoutes.sendConversationMessage;
 	const response = await securedInstance()
-		.post(`${ApiRoutes.sendConversationMessage}`, {
+		.post(url, {
 			body: JSON.stringify(payload),
+			throwHttpErrors: false,
 		})
 		.json();
-
 	return SendConversationMessageSchema.parse(response);
 };

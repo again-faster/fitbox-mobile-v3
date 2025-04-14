@@ -119,7 +119,7 @@ const Startup = ({ navigation }: ApplicationScreenProps) => {
 		setTimeout(() => {
 			void checkToken();
 		}, 1000);
-	}, [isSuccess]);
+	}, [isSuccess, user?.user_data.waiver_accepted]);
 
 	return (
 		<SafeScreen>

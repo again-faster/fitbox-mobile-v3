@@ -21,34 +21,34 @@ export const UserSchema = z.object({
 	show_billing_form: boolOrOneZero,
 	billing_agreement_accepted: boolOrOneZero,
 	device_type: z.number().nullable().optional(),
-	push_token: z.string().nullable(),
-	profile_image: z.string().url(),
-	gym_logo: z.string().url(),
-	banner_image: z.string().nullable(),
-	unread_item: z.number(),
+	push_token: z.string().nullable().optional(),
+	profile_image: z.string().url().optional(),
+	gym_logo: z.string().url().optional(),
+	banner_image: z.string().nullable().optional(),
+	unread_item: z.number().optional(),
 	eula_accepted: boolOrOneZero,
 	has_waived_subscriptions: boolOrOneZero,
 	has_paid_subscriptions: boolOrOneZero,
 	waiver_accepted: boolOrOneZero,
-	has_payment_details: z.union([
-		z.boolean(),
-		z.string(),
-		z.literal(1),
-		z.literal(0),
-	]),
+	has_payment_details: z
+		.union([z.boolean(), z.string(), z.literal(1), z.literal(0)])
+		.optional(),
 	is_staff: boolOrOneZero,
-	notice: z.string(),
-	last_login: z.union([z.boolean().nullable(), z.string().nullable()]),
+	notice: z.string().optional(),
+	last_login: z
+		.union([z.boolean().nullable(), z.string().nullable()])
+		.optional(),
 	is_health_captured: boolOrOneZero,
 	allow_leaderboards: boolOrOneZero,
 	allow_leaderboards_comment: boolOrOneZero,
 	is_parent: boolOrOneZero,
 	is_child: boolOrOneZero,
 	from_parent: z.boolean().optional(),
-	parent_id: z.number(),
+	parent_id: z.number().optional(),
 	onboarding_gym_ids: z.array(z.number()).optional(),
 	emergency_contact_name: z.string().nullish(),
 	emergency_contact_number: z.string().nullish(),
+	has_previous_subscriptions: z.boolean().default(false),
 });
 
 export const UserProfileSchema = z.object({
@@ -79,6 +79,7 @@ export const UserProfileSchema = z.object({
 	user_id: z.number(),
 	waiver_accepted: z.number().optional(),
 	is_staff: boolOrOneZero.optional(),
+	is_new: z.boolean().optional(),
 });
 
 export const ChildrenInfoSchema = z.object({

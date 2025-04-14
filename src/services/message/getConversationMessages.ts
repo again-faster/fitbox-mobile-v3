@@ -9,9 +9,13 @@ export default async ({
 	conversationId: number;
 	page: number;
 }) => {
-	const url = `${ApiRoutes.conversationMessages}/${conversationId}?page=${page}`;
-
-	const response = await securedInstance().get(url).json();
+	const response = await securedInstance()
+		.get(`${ApiRoutes.conversationMessages}/${conversationId}`, {
+			searchParams: {
+				page,
+			},
+		})
+		.json();
 
 	return GetConversationMessagesSchema.parse(response);
 };

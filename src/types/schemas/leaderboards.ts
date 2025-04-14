@@ -49,6 +49,7 @@ export const LeaderboardsDataSchema = z.object({
 	age: z.number().nullable(),
 	wod_section_id: z.number(),
 	wod_attendance_id: z.number(),
+	wod_movement_id: z.number().nullable(),
 	sequence: z.number(),
 	reps: z.union([z.string(), z.number()]),
 	is_PR: z.number(),

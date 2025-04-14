@@ -6,6 +6,7 @@ export const GymSchema = z.object({
 	id: z.number(),
 	logo: z.string(),
 	name: z.string(),
+	status: z.string(),
 });
 
 export const MemberRolesSchema = z.object({
@@ -29,6 +30,19 @@ export const GymInfoSchema = z.object({
 	name: z.string().optional(),
 	website: z.string().optional(),
 	allow_attendance_report: boolOrOneZero.optional().default(1),
+});
+
+export const JoinGymSchema = z.object({
+	data: z.array(z.unknown()),
+	error: z.boolean(),
+	message: z.string(),
+});
+
+export const InviteEmailSchema = z.object({
+	data: z.array(z.unknown()),
+	error: z.boolean(),
+	message: z.string(),
+	resultCode: z.number().nullable(),
 });
 
 export type GymInfoType = z.infer<typeof GymInfoSchema>;

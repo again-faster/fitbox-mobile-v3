@@ -30,6 +30,8 @@ interface ApplicationStateInterface {
 	upcomingSessionsState: BookedSessionCardProps[];
 	countryCode: string;
 	randomAnimation: { uri: AnimationObject; index: number };
+	joiningOtherGym: boolean;
+	inboxTeamId: number;
 }
 
 interface AttachedFilesInterface {

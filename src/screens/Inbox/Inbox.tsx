@@ -193,7 +193,7 @@ const Inbox = ({ navigation }: InboxScreenProps) => {
 	);
 
 	useEffect(() => {
-		setAppState('teamId', activeGymId);
+		setAppState('inboxTeamId', activeGymId);
 	}, [activeGymId]);
 
 	const renderInboxItem = (item: MessageItemType, index: number) => {

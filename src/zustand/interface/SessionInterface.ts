@@ -1,6 +1,7 @@
 import { GymClassType, GymVenueType } from '@/types/schemas/gym';
 import {
 	ClassFiltersDataType,
+	SessionSectionSchemaType,
 	WorkoutSchemaType,
 } from '@/types/schemas/session';
 import { FilterTypeEnum } from '@/utils/Enum';
@@ -48,6 +49,8 @@ interface SessionStateInterface {
 	classFiltersToApply: ClassFilter[];
 	benchmarks: WorkoutSchemaType[];
 	favorites: WorkoutSchemaType[];
+	sections: SessionSectionSchemaType[];
+	scoringBottomSheet: boolean;
 }
 
 interface SessionInterface extends SessionStateInterface {
@@ -78,6 +81,8 @@ interface SessionInterface extends SessionStateInterface {
 	setIsAttendingCallback: (callback: (value: boolean) => void) => void;
 	toLeaderboardsCallback: () => void;
 	setToLeaderboardsCallback: (callback: () => void) => void;
+	setSections: (data: SessionSectionSchemaType[]) => void;
+	setScoringBottomSheet: (data: boolean) => void;
 }
 
 export type {

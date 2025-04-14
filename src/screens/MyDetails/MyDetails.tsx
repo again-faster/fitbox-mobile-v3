@@ -11,6 +11,7 @@ import {
 } from '@/components/atoms';
 import { Modal } from '@/components/molecules';
 import { SafeScreen } from '@/components/template';
+import { goBack } from '@/navigators/NavigationRef';
 import {
 	changeProfileImage,
 	getUserProfile,
@@ -299,7 +300,7 @@ const MyDetails = ({ navigation, route }: MenuStackNavigatorProps) => {
 					if (response.error) {
 						throw new Error(response.message);
 					} else {
-						Say.ok(response.message);
+						void Say.okThen(response.message).then(() => goBack());
 					}
 				} catch (e) {
 					// eslint-disable-next-line no-console

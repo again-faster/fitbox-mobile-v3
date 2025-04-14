@@ -100,4 +100,6 @@ export default {
 	failedPayments: `${v1}user/failedPayments`,
 	paymentIntentForInvoice: `${v1}user/createPaymentIntentForInvoice`,
 	checkPaymentIntentForInvoice: `${v1}user/checkPaymentIntentForInvoice`,
+	joinGym: `${v1}user/joinGym`,
+	inviteEmail: `${v2}user/inviteEmail`,
 };

@@ -77,6 +77,8 @@ const InviteCodeScreen = ({ navigation, route }: MainTabScreenProps) => {
 		}),
 	);
 
+	const [acceptingInvite, setAcceptingInvite] = useState(false);
+
 	const [state, setState] = useState<State>({
 		isLoggedIn: false,
 		code: (route.params as InviteParams)?.inviteCode || '',
@@ -119,7 +121,7 @@ const InviteCodeScreen = ({ navigation, route }: MainTabScreenProps) => {
 	const onSubmit = async () => {
 		const hasError = checkForEmptyFields();
 		if (hasError) return;
-
+		setAcceptingInvite(true);
 		try {
 			setState(prevState => ({ ...prevState, processing: true }));
 			const { fields, code } = state;
@@ -131,13 +133,18 @@ const InviteCodeScreen = ({ navigation, route }: MainTabScreenProps) => {
 			if (!res.error) {
 				if (res.data.accepted) {
 					Say.okThen('Successfully Registered')
-						.then(() => void onSubmitCallback())
+						.then(() => {
+							setAcceptingInvite(false);
+							void onSubmitCallback();
+						})
 						.catch(error => Say.err(error as ICatchError));
 				}
 			}
 		} catch (error) {
+			setAcceptingInvite(false);
 			handleErrorMessage(error as string);
 		} finally {
+			setAcceptingInvite(false);
 			setState(prevState => ({ ...prevState, processing: false }));
 		}
 	};
@@ -170,6 +177,7 @@ const InviteCodeScreen = ({ navigation, route }: MainTabScreenProps) => {
 				userData.waiver_accepted = false;
 
 				updateUser(userData);
+				navigation.navigate('Startup');
 			} else {
 				const { email, password } = state.fields;
 				signIn(email, password as string)
@@ -474,6 +482,8 @@ const InviteCodeScreen = ({ navigation, route }: MainTabScreenProps) => {
 						style={style.submitButton}
 						labelStyle={style.submitButtonLabel}
 						onPress={() => void onSubmit()}
+						disabled={acceptingInvite}
+						loading={acceptingInvite}
 					/>
 				</View>
 			</ScrollView>

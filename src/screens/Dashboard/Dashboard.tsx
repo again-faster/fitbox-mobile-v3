@@ -69,6 +69,7 @@ import DashboardActionButton from './components/DashboardActionButton';
 import DashboardHeader from './components/DashboardHeader';
 import FailedInvoicesModal from './components/FailedInvoicesModal';
 import LoggedInUserInfo from './components/LoggedInUserInfo';
+import RequiredFieldsModal from './components/RequiredFieldsModal';
 
 // List of action buttons to be displayed on the dashboard screen
 const actionButtons = [
@@ -98,7 +99,7 @@ const { metrics, fonts } = config;
 
 const Dashboard = () => {
 	const { t } = useTranslation(['dashboard']);
-	const { user, getApiUrl, signOut } = useAuth();
+	const { user, getApiUrl, signOut, updateUser } = useAuth();
 	const timezone = user?.user_data.dob.timezone as string;
 	// const headerHeight = useHeaderHeight();
 
@@ -125,6 +126,9 @@ const Dashboard = () => {
 		classFiltersDataState,
 		upcomingSessionsState,
 		setWorkoutData,
+		joiningOtherGym,
+		emptyRequiredFieldsState,
+		loggedInUser,
 	} = useStore(state => ({
 		setAppState: state.setAppState,
 		classFilters: state.classFilters,
@@ -141,6 +145,9 @@ const Dashboard = () => {
 		classFiltersDataState: state.classFiltersDataState,
 		upcomingSessionsState: state.upcomingSessionsState,
 		setWorkoutData: state.setWorkoutData,
+		joiningOtherGym: state.joiningOtherGym,
+		emptyRequiredFieldsState: state.emptyRequiredFields,
+		loggedInUser: state.loggedInUser,
 	}));
 
 	const [failedInvoicesRefreshing, setFailedInvoicesRefreshing] =
@@ -162,6 +169,9 @@ const Dashboard = () => {
 
 	const [failedInvoices, setFailedInvoices] = useState<FailedInvoicesType>();
 	const [showFailedInvoicesModal, setShowFailedInvoicesModal] =
+		useState<boolean>(false);
+
+	const [showRequiredFieldsModal, setShowRequiredFieldsModal] =
 		useState<boolean>(false);
 
 	const { hasSwitchableUsers } = useSwitchableUsers();
@@ -240,8 +250,22 @@ const Dashboard = () => {
 
 			// set refresh unread callback, this will be called when unread messages are updated
 			// this.props.setUnreadMsgCb(this.initializeAppStates);
+			if (
+				!res.user_data.waiver_accepted &&
+				loggedInUser?.user_data.waiver_accepted
+			) {
+				void Say.okThen(
+					'Please review the waiver to continue',
+					'Waiver Updated',
+				).then(() => {
+					updateUser({
+						...loggedInUser?.user_data,
+						waiver_accepted: res.user_data.waiver_accepted,
+					});
+					navigate('Startup');
+				});
+			}
 			const { gym_info: gymInfo } = res;
-
 			setAppState(
 				'emptyRequiredFields',
 				parseEmptyRequiredFields(
@@ -284,7 +308,12 @@ const Dashboard = () => {
 				}
 
 				if (isEmpty(userData[field as keyof UserSchemaType])) {
-					emptyRequiredFields.push(field);
+					if (
+						typeof userData[field as keyof UserSchemaType] !==
+						'number'
+					) {
+						emptyRequiredFields.push(field);
+					}
 				}
 			}
 		});
@@ -491,6 +520,14 @@ const Dashboard = () => {
 		PushNotification.cancelAllLocalNotifications();
 	};
 
+	useEffect(() => {
+		if (!isEmpty(emptyRequiredFieldsState)) {
+			setShowRequiredFieldsModal(true);
+		} else {
+			setShowRequiredFieldsModal(false);
+		}
+	}, [emptyRequiredFieldsState]);
+
 	useFocusEffect(
 		useCallback(() => {
 			setFailedInvoicesRefreshing(true);
@@ -502,7 +539,7 @@ const Dashboard = () => {
 			void fetchAttendanceReport();
 
 			return () => clearTimeout(timer);
-		}, []),
+		}, [user]),
 	);
 
 	// useEffect(() => {
@@ -520,6 +557,10 @@ const Dashboard = () => {
 
 	// get filter options every gym switch
 	useEffect(() => {
+		if (joiningOtherGym) {
+			navigate('SwitchGym');
+			setAppState('joiningOtherGym', false);
+		}
 		void fetchFilterOptions();
 		void onMountTasks();
 		void fetchWorkouts();
@@ -946,6 +987,12 @@ const Dashboard = () => {
 
 			<LoggedInUserInfo />
 			{/* <WhatsNewDialog /> */}
+
+			{showRequiredFieldsModal && (
+				<RequiredFieldsModal
+					setShowRequiredFieldsModal={setShowRequiredFieldsModal}
+				/>
+			)}
 
 			{failedInvoices &&
 				failedInvoices?.invoices.length > 0 &&

@@ -1,12 +1,34 @@
 import useAuth from '@/auth/hooks/useAuth';
-import { Avatar, Button, Card, Row, Spacer, Text } from '@/components/atoms';
-import { BottomPanel, QRCamera } from '@/components/molecules';
+import {
+	Avatar,
+	Button,
+	Card,
+	KeyboardSpacer,
+	Row,
+	Spacer,
+	Text,
+} from '@/components/atoms';
+import {
+	BottomPanel,
+	Modal as ModalMoleculeComponent,
+	QRCamera,
+} from '@/components/molecules';
+import { resetRoot } from '@/navigators/NavigationRef';
 import { checkEmail, register } from '@/services/auth';
-import { getUserGymInfoV2 } from '@/services/users';
+import { inviteEmail, joinGym } from '@/services/gym';
+import {
+	getUserGymInfo,
+	getUserGymInfoV2,
+	updateUserProfile,
+} from '@/services/users';
 import { config } from '@/theme/_config';
+import layout from '@/theme/layout';
 import { ApplicationScreenProps, SignUpParams } from '@/types/navigation';
 import { GymInfoType, MemberRolesType } from '@/types/schemas/gym';
+import { LoginResponseSchemaType } from '@/types/schemas/response';
 import { Constant, Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
+import useStore from '@/zustand/Store';
 import { capitalize, isArray, isEmpty } from 'lodash';
 import moment from 'moment';
 import { RefObject, createRef, useEffect, useRef, useState } from 'react';
@@ -130,6 +152,7 @@ const SIGNUP_CUSTOM_INPUT_FIELDS = {
 };
 
 const MAX_CODE_LENGTH = 4;
+const MINIMUM_DATE = '1900-01-01';
 
 const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 	const [state, setState] = useState<State>({
@@ -151,14 +174,38 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 		activeFieldInput: null,
 	});
 
+	const [dateValue, setDateValue] = useState<string>(
+		moment().subtract(10, 'years').format(Constant.DEFAULT_DATE_FORMAT),
+	);
+
 	const [allowPassword, setAllowPassword] = useState<boolean>();
+	const [joiningGym, setJoiningGym] = useState<boolean>(false);
+	const [sendingInvite, setSendingInvite] = useState<boolean>(false);
+	const [emailInput, setEmailInput] = useState<string>('');
+	const [emailExists, setEmailExists] = useState<boolean>(false);
+
+	const {
+		loggedInUser,
+		clearClasses,
+		clearFilters,
+		clearStates,
+		setAppState,
+	} = useStore(storeState => ({
+		loggedInUser: storeState.loggedInUser,
+		clearClasses: storeState.clearClasses,
+		clearFilters: storeState.clearFilters,
+		clearStates: storeState.clearAppState,
+		setAppState: storeState.setAppState,
+	}));
+
+	const loggedInUserConst = loggedInUser as LoginResponseSchemaType;
 
 	const roleModalRef: RefObject<ModalComponent> = createRef();
 	const stateRef = useRef<State>();
 	stateRef.current = state;
 	let timeoutFunction: NodeJS.Timeout | null = null;
 	const recaptchaRef = useRef<GoogleRecaptchaRefAttributes>(null);
-	const { signIn } = useAuth();
+	const { signIn, isLoggedIn, updateUser } = useAuth();
 
 	useEffect(() => {
 		const fields: Fields = {} as Fields;
@@ -247,7 +294,10 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 	};
 
 	const handleOnChange = (code: string) => {
-		setState(prev => ({ ...prev, code, gymInfo: null }));
+		setState(prev => ({ ...prev, code }));
+		if (code.length !== MAX_CODE_LENGTH) {
+			setState(prev => ({ ...prev, gymInfo: null }));
+		}
 	};
 
 	const onCaptchaVerified = async () => {
@@ -307,6 +357,75 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 
 	const onCaptchaError = () => {
 		recaptchaRef.current?.close();
+	};
+
+	const onPressJoinGym = () => {
+		setJoiningGym(true);
+		joinGym({ team_id: state.code })
+			.then(res => {
+				if (res.error) {
+					Say.err(res.message);
+					setJoiningGym(false);
+				} else {
+					void updateUserProfile({
+						default_team_id: Number(state.code),
+					}).then(updateUserRes => {
+						if (!updateUserRes.error) {
+							void getUserGymInfo().then(gymInfoRes => {
+								if (!gymInfoRes.error) {
+									updateUser({
+										...loggedInUserConst.user_data,
+										is_staff: updateUserRes.user_data
+											.is_staff as boolean,
+										waiver_accepted:
+											gymInfoRes.user_data
+												.waiver_accepted,
+										has_payment_details:
+											gymInfoRes.user_data
+												.has_payment_details,
+										has_waived_subscriptions:
+											gymInfoRes.user_data
+												.has_waived_subscriptions,
+										show_subscription_form:
+											!gymInfoRes.user_data
+												.has_paid_subscriptions &&
+											!gymInfoRes.user_data
+												.has_waived_subscriptions,
+										has_previous_subscriptions:
+											gymInfoRes.user_data
+												.has_previous_subscriptions,
+									});
+									// clear calendar state
+									clearClasses();
+
+									// clear global state
+									clearStates();
+
+									// clear filter state
+									clearFilters();
+
+									setJoiningGym(false);
+
+									SimpleToast.show(
+										'Successfully joined gym',
+										SimpleToast.SHORT,
+									);
+									navigation.navigate('Startup');
+
+									// reset navigation to home
+								} else {
+									Say.err(gymInfoRes.message);
+									setJoiningGym(false);
+								}
+							});
+						}
+					});
+				}
+			})
+			.catch(err => {
+				Say.err(err as ICatchError);
+				setJoiningGym(false);
+			});
 	};
 
 	const onSubmit = async () => {
@@ -380,6 +499,45 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 		return !isEmpty(fieldsError);
 	};
 
+	const onPressConfirmButton = () => {
+		if (isLoggedIn) {
+			onPressJoinGym();
+		} else {
+			setState(prevState => ({
+				...prevState,
+				proceed: true,
+			}));
+		}
+	};
+
+	const handleLogIn = () => {
+		setAppState('joiningOtherGym', true);
+		setEmailExists(false);
+		navigation.push('Login', {
+			emailFromSignin: emailInput,
+		});
+	};
+
+	const handleSendLink = () => {
+		setEmailExists(false);
+		setSendingInvite(true);
+		void inviteEmail({
+			email: emailInput,
+			team_id: state.code,
+		})
+			.then(res => {
+				if (res.error) {
+					Say.err('Something went wrong');
+				} else {
+					void Say.okThen(res.message, 'Request Sent').then(() =>
+						resetRoot(),
+					);
+				}
+			})
+			.catch(err => Say.err(err as ICatchError))
+			.finally(() => setSendingInvite(false));
+	};
+
 	const handleErrorMessage = (err: string[] | string) => {
 		if (isArray(err)) {
 			throw new Error(err.join('\n'));
@@ -397,6 +555,8 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 						validatingEmail: true,
 					}));
 
+					setEmailInput(email);
+
 					const reg =
 						/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -410,14 +570,57 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 					if (!res.error) {
 						if (res.data.exists) {
 							if (res.data.isActive) {
-								await Say.okThen(
-									'Email already exist. Please sign in instead',
-									'Oops!',
-								).then(() =>
-									navigation.push('Login', {
-										emailFromSignin: email,
-									}),
-								);
+								// Alert.alert(
+								// 	'Email already in use',
+								// 	'It looks like you already have a fitbox account.\n \n• Log in to continue with your existing account.\n• Joining a new gym? We can send you a verification link to connect your account to this gym.',
+								// 	[
+								// 		{
+								// 			text: 'Login',
+								// 			onPress: () => {
+								// 				setAppState(
+								// 					'joiningOtherGym',
+								// 					true,
+								// 				);
+								// 				navigation.push('Login', {
+								// 					emailFromSignin: email,
+								// 				});
+								// 			},
+								// 		},
+								// 		{
+								// 			text: 'Send Link',
+								// 			onPress: () => {
+								// 				setSendingInvite(true);
+								// 				void inviteEmail({
+								// 					email,
+								// 					team_id: state.code,
+								// 				})
+								// 					.then(inviteEmailRes => {
+								// 						if (res.error) {
+								// 							Say.err(
+								// 								'Something went wrong',
+								// 							);
+								// 						} else {
+								// 							void Say.okThen(
+								// 								inviteEmailRes.message,
+								// 								'Request Sent',
+								// 							).then(() =>
+								// 								resetRoot(),
+								// 							);
+								// 						}
+								// 					})
+								// 					.catch(err =>
+								// 						Say.err(
+								// 							err as ICatchError,
+								// 						),
+								// 					)
+								// 					.finally(() =>
+								// 						setSendingInvite(false),
+								// 					);
+								// 			},
+								// 		},
+								// 	],
+								// );
+								setEmailExists(true);
 							} else {
 								await Say.okThen(
 									'Email already exist. Please contact your gym administrator to activate your account',
@@ -523,184 +726,263 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 		};
 
 		return (
-			<ScrollView
-				contentContainerStyle={{ padding: config.metrics.lg }}
-				keyboardShouldPersistTaps="handled"
-			>
-				<Modal
-					animationType="fade"
-					transparent
-					visible={state.roleModal}
+			<>
+				<ScrollView
+					contentContainerStyle={{ padding: config.metrics.lg }}
+					keyboardShouldPersistTaps="handled"
 				>
-					<View style={styles.roleModalConStyle}>
-						<TouchableWithoutFeedback onPress={toggleRoleModal}>
-							<View style={styles.modalMemberRole} />
-						</TouchableWithoutFeedback>
-
-						<Card
-							style={[
-								styles.modalStyle,
-								{ top: state.roleModalTopHeight },
-							]}
-						>
-							{rolesList?.map((roleItem, rIndex) => (
-								<TouchableOpacity
-									key={rIndex}
-									style={styles.roleSelectStyle}
-									onPress={() =>
-										handleOnRolePress(roleItem.id)
-									}
-									disabled={processing}
-								>
-									<Text>{roleItem.name}</Text>
-									{roleItem.id === currentRole?.id && (
-										<Icon
-											name="check"
-											color={config.colors.brand}
-											size={config.metrics.sm}
-										/>
-									)}
-								</TouchableOpacity>
-							))}
-						</Card>
-					</View>
-				</Modal>
-
-				{/* Date Modal */}
-				<DateTimePicker
-					mode="date"
-					isVisible={activeFieldInput?.type === 'date'}
-					onConfirm={date => {
-						handleTextOnChange(
-							activeFieldInput?.id as string,
-							moment(date).format(Constant.DEFAULT_DATE_FORMAT),
-						);
-						clearActiveField();
-					}}
-					onCancel={clearActiveField}
-					maximumDate={new Date()}
-				/>
-
-				{/* Select Modal */}
-				<BottomPanel
-					visible={activeFieldInput?.type === 'select'}
-					onClose={clearActiveField}
-				>
-					<View>
-						{activeFieldInput?.data?.options?.map(
-							(option: string, index: number) => (
-								<TouchableOpacity
-									key={index}
-									onPress={() => {
-										handleTextOnChange(
-											activeFieldInput?.id,
-											option,
-										);
-										clearActiveField();
-									}}
-									style={styles.bottomPanelTouch}
-								>
-									<Text size="rg">{option}</Text>
-								</TouchableOpacity>
-							),
-						)}
-					</View>
-				</BottomPanel>
-
-				<GoogleRecaptcha
-					siteKey={Constant.RECAPTCHA.siteKey}
-					baseUrl={Constant.RECAPTCHA.baseURL}
-					ref={recaptchaRef}
-					onVerify={() => void onCaptchaVerified()}
-					onError={onCaptchaError}
-					onExpire={onCaptchaError}
-				/>
-
-				<Text size="md" center>
-					Let&apos;s grab some details
-				</Text>
-				<Spacer />
-
-				{SIGNUP_INPUT_FIELDS.map((field, index) => (
-					<InputField
-						key={index}
-						field={field as RequiredFields}
-						processing={state.processing}
-						allowEmail={state.allowEmail}
-						fields={state.fields}
-						handleTextOnChange={handleTextOnChange}
-						validatingEmail={state.validatingEmail as boolean}
-						handleCheckUserEmail={handleCheckUserEmail}
-						fieldsError={state.fieldsError}
-						setState={setState}
-						allowPassword={allowPassword}
-						setAllowPassword={setAllowPassword}
-					/>
-				))}
-
-				{state.requiredFields.length > 0 && (
-					<Text
-						center
-						size="md"
-						color="darkgray"
-						style={{ marginTop: config.metrics.xl }}
+					<Modal
+						animationType="fade"
+						transparent
+						visible={state.roleModal}
 					>
-						Your gym requires the following
+						<View style={styles.roleModalConStyle}>
+							<TouchableWithoutFeedback onPress={toggleRoleModal}>
+								<View style={styles.modalMemberRole} />
+							</TouchableWithoutFeedback>
+
+							<Card
+								style={[
+									styles.modalStyle,
+									{ top: state.roleModalTopHeight },
+								]}
+							>
+								{rolesList?.map((roleItem, rIndex) => (
+									<TouchableOpacity
+										key={rIndex}
+										style={styles.roleSelectStyle}
+										onPress={() =>
+											handleOnRolePress(roleItem.id)
+										}
+										disabled={processing}
+									>
+										<Text>{roleItem.name}</Text>
+										{roleItem.id === currentRole?.id && (
+											<Icon
+												name="check"
+												color={config.colors.brand}
+												size={config.metrics.sm}
+											/>
+										)}
+									</TouchableOpacity>
+								))}
+							</Card>
+						</View>
+					</Modal>
+
+					<ModalMoleculeComponent visible={sendingInvite}>
+						<View style={styles.modalComponentStyle}>
+							<ActivityIndicator
+								size="large"
+								color={config.colors.brand}
+							/>
+						</View>
+					</ModalMoleculeComponent>
+
+					<ModalMoleculeComponent visible={emailExists}>
+						<Card
+							style={{
+								marginHorizontal: config.metrics.md,
+								padding: config.metrics.md,
+							}}
+						>
+							<Text bold size="md" center>
+								Email already in use
+							</Text>
+							<Spacer />
+							<Text size="rg" center>
+								It looks like you already have a fitbox account.
+							</Text>
+							<Spacer />
+							<Row>
+								<Text>
+									<Text size="rg" bold>
+										● Log in{' '}
+									</Text>
+									<Text size="rg">
+										with your existing credentials and then
+										add your new gym.
+									</Text>
+								</Text>
+							</Row>
+							<Row>
+								<Text>
+									<Text size="rg" bold>
+										● Joining a new gym?{' '}
+									</Text>
+									<Text size="rg">
+										We can send you a verification link to
+										connect your account to this gym.
+									</Text>
+								</Text>
+							</Row>
+							<Spacer />
+							<Row>
+								<Button
+									title="Log In"
+									onPress={handleLogIn}
+									style={layout.flex_1}
+									mode="outlined"
+								/>
+								<View style={{ width: config.metrics.sm }} />
+								<Button
+									title="Send Link"
+									onPress={handleSendLink}
+									style={layout.flex_1}
+									mode="outlined"
+								/>
+							</Row>
+						</Card>
+					</ModalMoleculeComponent>
+
+					{/* Date Modal */}
+					<DateTimePicker
+						mode="date"
+						isVisible={activeFieldInput?.type === 'date'}
+						onConfirm={date => {
+							handleTextOnChange(
+								activeFieldInput?.id as string,
+								moment(date).format(
+									Constant.DEFAULT_DATE_FORMAT,
+								),
+							);
+							setDateValue(
+								moment(date).format(
+									Constant.DEFAULT_DATE_FORMAT,
+								),
+							);
+							clearActiveField();
+						}}
+						onCancel={clearActiveField}
+						maximumDate={new Date()}
+						minimumDate={new Date(MINIMUM_DATE)}
+						date={new Date(dateValue)}
+					/>
+
+					{/* Select Modal */}
+					<BottomPanel
+						visible={activeFieldInput?.type === 'select'}
+						onClose={clearActiveField}
+					>
+						<View>
+							{activeFieldInput?.data?.options?.map(
+								(option: string, index: number) => (
+									<TouchableOpacity
+										key={index}
+										onPress={() => {
+											handleTextOnChange(
+												activeFieldInput?.id,
+												option,
+											);
+											clearActiveField();
+										}}
+										style={styles.bottomPanelTouch}
+									>
+										<Text size="rg">{option}</Text>
+									</TouchableOpacity>
+								),
+							)}
+						</View>
+					</BottomPanel>
+
+					<GoogleRecaptcha
+						siteKey={Constant.RECAPTCHA.siteKey}
+						baseUrl={Constant.RECAPTCHA.baseURL}
+						ref={recaptchaRef}
+						onVerify={() => void onCaptchaVerified()}
+						onError={onCaptchaError}
+						onExpire={onCaptchaError}
+					/>
+
+					<Text size="md" center>
+						Let&apos;s grab some details
 					</Text>
-				)}
+					<Spacer />
 
-				{state.requiredFields.map((field, index) => (
-					<InputField
-						key={index}
-						field={field}
-						processing={state.processing}
-						allowEmail={state.allowEmail}
-						fields={state.fields}
-						handleTextOnChange={handleTextOnChange}
-						validatingEmail={state.validatingEmail as boolean}
-						handleCheckUserEmail={handleCheckUserEmail}
-						fieldsError={state.fieldsError}
-						setState={setState}
-						allowPassword={allowPassword}
-						setAllowPassword={setAllowPassword}
+					{SIGNUP_INPUT_FIELDS.map((field, index) => (
+						<InputField
+							key={index}
+							field={field as RequiredFields}
+							processing={state.processing}
+							allowEmail={state.allowEmail}
+							fields={state.fields}
+							handleTextOnChange={handleTextOnChange}
+							validatingEmail={state.validatingEmail as boolean}
+							handleCheckUserEmail={handleCheckUserEmail}
+							fieldsError={state.fieldsError}
+							setState={setState}
+							allowPassword={allowPassword}
+							setAllowPassword={setAllowPassword}
+						/>
+					))}
+
+					{state.requiredFields.length > 0 && (
+						<Text
+							center
+							size="md"
+							color="darkgray"
+							style={{ marginTop: config.metrics.xl }}
+						>
+							Your gym requires the following
+						</Text>
+					)}
+
+					{state.requiredFields.map((field, index) => (
+						<InputField
+							key={index}
+							field={field}
+							processing={state.processing}
+							allowEmail={state.allowEmail}
+							fields={state.fields}
+							handleTextOnChange={handleTextOnChange}
+							validatingEmail={state.validatingEmail as boolean}
+							handleCheckUserEmail={handleCheckUserEmail}
+							fieldsError={state.fieldsError}
+							setState={setState}
+							allowPassword={allowPassword}
+							setAllowPassword={setAllowPassword}
+						/>
+					))}
+
+					<Spacer size="lg" />
+
+					<Row align="center" spacing="center">
+						<Icon
+							name={
+								state.verified
+									? 'checkbox-outline'
+									: 'checkbox-blank-outline'
+							}
+							color={
+								state.allowEmail
+									? config.colors.brand
+									: config.backgrounds.lightgrey
+							}
+							size={25}
+							onPress={() =>
+								!state.verified && state.allowEmail
+									? recaptchaRef.current?.open()
+									: Say.err(
+											'Please enter a valid email address',
+										)
+							}
+						/>
+						<Spacer horizontal size="sm" />
+						<Text size="lg">I am not a robot</Text>
+					</Row>
+
+					<Button
+						title="Submit"
+						sm
+						loading={state.processing}
+						disabled={!state.allowEmail}
+						labelStyle={{ color: config.backgrounds.light }}
+						style={submitButtonStyle}
+						onPress={() => void onSubmit()}
 					/>
-				))}
-
-				<Spacer size="lg" />
-
-				<Row align="center" spacing="center">
-					<Icon
-						name={
-							state.verified
-								? 'checkbox-outline'
-								: 'checkbox-blank-outline'
-						}
-						color={
-							state.allowEmail
-								? config.colors.brand
-								: config.backgrounds.lightgrey
-						}
-						size={25}
-						onPress={() =>
-							!state.verified && state.allowEmail
-								? recaptchaRef.current?.open()
-								: Say.err('Please enter a valid email address')
-						}
-					/>
-					<Spacer horizontal size="sm" />
-					<Text size="lg">I am not a robot</Text>
-				</Row>
-
-				<Button
-					title="Submit"
-					sm
-					loading={state.processing}
-					disabled={!state.allowEmail}
-					labelStyle={{ color: config.backgrounds.light }}
-					style={submitButtonStyle}
-					onPress={() => void onSubmit()}
-				/>
-			</ScrollView>
+				</ScrollView>
+				{Platform.OS !== 'android' && <KeyboardSpacer />}
+			</>
 		);
 	};
 
@@ -782,13 +1064,11 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 						<Button
 							title="Confirm"
 							sm
-							onPress={() =>
-								setState(prevState => ({
-									...prevState,
-									proceed: true,
-								}))
-							}
+							onPress={onPressConfirmButton}
 							style={styles.buttonStyle}
+							loading={joiningGym}
+							disabled={joiningGym}
+							variant={joiningGym ? 'mute' : 'brand'}
 						/>
 					</View>
 				)}
@@ -860,6 +1140,12 @@ const styles = StyleSheet.create({
 	enterCodeTextInput: { width: '70%', paddingVertical: 10 },
 	codeEnterViewContainer: { alignItems: 'center' },
 	codeEnterTextInputContainer: { flexDirection: 'row', alignItems: 'center' },
+	modalComponentStyle: {
+		flex: 1,
+		backgroundColor: 'rgba(0,0,0,.3)',
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
 });
 
 export default SignUp;

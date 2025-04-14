@@ -61,10 +61,13 @@ type Venues = {
 };
 
 type Sections = {
-	[key: string]: {
+	[key: string | number]: {
 		activeCard: boolean;
 		title: string;
 		results: LeaderboardsDataType[];
+		movementName?: string;
+		reps?: string;
+		isMovement?: boolean;
 	};
 };
 
@@ -80,8 +83,9 @@ const ClassResultsScreen = ({
 	selectClass,
 	dateFromParams,
 }: ClassResultsParams) => {
-	const { allowCommentsState } = useStore(state => ({
+	const { allowCommentsState, sessionSections } = useStore(state => ({
 		allowCommentsState: state.allowComments,
+		sessionSections: state.sections,
 	}));
 
 	const [state, setState] = useState<State>({
@@ -238,15 +242,28 @@ const ClassResultsScreen = ({
 	const parseResults = (results: LeaderboardsDataType[]) => {
 		const parsedSections: Sections = {};
 		results.forEach(data => {
-			if (!parsedSections[data.sequence]) {
-				parsedSections[data.sequence] = {
+			const section = sessionSections.find(
+				item => item.id === data.wod_section_id,
+			);
+
+			const movement =
+				section?.wod_movements &&
+				section?.wod_movements.find(
+					item => item.id === data.wod_movement_id,
+				);
+			const groupKey = movement ? data.wod_movement_id : data.sequence;
+			if (!parsedSections[groupKey as string | number]) {
+				parsedSections[groupKey as string | number] = {
 					title: data.section.name,
 					activeCard: true,
 					results: [],
+					movementName: movement?.movement.name,
+					reps: movement?.reps as string,
+					isMovement: !!movement,
 				};
 			}
 
-			parsedSections[data.sequence]?.results.push(data);
+			parsedSections[groupKey as string | number]?.results.push(data);
 		});
 		return parsedSections;
 	};
@@ -396,8 +413,11 @@ const ClassResultsScreen = ({
 								color="light"
 								bold
 								style={layout.flex_1}
+								numberOfLines={1}
 							>
-								{section.title}
+								{section.isMovement
+									? `${section.reps ? `${section.reps} reps` : ''} ${section.movementName} (${section.title})`
+									: section.title}
 							</Text>
 							<Icon
 								name={

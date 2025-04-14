@@ -12,6 +12,7 @@ type SelectGymItemProps = {
 	onPress: () => void;
 	text: string;
 	selected: boolean;
+	isNew: boolean;
 };
 
 const SelectGymItem = ({
@@ -20,6 +21,7 @@ const SelectGymItem = ({
 	onPress,
 	text,
 	selected,
+	isNew,
 }: SelectGymItemProps) => (
 	<TouchableOpacity
 		key={id}
@@ -54,6 +56,13 @@ const SelectGymItem = ({
 				{text}
 			</Text>
 		</Row>
+		<View style={styles.badgeContainer}>
+			{isNew && (
+				<Text style={styles.badgeStyle} size="xs" color="light" bold>
+					New
+				</Text>
+			)}
+		</View>
 
 		{selected && ( // show check if current gym
 			<Icon name="check" style={styles.selectedIcon} />
@@ -86,11 +95,12 @@ const styles = StyleSheet.create({
 		overflow: 'hidden',
 	},
 	badgeStyle: {
-		position: 'absolute',
-		right: 5,
-		top: 5,
-		backgroundColor: fonts.colors.danger,
+		paddingHorizontal: 2,
+		backgroundColor: fonts.colors.info,
 		color: fonts.colors.light,
+	},
+	badgeContainer: {
+		alignSelf: 'flex-end',
 	},
 	selectedIcon: {
 		fontSize: fonts.metrics.lg,

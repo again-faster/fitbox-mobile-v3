@@ -87,13 +87,19 @@ const ScoreComponent = ({
 	wod_id = null,
 	date,
 }: ScoreComponentProps) => {
-	const { allowComments, lastRxValue, setAppState, toLeaderboardsCallback } =
-		useStore(state => ({
-			allowComments: state.allowComments,
-			lastRxValue: state.lastRxValue,
-			setAppState: state.setAppState,
-			toLeaderboardsCallback: state.toLeaderboardsCallback,
-		}));
+	const {
+		allowComments,
+		lastRxValue,
+		setAppState,
+		toLeaderboardsCallback,
+		scoringBottomSheet,
+	} = useStore(state => ({
+		allowComments: state.allowComments,
+		lastRxValue: state.lastRxValue,
+		setAppState: state.setAppState,
+		toLeaderboardsCallback: state.toLeaderboardsCallback,
+		scoringBottomSheet: state.scoringBottomSheet,
+	}));
 
 	// create input ref
 	const inputRefs: MutableRefObject<{
@@ -167,6 +173,8 @@ const ScoreComponent = ({
 	const [isScrollable, setIsScrollable] = useState(false);
 	const [contentHeight, setContentHeight] = useState(0);
 	const [layoutHeight, setLayoutHeight] = useState(0);
+
+	const scoringFlexValue = scoringBottomSheet ? 0.59 : 1;
 
 	// eslint-disable-next-line no-console
 	console.log('@setDeleting', setDeleting);
@@ -985,7 +993,9 @@ const ScoreComponent = ({
 					onRxChange={rxChanged}
 				/>
 
-				<View style={[layout.flex_1, layout.overflowHidden]}>
+				<View
+					style={[{ flex: scoringFlexValue }, layout.overflowHidden]}
+				>
 					{renderInputFields}
 
 					{isScrollable ? (
@@ -1166,6 +1176,6 @@ const styles = StyleSheet.create({
 		backgroundColor: config.fonts.colors.info,
 	},
 	scoreCommentHeight: {
-		height: '55%',
+		height: '100%',
 	},
 });
