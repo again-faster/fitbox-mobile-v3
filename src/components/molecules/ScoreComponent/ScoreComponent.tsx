@@ -890,7 +890,11 @@ const ScoreComponent = ({
 					onPress={onClickAddComment}
 					style={styles.commentDisplay}
 				>
-					<Text color={displayComment ? 'darkgray' : 'mute'} center>
+					<Text
+						color={displayComment ? 'darkgray' : 'mute'}
+						center
+						size="md"
+					>
 						{displayComment ? `${displayComment} ` : 'Add Comments'}
 						{displayComment ? (
 							<MIcon
