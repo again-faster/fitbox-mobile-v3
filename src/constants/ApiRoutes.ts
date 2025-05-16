@@ -17,6 +17,7 @@ export default {
 	attendStatus: `${v1}fitbox/leaderboard/attend-sessions`,
 	scoreMissingWods: `${v1}fitbox/leaderboard/wod-attended`,
 	attendanceReport: `${v1}fitbox/leaderboard/attendance-report`,
+	attendanceGraph: `${v1}fitbox/leaderboard/attendance-report-graph`,
 	attendSession: `${v1}fitbox/leaderboard/add-attendance`,
 	updateAttendance: `${v1}fitbox/leaderboard/update-attendance`,
 	scheduleList: `${v1}schedulelist`,

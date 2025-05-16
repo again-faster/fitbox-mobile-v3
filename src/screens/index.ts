@@ -1,5 +1,6 @@
 export { default as AboutUs } from './AboutUs/AboutUs';
 export { default as AcceptedWaiversScreen } from './AcceptedWaiversScreen/AcceptedWaiversScreen';
+export { default as AttendanceScreen } from './AttendanceScreen/AttendanceScreen';
 export { default as Auth } from './Auth/Auth';
 export { default as BillingAgreementScreen } from './BillingAgreementScreen/BillingAgreementScreen';
 export { default as BookingScreen } from './BookingScreen/BookingScreen';

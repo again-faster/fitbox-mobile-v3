@@ -1945,6 +1945,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - Sentry/HybridSDK (= 8.38.0)
     - Yoga
+  - RNSVG (15.11.2):
+    - React-Core
   - RNVectorIcons (10.2.0):
     - DoubleConversion
     - glog
@@ -2106,6 +2108,7 @@ DEPENDENCIES:
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - "RNSentry (from `../node_modules/@sentry/react-native`)"
+  - RNSVG (from `../node_modules/react-native-svg`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - "stripe-react-native (from `../node_modules/@stripe/stripe-react-native`)"
   - VisionCamera (from `../node_modules/react-native-vision-camera`)
@@ -2315,6 +2318,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-screens"
   RNSentry:
     :path: "../node_modules/@sentry/react-native"
+  RNSVG:
+    :path: "../node_modules/react-native-svg"
   RNVectorIcons:
     :path: "../node_modules/react-native-vector-icons"
   stripe-react-native:
@@ -2426,6 +2431,7 @@ SPEC CHECKSUMS:
   RNReanimated: 26cd23938ae57e108d7f3e1e05ab53b457f577ec
   RNScreens: 16b782596e80e475b7f3ec769c9a97d789d9b0ed
   RNSentry: de696324171161a94ed2e069c1e87b62124d5d90
+  RNSVG: 76d7cafaaa603fbbcb05aff928653e720251f483
   RNVectorIcons: 7b81882e9c9369031aede0016dee0fe415cf2f43
   Sentry: 205813e7e758b53df157cedb8c55b31a14300645
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748

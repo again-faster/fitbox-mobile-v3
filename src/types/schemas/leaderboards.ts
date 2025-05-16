@@ -144,13 +144,19 @@ export const ScoreResultSchema = z.object({
 });
 
 export const AttendanceReportDataSchema = z.object({
+	historicalAttendance: z.number(),
 	lastMonth: z.number(),
 	lastWeek: z.number(),
 	lifetime: z.number(),
+	lifetimeFitbox: z.number(),
 	monthToDate: z.number(),
 	weekToDate: z.number(),
 	yearToDate: z.number(),
 });
+
+export const AttendanceGraphSchema = z.array(
+	z.object({ label: z.string(), value: z.number() }),
+);
 
 export const PastPerformanceHistorySchema = z.object({
 	id: z.number().nullable(),
@@ -198,3 +204,5 @@ export type PastPerformanceHistoryType = z.infer<
 	typeof PastPerformanceHistorySchema
 >;
 export type ResultType = z.infer<typeof ResultTypeSchema>;
+
+export type AttendanceGraphType = z.infer<typeof AttendanceGraphSchema>;

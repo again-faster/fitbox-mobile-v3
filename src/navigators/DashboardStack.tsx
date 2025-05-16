@@ -1,5 +1,6 @@
 import { navigate } from '@/navigators/NavigationRef';
 import {
+	AttendanceScreen,
 	BookingScreen,
 	ClassResultsScreen,
 	Dashboard,
@@ -62,6 +63,13 @@ const DashboardStackNavigator = () => {
 				component={FailedInvoicesDetailsScreen}
 				options={{
 					title: 'Overdue Invoices',
+				}}
+			/>
+			<Stack.Screen
+				name="Attendance"
+				component={AttendanceScreen}
+				options={{
+					title: 'Attendance',
 				}}
 			/>
 		</Stack.Navigator>
