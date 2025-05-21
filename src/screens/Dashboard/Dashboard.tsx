@@ -795,9 +795,9 @@ const Dashboard = () => {
 	const thisStyle = {
 		flex: 1,
 		paddingLeft:
-			attendanceReportState.monthToDate.toString().length === 1 &&
-			attendanceReportState.yearToDate.toString().length === 1 &&
-			attendanceReportState.lifetime.toString().length === 1
+			attendanceReportState?.monthToDate?.toString().length === 1 &&
+			attendanceReportState?.yearToDate?.toString().length === 1 &&
+			attendanceReportState?.lifetime?.toString().length === 1
 				? 40
 				: 0,
 	};

@@ -1392,7 +1392,7 @@ PODS:
     - Toast (~> 4)
   - react-native-version-check (3.4.7):
     - React-Core
-  - react-native-video (6.0.0):
+  - react-native-video (6.14.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1405,7 +1405,7 @@ PODS:
     - React-featureflags
     - React-graphics
     - React-ImageManager
-    - react-native-video/Video (= 6.0.0)
+    - react-native-video/Video (= 6.14.0)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -1414,7 +1414,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-video/Video (6.0.0):
+  - react-native-video/Video (6.14.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1802,15 +1802,15 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNImageCropPicker (0.40.3):
+  - RNImageCropPicker (0.42.0):
     - React-Core
     - React-RCTImage
-    - RNImageCropPicker/QBImagePickerController (= 0.40.3)
-    - TOCropViewController
-  - RNImageCropPicker/QBImagePickerController (0.40.3):
+    - RNImageCropPicker/QBImagePickerController (= 0.42.0)
+    - TOCropViewController (~> 2.7.4)
+  - RNImageCropPicker/QBImagePickerController (0.42.0):
     - React-Core
     - React-RCTImage
-    - TOCropViewController
+    - TOCropViewController (~> 2.7.4)
   - RNPermissions (5.1.0):
     - React-Core
   - RNReanimated (3.16.1):
@@ -2388,7 +2388,7 @@ SPEC CHECKSUMS:
   react-native-safe-area-context: 4532f1a0c5d34a46b9324ccaaedcb5582a302b7d
   react-native-simple-toast: 1f1cc551d419bc0ab05dcb0136554006c274789d
   react-native-version-check: 6cd36aad4e30b8e3216747e3b4ddeb09e0647af8
-  react-native-video: 37506e59fc0414c6708e119233e98f6edc912096
+  react-native-video: 66dc8dbbc648d91597d13dfdf815b76ebac4f6b2
   react-native-webview: bfa2b5ec8df33a90ba66a0ee257466b5e711f4ce
   React-nativeconfig: 840f60c34cf1560852780811c7ca07f56e26b235
   React-NativeModulesApple: 32c2576a1b350d2f0b741aab5ded4838f07c9f20
@@ -2426,7 +2426,7 @@ SPEC CHECKSUMS:
   RNFBMessaging: 81f9447a3790df25c72753b446247ebeba95b182
   RNFlashList: 65cae4529e37bb9af1e6256117a2b9be60270db2
   RNGestureHandler: f9a43964ead5a498be74be8d5801d2de0d272ad0
-  RNImageCropPicker: e7ab6fb43d2fc3e84651e786ef4a080d63b0ed3d
+  RNImageCropPicker: 64b6bec9ec185ee59b71a93d7058816bd0e1916e
   RNPermissions: 611bd4c7e81639471966e8ab05501056f2a672eb
   RNReanimated: 26cd23938ae57e108d7f3e1e05ab53b457f577ec
   RNScreens: 16b782596e80e475b7f3ec769c9a97d789d9b0ed

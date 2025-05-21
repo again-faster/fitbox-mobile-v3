@@ -12,7 +12,6 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
-// import { Video as VideoCompressor } from 'react-native-compressor';
 import { ProgressBar } from 'react-native-paper';
 import {
 	PERMISSIONS,
