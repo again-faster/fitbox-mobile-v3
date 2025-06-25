@@ -85,6 +85,8 @@ const ScoreMovementComponent = ({
 		setAppState: state.setAppState,
 	}));
 
+	const keyboardVisible = Func.useKeyboardStatus();
+
 	const inputRefs = useRef<{ [key: string]: TextInput | null }>({});
 
 	const [isLoading, setIsLoading] = useState(true);
@@ -576,6 +578,7 @@ const ScoreMovementComponent = ({
 					</TouchableOpacity>
 
 					<ScoreComment
+						isKeyboardVisible={keyboardVisible}
 						commentField={commentField}
 						commentValue={notes}
 						onCommentChange={val => setNotes(val)}

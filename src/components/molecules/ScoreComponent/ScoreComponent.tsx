@@ -101,6 +101,8 @@ const ScoreComponent = ({
 		scoringBottomSheet: state.scoringBottomSheet,
 	}));
 
+	const keyboardVisible = Func.useKeyboardStatus();
+
 	// create input ref
 	const inputRefs: MutableRefObject<{
 		[key: string]: HTMLInputElement | null;
@@ -1073,6 +1075,7 @@ const ScoreComponent = ({
 			</View>
 
 			<ScoreComment
+				isKeyboardVisible={keyboardVisible}
 				commentField={state.commentField}
 				commentValue={state.commentValue}
 				commentLeaderboardVisible={state.commentLeaderboardVisible}
@@ -1087,20 +1090,7 @@ const ScoreComponent = ({
 					}));
 				}}
 				onClose={() => {
-					const comment = state.commentValue as string;
-					if (
-						state.commentField !== 'section' &&
-						typeof state.commentField === 'number'
-					) {
-						section.movements[state.commentField]!.comments =
-							comment;
-					} else {
-						section.comments = comment;
-					}
-					setState(s => ({
-						...s,
-						commentField: null,
-					}));
+					Keyboard.dismiss();
 				}}
 				onSave={() => {
 					const comment = state.commentValue as string;

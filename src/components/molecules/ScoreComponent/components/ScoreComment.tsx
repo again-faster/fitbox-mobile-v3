@@ -2,7 +2,13 @@ import { KeyboardSpacer, Row, Spacer, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { Constant } from '@/utils';
-import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+	Keyboard,
+	StyleSheet,
+	TextInput,
+	TouchableOpacity,
+	View,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import BottomPanel from '../../BottomPanel/BottomPanel';
 
@@ -15,6 +21,7 @@ interface ScoreCommentProps {
 	onLeaderboardClick?: () => void;
 	onSave: () => void;
 	onClose: () => void;
+	isKeyboardVisible: boolean;
 }
 
 const ScoreComment = ({
@@ -26,15 +33,20 @@ const ScoreComment = ({
 	onLeaderboardClick,
 	onSave,
 	onClose,
+	isKeyboardVisible,
 }: ScoreCommentProps) => (
 	<BottomPanel
 		title="Comments / Notes"
 		visible={commentField !== null}
 		onClose={onClose}
 		rightTitle={
-			<TouchableOpacity onPress={onSave}>
+			<TouchableOpacity
+				onPress={() =>
+					isKeyboardVisible ? Keyboard.dismiss() : onSave()
+				}
+			>
 				<Text color="info" size="md">
-					Save
+					{isKeyboardVisible ? 'Done' : 'Save'}
 				</Text>
 			</TouchableOpacity>
 		}
