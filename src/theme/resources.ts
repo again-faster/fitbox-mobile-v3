@@ -10,6 +10,7 @@ import commentsIcon from './images/comments.png';
 import faceBandage from './images/face-with-head-bandage.png';
 import fractureLeg from './images/fracture-leg.png';
 import monthToDate from './images/month-to-date.png';
+import trophy from './images/trophy.png';
 import yearToDate from './images/year-to-date.png';
 
 export default {
@@ -33,5 +34,6 @@ export default {
 		fractureLeg: fractureLeg as ImageSourcePropType,
 		bankCardCancel: bankCardCancel as ImageSourcePropType,
 		faceBandage: faceBandage as ImageSourcePropType,
+		trophy: trophy as ImageSourcePropType,
 	},
 };

@@ -7,14 +7,17 @@ import {
 	getUserSubscriptionProducts,
 	saveSubscription,
 } from '@/services/subscription';
-import { getUserProfile } from '@/services/users';
+import { getUserGymInfo, getUserProfile } from '@/services/users';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import {
 	MainTabScreenProps,
 	SubscriptionSetupParams,
 } from '@/types/navigation';
-import { GetUserSubscriptionProductsType } from '@/types/schemas/response';
+import {
+	GetUserSubscriptionProductsType,
+	LoginResponseSchemaType,
+} from '@/types/schemas/response';
 import {
 	SaveSubscriptionPayloadType,
 	SubscriptionType,
@@ -22,6 +25,7 @@ import {
 } from '@/types/schemas/subscription';
 import { Constant, Say } from '@/utils';
 import { PaymentGateways } from '@/utils/Enum';
+import { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
 import { isEmpty, isNil } from 'lodash';
 import moment from 'moment';
@@ -64,14 +68,20 @@ const SubscriptionSetup = ({ route, navigation }: MainTabScreenProps) => {
 	const sessionDate = params?.sessionDate ?? initialStartDate;
 	const sessionId = params?.sessionId ?? undefined;
 
-	const { fromAcceptInvite, setupSubscriptionId, setAppState } = useStore(
-		state => ({
-			fromAcceptInvite: state.fromAcceptInvite,
-			setupSubscriptionId: state.setupSubscriptionId,
-			setAppState: state.setAppState,
-			clearClasses: state.clearClasses,
-		}),
-	);
+	const {
+		fromAcceptInvite,
+		setupSubscriptionId,
+		setAppState,
+		loggedInUser,
+		setLoggedInUser,
+	} = useStore(state => ({
+		fromAcceptInvite: state.fromAcceptInvite,
+		setupSubscriptionId: state.setupSubscriptionId,
+		setAppState: state.setAppState,
+		clearClasses: state.clearClasses,
+		loggedInUser: state.loggedInUser,
+		setLoggedInUser: state.setLoggedInUser,
+	}));
 	const { user, updateUser } = useAuth();
 	const [data, setData] = useState<GetUserSubscriptionProductsType>();
 	const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -87,6 +97,7 @@ const SubscriptionSetup = ({ route, navigation }: MainTabScreenProps) => {
 	});
 	const [hasPaymentDetails, setHasPaymentDetails] = useState<boolean>(false);
 	const hasPreviousSubscriptions = user?.user_data.has_previous_subscriptions;
+	const userState = loggedInUser as LoginResponseSchemaType;
 
 	useLayoutEffect(() => {
 		let navOptions: Record<string, unknown> = {
@@ -131,7 +142,7 @@ const SubscriptionSetup = ({ route, navigation }: MainTabScreenProps) => {
 			}
 
 			const res =
-				fromSubscription || state.isBuyNow || hasPreviousSubscriptions
+				state.isBuyNow || hasPreviousSubscriptions
 					? await getUserSubscriptionProducts(sessionId)
 					: await getSubscriptionProducts();
 
@@ -241,6 +252,20 @@ const SubscriptionSetup = ({ route, navigation }: MainTabScreenProps) => {
 				);
 
 				setAppState('setupSubscriptionId', null);
+
+				getUserGymInfo()
+					.then(gymInfoRes => {
+						setLoggedInUser({
+							...userState,
+							user_data: {
+								...userState.user_data,
+								has_previous_subscriptions:
+									gymInfoRes.user_data
+										.has_previous_subscriptions,
+							},
+						});
+					})
+					.catch(error => Say.err(error as ICatchError));
 
 				// purchase now callback
 				// go back to subscription screen if from subscription

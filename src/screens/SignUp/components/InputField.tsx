@@ -6,6 +6,7 @@ import { Dispatch, SetStateAction } from 'react';
 import {
 	ActivityIndicator,
 	DimensionValue,
+	Keyboard,
 	StyleSheet,
 	Text,
 	TouchableOpacity,
@@ -270,6 +271,7 @@ const InputField = ({
 				style={styles.inputContainer}
 				disabled={disabled}
 				onPress={() => {
+					Keyboard.dismiss();
 					setState(prevState => ({
 						...prevState,
 						activeFieldInput: field,

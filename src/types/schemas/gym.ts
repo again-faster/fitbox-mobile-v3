@@ -30,6 +30,7 @@ export const GymInfoSchema = z.object({
 	name: z.string().optional(),
 	website: z.string().optional(),
 	allow_attendance_report: boolOrOneZero.optional().default(1),
+	mobile_dashboard_type: z.array(z.string()),
 });
 
 export const JoinGymSchema = z.object({

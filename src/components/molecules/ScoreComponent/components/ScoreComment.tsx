@@ -32,9 +32,9 @@ const ScoreComment = ({
 		visible={commentField !== null}
 		onClose={onClose}
 		rightTitle={
-			<TouchableOpacity onPress={onSave}>
+			<TouchableOpacity onPress={() => onSave()}>
 				<Text color="info" size="md">
-					Save
+					Done
 				</Text>
 			</TouchableOpacity>
 		}
@@ -74,6 +74,7 @@ const ScoreComment = ({
 					placeholder="Comments/Notes"
 					multiline
 					allowFontScaling={false}
+					textAlignVertical="top"
 				/>
 			</View>
 
@@ -93,13 +94,14 @@ const styles = StyleSheet.create({
 		color: config.fonts.colors.black,
 		fontSize: config.fonts.metrics.md,
 		...layout.fontMontserratRegular,
+		height: '100%',
 	},
 	commentInputStyle: {
 		borderColor: config.fonts.colors.lightgrey,
 		borderWidth: 1,
 		textAlignVertical: 'top',
 		width: '100%',
-		minHeight: 150,
+		height: 150,
 		borderRadius: 5,
 		padding: 15,
 		marginBottom: config.metrics.md,

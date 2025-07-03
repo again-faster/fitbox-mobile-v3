@@ -174,6 +174,7 @@ export type DashboardParamList = {
 	Bookings: undefined;
 	FailedInvoices: FailedInvoicesParams;
 	FailedInvoicesDetails: FailedInvoicesDetailsParams;
+	Attendance: undefined;
 };
 
 export type ClassResultsParams = {

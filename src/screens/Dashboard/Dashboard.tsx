@@ -22,6 +22,7 @@ import {
 	getFailedPayments,
 	getUserGymInfo,
 } from '@/services/users';
+import { mmkvStorage } from '@/storage';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import resources from '@/theme/resources';
@@ -59,6 +60,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
 import { RESULTS, checkNotifications } from 'react-native-permissions';
 import PushNotification from 'react-native-push-notification';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -101,6 +103,7 @@ const Dashboard = () => {
 	const { t } = useTranslation(['dashboard']);
 	const { user, getApiUrl, signOut, updateUser } = useAuth();
 	const timezone = user?.user_data.dob.timezone as string;
+	const [attendanceFilter, setAttendanceFilter] = useState<string[]>([]);
 	// const headerHeight = useHeaderHeight();
 
 	const headerMarginTop = Platform.OS === 'ios' && Platform.isPad ? 50 : 0;
@@ -172,6 +175,9 @@ const Dashboard = () => {
 		useState<boolean>(false);
 
 	const [showRequiredFieldsModal, setShowRequiredFieldsModal] =
+		useState<boolean>(false);
+
+	const [showAttendanceReportLabel, setShowAttendanceReportLabel] =
 		useState<boolean>(false);
 
 	const { hasSwitchableUsers } = useSwitchableUsers();
@@ -289,6 +295,7 @@ const Dashboard = () => {
 			setGymBanner(String(gymInfo.banner));
 
 			setShowAttendanceReport(gymInfo.allow_attendance_report);
+			setAttendanceFilter(gymInfo.mobile_dashboard_type);
 		}
 	};
 
@@ -570,6 +577,27 @@ const Dashboard = () => {
 		NotificationService.setGymFetcher(initializeAppStates);
 	}, []);
 
+	useEffect(() => {
+		const checkIfPressed = () => {
+			const version = DeviceInfo.getVersion();
+			const key = `hasPressedAttendanceReport_${version}`;
+			const hasPressed = mmkvStorage.getBoolean(key);
+			if (!hasPressed) {
+				setShowAttendanceReportLabel(true);
+			}
+		};
+
+		checkIfPressed();
+	}, []);
+
+	const handleAttendancePress = () => {
+		const version = DeviceInfo.getVersion();
+		const key = `hasPressedAttendanceReport_${version}`;
+		mmkvStorage.set(key, true);
+		setShowAttendanceReportLabel(false);
+		navigate('Attendance');
+	};
+
 	const fetchAttendanceReport = () => {
 		setAttendanceReportIsLoading(true);
 		try {
@@ -764,6 +792,18 @@ const Dashboard = () => {
 		);
 	};
 
+	const thisStyle = {
+		flex: 1,
+		paddingLeft:
+			attendanceReportState?.monthToDate?.toString().length === 1 &&
+			attendanceReportState?.yearToDate?.toString().length === 1 &&
+			attendanceReportState?.lifetime?.toString().length === 1
+				? 40
+				: 0,
+	};
+	const yearLeftPadding: number =
+		attendanceReportState.yearToDate?.toString().length === 1 ? 20 : 0;
+
 	const renderDashboardComponents = () => {
 		return (
 			<>
@@ -808,89 +848,158 @@ const Dashboard = () => {
 						</>
 					) : (
 						!isEmpty(attendanceReportState) && (
-							<View
+							<TouchableOpacity
 								style={{
 									marginTop: config.metrics.lg,
 									marginBottom: config.metrics.xl,
 								}}
+								onPress={handleAttendancePress}
 							>
-								<Text
-									bold
-									style={{ marginBottom: config.metrics.sm }}
-								>
-									Attendance:
-								</Text>
+								{showAttendanceReportLabel && (
+									<Row
+										spacing="space-between"
+										align="flex-end"
+									>
+										<Text
+											bold
+											style={{
+												marginBottom: config.metrics.sm,
+											}}
+										>
+											Attendance:
+										</Text>
+										<Text
+											size="sm"
+											style={styles.viewAttendance}
+										>
+											View details
+										</Text>
+									</Row>
+								)}
 
 								<Row spacing="space-evenly">
-									<View
-										style={[
-											layout.flex_1,
-											styles.attendanceContainer,
-										]}
-									>
-										<Row align="flex-end">
-											<Image
-												source={
-													resources.icon.monthToDate
-												}
-												style={styles.attendanceIcon}
-											/>
+									{attendanceFilter.includes('month') && (
+										<View
+											style={
+												attendanceFilter.length <= 2 ||
+												attendanceReportState.monthToDate.toString()
+													.length === 1
+													? layout.flex_1
+													: styles.monthToDate
+											}
+										>
+											<Row align="flex-end">
+												<Image
+													source={
+														resources.icon
+															.monthToDate
+													}
+													style={
+														styles.attendanceIcon
+													}
+												/>
+												<Text
+													style={
+														styles.attendanceValue
+													}
+													bold
+													allowFontScaling={false}
+												>
+													{
+														attendanceReportState.monthToDate
+													}
+												</Text>
+											</Row>
 											<Text
-												style={styles.attendanceValue}
-												bold
-												allowFontScaling={false}
-											>
-												{
-													attendanceReportState?.monthToDate
-												}
-											</Text>
-											<Text
-												size="md"
+												size="rg"
 												style={styles.attendanceText}
 												allowFontScaling={false}
 											>
-												{Constant.DEVICEWIDTH < 365
-													? 'month'
-													: 'this month'}
+												this month
 											</Text>
-										</Row>
-									</View>
+										</View>
+									)}
 
-									<View
-										style={[
-											layout.flex_1,
-											styles.attendanceContainer,
-										]}
-									>
-										<Row align="flex-end">
-											<Image
-												source={
-													resources.icon.yearToDate
-												}
-												style={styles.attendanceIcon}
-											/>
+									{attendanceFilter.includes('year') && (
+										<View
+											style={
+												attendanceFilter.length <= 2 ||
+												attendanceReportState.yearToDate.toString()
+													.length === 1
+													? thisStyle
+													: {
+															...styles.monthToDate,
+															paddingLeft:
+																yearLeftPadding,
+														}
+											}
+										>
+											<Row align="flex-end">
+												<Image
+													source={
+														resources.icon
+															.yearToDate
+													}
+													style={
+														styles.attendanceIcon
+													}
+												/>
+												<Text
+													style={
+														styles.attendanceValue
+													}
+													bold
+													allowFontScaling={false}
+												>
+													{
+														attendanceReportState.yearToDate
+													}
+												</Text>
+											</Row>
 											<Text
-												style={styles.attendanceValue}
-												bold
-												allowFontScaling={false}
-											>
-												{
-													attendanceReportState?.yearToDate
-												}
-											</Text>
-											<Text
-												size="md"
+												size="rg"
 												style={styles.attendanceText}
 												allowFontScaling={false}
 											>
-												{Constant.DEVICEWIDTH < 365
-													? 'year'
-													: 'this year'}
+												this year
 											</Text>
-										</Row>
-									</View>
+										</View>
+									)}
+
+									{attendanceFilter.includes('alltime') && (
+										<View style={thisStyle}>
+											<Row align="flex-end">
+												<Image
+													source={
+														resources.icon.trophy
+													}
+													style={
+														styles.attendanceIcon
+													}
+												/>
+												<Text
+													style={
+														styles.attendanceValue
+													}
+													bold
+													allowFontScaling={false}
+												>
+													{
+														attendanceReportState.lifetime
+													}
+												</Text>
+											</Row>
+											<Text
+												size="rg"
+												style={styles.attendanceText}
+												allowFontScaling={false}
+											>
+												all time
+											</Text>
+										</View>
+									)}
 								</Row>
-							</View>
+							</TouchableOpacity>
 						)
 					))}
 
@@ -1101,17 +1210,14 @@ const styles = StyleSheet.create({
 	attendanceIcon: {
 		width: 25,
 		height: 25,
-		marginBottom: 8,
+		marginBottom: 5,
 		marginRight: 8,
 	},
 	attendanceText: {
 		paddingBottom: 5,
 		marginLeft: config.metrics.sm,
 	},
-	attendanceContainer: {
-		alignItems: 'center',
-	},
-	attendanceValue: { fontSize: 35 },
+	attendanceValue: { fontSize: 28 },
 	switchIcon: {
 		position: 'absolute',
 		right: 0,
@@ -1120,6 +1226,14 @@ const styles = StyleSheet.create({
 		padding: 3,
 		fontSize: config.fonts.metrics.xs,
 		...layout.shadowLight,
+	},
+	monthToDate: {
+		flex: 0.9,
+	},
+	viewAttendance: {
+		marginBottom: config.metrics.sm,
+		color: config.colors.info,
+		textDecorationLine: 'underline',
 	},
 });
 

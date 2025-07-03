@@ -890,7 +890,11 @@ const ScoreComponent = ({
 					onPress={onClickAddComment}
 					style={styles.commentDisplay}
 				>
-					<Text color={displayComment ? 'darkgray' : 'mute'} center>
+					<Text
+						color={displayComment ? 'darkgray' : 'mute'}
+						center
+						size="md"
+					>
 						{displayComment ? `${displayComment} ` : 'Add Comments'}
 						{displayComment ? (
 							<MIcon
@@ -1083,20 +1087,7 @@ const ScoreComponent = ({
 					}));
 				}}
 				onClose={() => {
-					const comment = state.commentValue as string;
-					if (
-						state.commentField !== 'section' &&
-						typeof state.commentField === 'number'
-					) {
-						section.movements[state.commentField]!.comments =
-							comment;
-					} else {
-						section.comments = comment;
-					}
-					setState(s => ({
-						...s,
-						commentField: null,
-					}));
+					Keyboard.dismiss();
 				}}
 				onSave={() => {
 					const comment = state.commentValue as string;
@@ -1117,7 +1108,7 @@ const ScoreComponent = ({
 					}));
 
 					// submit score
-					void submitScore();
+					// void submitScore();
 				}}
 			/>
 

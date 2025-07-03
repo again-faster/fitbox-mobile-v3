@@ -183,6 +183,7 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 	const [sendingInvite, setSendingInvite] = useState<boolean>(false);
 	const [emailInput, setEmailInput] = useState<string>('');
 	const [emailExists, setEmailExists] = useState<boolean>(false);
+	const [isArchivedUser, setIsArchivedUser] = useState<boolean>(false);
 
 	const {
 		loggedInUser,
@@ -513,6 +514,7 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 	const handleLogIn = () => {
 		setAppState('joiningOtherGym', true);
 		setEmailExists(false);
+		setIsArchivedUser(false);
 		navigation.push('Login', {
 			emailFromSignin: emailInput,
 		});
@@ -520,6 +522,7 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 
 	const handleSendLink = () => {
 		setEmailExists(false);
+		setIsArchivedUser(false);
 		setSendingInvite(true);
 		void inviteEmail({
 			email: emailInput,
@@ -570,66 +573,10 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 					if (!res.error) {
 						if (res.data.exists) {
 							if (res.data.isActive) {
-								// Alert.alert(
-								// 	'Email already in use',
-								// 	'It looks like you already have a fitbox account.\n \n• Log in to continue with your existing account.\n• Joining a new gym? We can send you a verification link to connect your account to this gym.',
-								// 	[
-								// 		{
-								// 			text: 'Login',
-								// 			onPress: () => {
-								// 				setAppState(
-								// 					'joiningOtherGym',
-								// 					true,
-								// 				);
-								// 				navigation.push('Login', {
-								// 					emailFromSignin: email,
-								// 				});
-								// 			},
-								// 		},
-								// 		{
-								// 			text: 'Send Link',
-								// 			onPress: () => {
-								// 				setSendingInvite(true);
-								// 				void inviteEmail({
-								// 					email,
-								// 					team_id: state.code,
-								// 				})
-								// 					.then(inviteEmailRes => {
-								// 						if (res.error) {
-								// 							Say.err(
-								// 								'Something went wrong',
-								// 							);
-								// 						} else {
-								// 							void Say.okThen(
-								// 								inviteEmailRes.message,
-								// 								'Request Sent',
-								// 							).then(() =>
-								// 								resetRoot(),
-								// 							);
-								// 						}
-								// 					})
-								// 					.catch(err =>
-								// 						Say.err(
-								// 							err as ICatchError,
-								// 						),
-								// 					)
-								// 					.finally(() =>
-								// 						setSendingInvite(false),
-								// 					);
-								// 			},
-								// 		},
-								// 	],
-								// );
 								setEmailExists(true);
 							} else {
-								await Say.okThen(
-									'Email already exist. Please contact your gym administrator to activate your account',
-									'Oops!',
-								).then(() =>
-									navigation.push('Login', {
-										emailFromSignin: email,
-									}),
-								);
+								setEmailExists(true);
+								setIsArchivedUser(true);
 							}
 						} else if (res.data.pendingInvite) {
 							await Say.okThen(
@@ -712,6 +659,14 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 		}
 	};
 
+	const handleCancel = () => {
+		setEmailExists(false);
+		setState(prevState => ({
+			...prevState,
+			fields: { ...(prevState.fields as Fields), email: '' },
+		}));
+	};
+
 	const renderFormView = () => {
 		const { gymInfo, processing, role, activeFieldInput } = state;
 		const rolesList = gymInfo?.member_roles;
@@ -790,25 +745,30 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 								Email already in use
 							</Text>
 							<Spacer />
-							<Text size="rg" center>
-								It looks like you already have a fitbox account.
-							</Text>
-							<Spacer />
-							<Row>
-								<Text>
-									<Text size="rg" bold>
-										● Log in{' '}
-									</Text>
-									<Text size="rg">
-										with your existing credentials and then
-										add your new gym.
-									</Text>
+							{!isArchivedUser && (
+								<Text size="rg" center>
+									It looks like you already have a fitbox
+									account.
 								</Text>
-							</Row>
+							)}
+							<Spacer />
+							{!isArchivedUser && (
+								<Row>
+									<Text>
+										<Text size="rg" bold>
+											● Log in{' '}
+										</Text>
+										<Text size="rg">
+											with your existing credentials and
+											then add your new gym.
+										</Text>
+									</Text>
+								</Row>
+							)}
 							<Row>
 								<Text>
 									<Text size="rg" bold>
-										● Joining a new gym?{' '}
+										{`${!isArchivedUser ? '● ' : ''}Joining a new gym? `}
 									</Text>
 									<Text size="rg">
 										We can send you a verification link to
@@ -818,13 +778,30 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 							</Row>
 							<Spacer />
 							<Row>
-								<Button
-									title="Log In"
-									onPress={handleLogIn}
-									style={layout.flex_1}
-									mode="outlined"
-								/>
-								<View style={{ width: config.metrics.sm }} />
+								{!isArchivedUser && (
+									<>
+										<Button
+											title="Log In"
+											onPress={handleLogIn}
+											style={layout.flex_1}
+											mode="outlined"
+										/>
+										<View
+											style={{ width: config.metrics.sm }}
+										/>
+									</>
+								)}
+								{isArchivedUser && (
+									<>
+										<Button
+											title="Cancel"
+											onPress={handleCancel}
+											style={layout.flex_1}
+											mode="outlined"
+										/>
+										<Spacer horizontal size="sm" />
+									</>
+								)}
 								<Button
 									title="Send Link"
 									onPress={handleSendLink}
