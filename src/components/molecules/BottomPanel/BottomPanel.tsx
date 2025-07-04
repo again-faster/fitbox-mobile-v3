@@ -29,7 +29,7 @@ type BottomPanelProps = {
 const BottomPanel = ({
 	backButton = false,
 	noMask = false,
-	maxHeight = '70%',
+	maxHeight = '80%',
 	visible,
 	onClose,
 	rightTitle,

@@ -28,10 +28,12 @@ import {
 	useState,
 } from 'react';
 import {
+	DimensionValue,
 	Keyboard,
 	LayoutChangeEvent,
 	NativeScrollEvent,
 	NativeSyntheticEvent,
+	Platform,
 	ScrollView,
 	StyleSheet,
 	TextInput,
@@ -75,6 +77,7 @@ interface ScoreComponentProps {
 	editData?: IEditData;
 	wod_id?: number | null;
 	date?: string;
+	fromCalendar?: boolean;
 }
 
 const ScoreComponent = ({
@@ -86,6 +89,7 @@ const ScoreComponent = ({
 	independentScoring = false,
 	wod_id = null,
 	date,
+	fromCalendar = false,
 }: ScoreComponentProps) => {
 	const {
 		allowComments,
@@ -105,6 +109,8 @@ const ScoreComponent = ({
 	const inputRefs: MutableRefObject<{
 		[key: string]: HTMLInputElement | null;
 	}> = { current: {} };
+
+	const keyboardVisible = Func.useKeyboardStatus();
 
 	const defaultLeaderboardVisible = allowComments ?? true;
 	const enableLeaderboardComment = sectionProp?.is_leaderboard ?? false;
@@ -273,6 +279,12 @@ const ScoreComponent = ({
 
 	const submitScore = async () => {
 		setSubmitting(true);
+
+		if (section.value === '' || section.value === null) {
+			Say.err('Please input the missing fields');
+			setSubmitting(false);
+			return;
+		}
 
 		const randomPRAnimation = Func.getRandomAnimation();
 		setAppState('randomAnimation', randomPRAnimation);
@@ -940,6 +952,19 @@ const ScoreComponent = ({
 		setScrollPosition(scrollPercent + 10);
 	};
 
+	let submitButtonHeight: DimensionValue;
+	if (fromCalendar) {
+		if (keyboardVisible) {
+			submitButtonHeight = Platform.OS === 'ios' ? '50%' : '20%';
+		} else {
+			submitButtonHeight = Platform.OS === 'ios' ? '10%' : '10%';
+		}
+	} else if (keyboardVisible) {
+		submitButtonHeight = Platform.OS === 'ios' ? '50%' : '30%';
+	} else {
+		submitButtonHeight = Platform.OS === 'ios' ? '55%' : '55%';
+	}
+
 	const renderInputFields = useMemo(
 		() => (
 			<ScrollView
@@ -947,7 +972,9 @@ const ScoreComponent = ({
 				contentInset={{
 					bottom: state.isKeyboardVisible ? 100 : 0,
 				}}
-				style={{ padding: config.metrics.rg }}
+				style={{
+					padding: config.metrics.rg,
+				}}
 				showsVerticalScrollIndicator={false}
 				onLayout={handleLayout}
 				onContentSizeChange={handleContentSizeChange}
@@ -1045,31 +1072,35 @@ const ScoreComponent = ({
 					</TouchableOpacity>
 				) : null}
 
-				<View
-					style={{
-						padding: config.metrics.rg,
-					}}
-				>
-					<Button
-						onPress={() => void submitScore()}
-						loading={submitting}
-						variant="info"
-						title={submitting ? 'please wait..' : 'submit'}
-						uppercase
-					/>
-
-					{editMode && independentScoring && (
+				{section.scoring_by === 'movement' &&
+				section.wod_movements?.length === 0 ? null : (
+					<View
+						style={{
+							padding: config.metrics.rg,
+							height: submitButtonHeight,
+						}}
+					>
 						<Button
-							loading={isDeleting}
-							// TODO: Do this
-							// onPress={() => this.handleDeletePress()}
-							style={styles.removeButton}
-							variant="dark"
-							title="remove"
+							onPress={() => void submitScore()}
+							loading={submitting}
+							variant="info"
+							title={submitting ? 'please wait..' : 'submit'}
 							uppercase
 						/>
-					)}
-				</View>
+
+						{editMode && independentScoring && (
+							<Button
+								loading={isDeleting}
+								// TODO: Do this
+								// onPress={() => this.handleDeletePress()}
+								style={styles.removeButton}
+								variant="dark"
+								title="remove"
+								uppercase
+							/>
+						)}
+					</View>
+				)}
 			</View>
 
 			<ScoreComment
