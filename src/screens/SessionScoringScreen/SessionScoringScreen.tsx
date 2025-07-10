@@ -113,6 +113,7 @@ const SessionScoringScreen = ({ route }: ApplicationScreenProps) => {
 						section={section}
 						onSubmitCallback={() => void fetchDetails()}
 						editMode={false}
+						fromCalendar
 					/>
 				</View>
 			</View>
