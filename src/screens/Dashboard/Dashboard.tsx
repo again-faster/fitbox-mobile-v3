@@ -9,7 +9,6 @@ import {
 	Spacer,
 	Text,
 } from '@/components/atoms';
-import { SafeScreen } from '@/components/template';
 import useSwitchableUsers from '@/hooks/useSwitchableUsers';
 import { navigate } from '@/navigators/NavigationRef';
 import { betaActive, savePushToken } from '@/services/auth';
@@ -23,6 +22,7 @@ import {
 	getUserGymInfo,
 } from '@/services/users';
 import { mmkvStorage } from '@/storage';
+import { useTheme } from '@/theme';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import resources from '@/theme/resources';
@@ -56,6 +56,7 @@ import {
 	Dimensions,
 	Image,
 	Platform,
+	StatusBar,
 	StyleSheet,
 	TouchableOpacity,
 	View,
@@ -63,6 +64,7 @@ import {
 import DeviceInfo from 'react-native-device-info';
 import { RESULTS, checkNotifications } from 'react-native-permissions';
 import PushNotification from 'react-native-push-notification';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import BookedSessionCard, {
 	BookedSessionCardProps,
@@ -105,6 +107,7 @@ const Dashboard = () => {
 	const timezone = user?.user_data.dob.timezone as string;
 	const [attendanceFilter, setAttendanceFilter] = useState<string[]>([]);
 	// const headerHeight = useHeaderHeight();
+	const { variant, navigationTheme } = useTheme();
 
 	const headerMarginTop = Platform.OS === 'ios' && Platform.isPad ? 50 : 0;
 
@@ -1070,7 +1073,15 @@ const Dashboard = () => {
 	};
 
 	return (
-		<SafeScreen>
+		<SafeAreaView
+			style={[
+				layout.flex_1,
+				{ backgroundColor: navigationTheme.colors.background },
+			]}
+		>
+			<StatusBar
+				barStyle={variant === 'dark' ? 'light-content' : 'dark-content'}
+			/>
 			{/* TODO: If banner doesn't update include versioning of image to apply changes */}
 			<DashboardHeader banner={gymBanner} logo={gymLogo} />
 
@@ -1112,7 +1123,7 @@ const Dashboard = () => {
 						setShowFailedInvoicesModal={setShowFailedInvoicesModal}
 					/>
 				)}
-		</SafeScreen>
+		</SafeAreaView>
 	);
 };
 

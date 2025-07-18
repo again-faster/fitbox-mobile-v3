@@ -33,7 +33,6 @@ import {
 	Alert,
 	Dimensions,
 	Keyboard,
-	SafeAreaView,
 	StyleProp,
 	StyleSheet,
 	TextInput,
@@ -48,6 +47,7 @@ import ImageCropPicker, {
 	Options,
 } from 'react-native-image-crop-picker';
 import DateTimePicker from 'react-native-modal-datetime-picker';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 
 const { width: DEVICE_WIDTH } = Dimensions.get('screen');

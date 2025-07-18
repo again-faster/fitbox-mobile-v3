@@ -10,6 +10,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { configureFonts, Provider } from 'react-native-paper';
 import PushNotification from 'react-native-push-notification';
 import 'react-native-reanimated';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AuthProvider from './auth/AuthProvider/AuthProvider';
 import KeyboardVisibilityProvider from './context/KeyboardProvider';
 import SwitchableUserProvider from './context/SwitchableUser';
@@ -93,19 +94,21 @@ const customTheme = {
 function App() {
 	return (
 		<GestureHandlerRootView style={layout.flex_1}>
-			<QueryClientProvider client={queryClient}>
-				<AuthProvider storage={mmkvStorage}>
-					<ThemeProvider storage={mmkvStorage}>
-						<Provider theme={customTheme}>
-							<KeyboardVisibilityProvider>
-								<SwitchableUserProvider>
-									<ApplicationNavigator />
-								</SwitchableUserProvider>
-							</KeyboardVisibilityProvider>
-						</Provider>
-					</ThemeProvider>
-				</AuthProvider>
-			</QueryClientProvider>
+			<SafeAreaProvider>
+				<QueryClientProvider client={queryClient}>
+					<AuthProvider storage={mmkvStorage}>
+						<ThemeProvider storage={mmkvStorage}>
+							<Provider theme={customTheme}>
+								<KeyboardVisibilityProvider>
+									<SwitchableUserProvider>
+										<ApplicationNavigator />
+									</SwitchableUserProvider>
+								</KeyboardVisibilityProvider>
+							</Provider>
+						</ThemeProvider>
+					</AuthProvider>
+				</QueryClientProvider>
+			</SafeAreaProvider>
 		</GestureHandlerRootView>
 	);
 }

@@ -261,27 +261,26 @@ const Login = ({ navigation, route }: ApplicationScreenProps) => {
 							</>
 						) : null}
 					</View>
+					<View style={style.footerSection}>
+						<Button
+							title={t('login:button.login')}
+							onPress={
+								userExist ? handleSignIn : handleCheckUserEmail
+							}
+							loading={processing}
+							disabled={isEmpty(email)}
+							labelStyle={style.buttonLabelStyle}
+							style={{
+								...style.buttonStyle,
+								backgroundColor: isEmpty(email)
+									? fonts.colors.lightgrey
+									: fonts.colors.brand,
+							}}
+						/>
+					</View>
 				</ScrollView>
 
 				<View style={style.footerSection}>
-					<Button
-						title={t('login:button.login')}
-						onPress={
-							userExist ? handleSignIn : handleCheckUserEmail
-						}
-						loading={processing}
-						disabled={isEmpty(email)}
-						labelStyle={style.buttonLabelStyle}
-						style={{
-							...style.buttonStyle,
-							backgroundColor: isEmpty(email)
-								? fonts.colors.lightgrey
-								: fonts.colors.brand,
-						}}
-					/>
-
-					<Spacer size="sm" />
-
 					<Row align="center" style={style.registerButton}>
 						<Text
 							color="brand"

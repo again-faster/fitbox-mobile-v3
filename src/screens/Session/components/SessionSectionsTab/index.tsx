@@ -819,6 +819,7 @@ const SessionsSectionsTab = ({
 													styles.logResultBtnContainer
 												}
 												bold
+												flex1
 											/>
 
 											{isLeaderboard && (

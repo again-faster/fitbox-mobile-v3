@@ -28,10 +28,12 @@ import {
 	useState,
 } from 'react';
 import {
+	DimensionValue,
 	Keyboard,
 	LayoutChangeEvent,
 	NativeScrollEvent,
 	NativeSyntheticEvent,
+	Platform,
 	ScrollView,
 	StyleSheet,
 	TextInput,
@@ -75,6 +77,7 @@ interface ScoreComponentProps {
 	editData?: IEditData;
 	wod_id?: number | null;
 	date?: string;
+	fromCalendar?: boolean;
 }
 
 const ScoreComponent = ({
@@ -86,6 +89,7 @@ const ScoreComponent = ({
 	independentScoring = false,
 	wod_id = null,
 	date,
+	fromCalendar = false,
 }: ScoreComponentProps) => {
 	const {
 		allowComments,
@@ -105,6 +109,8 @@ const ScoreComponent = ({
 	const inputRefs: MutableRefObject<{
 		[key: string]: HTMLInputElement | null;
 	}> = { current: {} };
+
+	const keyboardVisible = Func.useKeyboardStatus();
 
 	const defaultLeaderboardVisible = allowComments ?? true;
 	const enableLeaderboardComment = sectionProp?.is_leaderboard ?? false;
@@ -272,8 +278,6 @@ const ScoreComponent = ({
 	};
 
 	const submitScore = async () => {
-		setSubmitting(true);
-
 		const randomPRAnimation = Func.getRandomAnimation();
 		setAppState('randomAnimation', randomPRAnimation);
 		const saveMovements: { [x: string]: string | number }[] = [];
@@ -408,7 +412,20 @@ const ScoreComponent = ({
 			payload.sections = [sectionPayload];
 		}
 
+		if (section.scoring_by === 'movement') {
+			if (saveMovements.length === 0) {
+				Say.err('Please input the missing fields');
+				setSubmitting(false);
+				return;
+			}
+		} else if (section.value === '' || section.value === null) {
+			Say.err('Please input the missing fields');
+			setSubmitting(false);
+			return;
+		}
+
 		try {
+			setSubmitting(true);
 			let res = null;
 
 			if (independentScoring) {
@@ -459,6 +476,8 @@ const ScoreComponent = ({
 			}
 		} catch (error) {
 			Say.err(error as ICatchError);
+		} finally {
+			setSubmitting(false);
 		}
 	};
 
@@ -940,6 +959,27 @@ const ScoreComponent = ({
 		setScrollPosition(scrollPercent + 10);
 	};
 
+	let submitButtonHeight: { height?: DimensionValue };
+	let bottomMargin: { bottom?: DimensionValue } = {};
+	if (fromCalendar) {
+		if (keyboardVisible) {
+			submitButtonHeight = {
+				height: Platform.OS === 'ios' ? '100%' : '100%',
+			};
+			bottomMargin = { bottom: Platform.OS === 'ios' ? 20 : 0 };
+		} else {
+			submitButtonHeight = {
+				height: Platform.OS === 'ios' ? '100%' : '100%',
+			};
+		}
+	} else if (keyboardVisible) {
+		submitButtonHeight = { height: Platform.OS === 'ios' ? '55%' : '100%' };
+		bottomMargin = {};
+	} else {
+		submitButtonHeight = { height: Platform.OS === 'ios' ? '55%' : '100%' };
+		bottomMargin = { bottom: 20 };
+	}
+
 	const renderInputFields = useMemo(
 		() => (
 			<ScrollView
@@ -947,7 +987,9 @@ const ScoreComponent = ({
 				contentInset={{
 					bottom: state.isKeyboardVisible ? 100 : 0,
 				}}
-				style={{ padding: config.metrics.rg }}
+				style={{
+					padding: config.metrics.rg,
+				}}
 				showsVerticalScrollIndicator={false}
 				onLayout={handleLayout}
 				onContentSizeChange={handleContentSizeChange}
@@ -1013,7 +1055,13 @@ const ScoreComponent = ({
 						</View>
 					) : null}
 				</View>
-
+			</View>
+			<View
+				style={{
+					...styles.buttonContainer,
+					...bottomMargin,
+				}}
+			>
 				{!independentScoring ? (
 					<TouchableOpacity
 						style={styles.disableReplyButtonStyle}
@@ -1045,31 +1093,35 @@ const ScoreComponent = ({
 					</TouchableOpacity>
 				) : null}
 
-				<View
-					style={{
-						padding: config.metrics.rg,
-					}}
-				>
-					<Button
-						onPress={() => void submitScore()}
-						loading={submitting}
-						variant="info"
-						title={submitting ? 'please wait..' : 'submit'}
-						uppercase
-					/>
-
-					{editMode && independentScoring && (
+				{section.scoring_by === 'movement' &&
+				section.wod_movements?.length === 0 ? null : (
+					<View
+						style={{
+							padding: config.metrics.rg,
+							...submitButtonHeight,
+						}}
+					>
 						<Button
-							loading={isDeleting}
-							// TODO: Do this
-							// onPress={() => this.handleDeletePress()}
-							style={styles.removeButton}
-							variant="dark"
-							title="remove"
+							onPress={() => void submitScore()}
+							loading={submitting}
+							variant="info"
+							title={submitting ? 'please wait..' : 'submit'}
 							uppercase
 						/>
-					)}
-				</View>
+
+						{editMode && independentScoring && (
+							<Button
+								loading={isDeleting}
+								// TODO: Do this
+								// onPress={() => this.handleDeletePress()}
+								style={styles.removeButton}
+								variant="dark"
+								title="remove"
+								uppercase
+							/>
+						)}
+					</View>
+				)}
 			</View>
 
 			<ScoreComment
@@ -1167,6 +1219,9 @@ const styles = StyleSheet.create({
 		backgroundColor: config.fonts.colors.info,
 	},
 	scoreCommentHeight: {
-		height: '100%',
+		height: '50%',
+	},
+	buttonContainer: {
+		height: 100,
 	},
 });

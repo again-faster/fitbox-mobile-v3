@@ -149,8 +149,8 @@ const WorkoutHistory = ({ route, navigation }: WorkoutHistoryProps) => {
 				align="center"
 				style={styles.headerContainer}
 			>
-				<View style={layout.flex_1}>
-					<Text size="md" bold>
+				<View style={styles.title}>
+					<Text size="md" bold numberOfLines={1}>
 						{data.name}
 					</Text>
 				</View>
@@ -210,5 +210,8 @@ const styles = StyleSheet.create({
 		paddingVertical: config.metrics.md,
 		borderBottomWidth: 0.5,
 		borderColor: '#eee',
+	},
+	title: {
+		flex: 2.8,
 	},
 });
