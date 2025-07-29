@@ -135,6 +135,19 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 		[session],
 	);
 
+	const disableUnbooking = useMemo(
+		() =>
+			!!(
+				session &&
+				Func.checkSessionLock(
+					session.start_datetime,
+					session.locktime_HH,
+					session.locktime_MM,
+				)
+			),
+		[session],
+	);
+
 	const isAttending = useMemo(
 		() =>
 			!!session?.member_attendance?.some(
@@ -215,6 +228,7 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 				startTime={startTime}
 				waitlistEnabled={!!waitlistEnabled}
 				waitlistTime={Number(waitlistTime)}
+				disableUnbooking={disableUnbooking}
 			/>
 
 			<SessionTabButtons

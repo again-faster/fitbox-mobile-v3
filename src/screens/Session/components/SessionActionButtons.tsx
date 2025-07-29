@@ -16,6 +16,7 @@ interface SessionActionButtonsProps {
 	startTime: string;
 	waitlistEnabled: boolean;
 	waitlistTime: number;
+	disableUnbooking?: boolean;
 }
 
 const SessionActionButtons = ({
@@ -29,6 +30,7 @@ const SessionActionButtons = ({
 	startTime,
 	waitlistEnabled,
 	waitlistTime,
+	disableUnbooking = false,
 }: SessionActionButtonsProps) => {
 	const [isAttending, setAttending] = useState<boolean>(propsIsAttending);
 
@@ -79,6 +81,7 @@ const SessionActionButtons = ({
 				waitlistBtn={waitlistBtn}
 				setAttending={setAttending}
 				isPreviewMode
+				disableUnbooking={disableUnbooking}
 			/>
 		);
 	}, [islocked, isAttending, isWaitlist, spotsLeft, waitlistEnabled]);

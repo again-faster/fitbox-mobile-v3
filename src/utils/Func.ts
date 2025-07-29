@@ -7,7 +7,7 @@ import {
 import { AnimationObject } from 'lottie-react-native';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
-import { Keyboard } from 'react-native';
+import { Keyboard, Platform } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import Constant from './Constant';
 import { VisibilityOptions } from './Enum';
@@ -273,6 +273,10 @@ const useKeyboardStatus = () => {
 	return keyboardVisible;
 };
 
+const isAndroid15OrLater = () => {
+	return Platform.OS === 'android' && Platform.Version >= 35;
+};
+
 export default {
 	decodeHtml,
 	stripHtmlTags,
@@ -296,4 +300,5 @@ export default {
 	isVersionOutdated,
 	getRandomAnimation,
 	useKeyboardStatus,
+	isAndroid15OrLater,
 };

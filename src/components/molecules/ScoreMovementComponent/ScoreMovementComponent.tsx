@@ -112,6 +112,18 @@ const ScoreMovementComponent = ({
 		setDatePicker(visible => !visible);
 	};
 
+	let bottomMargin = {};
+	if (isKeyboardVisible) {
+		bottomMargin = {
+			bottom:
+				Platform.OS === 'ios' || Func.isAndroid15OrLater()
+					? '40%'
+					: '0%',
+		};
+	} else {
+		bottomMargin = { margin: config.metrics.lg };
+	}
+
 	const getFields = (type: number) => {
 		const sTypeInfo = getScoringTypeInfo(type);
 		if (!sTypeInfo) return [];
@@ -717,7 +729,7 @@ const ScoreMovementComponent = ({
 					title={editMode ? 'Save' : 'Add Result'}
 					variant="info"
 					onPress={onSubmit}
-					style={styles.submitButton}
+					style={{ ...styles.submitButton, ...bottomMargin }}
 				/>
 			) : null}
 

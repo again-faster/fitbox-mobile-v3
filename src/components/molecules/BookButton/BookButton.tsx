@@ -31,6 +31,7 @@ interface BookButtonProps {
 	handleViewSession?: () => void;
 	setAttending?: (value: boolean) => void;
 	showBuyButton?: boolean;
+	disableUnbooking?: boolean;
 }
 
 const BookButton = ({
@@ -48,6 +49,7 @@ const BookButton = ({
 	handleViewSession,
 	setAttending = () => {},
 	showBuyButton,
+	disableUnbooking = false,
 }: BookButtonProps) => {
 	const navigation =
 		useNavigation<NavigationProp<ApplicationStackParamList>>();
@@ -108,6 +110,14 @@ const BookButton = ({
 		if (isLoading) return;
 		setIsLoading(true);
 		// TODO: for booking modal this.toggleProcessingMember(currentUserId);
+		if (isAttending && disableUnbooking && !isSessionFromPast) {
+			Say.warn(
+				'You are currently within the lock-in time. Unbooking is not allowed at this stage.',
+				'Oops!',
+			);
+			setIsLoading(false);
+			return;
+		}
 
 		attendSession({
 			event_id: Number(eventId),

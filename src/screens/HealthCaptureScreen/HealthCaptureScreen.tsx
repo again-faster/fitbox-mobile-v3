@@ -705,6 +705,21 @@ const HealthCaptureScreen = ({
 		return '';
 	};
 
+	const renderFormFooter = () => {
+		return !user?.user_data.is_health_captured ? (
+			<Button
+				labelStyle={styles.submitLabelStyle}
+				title={user?.user_data.is_health_captured ? 'Update' : 'Next'}
+				onPress={() => void handleSubmit()}
+				style={{
+					...styles.submitButtonStyle,
+					marginBottom: config.metrics.xl + config.metrics.rg,
+				}}
+				loading={state.submitting}
+			/>
+		) : null;
+	};
+
 	return state.loading ? (
 		<View style={styles.loader}>
 			<ActivityIndicator color={config.colors.brand} size="large" />
@@ -732,32 +747,37 @@ const HealthCaptureScreen = ({
 					renderItem={renderItem}
 					ListHeaderComponent={renderHeader}
 					showsVerticalScrollIndicator={false}
+					ListFooterComponent={renderFormFooter}
 				/>
 			</View>
 			<View style={styles.submitGobackContainer}>
-				<Button
-					labelStyle={styles.submitLabelStyle}
-					title={
-						user?.user_data.is_health_captured ? 'Update' : 'Next'
-					}
-					onPress={() => void handleSubmit()}
-					style={styles.submitButtonStyle}
-					loading={state.submitting}
-				/>
 				{user?.user_data.is_health_captured || params?.fromMenu ? (
-					<Button
-						labelStyle={{
-							...styles.submitLabelStyle,
-							color: config.backgrounds.darkgray,
-						}}
-						title="Go back"
-						onPress={() =>
-							params?.fromAttendance
-								? void goBackToAttendanceProfile()
-								: void goToMainMenu()
-						}
-						style={styles.goBackButtonStyle}
-					/>
+					<>
+						<Button
+							labelStyle={styles.submitLabelStyle}
+							title={
+								user?.user_data.is_health_captured
+									? 'Update'
+									: 'Next'
+							}
+							onPress={() => void handleSubmit()}
+							style={styles.submitButtonStyle}
+							loading={state.submitting}
+						/>
+						<Button
+							labelStyle={{
+								...styles.submitLabelStyle,
+								color: config.backgrounds.darkgray,
+							}}
+							title="Go back"
+							onPress={() =>
+								params?.fromAttendance
+									? void goBackToAttendanceProfile()
+									: void goToMainMenu()
+							}
+							style={styles.goBackButtonStyle}
+						/>
+					</>
 				) : null}
 			</View>
 		</View>

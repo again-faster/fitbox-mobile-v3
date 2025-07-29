@@ -7,6 +7,7 @@ import { getPastPerformance } from '@/services/users';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { ApplicationScreenProps, ScoringParams } from '@/types/navigation';
+import { Func } from '@/utils';
 import useStore from '@/zustand/Store';
 import BottomSheet, {
 	BottomSheetBackdrop,
@@ -15,7 +16,7 @@ import BottomSheet, {
 import { BottomSheetDefaultBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types';
 import { useFocusEffect } from '@react-navigation/native';
 import { JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { Dimensions, Platform, StyleSheet, View } from 'react-native';
 import SimpleToast from 'react-native-simple-toast';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -159,26 +160,35 @@ const SessionScoringScreen = ({ route }: ApplicationScreenProps) => {
 		[isKeyboardVisible, isLoadingHistory, section, results],
 	);
 
+	const marginBottomValue =
+		Func.isAndroid15OrLater() || Platform.OS === 'ios' ? '75%' : '0%';
+
 	const renderBottomSheetButton = useMemo(
-		() =>
-			((results?.section_scores?.length ?? 0) > 0 ||
-				(results?.user_movement?.length ?? 0) > 0) &&
-			!isKeyboardVisible && (
-				<Button
-					title={
-						isBottomSheetOpen
-							? 'Close Past Performance'
-							: 'View Past Performance'
-					}
-					onPress={
-						isBottomSheetOpen
-							? handleCloseBottomSheet
-							: handleOpenBottomSheet
-					}
-					style={styles.bottomSheetButton}
-				/>
-			),
-		[isBottomSheetOpen, isKeyboardVisible, results],
+		() => (
+			<View
+				style={{
+					marginBottom: marginBottomValue,
+				}}
+			>
+				{((results?.section_scores?.length ?? 0) > 0 ||
+					(results?.user_movement?.length ?? 0) > 0) && (
+					<Button
+						title={
+							isBottomSheetOpen
+								? 'Close Past Performance'
+								: 'View Past Performance'
+						}
+						onPress={
+							isBottomSheetOpen
+								? handleCloseBottomSheet
+								: handleOpenBottomSheet
+						}
+						style={styles.bottomSheetButton}
+					/>
+				)}
+			</View>
+		),
+		[isBottomSheetOpen, results, isKeyboardVisible],
 	);
 
 	const scoringBy = section.scoring_by;

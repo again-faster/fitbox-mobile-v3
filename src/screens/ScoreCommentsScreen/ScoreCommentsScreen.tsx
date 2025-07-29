@@ -27,7 +27,7 @@ import {
 	ScoreCommentsDataType,
 	ScoreDetailsDataType,
 } from '@/types/schemas/leaderboards';
-import { Constant, Say } from '@/utils';
+import { Constant, Func, Say } from '@/utils';
 import { isEmpty } from 'lodash';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -440,7 +440,7 @@ const ScoreCommentsScreen = ({
 				</View>
 			</Modal>
 			{renderCommentsTab()}
-			{Platform.OS === 'ios' && (
+			{(Func.isAndroid15OrLater() || Platform.OS === 'ios') && (
 				<KeyboardSpacer
 					heightDeduction={
 						navigation.getState().routes[0]?.name === 'Main'

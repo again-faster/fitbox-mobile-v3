@@ -966,18 +966,22 @@ const ScoreComponent = ({
 			submitButtonHeight = {
 				height: Platform.OS === 'ios' ? '100%' : '100%',
 			};
-			bottomMargin = { bottom: Platform.OS === 'ios' ? 20 : 0 };
+			bottomMargin = { bottom: Platform.OS === 'ios' ? -20 : -20 };
 		} else {
 			submitButtonHeight = {
 				height: Platform.OS === 'ios' ? '100%' : '100%',
 			};
+			bottomMargin = { bottom: Platform.OS === 'ios' ? -20 : -20 };
 		}
 	} else if (keyboardVisible) {
 		submitButtonHeight = { height: Platform.OS === 'ios' ? '55%' : '100%' };
-		bottomMargin = {};
+		bottomMargin = {
+			bottom:
+				Platform.OS === 'ios' || Func.isAndroid15OrLater() ? 150 : 0,
+		};
 	} else {
 		submitButtonHeight = { height: Platform.OS === 'ios' ? '55%' : '100%' };
-		bottomMargin = { bottom: 20 };
+		bottomMargin = { bottom: Platform.OS === 'ios' ? 150 : 150 };
 	}
 
 	const renderInputFields = useMemo(
@@ -1219,7 +1223,7 @@ const styles = StyleSheet.create({
 		backgroundColor: config.fonts.colors.info,
 	},
 	scoreCommentHeight: {
-		height: '50%',
+		height: '70%',
 	},
 	buttonContainer: {
 		height: 100,

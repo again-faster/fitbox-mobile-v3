@@ -18,7 +18,7 @@ import {
 	SendMessageDataType,
 } from '@/types/schemas/message';
 import { NotificationsType } from '@/types/schemas/notifications';
-import { Say } from '@/utils';
+import { Func, Say } from '@/utils';
 import { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -608,7 +608,11 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 					] as SendMessageDataType,
 				)}
 			</BottomPanel>
-			{Platform.OS === 'ios' && <KeyboardSpacer />}
+			{(Func.isAndroid15OrLater() || Platform.OS === 'ios') && (
+				<KeyboardSpacer
+					heightDeduction={Func.isAndroid15OrLater() ? 50 : 80}
+				/>
+			)}
 		</View>
 	);
 };
