@@ -6,7 +6,6 @@ import acceptEula from '@/services/eula/acceptEula';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { ApplicationScreenProps } from '@/types/navigation';
-import { decode } from 'html-entities';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import WebView from 'react-native-webview';
@@ -29,7 +28,7 @@ const EULAScreen = ({ navigation }: ApplicationScreenProps) => {
 		void (async () => {
 			try {
 				const res = await getEula();
-				const decodedHtml = decode(res.eula);
+				const decodedHtml = res.eula;
 				setState({ ...state, eula: decodedHtml, loading: false });
 			} catch (e) {
 				console.log('e: ', e);
