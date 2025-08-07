@@ -9,6 +9,7 @@ import {
 	NotBookedMemberSchemaType,
 	SessionDetailSchemaType,
 	SessionMemberAttendanceSchemaType,
+	SessionSectionSchemaType,
 } from '@/types/schemas/session';
 import { Say } from '@/utils';
 import useStore from '@/zustand/Store';
@@ -334,6 +335,46 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 		[processingMembers],
 	);
 
+	const sections: {
+		movementId: number | null;
+		name: string;
+		sectionId: number | null;
+		scoringTypeId: number;
+		id: number | null;
+	}[] = [];
+
+	if (session?.sections && isArray(session.sections)) {
+		session.sections.map((item: SessionSectionSchemaType) => {
+			if (
+				item.wod_movements &&
+				item.wod_movements?.length > 0 &&
+				item.scoring_type_id === 20 // For Load
+			) {
+				if (item.wod_movements && item.wod_movements.length > 0) {
+					item.wod_movements.map(movement => {
+						return sections.push({
+							movementId: movement.id,
+							name: movement.movement.name,
+							sectionId: item.id,
+							scoringTypeId: item.scoring_type_id as number,
+							id: movement.id,
+						});
+					});
+				} else {
+					const base = {
+						movementId: null,
+						sectionId: item.id,
+						name: item.name,
+						scoringTypeId: item.scoring_type_id as number,
+						id: null,
+					};
+					return sections.push(base);
+				}
+			}
+			return null;
+		});
+	}
+
 	const hasForLoadMovements =
 		session.sections &&
 		isArray(session.sections) &&
@@ -342,7 +383,8 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 	const hidePastPerformanceButton =
 		(!session.sections && !isArray(session.sections)) ||
 		bookedMembersRef.current.length === 0 ||
-		!hasForLoadMovements;
+		!hasForLoadMovements ||
+		sections.length === 0;
 
 	const StickyHeaderComponent = (
 		<View>
