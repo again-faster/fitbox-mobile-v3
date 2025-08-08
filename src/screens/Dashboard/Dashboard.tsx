@@ -30,6 +30,7 @@ import { ApplicationStackParamList } from '@/types/navigation';
 import { GymVenueType } from '@/types/schemas/gym';
 import { NotificationSettingsState } from '@/types/schemas/notifications';
 import { FailedInvoicesType } from '@/types/schemas/payment';
+import { LoginResponseSchemaType } from '@/types/schemas/response';
 import {
 	ClassFiltersDataType,
 	WorkoutSchemaType,
@@ -135,6 +136,7 @@ const Dashboard = () => {
 		joiningOtherGym,
 		emptyRequiredFieldsState,
 		loggedInUser,
+		setLoggedInUser,
 	} = useStore(state => ({
 		setAppState: state.setAppState,
 		classFilters: state.classFilters,
@@ -154,6 +156,7 @@ const Dashboard = () => {
 		joiningOtherGym: state.joiningOtherGym,
 		emptyRequiredFieldsState: state.emptyRequiredFields,
 		loggedInUser: state.loggedInUser,
+		setLoggedInUser: state.setLoggedInUser,
 	}));
 
 	const [failedInvoicesRefreshing, setFailedInvoicesRefreshing] =
@@ -236,6 +239,7 @@ const Dashboard = () => {
 
 	const initializeAppStates = async () => {
 		const res = await getUserGymInfo();
+		const userState = loggedInUser as LoginResponseSchemaType;
 		if (!res.error) {
 			// TODO: Update the following once other functionalities are implemented
 			// const gymParams = {
@@ -274,6 +278,16 @@ const Dashboard = () => {
 					navigate('Startup');
 				});
 			}
+
+			setLoggedInUser({
+				...userState,
+				user_data: {
+					...userState.user_data,
+					has_previous_subscriptions:
+						res.user_data.has_previous_subscriptions,
+				},
+			});
+
 			const { gym_info: gymInfo } = res;
 			setAppState(
 				'emptyRequiredFields',
