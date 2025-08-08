@@ -4,6 +4,7 @@ import {
 	Button,
 	Card,
 	HR,
+	KeyboardSpacer,
 	Row,
 	ScrollView,
 	Spacer,
@@ -22,7 +23,7 @@ import layout from '@/theme/layout';
 import { MenuStackNavigatorProps, MyDetailsParams } from '@/types/navigation';
 import { GenderType } from '@/types/schemas/common';
 import { UserProfileType, UserSchemaType } from '@/types/schemas/user';
-import { Constant, Say } from '@/utils';
+import { Constant, Func, Say } from '@/utils';
 import { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
 import { isEmpty } from 'lodash';
@@ -33,6 +34,7 @@ import {
 	Alert,
 	Dimensions,
 	Keyboard,
+	Platform,
 	StyleProp,
 	StyleSheet,
 	TextInput,
@@ -727,6 +729,11 @@ const MyDetails = ({ navigation, route }: MenuStackNavigatorProps) => {
 						</TextInput>
 					</View>
 				</SafeScreen>
+				{(Func.isAndroid15OrLater() || Platform.OS === 'ios') && (
+					<KeyboardSpacer
+						heightDeduction={Func.isAndroid15OrLater() ? 10 : 80}
+					/>
+				)}
 			</ScrollView>
 			{/* Modals */}
 			<Modal visible={pictureOptions}>

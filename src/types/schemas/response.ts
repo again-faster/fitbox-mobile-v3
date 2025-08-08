@@ -11,7 +11,9 @@ import {
 	AttendanceGraphSchema,
 	AttendanceReportDataSchema,
 	GetPastPerformanceResultSchema,
+	LeaderboardByWorkoutSchema,
 	LeaderboardsDataSchema,
+	OneRMDataItemSchema,
 	OneRmSchema,
 	PastPerformanceHistorySchema,
 	PastPerformanceResultSchema,
@@ -21,6 +23,7 @@ import {
 	ScoreDetailsDataSchema,
 	ScoreResultSchema,
 	ScoringTypeSchema,
+	WorkoutItemSchema,
 } from './leaderboards';
 import {
 	ContactDataSchema,
@@ -399,6 +402,10 @@ export const GetWorkoutResponseSchema = apiResponseSchema(
 	}),
 );
 
+export const GetWorkoutsByClassResponseSchema = apiResponseSchema(
+	z.array(WorkoutItemSchema),
+);
+
 export const GetAttendanceProfileResponseSchema = z.object({
 	failedInvoices: FialedInvoiceSchema,
 	health: HealthSchema,
@@ -409,4 +416,14 @@ export const GetAttendanceProfileResponseSchema = z.object({
 export const GetMinVersionSchema = z.object({
 	minVersion: z.string(),
 	depth: z.number(),
+});
+
+export const GetLeaderboardByWorkoutResponseSchema = apiResponseSchema(
+	LeaderboardByWorkoutSchema,
+);
+
+export const GetOneRMsBySessionSectionResponseSchema = z.object({
+	data: z.array(OneRMDataItemSchema),
+	error: z.boolean(),
+	message: z.string(),
 });

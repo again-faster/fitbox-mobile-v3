@@ -1,4 +1,5 @@
 import {
+	AttendancePastPerformance,
 	Auth,
 	BillingAgreementScreen,
 	BrowseMediaScreen,
@@ -547,6 +548,7 @@ const ApplicationNavigator = () => {
 								options={{
 									...TabHeaderOptions,
 									headerBackTitleVisible: false,
+									title: 'Health Capture',
 								}}
 							/>
 							<Stack.Screen
@@ -680,6 +682,11 @@ const ApplicationNavigator = () => {
 							<Stack.Screen
 								name="WorkoutHistory"
 								component={WorkoutHistory}
+								options={{ title: 'Past Performance' }}
+							/>
+							<Stack.Screen
+								name="AttendancePastPerformance"
+								component={AttendancePastPerformance}
 								options={{ title: 'Past Performance' }}
 							/>
 						</Stack.Group>

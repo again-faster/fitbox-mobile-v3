@@ -26,7 +26,7 @@ import layout from '@/theme/layout';
 import { ApplicationScreenProps, SignUpParams } from '@/types/navigation';
 import { GymInfoType, MemberRolesType } from '@/types/schemas/gym';
 import { LoginResponseSchemaType } from '@/types/schemas/response';
-import { Constant, Say } from '@/utils';
+import { Constant, Func, Say } from '@/utils';
 import { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
 import { capitalize, isArray, isEmpty } from 'lodash';
@@ -681,285 +681,280 @@ const SignUp = ({ navigation, route }: ApplicationScreenProps) => {
 		};
 
 		return (
-			<>
-				<ScrollView
-					contentContainerStyle={{ padding: config.metrics.lg }}
-					keyboardShouldPersistTaps="handled"
+			<ScrollView
+				contentContainerStyle={{ padding: config.metrics.lg }}
+				keyboardShouldPersistTaps="handled"
+			>
+				<Modal
+					animationType="fade"
+					transparent
+					visible={state.roleModal}
 				>
-					<Modal
-						animationType="fade"
-						transparent
-						visible={state.roleModal}
-					>
-						<View style={styles.roleModalConStyle}>
-							<TouchableWithoutFeedback onPress={toggleRoleModal}>
-								<View style={styles.modalMemberRole} />
-							</TouchableWithoutFeedback>
+					<View style={styles.roleModalConStyle}>
+						<TouchableWithoutFeedback onPress={toggleRoleModal}>
+							<View style={styles.modalMemberRole} />
+						</TouchableWithoutFeedback>
 
-							<Card
-								style={[
-									styles.modalStyle,
-									{ top: state.roleModalTopHeight },
-								]}
-							>
-								{rolesList?.map((roleItem, rIndex) => (
-									<TouchableOpacity
-										key={rIndex}
-										style={styles.roleSelectStyle}
-										onPress={() =>
-											handleOnRolePress(roleItem.id)
-										}
-										disabled={processing}
-									>
-										<Text>{roleItem.name}</Text>
-										{roleItem.id === currentRole?.id && (
-											<Icon
-												name="check"
-												color={config.colors.brand}
-												size={config.metrics.sm}
-											/>
-										)}
-									</TouchableOpacity>
-								))}
-							</Card>
-						</View>
-					</Modal>
-
-					<ModalMoleculeComponent visible={sendingInvite}>
-						<View style={styles.modalComponentStyle}>
-							<ActivityIndicator
-								size="large"
-								color={config.colors.brand}
-							/>
-						</View>
-					</ModalMoleculeComponent>
-
-					<ModalMoleculeComponent visible={emailExists}>
 						<Card
-							style={{
-								marginHorizontal: config.metrics.md,
-								padding: config.metrics.md,
-							}}
+							style={[
+								styles.modalStyle,
+								{ top: state.roleModalTopHeight },
+							]}
 						>
-							<Text bold size="md" center>
-								Email already in use
+							{rolesList?.map((roleItem, rIndex) => (
+								<TouchableOpacity
+									key={rIndex}
+									style={styles.roleSelectStyle}
+									onPress={() =>
+										handleOnRolePress(roleItem.id)
+									}
+									disabled={processing}
+								>
+									<Text>{roleItem.name}</Text>
+									{roleItem.id === currentRole?.id && (
+										<Icon
+											name="check"
+											color={config.colors.brand}
+											size={config.metrics.sm}
+										/>
+									)}
+								</TouchableOpacity>
+							))}
+						</Card>
+					</View>
+				</Modal>
+
+				<ModalMoleculeComponent visible={sendingInvite}>
+					<View style={styles.modalComponentStyle}>
+						<ActivityIndicator
+							size="large"
+							color={config.colors.brand}
+						/>
+					</View>
+				</ModalMoleculeComponent>
+
+				<ModalMoleculeComponent visible={emailExists}>
+					<Card
+						style={{
+							marginHorizontal: config.metrics.md,
+							padding: config.metrics.md,
+						}}
+					>
+						<Text bold size="md" center>
+							Email already in use
+						</Text>
+						<Spacer />
+						{!isArchivedUser && (
+							<Text size="rg" center>
+								It looks like you already have a fitbox account.
 							</Text>
-							<Spacer />
-							{!isArchivedUser && (
-								<Text size="rg" center>
-									It looks like you already have a fitbox
-									account.
-								</Text>
-							)}
-							<Spacer />
-							{!isArchivedUser && (
-								<Row>
-									<Text>
-										<Text size="rg" bold>
-											● Log in{' '}
-										</Text>
-										<Text size="rg">
-											with your existing credentials and
-											then add your new gym.
-										</Text>
-									</Text>
-								</Row>
-							)}
+						)}
+						<Spacer />
+						{!isArchivedUser && (
 							<Row>
 								<Text>
 									<Text size="rg" bold>
-										{`${!isArchivedUser ? '● ' : ''}Joining a new gym? `}
+										● Log in{' '}
 									</Text>
 									<Text size="rg">
-										We can send you a verification link to
-										connect your account to this gym.
+										with your existing credentials and then
+										add your new gym.
 									</Text>
 								</Text>
 							</Row>
-							<Spacer />
-							<Row>
-								{!isArchivedUser && (
-									<>
-										<Button
-											title="Log In"
-											onPress={handleLogIn}
-											style={layout.flex_1}
-											mode="outlined"
-										/>
-										<View
-											style={{ width: config.metrics.sm }}
-										/>
-									</>
-								)}
-								{isArchivedUser && (
-									<>
-										<Button
-											title="Cancel"
-											onPress={handleCancel}
-											style={layout.flex_1}
-											mode="outlined"
-										/>
-										<Spacer horizontal size="sm" />
-									</>
-								)}
-								<Button
-									title="Send Link"
-									onPress={handleSendLink}
-									style={layout.flex_1}
-									mode="outlined"
-								/>
-							</Row>
-						</Card>
-					</ModalMoleculeComponent>
-
-					{/* Date Modal */}
-					<DateTimePicker
-						mode="date"
-						isVisible={activeFieldInput?.type === 'date'}
-						onConfirm={date => {
-							handleTextOnChange(
-								activeFieldInput?.id as string,
-								moment(date).format(
-									Constant.DEFAULT_DATE_FORMAT,
-								),
-							);
-							setDateValue(
-								moment(date).format(
-									Constant.DEFAULT_DATE_FORMAT,
-								),
-							);
-							clearActiveField();
-						}}
-						onCancel={clearActiveField}
-						maximumDate={new Date()}
-						minimumDate={new Date(MINIMUM_DATE)}
-						date={new Date(dateValue)}
-					/>
-
-					{/* Select Modal */}
-					<BottomPanel
-						visible={activeFieldInput?.type === 'select'}
-						onClose={clearActiveField}
-					>
-						<View>
-							{activeFieldInput?.data?.options?.map(
-								(option: string, index: number) => (
-									<TouchableOpacity
-										key={index}
-										onPress={() => {
-											handleTextOnChange(
-												activeFieldInput?.id,
-												option,
-											);
-											clearActiveField();
-										}}
-										style={styles.bottomPanelTouch}
-									>
-										<Text size="rg">{option}</Text>
-									</TouchableOpacity>
-								),
+						)}
+						<Row>
+							<Text>
+								<Text size="rg" bold>
+									{`${!isArchivedUser ? '● ' : ''}Joining a new gym? `}
+								</Text>
+								<Text size="rg">
+									We can send you a verification link to
+									connect your account to this gym.
+								</Text>
+							</Text>
+						</Row>
+						<Spacer />
+						<Row>
+							{!isArchivedUser && (
+								<>
+									<Button
+										title="Log In"
+										onPress={handleLogIn}
+										style={layout.flex_1}
+										mode="outlined"
+									/>
+									<View
+										style={{ width: config.metrics.sm }}
+									/>
+								</>
 							)}
-						</View>
-					</BottomPanel>
+							{isArchivedUser && (
+								<>
+									<Button
+										title="Cancel"
+										onPress={handleCancel}
+										style={layout.flex_1}
+										mode="outlined"
+									/>
+									<Spacer horizontal size="sm" />
+								</>
+							)}
+							<Button
+								title="Send Link"
+								onPress={handleSendLink}
+								style={layout.flex_1}
+								mode="outlined"
+							/>
+						</Row>
+					</Card>
+				</ModalMoleculeComponent>
 
-					<GoogleRecaptcha
-						siteKey={Constant.RECAPTCHA.siteKey}
-						baseUrl={Constant.RECAPTCHA.baseURL}
-						ref={recaptchaRef}
-						onVerify={() => void onCaptchaVerified()}
-						onError={onCaptchaError}
-						onExpire={onCaptchaError}
+				{/* Date Modal */}
+				<DateTimePicker
+					mode="date"
+					isVisible={activeFieldInput?.type === 'date'}
+					onConfirm={date => {
+						handleTextOnChange(
+							activeFieldInput?.id as string,
+							moment(date).format(Constant.DEFAULT_DATE_FORMAT),
+						);
+						setDateValue(
+							moment(date).format(Constant.DEFAULT_DATE_FORMAT),
+						);
+						clearActiveField();
+					}}
+					onCancel={clearActiveField}
+					maximumDate={new Date()}
+					minimumDate={new Date(MINIMUM_DATE)}
+					date={new Date(dateValue)}
+				/>
+
+				{/* Select Modal */}
+				<BottomPanel
+					visible={activeFieldInput?.type === 'select'}
+					onClose={clearActiveField}
+				>
+					<View>
+						{activeFieldInput?.data?.options?.map(
+							(option: string, index: number) => (
+								<TouchableOpacity
+									key={index}
+									onPress={() => {
+										handleTextOnChange(
+											activeFieldInput?.id,
+											option,
+										);
+										clearActiveField();
+									}}
+									style={styles.bottomPanelTouch}
+								>
+									<Text size="rg">{option}</Text>
+								</TouchableOpacity>
+							),
+						)}
+					</View>
+				</BottomPanel>
+
+				<GoogleRecaptcha
+					siteKey={Constant.RECAPTCHA.siteKey}
+					baseUrl={Constant.RECAPTCHA.baseURL}
+					ref={recaptchaRef}
+					onVerify={() => void onCaptchaVerified()}
+					onError={onCaptchaError}
+					onExpire={onCaptchaError}
+				/>
+
+				<Text size="md" center>
+					Let&apos;s grab some details
+				</Text>
+				<Spacer />
+
+				{SIGNUP_INPUT_FIELDS.map((field, index) => (
+					<InputField
+						key={index}
+						field={field as RequiredFields}
+						processing={state.processing}
+						allowEmail={state.allowEmail}
+						fields={state.fields}
+						handleTextOnChange={handleTextOnChange}
+						validatingEmail={state.validatingEmail as boolean}
+						handleCheckUserEmail={handleCheckUserEmail}
+						fieldsError={state.fieldsError}
+						setState={setState}
+						allowPassword={allowPassword}
+						setAllowPassword={setAllowPassword}
 					/>
+				))}
 
-					<Text size="md" center>
-						Let&apos;s grab some details
+				{state.requiredFields.length > 0 && (
+					<Text
+						center
+						size="md"
+						color="darkgray"
+						style={{ marginTop: config.metrics.xl }}
+					>
+						Your gym requires the following
 					</Text>
-					<Spacer />
+				)}
 
-					{SIGNUP_INPUT_FIELDS.map((field, index) => (
-						<InputField
-							key={index}
-							field={field as RequiredFields}
-							processing={state.processing}
-							allowEmail={state.allowEmail}
-							fields={state.fields}
-							handleTextOnChange={handleTextOnChange}
-							validatingEmail={state.validatingEmail as boolean}
-							handleCheckUserEmail={handleCheckUserEmail}
-							fieldsError={state.fieldsError}
-							setState={setState}
-							allowPassword={allowPassword}
-							setAllowPassword={setAllowPassword}
-						/>
-					))}
-
-					{state.requiredFields.length > 0 && (
-						<Text
-							center
-							size="md"
-							color="darkgray"
-							style={{ marginTop: config.metrics.xl }}
-						>
-							Your gym requires the following
-						</Text>
-					)}
-
-					{state.requiredFields.map((field, index) => (
-						<InputField
-							key={index}
-							field={field}
-							processing={state.processing}
-							allowEmail={state.allowEmail}
-							fields={state.fields}
-							handleTextOnChange={handleTextOnChange}
-							validatingEmail={state.validatingEmail as boolean}
-							handleCheckUserEmail={handleCheckUserEmail}
-							fieldsError={state.fieldsError}
-							setState={setState}
-							allowPassword={allowPassword}
-							setAllowPassword={setAllowPassword}
-						/>
-					))}
-
-					<Spacer size="lg" />
-
-					<Row align="center" spacing="center">
-						<Icon
-							name={
-								state.verified
-									? 'checkbox-outline'
-									: 'checkbox-blank-outline'
-							}
-							color={
-								state.allowEmail
-									? config.colors.brand
-									: config.backgrounds.lightgrey
-							}
-							size={25}
-							onPress={() =>
-								!state.verified && state.allowEmail
-									? recaptchaRef.current?.open()
-									: Say.err(
-											'Please enter a valid email address',
-										)
-							}
-						/>
-						<Spacer horizontal size="sm" />
-						<Text size="lg">I am not a robot</Text>
-					</Row>
-
-					<Button
-						title="Submit"
-						sm
-						loading={state.processing}
-						disabled={!state.allowEmail}
-						labelStyle={{ color: config.backgrounds.light }}
-						style={submitButtonStyle}
-						onPress={() => void onSubmit()}
+				{state.requiredFields.map((field, index) => (
+					<InputField
+						key={index}
+						field={field}
+						processing={state.processing}
+						allowEmail={state.allowEmail}
+						fields={state.fields}
+						handleTextOnChange={handleTextOnChange}
+						validatingEmail={state.validatingEmail as boolean}
+						handleCheckUserEmail={handleCheckUserEmail}
+						fieldsError={state.fieldsError}
+						setState={setState}
+						allowPassword={allowPassword}
+						setAllowPassword={setAllowPassword}
 					/>
-				</ScrollView>
-				{Platform.OS !== 'android' && <KeyboardSpacer />}
-			</>
+				))}
+
+				<Spacer size="lg" />
+
+				<Row align="center" spacing="center">
+					<Icon
+						name={
+							state.verified
+								? 'checkbox-outline'
+								: 'checkbox-blank-outline'
+						}
+						color={
+							state.allowEmail
+								? config.colors.brand
+								: config.backgrounds.lightgrey
+						}
+						size={25}
+						onPress={() =>
+							!state.verified && state.allowEmail
+								? recaptchaRef.current?.open()
+								: Say.err('Please enter a valid email address')
+						}
+					/>
+					<Spacer horizontal size="sm" />
+					<Text size="lg">I am not a robot</Text>
+				</Row>
+
+				<Button
+					title="Submit"
+					sm
+					loading={state.processing}
+					disabled={!state.allowEmail}
+					labelStyle={{ color: config.backgrounds.light }}
+					style={submitButtonStyle}
+					onPress={() => void onSubmit()}
+				/>
+				{(Func.isAndroid15OrLater() || Platform.OS === 'ios') && (
+					<KeyboardSpacer
+						heightDeduction={Func.isAndroid15OrLater() ? 10 : 10}
+					/>
+				)}
+			</ScrollView>
 		);
 	};
 

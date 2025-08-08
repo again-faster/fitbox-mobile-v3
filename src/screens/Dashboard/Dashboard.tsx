@@ -30,6 +30,7 @@ import { ApplicationStackParamList } from '@/types/navigation';
 import { GymVenueType } from '@/types/schemas/gym';
 import { NotificationSettingsState } from '@/types/schemas/notifications';
 import { FailedInvoicesType } from '@/types/schemas/payment';
+import { LoginResponseSchemaType } from '@/types/schemas/response';
 import {
 	ClassFiltersDataType,
 	WorkoutSchemaType,
@@ -135,6 +136,7 @@ const Dashboard = () => {
 		joiningOtherGym,
 		emptyRequiredFieldsState,
 		loggedInUser,
+		setLoggedInUser,
 	} = useStore(state => ({
 		setAppState: state.setAppState,
 		classFilters: state.classFilters,
@@ -154,7 +156,10 @@ const Dashboard = () => {
 		joiningOtherGym: state.joiningOtherGym,
 		emptyRequiredFieldsState: state.emptyRequiredFields,
 		loggedInUser: state.loggedInUser,
+		setLoggedInUser: state.setLoggedInUser,
 	}));
+
+	const userState = loggedInUser as LoginResponseSchemaType;
 
 	const [failedInvoicesRefreshing, setFailedInvoicesRefreshing] =
 		useState<boolean>(true);
@@ -162,6 +167,9 @@ const Dashboard = () => {
 	const [gymBanner, setGymBanner] = useState<string>('');
 	const [gymLogo, setGymLogo] = useState<string>('');
 	const [showAttendanceReport, setShowAttendanceReport] =
+		useState<boolean>(false);
+
+	const [hasPrevSubscriptions, setHasPrevSubscriptions] =
 		useState<boolean>(false);
 
 	const [upcomingSessionsIsLoading, setUpcomingSessionsIsLoading] =
@@ -234,8 +242,19 @@ const Dashboard = () => {
 			});
 	};
 
+	useEffect(() => {
+		setLoggedInUser({
+			...userState,
+			user_data: {
+				...userState.user_data,
+				has_previous_subscriptions: hasPrevSubscriptions,
+			},
+		});
+	}, [hasPrevSubscriptions]);
+
 	const initializeAppStates = async () => {
 		const res = await getUserGymInfo();
+
 		if (!res.error) {
 			// TODO: Update the following once other functionalities are implemented
 			// const gymParams = {
@@ -274,7 +293,8 @@ const Dashboard = () => {
 					navigate('Startup');
 				});
 			}
-			const { gym_info: gymInfo } = res;
+
+			const { gym_info: gymInfo, user_data: userData } = res;
 			setAppState(
 				'emptyRequiredFields',
 				parseEmptyRequiredFields(
@@ -299,6 +319,8 @@ const Dashboard = () => {
 
 			setShowAttendanceReport(gymInfo.allow_attendance_report);
 			setAttendanceFilter(gymInfo.mobile_dashboard_type);
+
+			setHasPrevSubscriptions(userData.has_previous_subscriptions);
 		}
 	};
 

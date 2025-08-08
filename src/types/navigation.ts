@@ -26,6 +26,10 @@ export type LoginParams = {
 	emailFromSignin?: string;
 };
 
+export type AttendancePastPerformanceParams = {
+	session: SessionDetailSchemaType;
+};
+
 export type ApplicationStackParamList = {
 	Example: undefined;
 	Main: undefined;
@@ -58,6 +62,7 @@ export type ApplicationStackParamList = {
 	Subscription: SubscriptionParams;
 	SubscriptionDetails: SubscriptionDetailsParams;
 	WorkoutHistory: WorkoutHistoryParams;
+	AttendancePastPerformance: AttendancePastPerformanceParams;
 };
 export type ApplicationScreenProps =
 	StackScreenProps<ApplicationStackParamList>;
