@@ -68,7 +68,7 @@ const AttendancePastPerformance = ({ route }: ApplicationScreenProps) => {
 				if (item.wod_movements && item.wod_movements.length > 0) {
 					item.wod_movements.map(movement => {
 						return sections.push({
-							movementId: movement.id,
+							movementId: movement.movement.id,
 							name: movement.movement.name,
 							sectionId: item.id,
 							scoringTypeId: item.scoring_type_id as number,
@@ -128,6 +128,7 @@ const AttendancePastPerformance = ({ route }: ApplicationScreenProps) => {
 
 	const getScores = () => {
 		setScoresLoading(true);
+
 		getOneRMsBySessionSection(activeWorkout?.sectionId || 0, session.id)
 			.then(res => {
 				if (!res.error) {
@@ -142,7 +143,10 @@ const AttendancePastPerformance = ({ route }: ApplicationScreenProps) => {
 
 						users.forEach(user => {
 							const oneRMData = res.data.find(
-								item => item.user_id === user.id,
+								item =>
+									item.user_id === user.id &&
+									item.movement_id ===
+										activeWorkout?.movementId,
 							);
 							if (oneRMData) {
 								results.push({
@@ -172,7 +176,7 @@ const AttendancePastPerformance = ({ route }: ApplicationScreenProps) => {
 
 	const renderWorkoutDropDown = () => {
 		return (
-			<View>
+			<View style={styles.dropdownContainer}>
 				<TouchableOpacity
 					style={styles.headerContainer}
 					onPress={() => setShowWorkouts(!showWorkouts)}
@@ -363,5 +367,8 @@ const styles = StyleSheet.create({
 	bestScoreContainer: {
 		flex: 1,
 		alignItems: 'flex-end',
+	},
+	dropdownContainer: {
+		zIndex: 9999,
 	},
 });
