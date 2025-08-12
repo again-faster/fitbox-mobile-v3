@@ -91,7 +91,7 @@ const MenuStackNavigator = () => {
 			<Stack.Screen
 				name="HealthCapture"
 				component={HealthCaptureScreen}
-				options={{ title: 'Heath Capture', headerLeft: () => null }}
+				options={{ title: 'Health Capture', headerLeft: () => null }}
 			/>
 			<Stack.Screen
 				name="Notifications"

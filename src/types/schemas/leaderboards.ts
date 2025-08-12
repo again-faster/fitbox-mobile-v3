@@ -30,6 +30,33 @@ export const SectionSchema = z.object({
 	scoring_type: ScoringTypeSchema,
 });
 
+const MovementEntrySchema = z.object({
+	firstname: z.string(),
+	lastname: z.string(),
+	value: z.string(),
+	score_id: z.number(),
+	user_id: z.number(),
+	wod_section_id: z.number(),
+	wod_attendance_id: z.number(),
+	wod_movement_id: z.number().nullable(),
+	reps: z.number(),
+	wod_score_id: boolOrOneZero,
+	time: z.string().nullable(),
+	wod_score_reps: z.number().nullish(),
+	weight: z.string().nullish(),
+	weight_unit: z.string().nullish(),
+});
+
+export type MovementEntryType = z.infer<typeof MovementEntrySchema>;
+
+const MovementsSchema = z.record(z.string(), z.array(MovementEntrySchema));
+
+export const LeaderboardByWorkoutSchema = z.object({
+	section: SectionSchema,
+	movements: MovementsSchema,
+	one_rm: z.any().nullable(),
+});
+
 export const LeaderboardsDataSchema = z.object({
 	firstname: z.string(),
 	lastname: z.string(),
@@ -182,6 +209,24 @@ export const OneRmSchema = z.object({
 	scoring_type_unit: z.string(),
 	weight: z.string(),
 });
+
+export const WorkoutItemSchema = z
+	.object({
+		movementId: z.number().nullable(),
+		name: z.string(),
+		sectionId: z.number().nullable(),
+		scoringTypeId: z.number().optional(),
+	})
+	.nullable();
+
+export const OneRMDataItemSchema = z.object({
+	movement_id: z.number(),
+	user_id: z.number(),
+	weight: z.string().nullable(),
+});
+
+export type OneRMDataItemType = z.infer<typeof OneRMDataItemSchema>;
+export type WorkoutType = z.infer<typeof WorkoutItemSchema>;
 
 export type IScoringType = z.infer<typeof ScoringTypeSchema>;
 export type SectionType = z.infer<typeof SectionSchema>;

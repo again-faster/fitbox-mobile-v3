@@ -1,13 +1,15 @@
-import { Button, Text } from '@/components/atoms';
+import { Button, Row, Text } from '@/components/atoms';
 import { FlatList } from '@/components/molecules';
 import { updateAttendance } from '@/services/leaderboards';
 import { attendSession } from '@/services/session';
 import { config } from '@/theme/_config';
+import layout from '@/theme/layout';
 import { ApplicationStackParamList } from '@/types/navigation';
 import {
 	NotBookedMemberSchemaType,
 	SessionDetailSchemaType,
 	SessionMemberAttendanceSchemaType,
+	SessionSectionSchemaType,
 } from '@/types/schemas/session';
 import { Say } from '@/utils';
 import useStore from '@/zustand/Store';
@@ -17,7 +19,7 @@ import {
 	useNavigation,
 } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
-import { isNil, sortBy } from 'lodash';
+import { isArray, isNil, sortBy } from 'lodash';
 import moment from 'moment';
 import { useCallback, useRef, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
@@ -333,6 +335,57 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 		[processingMembers],
 	);
 
+	const sections: {
+		movementId: number | null;
+		name: string;
+		sectionId: number | null;
+		scoringTypeId: number;
+		id: number | null;
+	}[] = [];
+
+	if (session?.sections && isArray(session.sections)) {
+		session.sections.map((item: SessionSectionSchemaType) => {
+			if (
+				item.wod_movements &&
+				item.wod_movements?.length > 0 &&
+				item.scoring_type_id === 20 // For Load
+			) {
+				if (item.wod_movements && item.wod_movements.length > 0) {
+					item.wod_movements.map(movement => {
+						return sections.push({
+							movementId: movement.id,
+							name: movement.movement.name,
+							sectionId: item.id,
+							scoringTypeId: item.scoring_type_id as number,
+							id: movement.id,
+						});
+					});
+				} else {
+					const base = {
+						movementId: null,
+						sectionId: item.id,
+						name: item.name,
+						scoringTypeId: item.scoring_type_id as number,
+						id: null,
+					};
+					return sections.push(base);
+				}
+			}
+			return null;
+		});
+	}
+
+	const hasForLoadMovements =
+		session.sections &&
+		isArray(session.sections) &&
+		session.sections.find(item => item.scoring_type_id === 20);
+
+	const hidePastPerformanceButton =
+		(!session.sections && !isArray(session.sections)) ||
+		bookedMembersRef.current.length === 0 ||
+		!hasForLoadMovements ||
+		sections.length === 0;
+
 	const StickyHeaderComponent = (
 		<View>
 			{attendanceLimit !== null && (
@@ -340,18 +393,42 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 					{`${bookedMembersRef.current.length} / ${attendanceLimit}`}
 				</Text>
 			)}
-			{showAddButton && (
-				<Button
-					variant="darkgray"
-					mode="outlined"
-					title="+ Add Attendance"
-					onPress={toggleAttendanceModal}
-					style={{
-						marginBottom: metrics.md,
-						marginHorizontal: metrics.lg,
-					}}
-				/>
-			)}
+			<Row style={{ marginHorizontal: metrics.md }}>
+				{showAddButton && !hidePastPerformanceButton && (
+					<Button
+						variant="darkgray"
+						mode="outlined"
+						title="Past Performance"
+						onPress={() =>
+							navigation.navigate('AttendancePastPerformance', {
+								session,
+							})
+						}
+						style={{
+							marginBottom: metrics.md,
+							...layout.flex_1,
+							marginRight: metrics.sm,
+							// marginHorizontal: metrics.lg,
+						}}
+						sm
+					/>
+				)}
+				{showAddButton && (
+					<Button
+						variant="darkgray"
+						mode="outlined"
+						title="+ Add Attendance"
+						onPress={toggleAttendanceModal}
+						style={{
+							marginBottom: metrics.md,
+							...layout.flex_1,
+							marginLeft: metrics.sm,
+							// marginHorizontal: metrics.lg,
+						}}
+						sm
+					/>
+				)}
+			</Row>
 		</View>
 	);
 

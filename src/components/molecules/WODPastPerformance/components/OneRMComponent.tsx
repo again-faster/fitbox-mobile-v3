@@ -9,10 +9,18 @@ const { width } = Dimensions.get('window');
 
 interface OneRmComponent {
 	weight: number; // value of one rm (kg)
+	noHeader?: boolean; // if true, it will not show the header
+	initialPercentage?: number;
+	setPercentage?: (percentage: number) => void; // callback to set percentage
 }
 
-const OneRMComponent = ({ weight }: OneRmComponent) => {
-	const [percent, setPercent] = useState<number>(75);
+const OneRMComponent = ({
+	weight,
+	noHeader = false,
+	initialPercentage = 75,
+	setPercentage,
+}: OneRmComponent) => {
+	const [percent, setPercent] = useState<number>(initialPercentage);
 
 	const trackOptions = {
 		min: 0,
@@ -22,38 +30,57 @@ const OneRMComponent = ({ weight }: OneRmComponent) => {
 	const result = ((percent / 100) * weight).toFixed(2);
 	return (
 		<View style={styles.mainCon}>
-			<View style={[layout.itemsCenter, layout.selfStart]}>
-				<Text style={{ color: config.fonts.colors.brand }}>
-					Your 1RM
-				</Text>
-				<Spacer size="sm" />
-				<Text bold color="darkgray">
-					{weight} kg
-				</Text>
-			</View>
+			{!noHeader && (
+				<View style={[layout.itemsCenter, layout.selfStart]}>
+					<Text style={{ color: config.fonts.colors.brand }}>
+						Your 1RM
+					</Text>
+					<Spacer size="sm" />
+					<Text bold color="darkgray">
+						{weight} kg
+					</Text>
+				</View>
+			)}
 			<Spacer />
-			<Text center bold>
-				Your percentages
-			</Text>
-			<Spacer size="sm" />
-			<Row style={styles.titleContainer}>
-				<Text bold size="lg" color="darkgray">
-					{result.replace('.00', '')}kg
-				</Text>
-				<Spacer horizontal size="xs" />
-				<Text size="lg" color="mute">
-					({percent}%)
-				</Text>
-			</Row>
+			{noHeader ? (
+				<Row style={styles.titleContainer}>
+					<Text size="lg" color="mute">
+						Percentage:
+					</Text>
+					<Spacer horizontal size="xs" />
+					<Text bold size="lg" color="darkgray">
+						{percent}%
+					</Text>
+				</Row>
+			) : (
+				<>
+					<Text center bold>
+						Your percentages
+					</Text>
+					<Spacer size="sm" />
+					<Row style={styles.titleContainer}>
+						<Text bold size="lg" color="darkgray">
+							{result.replace('.00', '')}kg
+						</Text>
+						<Spacer horizontal size="xs" />
+						<Text size="lg" color="mute">
+							({percent}%)
+						</Text>
+					</Row>
+				</>
+			)}
 			<View style={layout.itemsCenter}>
 				<MultiSlider
-					onValuesChange={values => setPercent(values[0] as number)}
+					onValuesChange={values => {
+						setPercent(values[0] as number);
+						setPercentage?.(values[0] as number);
+					}}
 					pressedMarkerStyle={styles.pressedMarkerStyle}
 					unselectedStyle={styles.unselectedStyle}
 					selectedStyle={styles.selectedStyle}
 					markerStyle={styles.markerStyle}
 					trackStyle={styles.trackStyle}
-					sliderLength={width / 1.14}
+					sliderLength={width / 1.25}
 					max={trackOptions.max}
 					min={trackOptions.min}
 					values={[percent]}
@@ -87,8 +114,8 @@ const styles = StyleSheet.create({
 		borderRadius: 12,
 	},
 	markerStyle: {
-		width: 18,
-		height: 12,
+		width: 21,
+		height: 15,
 		backgroundColor: '#3C3C3C',
 		shadowColor: '#000',
 		shadowOffset: {
@@ -98,6 +125,6 @@ const styles = StyleSheet.create({
 		borderWidth: 0,
 	},
 	pressedMarkerStyle: {
-		height: 12,
+		height: 15,
 	},
 });

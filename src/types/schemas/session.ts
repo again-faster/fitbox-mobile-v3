@@ -489,6 +489,10 @@ const SessionMemberAttendanceUseSchema = z.object({
 export type SessionMemberAttendanceSchemaType = z.infer<
 	typeof SessionMemberAttendanceSchema
 >;
+
+export type SessionMemberAttendanceUserSchemaType = z.infer<
+	typeof SessionMemberAttendanceUseSchema
+>;
 export const SessionMemberAttendanceSchema = z.object({
 	team_id: z.number(),
 	user_id: z.number(),
