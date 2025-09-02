@@ -394,25 +394,29 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 				</Text>
 			)}
 			<Row style={{ marginHorizontal: metrics.md }}>
-				{showAddButton && !hidePastPerformanceButton && (
-					<Button
-						variant="darkgray"
-						mode="outlined"
-						title="Past Performance"
-						onPress={() =>
-							navigation.navigate('AttendancePastPerformance', {
-								session,
-							})
-						}
-						style={{
-							marginBottom: metrics.md,
-							...layout.flex_1,
-							marginRight: metrics.sm,
-							// marginHorizontal: metrics.lg,
-						}}
-						sm
-					/>
-				)}
+				{session.member_attendance.length > 0 &&
+					!hidePastPerformanceButton && (
+						<Button
+							variant="darkgray"
+							mode="outlined"
+							title="Past Performance"
+							onPress={() =>
+								navigation.navigate(
+									'AttendancePastPerformance',
+									{
+										session,
+									},
+								)
+							}
+							style={{
+								marginBottom: metrics.md,
+								...layout.flex_1,
+								marginRight: metrics.sm,
+								// marginHorizontal: metrics.lg,
+							}}
+							sm
+						/>
+					)}
 				{showAddButton && (
 					<Button
 						variant="darkgray"
