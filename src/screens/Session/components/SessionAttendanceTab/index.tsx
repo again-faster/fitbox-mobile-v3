@@ -395,7 +395,8 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 			)}
 			<Row style={{ marginHorizontal: metrics.md }}>
 				{session.member_attendance.length > 0 &&
-					!hidePastPerformanceButton && (
+					!hidePastPerformanceButton &&
+					isStaff && (
 						<Button
 							variant="darkgray"
 							mode="outlined"
