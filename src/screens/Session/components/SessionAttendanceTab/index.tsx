@@ -1,10 +1,17 @@
+import useAuth from '@/auth/hooks/useAuth';
 import { Button, Row, Text } from '@/components/atoms';
 import { FlatList } from '@/components/molecules';
 import { updateAttendance } from '@/services/leaderboards';
+import { getContacts } from '@/services/message';
 import { attendSession } from '@/services/session';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { ApplicationStackParamList } from '@/types/navigation';
+import {
+	ContactGroupMembersType,
+	ContactGroupType,
+	ContactMembersType,
+} from '@/types/schemas/message';
 import {
 	NotBookedMemberSchemaType,
 	SessionDetailSchemaType,
@@ -12,6 +19,7 @@ import {
 	SessionSectionSchemaType,
 } from '@/types/schemas/session';
 import { Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
 import {
 	NavigationProp,
@@ -21,9 +29,10 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { isArray, isNil, sortBy } from 'lodash';
 import moment from 'moment';
-import { useCallback, useRef, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
 import SimpleToast from 'react-native-simple-toast';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import AttendanceItem from './components/AttendanceItem';
 
 const { metrics } = config;
@@ -31,6 +40,14 @@ const { metrics } = config;
 interface SessionAttendanceTabProps {
 	session: SessionDetailSchemaType;
 }
+
+type State = {
+	groups: ContactGroupType[];
+	loading: boolean;
+	refreshing: boolean;
+	sortBy: string;
+	searchQuery: string;
+};
 const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 	const navigation =
 		useNavigation<NavigationProp<ApplicationStackParamList>>();
@@ -38,6 +55,20 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 	const bookButtonCallback = useStore(state => state.bookButtonCallback);
 	const isStaff = loggedInUser?.user_data.is_staff;
 	const attendanceLimit = session?.attendance_limit;
+	const { user: authUser } = useAuth();
+
+	const [state, setState] = useState<State>({
+		groups: [],
+		loading: true,
+		refreshing: false,
+		sortBy: 'player',
+		searchQuery: '',
+	});
+	const [contactList, setContactList] = useState<ContactMembersType[]>([]);
+
+	const { teamId } = useStore(s => ({
+		teamId: s.teamId,
+	}));
 
 	const [processingMembers, setProcessingMembers] = useState<number[]>([]);
 	const [bookedMembers, setBookedMembers] = useState<
@@ -50,6 +81,8 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 	const toggleAttendanceModal = () =>
 		navigation.navigate('AddAttendance', { session });
 
+	const initializedRef = useRef(false);
+
 	useFocusEffect(
 		useCallback(() => {
 			setBookedMembers(session.member_attendance);
@@ -58,6 +91,90 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 	);
 
 	const bookedMembersRef = useRef(session.member_attendance);
+	const stateRef = useRef<State>();
+	const contactListRef = useRef<ContactMembersType[]>([]);
+	stateRef.current = state;
+	contactListRef.current = contactList;
+
+	useEffect(() => {
+		void (async () => {
+			await getData();
+		})();
+	}, []);
+
+	const getData = async (sortByRefresh?: string) => {
+		setState(prevState => ({ ...prevState, refreshing: true }));
+		let list: ContactMembersType[] = [];
+		let groups: ContactGroupType[] = [];
+		let sort = '';
+		try {
+			const res = await getContacts(teamId);
+			groups = res.data.groups;
+			list = res.data.members;
+		} catch (e) {
+			Say.err(e as ICatchError);
+		}
+
+		if (sort === '') {
+			sort = authUser?.user_data.is_staff ? 'player' : 'staff';
+		}
+
+		setState(prevState => ({
+			...prevState,
+			groups,
+			loading: false,
+			refreshing: false,
+			sortBy: sortByRefresh || sort,
+		}));
+		setContactList(sortBy(list, 'fullname'));
+	};
+
+	useEffect(() => {
+		if (contactList.length === 0 || initializedRef.current) return;
+		initializedRef.current = true;
+
+		session.member_attendance.forEach(member => {
+			const userIndex = contactListRef.current.findIndex(
+				c => c.id === member.user_id,
+			);
+			if (userIndex !== -1) handleToggleContact(userIndex);
+		});
+	}, [contactList]);
+
+	const handleToggleContact = (index: number) => {
+		const updatedContactList = [...contactList];
+		(updatedContactList[index] as ContactMembersType).is_selected = !(
+			updatedContactList[index] as ContactMembersType
+		).is_selected;
+		setContactList(updatedContactList);
+	};
+
+	const saveContacts = () => {
+		const { groups } = stateRef.current as State;
+		const contacts: ContactMembersType[] = [];
+		groups.forEach(group => {
+			group.members?.forEach((c: ContactGroupMembersType) => {
+				if (c.is_selected) {
+					const contact = {
+						...c,
+						fullname: `${c.first_name} ${c.last_name}`,
+					};
+					contacts.push(contact);
+				}
+			});
+		});
+
+		contactListRef.current.forEach((c: ContactMembersType) => {
+			if (c.is_selected && !contacts.includes(c)) {
+				contacts.push(c);
+			}
+		});
+
+		navigation.navigate('Compose', {
+			contacts,
+			defaultSubject: `${session.comment} - ${moment(session.start_datetime).format('MMM D, YYYY h:mm A')}`,
+		});
+	};
 
 	const addProcessingMember = (userId: number) => {
 		setProcessingMembers([...processingMembers, userId]);
@@ -394,6 +511,11 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 				</Text>
 			)}
 			<Row style={{ marginHorizontal: metrics.md }}>
+				<TouchableOpacity onPress={() => saveContacts()}>
+					<View style={styles.messageButton}>
+						<Icon name="envelope" size={20} />
+					</View>
+				</TouchableOpacity>
 				{session.member_attendance.length > 0 &&
 					!hidePastPerformanceButton &&
 					isStaff && (
@@ -412,7 +534,6 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 							style={{
 								marginBottom: metrics.md,
 								...layout.flex_1,
-								marginRight: metrics.sm,
 								// marginHorizontal: metrics.lg,
 							}}
 							sm
@@ -458,6 +579,16 @@ const styles = StyleSheet.create({
 		textAlign: 'right',
 		marginRight: config.metrics.lg,
 		marginBottom: config.metrics.md,
+	},
+	messageButton: {
+		borderColor: config.borders.colors.darkgray,
+		borderWidth: 1,
+		height: 42,
+		width: 40,
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderRadius: 8,
+		marginRight: metrics.sm,
 	},
 });
 

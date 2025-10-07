@@ -702,6 +702,55 @@ const ApplicationNavigator = () => {
 								headerLeft: () => null,
 							})}
 						/>
+
+						<Stack.Group
+							screenOptions={{
+								headerTintColor: colors.darkgray,
+								cardStyleInterpolator:
+									CardStyleInterpolators.forHorizontalIOS,
+								headerMode: 'float',
+								headerShadowVisible: false,
+								headerTitleStyle: layout.fontMontserratRegular,
+							}}
+						>
+							<Stack.Screen
+								name="Compose"
+								component={ComposeScreen}
+								options={{
+									title: 'Compose Message',
+									headerLeft: () => null,
+								}}
+							/>
+							<Stack.Screen
+								name="Contacts"
+								component={ContactsScreen}
+								options={{ headerLeft: () => null }}
+							/>
+							<Stack.Screen
+								name="BrowseMedia"
+								component={BrowseMediaScreen}
+								options={{
+									title: 'Browse Media',
+									headerLeftLabelVisible: false,
+								}}
+							/>
+							<Stack.Screen
+								name="Camera"
+								component={Camera}
+								options={{
+									title: 'Camera',
+									headerLeftLabelVisible: false,
+								}}
+							/>
+							<Stack.Screen
+								name="fitboxGallery"
+								component={FitboxGalleryScreen}
+								options={{
+									title: 'fitbox Gallery',
+									headerLeftLabelVisible: false,
+								}}
+							/>
+						</Stack.Group>
 					</Stack.Navigator>
 				</NavigationContainer>
 

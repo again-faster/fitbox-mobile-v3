@@ -20,6 +20,12 @@ export type SessionParams = {
 
 export type ComposeParams = {
 	contacts: ContactMembersType[];
+	defaultSubject?: string;
+	navigateToSession?: boolean;
+};
+
+export type ContactsParams = {
+	defaultRecipients?: ContactMembersType[];
 };
 
 export type LoginParams = {
@@ -63,6 +69,11 @@ export type ApplicationStackParamList = {
 	SubscriptionDetails: SubscriptionDetailsParams;
 	WorkoutHistory: WorkoutHistoryParams;
 	AttendancePastPerformance: AttendancePastPerformanceParams;
+	Compose: ComposeParams;
+	Contacts: ContactsParams;
+	BrowseMedia: undefined;
+	Camera: undefined;
+	fitboxGallery: undefined;
 };
 export type ApplicationScreenProps =
 	StackScreenProps<ApplicationStackParamList>;
@@ -81,7 +92,7 @@ export type ComposeScreenProps = StackScreenProps<
 
 export type ComposeStackParamsList = {
 	Compose: ComposeParams;
-	Contacts: undefined;
+	Contacts: ContactsParams;
 	BrowseMedia: undefined;
 	Camera: undefined;
 	fitboxGallery: undefined;

@@ -5,7 +5,7 @@ import { goBack } from '@/navigators/NavigationRef';
 import { getContacts } from '@/services/message';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
-import { ComposeScreenProps } from '@/types/navigation';
+import { ComposeScreenProps, ContactsParams } from '@/types/navigation';
 import {
 	ContactGroupMembersType,
 	ContactGroupType,
@@ -33,11 +33,14 @@ type State = {
 	sortBy: string;
 	searchQuery: string;
 };
-const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
+const ContactsScreen = ({ navigation, route }: ComposeScreenProps) => {
+	const { defaultRecipients } = (route.params as ContactsParams) || {};
+
 	const { user } = useAuth();
-	const { setAppState, inboxTeamId } = useStore(state => ({
+	const { setAppState, inboxTeamId, teamId } = useStore(state => ({
 		setAppState: state.setAppState,
 		inboxTeamId: state.inboxTeamId,
+		teamId: state.teamId,
 	}));
 	const [state, setState] = useState<State>({
 		groups: [],
@@ -46,7 +49,9 @@ const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 		sortBy: 'player',
 		searchQuery: '',
 	});
-	const [contactList, setContactList] = useState<ContactMembersType[]>([]);
+	const [contactList, setContactList] = useState<ContactMembersType[]>(
+		defaultRecipients || [],
+	);
 	const stateRef = useRef<State>();
 	const contactListRef = useRef<ContactMembersType[]>([]);
 	stateRef.current = state;
@@ -119,10 +124,16 @@ const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 				contacts.push(c);
 			}
 		});
-
-		navigation.navigate('Compose', {
-			contacts,
-		});
+		if (defaultRecipients) {
+			navigation.navigate('Compose', {
+				contacts,
+				navigateToSession: true,
+			});
+		} else {
+			navigation.navigate('Compose', {
+				contacts,
+			});
+		}
 	};
 
 	const getData = async (sortByRefresh?: string) => {
@@ -132,7 +143,7 @@ const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 		let groups: ContactGroupType[] = [];
 		let sort = '';
 		try {
-			const res = await getContacts(inboxTeamId);
+			const res = await getContacts(inboxTeamId || teamId);
 			groups = res.data.groups;
 			list = res.data.members;
 		} catch (e) {
@@ -150,7 +161,17 @@ const ContactsScreen = ({ navigation }: ComposeScreenProps) => {
 			refreshing: false,
 			sortBy: sortByRefresh || sort,
 		}));
-		setContactList(_sortBy(list, 'fullname'));
+
+		const listWithDefault = defaultRecipients
+			? list.map(item => {
+					const isSelected = defaultRecipients?.some(
+						r => r.id === item.id,
+					);
+					return isSelected ? { ...item, is_selected: true } : item;
+				})
+			: list;
+
+		setContactList(_sortBy(listWithDefault, 'fullname'));
 	};
 
 	const handleTabPress = (sort: string) => {
