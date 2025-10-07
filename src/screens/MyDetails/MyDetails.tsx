@@ -128,7 +128,7 @@ const MyDetails = ({ navigation, route }: MenuStackNavigatorProps) => {
 		mediaType: 'photo',
 		cropping: true,
 		cropperCircleOverlay: true,
-		cropperToolbarWidgetColor: 'white', // fails on hex color
+		cropperToolbarWidgetColor: '#FFFFFF', // fails on hex color
 		cropperToolbarColor: config.colors.brand,
 		cropperActiveWidgetColor: config.colors.brand,
 	};
