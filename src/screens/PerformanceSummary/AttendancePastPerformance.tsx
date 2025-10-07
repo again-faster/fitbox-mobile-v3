@@ -63,7 +63,8 @@ const AttendancePastPerformance = ({ route }: ApplicationScreenProps) => {
 			if (
 				item.wod_movements &&
 				item.wod_movements?.length > 0 &&
-				item.scoring_type_id === 20 // For Load
+				item.scoring_type_id === 20 && // For Load
+				item.scoring_by === 'movement'
 			) {
 				if (item.wod_movements && item.wod_movements.length > 0) {
 					item.wod_movements.map(movement => {

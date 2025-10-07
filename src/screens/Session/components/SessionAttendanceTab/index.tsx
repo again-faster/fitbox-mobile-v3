@@ -378,7 +378,8 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 	const hasForLoadMovements =
 		session.sections &&
 		isArray(session.sections) &&
-		session.sections.find(item => item.scoring_type_id === 20);
+		session.sections.find(item => item.scoring_type_id === 20) &&
+		session.sections.find(item => item.scoring_by === 'movement');
 
 	const hidePastPerformanceButton =
 		(!session.sections && !isArray(session.sections)) ||
