@@ -21,6 +21,7 @@ type MessageInputProps = {
 	handleSendMessage: () => Promise<false | void>;
 	setGIFUrl: Dispatch<SetStateAction<string>>;
 	handleBrowseFiles?: () => void;
+	isFromSession?: boolean;
 };
 
 const MessageInput = (props: MessageInputProps) => {
@@ -31,6 +32,7 @@ const MessageInput = (props: MessageInputProps) => {
 		handleSendMessage,
 		setGIFUrl,
 		handleBrowseFiles,
+		isFromSession = false,
 	} = props;
 	const [toggleGif, setToggleGif] = useState<boolean>(false);
 
@@ -38,13 +40,18 @@ const MessageInput = (props: MessageInputProps) => {
 		attachedFiles: state.attachedFiles,
 	}));
 
+	const bottomPadding = isFromSession ? { paddingBottom: 50 } : {};
+
 	return (
 		<>
 			{toggleGif && (
 				<GIFList setGIFUrl={setGIFUrl} setToggleGIF={setToggleGif} />
 			)}
 
-			<Row style={styles.footerInnerWrapper} align="center">
+			<Row
+				style={[styles.footerInnerWrapper, bottomPadding]}
+				align="center"
+			>
 				{attachedFiles.length === 0 && (
 					<TouchableOpacity onPress={handleBrowseFiles}>
 						<Icon

@@ -19,6 +19,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
+import SimpleToast from 'react-native-simple-toast';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -172,6 +173,7 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 				setAppState('attachedFiles', []);
 				if (navigateToSession || defaultSubject) {
 					navigation.goBack();
+					SimpleToast.show('Message sent', SimpleToast.SHORT);
 				} else {
 					navigation.navigate('Inbox');
 				}
@@ -192,6 +194,9 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 			navigation.navigate('Contacts', {});
 		}
 	};
+
+	const keyboardSpaceriOS = defaultSubject || navigateToSession ? 40 : 80;
+	const keyboardSpacerAndroid = defaultSubject || navigateToSession ? 10 : 50;
 
 	return (
 		<View style={layout.flex_1}>
@@ -295,11 +300,18 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 					handleSendMessage={handleSendMessage}
 					setGIFUrl={setGIFUrl}
 					handleBrowseFiles={handleBrowseFiles}
+					isFromSession={
+						navigateToSession || !isEmpty(defaultSubject)
+					}
 				/>
 			</View>
 			{(Func.isAndroid15OrLater() || Platform.OS === 'ios') && (
 				<KeyboardSpacer
-					heightDeduction={Func.isAndroid15OrLater() ? 50 : 80}
+					heightDeduction={
+						Func.isAndroid15OrLater()
+							? keyboardSpacerAndroid
+							: keyboardSpaceriOS
+					}
 				/>
 			)}
 		</View>

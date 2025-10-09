@@ -393,10 +393,7 @@ const ApplicationNavigator = () => {
 	const getTrimmedTitle = (title: string) => {
 		const { width } = Dimensions.get('window');
 
-		const maxTitleLength =
-			Platform.OS === 'ios'
-				? Math.floor((width - 100) / 8)
-				: Math.floor((width - 100) / 10);
+		const maxTitleLength = Math.floor((width - 100) / 9);
 
 		// Trim the title if it exceeds the available space
 		if (title.length > maxTitleLength) {
@@ -499,7 +496,9 @@ const ApplicationNavigator = () => {
 								name="Session"
 								component={Session}
 								options={({ route }) => ({
-									title: getTrimmedTitle(route.params.title),
+									title: getTrimmedTitle(
+										`${route.params.title}`,
+									),
 									...TabHeaderOptions,
 								})}
 							/>
