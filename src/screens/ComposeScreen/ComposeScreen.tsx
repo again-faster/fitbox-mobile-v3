@@ -19,6 +19,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
+import SimpleToast from 'react-native-simple-toast';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -172,6 +173,7 @@ const ComposeScreen = ({ navigation, route }: ComposeScreenProps) => {
 				setAppState('attachedFiles', []);
 				if (navigateToSession || defaultSubject) {
 					navigation.goBack();
+					SimpleToast.show('Message sent', SimpleToast.SHORT);
 				} else {
 					navigation.navigate('Inbox');
 				}

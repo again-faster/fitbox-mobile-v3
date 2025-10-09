@@ -21,7 +21,7 @@ type MessageInputProps = {
 	handleSendMessage: () => Promise<false | void>;
 	setGIFUrl: Dispatch<SetStateAction<string>>;
 	handleBrowseFiles?: () => void;
-	isFromSession: boolean;
+	isFromSession?: boolean;
 };
 
 const MessageInput = (props: MessageInputProps) => {
