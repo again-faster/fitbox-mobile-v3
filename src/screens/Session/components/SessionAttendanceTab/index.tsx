@@ -30,6 +30,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { isArray, isNil, sortBy } from 'lodash';
 import moment from 'moment';
+import 'moment-timezone';
 import {
 	useCallback,
 	useEffect,
@@ -63,6 +64,7 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 	const isStaff = loggedInUser?.user_data.is_staff;
 	const attendanceLimit = session?.attendance_limit;
 	const { user: authUser } = useAuth();
+	const timezone = authUser?.user_data.dob.timezone;
 
 	const [state, setState] = useState<State>({
 		groups: [],
@@ -671,9 +673,14 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 								</View>
 								<View style={styles.cancelledTimeCon}>
 									<Text size="sm">
-										{moment(
-											`${member.deleted_at}+0000`,
-										).format('MMM DD YYYY, h:mm a')}
+										{moment
+											.tz(
+												member.deleted_at,
+												'YYYY-MM-DD HH:mm:ss',
+												timezone || 'UTC',
+											)
+											.local()
+											.format('MMM DD YYYY, h:mm a')}
 									</Text>
 								</View>
 							</Row>
