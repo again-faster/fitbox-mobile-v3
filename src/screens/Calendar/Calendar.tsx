@@ -29,6 +29,7 @@ import {
 	useState,
 } from 'react';
 import {
+	Animated,
 	AppState,
 	AppStateStatus,
 	Dimensions,
@@ -140,19 +141,66 @@ const Calendar = () => {
 
 	const [showAnimation, setShowAnimation] = useState(false);
 	const animationDate = '2025-10-31';
+	const fadeAnim = useRef(new Animated.Value(0)).current; // for opacity
+	const slideAnim = useRef(new Animated.Value(80)).current; // for Y position (starts below)
 
 	useEffect(() => {
-		if (currentDate === animationDate) {
-			setShowAnimation(true);
-			const timer = setTimeout(() => {
-				setShowAnimation(false);
-			}, 5000);
-
-			return () => clearTimeout(timer);
+		if (currentDate !== animationDate) {
+			// reset immediately if not the right date
+			setShowAnimation(false);
+			fadeAnim.setValue(0);
+			slideAnim.setValue(80);
+			return;
 		}
 
-		return undefined;
-	}, [currentDate]);
+		setShowAnimation(true);
+
+		// 🆙 Animate IN (from bottom to position + fade in)
+		Animated.parallel([
+			Animated.timing(fadeAnim, {
+				toValue: 1,
+				duration: 800,
+				useNativeDriver: true,
+			}),
+			Animated.spring(slideAnim, {
+				toValue: 0,
+				friction: 6,
+				tension: 50,
+				useNativeDriver: true,
+			}),
+		]).start();
+
+		// ⏳ After 5s, animate OUT (slide down + fade out)
+		const timer = setTimeout(() => {
+			Animated.parallel([
+				Animated.timing(fadeAnim, {
+					toValue: 0,
+					duration: 600,
+					useNativeDriver: true,
+				}),
+				Animated.timing(slideAnim, {
+					toValue: 80,
+					duration: 600,
+					useNativeDriver: true,
+				}),
+			]).start(() => setShowAnimation(false));
+		}, 5000);
+
+		// 🧹 Clean up
+		// eslint-disable-next-line consistent-return
+		return () => {
+			clearTimeout(timer);
+			setShowAnimation(false);
+
+			// stop current animations and reset values — no returns in callbacks
+			fadeAnim.stopAnimation(() => {
+				fadeAnim.setValue(0);
+			});
+			slideAnim.stopAnimation(() => {
+				slideAnim.setValue(80);
+			});
+		};
+	}, [currentDate, animationDate, fadeAnim, slideAnim]);
 
 	useEffect(() => {
 		Sentry.addBreadcrumb({
@@ -557,13 +605,21 @@ const Calendar = () => {
 				<TouchableWithoutFeedback
 					onPress={() => setShowAnimation(false)}
 				>
-					<View style={styles.animationContainer}>
+					<Animated.View
+						style={[
+							styles.animationContainer,
+							{
+								opacity: fadeAnim,
+								transform: [{ translateY: slideAnim }],
+							},
+						]}
+					>
 						<LottieView
 							source={pumpkinAnimation}
 							style={styles.animationStyle}
 							autoPlay
 						/>
-					</View>
+					</Animated.View>
 				</TouchableWithoutFeedback>
 			)}
 			{/* Modals */}
@@ -633,7 +689,7 @@ const styles = StyleSheet.create({
 	},
 	animationContainer: {
 		position: 'absolute',
-		top: Platform.OS === 'ios' ? '52%' : '56%',
+		top: Platform.OS === 'ios' ? '52%' : '52%',
 		left: Platform.OS === 'ios' ? '8%' : '10%',
 	},
 	animationStyle: {
