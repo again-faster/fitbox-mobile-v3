@@ -17,6 +17,7 @@ import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
 import { FlashList } from '@shopify/flash-list';
 import { isArray } from 'lodash';
+import LottieView from 'lottie-react-native';
 import moment from 'moment';
 import momentTimezone from 'moment-timezone';
 import {
@@ -28,16 +29,20 @@ import {
 	useState,
 } from 'react';
 import {
+	Animated,
 	AppState,
 	AppStateStatus,
 	Dimensions,
+	Platform,
 	RefreshControl,
 	StyleSheet,
 	TouchableOpacity,
+	TouchableWithoutFeedback,
 	View,
 } from 'react-native';
 import { Badge } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import pumpkinAnimation from '../../theme/animations/pumpkins.json';
 import AgendaItem, { AGENDA_ITEM_HEIGHT } from './components/AgendaItem';
 import CalendarFilterPanel from './components/CalendarFilterPanel';
 import CalendarFilterSelect from './components/CalendarFilterSelectPanel';
@@ -134,6 +139,64 @@ const Calendar = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const calendarWeekRef = useRef<CalendarWeekRef>(null);
 
+	const [showAnimation, setShowAnimation] = useState(false);
+	const animationDate = '2025-10-31';
+	const fadeAnim = useRef(new Animated.Value(0)).current;
+	const slideAnim = useRef(new Animated.Value(80)).current;
+
+	useEffect(() => {
+		if (currentDate !== animationDate) {
+			setShowAnimation(false);
+			fadeAnim.setValue(0);
+			slideAnim.setValue(80);
+			return;
+		}
+
+		setShowAnimation(true);
+
+		Animated.parallel([
+			Animated.timing(fadeAnim, {
+				toValue: 1,
+				duration: 800,
+				useNativeDriver: true,
+			}),
+			Animated.spring(slideAnim, {
+				toValue: 0,
+				friction: 6,
+				tension: 50,
+				useNativeDriver: true,
+			}),
+		]).start();
+
+		const timer = setTimeout(() => {
+			Animated.parallel([
+				Animated.timing(fadeAnim, {
+					toValue: 0,
+					duration: 600,
+					useNativeDriver: true,
+				}),
+				Animated.timing(slideAnim, {
+					toValue: 80,
+					duration: 600,
+					useNativeDriver: true,
+				}),
+			]).start(() => setShowAnimation(false));
+		}, 5000);
+
+		// eslint-disable-next-line consistent-return
+		return () => {
+			clearTimeout(timer);
+			setShowAnimation(false);
+
+			fadeAnim.stopAnimation(() => {
+				fadeAnim.setValue(0);
+			});
+			slideAnim.stopAnimation(() => {
+				slideAnim.setValue(80);
+			});
+		};
+	}, [currentDate, animationDate, fadeAnim, slideAnim]);
+
 	useEffect(() => {
 		Sentry.addBreadcrumb({
 			category: 'Calendar',
@@ -173,7 +236,7 @@ const Calendar = () => {
 		);
 
 		return () => {
-			subscription.remove(); // Clean up the subscription on unmount
+			subscription.remove();
 		};
 	}, []);
 	useEffect(() => {
@@ -533,6 +596,27 @@ const Calendar = () => {
 				</View>
 			)}
 
+			{showAnimation && (
+				<TouchableWithoutFeedback
+					onPress={() => setShowAnimation(false)}
+				>
+					<Animated.View
+						style={[
+							styles.animationContainer,
+							{
+								opacity: fadeAnim,
+								transform: [{ translateY: slideAnim }],
+							},
+						]}
+					>
+						<LottieView
+							source={pumpkinAnimation}
+							style={styles.animationStyle}
+							autoPlay
+						/>
+					</Animated.View>
+				</TouchableWithoutFeedback>
+			)}
 			{/* Modals */}
 			<CalendarFilterPanel />
 			<CalendarFilterSelect type={FilterTypeEnum.CLASS} />
@@ -597,5 +681,14 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		bottom: '7%',
 		left: config.metrics.md,
+	},
+	animationContainer: {
+		position: 'absolute',
+		top: Platform.OS === 'ios' ? '52%' : '52%',
+		left: Platform.OS === 'ios' ? '8%' : '10%',
+	},
+	animationStyle: {
+		width: 400,
+		height: 400,
 	},
 });

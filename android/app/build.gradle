@@ -96,8 +96,8 @@ android {
         applicationId "com.wa.fitbox"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 129
-        versionName "4.3.0"
+        versionCode 130
+        versionName "4.4.0"
         vectorDrawables.useSupportLibrary = true
         // manifestPlaceholders = [
         //     appAuthRedirectScheme: 'com.wa.fitbox.auth'

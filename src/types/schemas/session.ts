@@ -486,6 +486,13 @@ const SessionMemberAttendanceUseSchema = z.object({
 	dob: z.string().optional(),
 });
 
+const SessionCancelledMemberSchema = z.object({
+	id: z.number(),
+	firstname: z.string(),
+	lastname: z.string(),
+	profile_image: z.string().url(),
+});
+
 export type SessionMemberAttendanceSchemaType = z.infer<
 	typeof SessionMemberAttendanceSchema
 >;
@@ -511,6 +518,16 @@ export const NotBookedMemberSchema = z.object({
 	user_id: z.number(),
 	member_active_subscription: MemberActiveSubscriptionSchema.nullable(),
 	user: SessionMemberAttendanceUseSchema,
+});
+
+export type SessionCancelledMemberSchemaType = z.infer<
+	typeof CancelledMemberSchema
+>;
+export const CancelledMemberSchema = z.object({
+	user_id: z.number(),
+	deleted_at: z.string(),
+	created_at: z.string(),
+	user: SessionCancelledMemberSchema,
 });
 
 export type SessionSectionDataSchemaType = z.infer<
@@ -558,6 +575,7 @@ export const SessionDetailSchema = z.object({
 	member_attendance: z.array(SessionMemberAttendanceSchema),
 	members_attendance: z.array(z.any()),
 	not_book_members: z.array(NotBookedMemberSchema),
+	cancelled_members: z.array(CancelledMemberSchema),
 	record_timezone: z.string(),
 	ref_id: z.number(),
 	repeat: z.string(),

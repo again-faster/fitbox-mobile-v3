@@ -1,5 +1,5 @@
 import useAuth from '@/auth/hooks/useAuth';
-import { Button, Row, Text } from '@/components/atoms';
+import { Avatar, Button, Row, Spacer, Text } from '@/components/atoms';
 import { FlatList } from '@/components/molecules';
 import { updateAttendance } from '@/services/leaderboards';
 import { getContacts } from '@/services/message';
@@ -14,6 +14,7 @@ import {
 } from '@/types/schemas/message';
 import {
 	NotBookedMemberSchemaType,
+	SessionCancelledMemberSchemaType,
 	SessionDetailSchemaType,
 	SessionMemberAttendanceSchemaType,
 	SessionSectionSchemaType,
@@ -29,6 +30,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { isArray, isNil, sortBy } from 'lodash';
 import moment from 'moment';
+import 'moment-timezone';
 import {
 	useCallback,
 	useEffect,
@@ -41,7 +43,7 @@ import SimpleToast from 'react-native-simple-toast';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AttendanceItem from './components/AttendanceItem';
 
-const { metrics } = config;
+const { metrics, fonts } = config;
 
 interface SessionAttendanceTabProps {
 	session: SessionDetailSchemaType;
@@ -62,6 +64,7 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 	const isStaff = loggedInUser?.user_data.is_staff;
 	const attendanceLimit = session?.attendance_limit;
 	const { user: authUser } = useAuth();
+	const timezone = authUser?.user_data.dob.timezone;
 
 	const [state, setState] = useState<State>({
 		groups: [],
@@ -71,6 +74,8 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 		searchQuery: '',
 	});
 	const [contactList, setContactList] = useState<ContactMembersType[]>([]);
+	const [toggleCancelledList, setToggleCancelledList] =
+		useState<boolean>(false);
 
 	const { teamId } = useStore(s => ({
 		teamId: s.teamId,
@@ -80,6 +85,9 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 	const [bookedMembers, setBookedMembers] = useState<
 		SessionMemberAttendanceSchemaType[]
 	>(session.member_attendance);
+	const [cancelledMembers, setCancelledMembers] = useState<
+		SessionCancelledMemberSchemaType[]
+	>([]);
 	const queryClient = useQueryClient();
 	const [notBookedMembers, setNotBookedMembers] = useState<
 		NotBookedMemberSchemaType[]
@@ -89,8 +97,36 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 
 	useFocusEffect(
 		useCallback(() => {
+			const latestCancelled = Object.values(
+				session.cancelled_members.reduce(
+					(
+						acc: {
+							[key: number]: SessionCancelledMemberSchemaType;
+						},
+						curr,
+					) => {
+						const existing = acc[curr.user_id];
+						if (!existing) {
+							// eslint-disable-next-line no-param-reassign
+							acc[curr.user_id] = curr;
+						} else if (
+							new Date(curr.deleted_at) >
+							new Date(existing.deleted_at)
+						) {
+							// compare deleted_at, keep the latest
+
+							// eslint-disable-next-line no-param-reassign
+							acc[curr.user_id] = curr;
+						}
+						return acc;
+					},
+					{},
+				),
+			);
+
 			setBookedMembers(session.member_attendance);
 			bookedMembersRef.current = session.member_attendance;
+			setCancelledMembers(latestCancelled);
 		}, [session]),
 	);
 
@@ -586,9 +622,79 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 		</View>
 	);
 
+	const renderListFooter = () => {
+		return cancelledMembers?.length > 0 && isStaff ? (
+			<View style={{ paddingHorizontal: metrics.rg }}>
+				<Row style={styles.cancellationDateLabel}>
+					<TouchableOpacity
+						onPress={() =>
+							setToggleCancelledList(!toggleCancelledList)
+						}
+					>
+						<View style={styles.cancelledContainer}>
+							<Text
+								bold
+							>{`Cancelled (${cancelledMembers.length})`}</Text>
+							<IonicIcon
+								name={
+									toggleCancelledList
+										? 'chevron-down-outline'
+										: 'chevron-forward-outline'
+								}
+								size={15}
+								style={styles.chevron}
+							/>
+						</View>
+					</TouchableOpacity>
+					{toggleCancelledList && (
+						<Text size="sm" bold>
+							Cancellation Date
+						</Text>
+					)}
+				</Row>
+				{toggleCancelledList &&
+					sortBy(cancelledMembers, item =>
+						item.user.firstname.toLowerCase(),
+					).map((member, index) => {
+						return (
+							<Row key={index} style={styles.detailsContainer}>
+								<View style={styles.avatarCon}>
+									<Avatar
+										source={member.user.profile_image}
+										style={styles.avatarStyle}
+										size={43}
+									/>
+								</View>
+								<Spacer horizontal size="xs" />
+								<View style={styles.attendanceListNameCon}>
+									<Text numberOfLines={1}>
+										{`${member.user.firstname} ${member.user.lastname}`}
+									</Text>
+								</View>
+								<View style={styles.cancelledTimeCon}>
+									<Text size="sm">
+										{moment
+											.tz(
+												member.deleted_at,
+												'YYYY-MM-DD HH:mm:ss',
+												timezone || 'UTC',
+											)
+											.local()
+											.format('MMM DD YYYY, h:mm a')}
+									</Text>
+								</View>
+							</Row>
+						);
+					})}
+			</View>
+		) : null;
+	};
+
 	// Extract the key for each item
 	const keyExtractor = (item: SessionMemberAttendanceSchemaType) =>
 		item.user_id.toString();
+
+	const footerMarginTop = bookedMembersRef.current.length > 0 ? -25 : 0;
 
 	return (
 		<FlatList
@@ -598,6 +704,11 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 			renderItem={renderItem}
 			extractor={keyExtractor}
 			ListHeaderComponent={StickyHeaderComponent}
+			ListFooterComponent={renderListFooter}
+			ListFooterComponentStyle={[
+				styles.footer,
+				{ marginTop: footerMarginTop },
+			]}
 		/>
 	);
 };
@@ -617,6 +728,46 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		borderRadius: 8,
 		marginRight: metrics.sm,
+	},
+	container: {
+		flex: 1,
+		borderWidth: 1,
+		borderColor: 'red',
+		justifyContent: 'flex-start',
+	},
+	detailsContainer: {
+		paddingHorizontal: metrics.sm,
+		paddingVertical: metrics.sm,
+		alignItems: 'center',
+	},
+	avatarCon: {
+		width: 36,
+		alignItems: 'center',
+	},
+	avatarStyle: {
+		borderRadius: 35,
+		overflow: 'hidden',
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: fonts.colors.lightgrey,
+	},
+	attendanceListNameCon: {
+		width: '50%',
+	},
+	cancelledTimeCon: {
+		flex: 1,
+		alignItems: 'flex-end',
+	},
+	footer: {
+		marginBottom: 30,
+	},
+	cancelledContainer: {
+		flexDirection: 'row',
+		alignItems: 'center',
+	},
+	chevron: { paddingLeft: metrics.sm, marginTop: 2 },
+	cancellationDateLabel: {
+		justifyContent: 'space-between',
+		alignItems: 'center',
 	},
 });
 
