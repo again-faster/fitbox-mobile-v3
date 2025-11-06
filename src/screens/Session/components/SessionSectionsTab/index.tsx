@@ -441,12 +441,15 @@ const SessionsSectionsTab = ({
 												mediaPlaybackRequiresUserAction={
 													false
 												}
+												mixedContentMode="always"
 												onLoadEnd={onLoadVideo}
 												onError={onVideoError}
 												source={{
-													uri: `https://www.youtube.com/embed/${Func.getYoutubeUrl(
-														String(section.video),
-													)}?loop=1`,
+													uri: `https://www.youtube-nocookie.com/embed/${Func.getYoutubeUrl(String(section.video))}?rel=0&modestbranding=1&playsinline=1`,
+													headers: {
+														Referer:
+															'https://www.google.com', // 👈 this is the key
+													},
 												}}
 											/>
 										</View>
