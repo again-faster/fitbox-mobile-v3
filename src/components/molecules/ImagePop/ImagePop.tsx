@@ -1,13 +1,17 @@
-import { Image, StyleSheet, View } from 'react-native';
+import { Dimensions, Image, StyleSheet, View } from 'react-native';
 import Lightbox from 'react-native-lightbox-v2';
+
+const { width, height } = Dimensions.get('window');
 
 const ImagePop = ({ source }: { source: string }) => {
 	const renderContent = () => (
-		<Image
-			style={styles.imageContentStyle}
-			source={{ uri: source }}
-			resizeMode="contain"
-		/>
+		<View style={styles.fullScreenContainer}>
+			<Image
+				style={styles.fullScreenImage}
+				source={{ uri: source }}
+				resizeMode="contain"
+			/>
+		</View>
 	);
 
 	return (
@@ -22,12 +26,22 @@ const ImagePop = ({ source }: { source: string }) => {
 		</View>
 	);
 };
+
 const styles = StyleSheet.create({
 	imageStyle: {
 		width: 200,
 		height: 170,
 	},
-	imageContentStyle: { width: 'auto', height: '100%' },
+	fullScreenContainer: {
+		flex: 1,
+		backgroundColor: 'black',
+		justifyContent: 'center',
+		alignItems: 'center',
+	},
+	fullScreenImage: {
+		width,
+		height,
+	},
 });
 
 export default ImagePop;
