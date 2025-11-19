@@ -70,6 +70,7 @@ const ResultRow = (props: Props) => {
 
 	// 17, 20 for load/aggregate
 	const hideRxSwitch = section.scoring_by === 'movement';
+	const isScoreByComplete = section.scoring_type_id === 3;
 
 	const isPR = !!isPr;
 
@@ -78,6 +79,9 @@ const ResultRow = (props: Props) => {
 		switch (section.scoring_type_id) {
 			case 8:
 				retVal = `${value} + ${reps}`;
+				break;
+			case 3:
+				retVal = 'Completed';
 				break;
 
 			default:
@@ -213,7 +217,9 @@ const ResultRow = (props: Props) => {
 						</Row>
 						<Row style={styles.bottomRowContainer}>
 							<Text numberOfLines={1}>
-								{hideRxSwitch && 'Score: '}
+								{hideRxSwitch &&
+									!isScoreByComplete &&
+									'Score: '}
 								{showValue()}
 								{!hideRxSwitch &&
 									` (${(scoreType as string).slice(0, 2)})`}

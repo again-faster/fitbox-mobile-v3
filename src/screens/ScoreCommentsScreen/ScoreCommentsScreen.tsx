@@ -376,7 +376,7 @@ const ScoreCommentsScreen = ({
 						{`${state.score_info?.firstname} ${state.score_info?.lastname}`}
 					</Text>
 					<Text size="md" color="darkgray">
-						{`${state.score_info?.value} ${!hideRxSwitch ? `(${state.score_info?.score_type})` : ''}`}
+						{`${state.score_info?.value === 'Yes' ? 'Completed' : state.score_info?.value} ${!hideRxSwitch ? `(${state.score_info?.score_type})` : ''}`}
 					</Text>
 				</Row>
 				<Row style={{ paddingTop: config.metrics.rg }}>
