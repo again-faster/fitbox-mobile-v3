@@ -10,7 +10,7 @@ import { Dimensions, Platform } from 'react-native';
 /**
  * This is to enable the environment picker in the login screen to switch between different environments
  */
-const ENABLE_ENV_PICKER = false;
+const ENABLE_ENV_PICKER = true;
 
 /**
  * This is the API token for the masquerade user
