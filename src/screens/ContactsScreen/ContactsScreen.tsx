@@ -56,7 +56,8 @@ const ContactsScreen = ({ navigation, route }: ComposeScreenProps) => {
 	const contactListRef = useRef<ContactMembersType[]>([]);
 	stateRef.current = state;
 	contactListRef.current = contactList;
-	const [selectAll, setSelectAll] = useState<boolean>(false);
+	const [selectAllMembers, setSelectAllMembers] = useState<boolean>(false);
+	const [selectAllStaff, setSelectAllStaff] = useState<boolean>(false);
 	const [isContactsNotEmpty, setIsContactsNotEmpty] = useState<boolean>();
 
 	const isStaff = user?.user_data.is_staff;
@@ -223,7 +224,11 @@ const ContactsScreen = ({ navigation, route }: ComposeScreenProps) => {
 			);
 		}
 
-		setSelectAll(!selectAll);
+		if (sortBy === 'player') {
+			setSelectAllMembers(!selectAllMembers);
+		} else if (sortBy === 'staff') {
+			setSelectAllStaff(!selectAllStaff);
+		}
 		setContactList(updatedContactList);
 	};
 
@@ -467,14 +472,26 @@ const ContactsScreen = ({ navigation, route }: ComposeScreenProps) => {
 			)}
 			{renderContacts()}
 
-			{state.sortBy !== 'group' && isContactsNotEmpty && (
+			{state.sortBy === 'player' && isContactsNotEmpty && (
 				<TouchableOpacity
 					style={styles.selectAllFloatBtn}
 					activeOpacity={1}
 					onPress={onSelectAll}
 				>
 					<Text size="rg" color="light">
-						{selectAll ? 'Clear Selection' : 'Select All'}
+						{selectAllMembers ? 'Clear Selection' : 'Select All'}
+					</Text>
+				</TouchableOpacity>
+			)}
+
+			{state.sortBy === 'staff' && isContactsNotEmpty && (
+				<TouchableOpacity
+					style={styles.selectAllFloatBtn}
+					activeOpacity={1}
+					onPress={onSelectAll}
+				>
+					<Text size="rg" color="light">
+						{selectAllStaff ? 'Clear Selection' : 'Select All'}
 					</Text>
 				</TouchableOpacity>
 			)}
