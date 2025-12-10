@@ -63,10 +63,18 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 		setHasTriggeredPay(false);
 	}, [orderKey]);
 
+	function cleanShopUrl(url: string) {
+		const idx = url.indexOf('/shop/');
+		if (idx === -1) return url; // fallback
+
+		return `${url.substring(0, idx)}/`;
+	}
+
 	const startMobilePay = async (orderkey: string) => {
 		try {
-			const baseUrl = shopUrl.replace(/\/shop\/?$/, '/');
-			const mobilePayUrl = `${baseUrl}wp-json/fitbox/v1/mobile-pay/start?order_key=${orderkey}&customer_id=${customerId}`;
+			const ts = Date.now();
+			const baseUrl = cleanShopUrl(shopUrl);
+			const mobilePayUrl = `${baseUrl}wp-json/fitbox/v1/mobile-pay/start?order_key=${orderkey}&customer_id=${customerId}&_ts=${ts}`;
 
 			// console.log('Calling: ', mobilePayUrl);
 
@@ -110,15 +118,26 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 			setIsLoading(false);
 			const { error } = await presentPaymentSheet();
 
-			navigation.setParams({ orderKey: undefined });
-
 			if (error) {
 				console.error('Error presenting payment sheet:', error);
+				setHasTriggeredPay(false);
+				navigation.setParams({ orderKey: undefined });
 				ref.current?.reload();
 				setIsLoading(false);
-			}
+			} else {
+				const confirmationUrl = `${baseUrl}checkout/order-received/${parsedData.order_id}/?key=${orderkey}`;
 
-			console.log('mobile-pay/start result:', parsedData);
+				ref.current?.injectJavaScript(`
+				window.location.href = '${confirmationUrl}';
+				true;
+				`);
+
+				navigation.setParams({ orderKey: undefined });
+
+				console.log('shopUrl after pay:', confirmationUrl);
+				console.log('mobile-pay/start result:', parsedData);
+				setIsLoading(false);
+			}
 		} catch (err) {
 			console.error('Error calling mobile pay:', err);
 			setIsLoading(false);
@@ -127,7 +146,19 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 
 	return (
 		<SafeScreen>
-			<WebView ref={ref} key={storeUrl} source={{ uri: storeUrl }} />
+			<WebView
+				ref={ref}
+				key={storeUrl}
+				source={{ uri: storeUrl }}
+				onLoadStart={() => {
+					console.log('WebView: load start');
+					setIsLoading(true);
+				}}
+				onLoadEnd={() => {
+					console.log('WebView: load end');
+					setIsLoading(false);
+				}}
+			/>
 
 			{isLoading && (
 				<View style={styles.loadingView}>
