@@ -54,7 +54,7 @@ export const instance = () =>
  * Create a new instance of ky with secured headers
  * @returns KyInstance
  */
-export const securedInstance = () =>
+export const securedInstance = (timeout?: number) =>
 	ky.extend({
 		prefixUrl: getApiUrl() || Constant.API_URL,
 		searchParams: {
@@ -65,7 +65,7 @@ export const securedInstance = () =>
 			'Content-Type': 'application/json',
 			'x-app-version': xAppVersion,
 		},
-		timeout: getTimeout(),
+		timeout: timeout || getTimeout(),
 		hooks: {
 			beforeRequest: [
 				request => {
