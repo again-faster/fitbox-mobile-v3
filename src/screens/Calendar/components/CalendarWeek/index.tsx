@@ -45,7 +45,10 @@ const CalendarWeek = forwardRef<CalendarWeekRef, CalendarWeekProps>(
 		const swiper = useRef<FlashList<IWeek[]>>(null);
 
 		const weeks: IWeek[][] = useMemo(() => {
-			const start = moment().startOf('year').startOf('isoWeek');
+			const start = moment()
+				.subtract(1, 'year')
+				.startOf('year')
+				.startOf('isoWeek');
 			const end = moment(currentDate)
 				.endOf('year')
 				.add(1, 'year')
