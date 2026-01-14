@@ -919,7 +919,10 @@ const SessionsSectionsTab = ({
 									onLoadEnd={handleVideoOnLoaded}
 									onError={handleVideoOnError}
 									source={{
-										uri: `https://www.youtube.com/embed/${videoUrlCode}?loop=1`,
+										uri: `https://www.youtube-nocookie.com/embed/${videoUrlCode}?rel=0&modestbranding=1&playsinline=1?loop=1`,
+										headers: {
+											Referer: 'https://www.google.com', // 👈 this is the key
+										},
 									}}
 								/>
 							</Card>
