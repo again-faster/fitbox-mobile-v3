@@ -4,7 +4,7 @@ import { securedInstance } from '../instance';
 
 export default async (invoiceId: number, paymentIntentId: string) => {
 	const url = `${ApiRoutes.checkPaymentIntentForInvoice}/${invoiceId}`;
-	const response = await securedInstance()
+	const response = await securedInstance(40000)
 		.post(url, {
 			body: JSON.stringify({
 				paymentIntentId,
