@@ -10,8 +10,16 @@ import {
 	initPaymentSheet,
 	presentPaymentSheet,
 } from '@stripe/stripe-react-native';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import moment from 'moment';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+	ActivityIndicator,
+	Linking,
+	StyleSheet,
+	TouchableOpacity,
+	View,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome5';
 import WebView from 'react-native-webview';
 
 const Shop = ({ navigation, route }: ApplicationScreenProps) => {
@@ -24,22 +32,59 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 		teamId,
 		customerId,
 		countryCode,
+		setState,
 	} = useStore(state => ({
 		storeSignature: state.storeSignature,
 		storeSignatureExpiry: state.storeSignatureExpiry,
 		teamId: state.teamId,
 		customerId: state.stripeCustomerId,
 		countryCode: state.countryCode,
+		setState: state.setAppState,
 	}));
 	const { orderKey } = (route.params as ShopParams) || {};
 	const currentApi = getApiUrl();
 
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [hasTriggeredPay, setHasTriggeredPay] = useState(false);
+	const [canGoBack, setCanGoBack] = useState(false);
+	const [showBackButton, setShowBackButton] = useState(false);
 
 	const storeUrl = useMemo(() => {
 		return `${shopUrl}?fb_email=${user?.user_data.email}&fb_first=${user?.user_data.first_name}&fb_last=${user?.user_data.last_name}&fb_sig=${storeSignature}&fb_expiry=${storeSignatureExpiry}&fb_gym=${teamId}`;
 	}, [shopUrl, user, storeSignature, storeSignatureExpiry, teamId]);
+
+	const getHostname = (url: string | undefined) => {
+		return url?.replace(/^https?:\/\//, '').split('/')[0] || '';
+	};
+	const shopDomain = getHostname(shopUrl);
+
+	const renderBackButton = () => (
+		<TouchableOpacity
+			onPress={() => {
+				if (canGoBack) {
+					ref.current?.goBack();
+				} else {
+					const cleanUrl = shopUrl.split('?')[0]; // remove existing query params
+					setState('shopUrl', `${cleanUrl}?v=${moment().unix()}`);
+				}
+			}}
+		>
+			<Icon
+				name="chevron-left"
+				size={config.metrics.lg}
+				color="white"
+				style={{ marginLeft: config.metrics.rg }}
+			/>
+		</TouchableOpacity>
+	);
+
+	useLayoutEffect(() => {
+		navigation.setOptions({
+			headerRight: () => null,
+			headerLeft: showBackButton ? renderBackButton : undefined,
+			title: 'Gym Shop',
+		});
+	}, [showBackButton, canGoBack]);
 
 	useEffect(() => {
 		ref.current?.reload();
@@ -150,12 +195,55 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 				ref={ref}
 				key={storeUrl}
 				source={{ uri: storeUrl }}
+				onShouldStartLoadWithRequest={(request: { url: string }) => {
+					try {
+						const { url } = request;
+						// console.log('WebView navigating to:', url);
+
+						// Always allow non-http(s) URLs to avoid crashes
+						if (!url || !url.startsWith('http')) {
+							return true;
+						}
+
+						const isExternal =
+							!getHostname(url).startsWith(shopDomain);
+
+						if (isExternal) {
+							void Linking.openURL(url);
+							return false; // MUST be boolean
+						}
+
+						return true;
+					} catch (e) {
+						// Fail safe: never crash WebView
+						return true;
+					}
+				}}
+				onOpenWindow={async (event: {
+					nativeEvent: { targetUrl: string };
+				}) => {
+					// catches window.open / target="_blank"
+					await Linking.openURL(event.nativeEvent.targetUrl);
+				}}
+				onNavigationStateChange={(navState: {
+					url: string;
+					canGoBack: boolean | ((prevState: boolean) => boolean);
+				}) => {
+					const isHome =
+						cleanShopUrl(navState.url) === cleanShopUrl(shopUrl);
+
+					if (isHome) {
+						setShowBackButton(false);
+					} else {
+						setShowBackButton(true);
+					}
+					setCanGoBack(navState.canGoBack);
+					// console.log('Can go back:', navState.canGoBack);
+				}}
 				onLoadStart={() => {
-					console.log('WebView: load start');
 					setIsLoading(true);
 				}}
 				onLoadEnd={() => {
-					console.log('WebView: load end');
 					setIsLoading(false);
 				}}
 			/>
