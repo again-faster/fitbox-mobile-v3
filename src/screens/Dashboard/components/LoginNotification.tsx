@@ -56,8 +56,8 @@ const LoginNotification = () => {
 							style={styles.closeIcon}
 							onPress={() => setShowNotification(false)}
 						/>
-						<Text size="md" bold>
-							New Store Now Available!
+						<Text size="md" bold center>
+							New In-App Store is Live!
 						</Text>
 						<Spacer />
 						<Image
@@ -66,12 +66,10 @@ const LoginNotification = () => {
 							style={styles.image}
 						/>
 						<Spacer size={config.metrics.lg} />
-						<Text size="rg">
-							A brand-new store has been added to your Shop
-							screen, featuring an improved layout, smoother
-							navigation, and a fresh selection of products.
-							Explore the latest items and enjoy a more seamless
-							shopping experience starting today.
+						<Text size="rg" center>
+							Explore the new store for exclusive member discounts
+							with TWL, ATP Science, Frog Grips and all the gym
+							accessories you need.
 						</Text>
 						<Spacer />
 					</ScrollView>
@@ -107,7 +105,7 @@ const styles = StyleSheet.create({
 	},
 	image: {
 		width: '100%',
-		height: 150,
+		height: 300,
 		resizeMode: 'cover',
 	},
 	closeIcon: {
