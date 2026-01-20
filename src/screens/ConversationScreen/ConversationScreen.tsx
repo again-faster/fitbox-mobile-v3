@@ -248,7 +248,11 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 	};
 
 	const toggleViewUsers = () => {
-		const usersList = conversation.user_list.map(
+		const recipientsList = conversation.user_list.filter(
+			userData => userData.id !== user?.user_data.user_id,
+		);
+
+		const usersList = recipientsList.map(
 			userData => `${userData.firstname} ${userData.lastname}`,
 		);
 		const message = sortBy(usersList).join('\n');
@@ -269,7 +273,7 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 		}`;
 
 		if (users.length > 1) {
-			screenTitle += ` and ${users.length - 1} others `;
+			screenTitle = `${users.length} members`;
 		}
 
 		setState(prevState => ({ ...prevState, userList: users }));

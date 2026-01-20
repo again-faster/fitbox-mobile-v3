@@ -101,7 +101,7 @@ const InboxItem = ({ index, data, onPress }: InboxItemProps) => {
 
 	// Prepare others number
 	const othersNumber =
-		listOfUsers.length > 1 ? ` and ${listOfUsers.length - 1} others` : '';
+		listOfUsers.length > 1 ? `${listOfUsers.length} members` : '';
 
 	// Check if last reply is sender
 	const lastReplyIsSender = data.sender_id === senderInfo.id;
@@ -136,7 +136,9 @@ const InboxItem = ({ index, data, onPress }: InboxItemProps) => {
 						<Row spacing="space-between">
 							<View style={styles.nameContainerStyle}>
 								<Text size="md" numberOfLines={1}>
-									{displayName + othersNumber}
+									{listOfUsers.length > 1
+										? othersNumber
+										: displayName}
 								</Text>
 							</View>
 							<View style={layout.itemsEnd}>
