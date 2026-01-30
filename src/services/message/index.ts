@@ -1,5 +1,6 @@
 export { default as checkConversationReplyStatus } from './checkConversationReplyStatus';
 export { default as deleteConversationMessage } from './deleteConversationMessage';
+export { default as getAnnouncements } from './getAnnouncements';
 export { default as getContacts } from './getContacts';
 export { default as getConversationArchivedList } from './getConversationArchivedList';
 export { default as getConversationList } from './getConversationList';

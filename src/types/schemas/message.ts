@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { boolOrOneZero } from './common';
 
 export type MessageItemUserType = z.infer<typeof MessageItemUserSchema>;
 export const MessageItemUserSchema = z.object({
@@ -32,6 +33,39 @@ export const MessageItemSchema = z.object({
 	lastname: z.string(),
 	user_list: z.array(MessageItemUserSchema),
 	attached_files: z.array(MessageItemAttachmentSchema).or(z.any()),
+	is_announcement: z.number().optional(),
+});
+
+const LegacyActionSchema = z.object({
+	type: z.string(),
+	link: z.string(),
+});
+
+export type NewActionType = z.infer<typeof NewActionSchema>;
+const NewActionSchema = z.object({
+	screen: z.string(),
+	text: z.string(),
+});
+
+export type AnnouncementsItemType = z.infer<typeof AnnouncementsItemSchema>;
+export const AnnouncementsItemSchema = z.object({
+	id: z.number(),
+	sender_id: z.number(),
+	subject: z.string(),
+	convo_id: z.number(),
+	disable_reply: boolOrOneZero,
+	message: z.string(),
+	created_at: z.string(),
+	action: z.union([z.array(LegacyActionSchema), NewActionSchema, z.null()]),
+	attached_files: z.array(
+		z.object({
+			id: z.number(),
+			name: z.string(),
+			type: z.string(),
+			size: z.number(),
+			public_url: z.string(),
+		}),
+	),
 });
 
 export const ContactGroupMembersSchema = z.object({

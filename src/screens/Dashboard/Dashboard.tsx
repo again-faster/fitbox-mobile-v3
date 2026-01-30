@@ -15,6 +15,7 @@ import { betaActive, savePushToken } from '@/services/auth';
 import { getGymClasses, getGymVenues } from '@/services/gym';
 import { getAttendanceReport } from '@/services/leaderboards';
 import getWorkouts from '@/services/leaderboards/getWorkouts';
+import { getAnnouncements } from '@/services/message';
 import { getClassFilters } from '@/services/session';
 import {
 	getBookedSessions,
@@ -28,6 +29,7 @@ import layout from '@/theme/layout';
 import resources from '@/theme/resources';
 import { ApplicationStackParamList } from '@/types/navigation';
 import { GymVenueType } from '@/types/schemas/gym';
+import { AnnouncementsItemType } from '@/types/schemas/message';
 import { NotificationSettingsState } from '@/types/schemas/notifications';
 import { FailedInvoicesType } from '@/types/schemas/payment';
 import { LoginResponseSchemaType } from '@/types/schemas/response';
@@ -108,6 +110,9 @@ const Dashboard = () => {
 	const { user, getApiUrl, signOut, updateUser } = useAuth();
 	const timezone = user?.user_data.dob.timezone as string;
 	const [attendanceFilter, setAttendanceFilter] = useState<string[]>([]);
+	const [loginNotifications, setLoginNotifications] = useState<
+		AnnouncementsItemType[]
+	>([]);
 	// const headerHeight = useHeaderHeight();
 	const { variant, navigationTheme } = useTheme();
 
@@ -193,6 +198,9 @@ const Dashboard = () => {
 		useState<boolean>(false);
 
 	const { hasSwitchableUsers } = useSwitchableUsers();
+
+	const [currentNotificationIndex, setCurrentNotificationIndex] =
+		useState<number>(0);
 	const betaBuild = false;
 	const onRefresh = () => {
 		void initializeAppStates();
@@ -322,6 +330,20 @@ const Dashboard = () => {
 			setAttendanceFilter(gymInfo.mobile_dashboard_type);
 
 			setHasPrevSubscriptions(userData.has_previous_subscriptions);
+
+			if (gymInfo.num_of_unread_messages > 0) {
+				void getLoginNotifications(gymInfo.gym_lookup);
+			}
+		}
+	};
+
+	const getLoginNotifications = async (gymId: number | string) => {
+		const res = await getAnnouncements(gymId as number);
+		if (!res.error) {
+			if (res.data.length > 0) {
+				const announcements = res.data.reverse();
+				setLoginNotifications(announcements);
+			}
 		}
 	};
 
@@ -1146,7 +1168,21 @@ const Dashboard = () => {
 						setShowFailedInvoicesModal={setShowFailedInvoicesModal}
 					/>
 				)}
-			<LoginNotification />
+			{loginNotifications.length > 0 &&
+				currentNotificationIndex < loginNotifications.length && (
+					<LoginNotification
+						item={
+							loginNotifications[
+								currentNotificationIndex
+							] as AnnouncementsItemType
+						}
+						onClose={() =>
+							setCurrentNotificationIndex(prev => prev + 1)
+						}
+						navigation={navigate}
+						index={currentNotificationIndex}
+					/>
+				)}
 		</SafeAreaView>
 	);
 };

@@ -26,6 +26,7 @@ import {
 	WorkoutItemSchema,
 } from './leaderboards';
 import {
+	AnnouncementsItemSchema,
 	ContactDataSchema,
 	ConversationArchivedListDataSchema,
 	FitboxGalleryDataSchema,
@@ -101,6 +102,12 @@ export const GetConversationListResponseSchema = z.object({
 	error: z.boolean(),
 	total_items: z.number(),
 	total_pages: z.number(),
+});
+
+export const GetAnnouncementsResponseSchema = z.object({
+	data: z.array(AnnouncementsItemSchema),
+	message: z.string(),
+	error: z.boolean(),
 });
 
 export const GetUserGymInfoResponseSchema = z.object({

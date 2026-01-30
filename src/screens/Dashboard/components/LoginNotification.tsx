@@ -1,12 +1,22 @@
 import { Button, Spacer, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
+import { AnnouncementsItemType, NewActionType } from '@/types/schemas/message';
 import { useState } from 'react';
 import { Image, Modal, ScrollView, StyleSheet, View } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-const LoginNotification = () => {
+const LoginNotification = ({
+	item,
+	onClose,
+	index,
+	navigation,
+}: {
+	item: AnnouncementsItemType;
+	onClose: () => void;
+	index: number;
+	navigation: (screen: string, params?: object) => void;
+}) => {
 	// Use type assertion to bypass TypeScript error for navigation
-	// const navigation = useNavigation();
 
 	const [showNotification, setShowNotification] = useState<boolean>(true);
 
@@ -14,32 +24,33 @@ const LoginNotification = () => {
 	// 	setAppState: state.setAppState,
 	// }));
 
+	const hasAction = item.action && (item.action as NewActionType).screen;
+
+	const imageAttachment = item.attached_files
+		? item.attached_files.find(file => file.type === 'image')
+		: null;
+
 	const navigateToScreen = (screen: string) => {
 		setShowNotification(false);
 		switch (screen) {
-			// case 'shop':
-			// 	navigation.navigate('Shop');
-			// 	break;
-			// case 'profile':
-			// 	navigation.navigate('MyDetails');
-			// 	break;
-			// case 'membership':
-			// 	navigation.navigate('Subscription');
-			// 	break;
-			// case 'payment':
-			// 	navigation.navigate('MenuTab', {
-			// 		screen: 'PaymentInformation',
-			// 	});
-			// 	break;
-			// case 'performance':
-			// 	navigation.navigate('MenuTab', {
-			// 		screen: 'PerformanceSummaryStack',
-			// 		params: {
-			// 			screen: 'PastPerformance',
-			// 		},
-			// 	});
-			// 	break;
-			// Add more cases as needed for other screens
+			case 'dashboard':
+				navigation('Dashboard');
+				break;
+			case 'calendar':
+				navigation('Calendar');
+				break;
+			case 'store':
+				navigation('Shop');
+				break;
+			case 'inbox':
+				navigation('Inbox');
+				break;
+			case 'memberships':
+				navigation('Subscription');
+				break;
+			case 'settings':
+				navigation('MenuStack', { screen: 'MyDetails' });
+				break;
 			default:
 				break;
 		}
@@ -54,32 +65,53 @@ const LoginNotification = () => {
 							name="close-outline"
 							size={config.metrics.lg}
 							style={styles.closeIcon}
-							onPress={() => setShowNotification(false)}
+							onPress={onClose}
 						/>
 						<Text size="md" bold center>
-							New In-App Store is Live!
+							{item.subject}
 						</Text>
 						<Spacer />
-						<Image
-							// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-							source={require('../../../theme/images/new-store.png')}
-							style={styles.image}
-						/>
+						{imageAttachment && (
+							<Image
+								source={{ uri: imageAttachment.public_url }}
+								style={styles.image}
+							/>
+						)}
 						<Spacer size={config.metrics.lg} />
 						<Text size="rg" center>
-							Explore the new store for exclusive member discounts
-							with TWL, ATP Science, Frog Grips and all the gym
-							accessories you need.
+							{item.message}
 						</Text>
 						<Spacer />
 					</ScrollView>
 
+					{hasAction && (
+						<Button
+							sm
+							buttonColor={config.colors.brand}
+							labelStyle={{
+								color: config.backgrounds.light,
+							}}
+							style={{ marginBottom: config.metrics.sm }}
+							onPress={() => navigateToScreen('performance')}
+							title={
+								(item.action as NewActionType).text ?? 'View'
+							}
+						/>
+					)}
 					<Button
 						sm
 						buttonColor={config.colors.brand}
 						labelStyle={{ color: config.backgrounds.light }}
-						onPress={() => navigateToScreen('performance')}
-						title="View"
+						onPress={() =>
+							navigation('InboxStack', {
+								screen: 'Conversation',
+								params: {
+									conversation: item,
+									index,
+								},
+							})
+						}
+						title="View Message"
 					/>
 				</View>
 			</View>

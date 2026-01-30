@@ -46,6 +46,7 @@ export default {
 	deleteConversation: `${v1}message/conversations`,
 	deleteConversationMessage: `${v1}message`,
 	contacts: `${v1}message/contacts`,
+	announcements: `${v1}message/conversations/unread-announcements`,
 	userHealthInfo: `${v1}get-health-details`,
 	userProfileImage: `${v1}user/profile/update-photo`,
 	userProfile: `${v1}user/profile`,
