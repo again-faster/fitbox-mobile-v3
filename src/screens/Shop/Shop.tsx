@@ -72,14 +72,12 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 					setState('shopUrl', `${cleanUrl}?v=${moment().unix()}`);
 				}
 			}}
-			style={{ borderColor: 'green', borderWidth: 0.5 }}
+			style={{
+				paddingLeft: config.metrics.rg,
+				paddingRight: config.metrics.md,
+			}}
 		>
-			<Icon
-				name="arrow-left"
-				size={config.metrics.lg}
-				color="white"
-				style={{ marginLeft: config.metrics.rg }}
-			/>
+			<Icon name="arrow-left" size={config.metrics.lg} color="white" />
 		</TouchableOpacity>
 	);
 
