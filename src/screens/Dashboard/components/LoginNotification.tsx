@@ -27,6 +27,17 @@ const LoginNotification = ({
 		? item.attached_files.find(file => file.type === 'image')
 		: null;
 
+	const otherAttachments = item?.attached_files
+		? item.attached_files.filter(file => file !== imageAttachment)
+		: [];
+
+	const maxDisplayed = 2;
+	const displayedAttachments =
+		otherAttachments.length > maxDisplayed
+			? otherAttachments.slice(0, maxDisplayed)
+			: otherAttachments;
+	const remainingCount = Math.max(0, otherAttachments.length - maxDisplayed);
+
 	const MAX_CHARS = 200;
 	const messageText = Func.stripHtmlTags(item.message);
 	const isTruncated = messageText.length > MAX_CHARS;
@@ -80,6 +91,40 @@ const LoginNotification = ({
 								source={{ uri: imageAttachment.public_url }}
 								style={styles.image}
 							/>
+						)}
+						<Spacer />
+						{otherAttachments.length > 0 && (
+							<View style={styles.otherAttachments}>
+								{displayedAttachments.map(file => (
+									<View
+										key={file.id}
+										style={styles.attachmentRow}
+									>
+										<Icon
+											name="attach-outline"
+											size={14}
+											style={styles.attachmentIcon}
+										/>
+										<Text
+											size="sm"
+											style={styles.attachmentLabel}
+										>
+											{file.name}
+										</Text>
+									</View>
+								))}
+								{remainingCount > 0 && (
+									<Text
+										size="sm"
+										style={styles.attachmentLabel}
+									>
+										and {remainingCount} other
+										{remainingCount === 1
+											? ' attachment'
+											: ' attachments'}
+									</Text>
+								)}
+							</View>
 						)}
 						<Spacer size={config.metrics.lg} />
 						<Text size="rg" center>
@@ -183,6 +228,22 @@ const styles = StyleSheet.create({
 	viewMoreText: {
 		color: config.colors.brand,
 		fontWeight: '600',
+	},
+	otherAttachments: {
+		marginTop: config.metrics.sm,
+	},
+	attachmentRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginBottom: 4,
+	},
+	attachmentIcon: {
+		color: '#666',
+		marginRight: 6,
+	},
+	attachmentLabel: {
+		fontSize: 12,
+		color: '#666',
 	},
 });
 
