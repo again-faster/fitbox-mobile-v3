@@ -80,23 +80,23 @@ const Startup = ({ navigation }: ApplicationScreenProps) => {
 						});
 					}
 
-					// if (
-					// 	((user.user_data.show_payment_form &&
-					// 		!user.user_data.has_payment_details &&
-					// 		!user.user_data.has_waived_subscriptions) ||
-					// 		fromAcceptInvite) &&
-					// 	user?.user_data?.parent_id === 0
-					// ) {
-					// 	return navigation.reset({
-					// 		index: 0,
-					// 		routes: [
-					// 			{
-					// 				name: 'PaymentSetup',
-					// 				params: { setup: true },
-					// 			},
-					// 		],
-					// 	});
-					// }
+					if (
+						((user.user_data.show_payment_form &&
+							!user.user_data.has_payment_details &&
+							!user.user_data.has_waived_subscriptions) ||
+							fromAcceptInvite) &&
+						user?.user_data?.parent_id === 0
+					) {
+						return navigation.reset({
+							index: 0,
+							routes: [
+								{
+									name: 'PaymentSetup',
+									params: { setup: true },
+								},
+							],
+						});
+					}
 
 					// Note: Additional conditions here.
 				}
