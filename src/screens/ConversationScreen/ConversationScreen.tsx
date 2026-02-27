@@ -284,22 +284,19 @@ const ConversationScreen = ({ route, navigation }: InboxScreenProps) => {
 			);
 		}
 
-		let screenTitle = users[0]
+		const screenTitle = users[0]
 			? `${users[0]?.firstname} ${users[0]?.lastname}`
 			: '';
 
-		if (users.length > 1) {
-			screenTitle = `${users.length} members`;
-		}
-
-		setState(prevState => ({ ...prevState, userList: users }));
+		const title =
+			users.length > 1 ? `${users.length} members` : screenTitle;
 
 		handleNotifications();
 
 		setAppState('showModalNotification', false);
 
 		navigation.setOptions({
-			title: screenTitle,
+			title,
 			headerRight: renderInfoButton,
 			headerLeft: renderBackButton,
 		});
