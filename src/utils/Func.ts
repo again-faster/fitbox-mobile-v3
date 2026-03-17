@@ -175,6 +175,48 @@ const getFileExt = (filename: string) => {
 	return split.pop()?.toLowerCase();
 };
 
+const getFilenameFromUrl = (url?: string) => {
+	if (!url) return undefined;
+	const noQuery = url.split('?')[0] || url;
+	const parts = noQuery.split('/');
+	const last = parts.pop();
+	if (!last) return undefined;
+	try {
+		return decodeURIComponent(last);
+	} catch {
+		return last;
+	}
+};
+
+const getAttachmentDisplayName = (input: {
+	name?: string | null;
+	public_url?: string | null;
+}) => {
+	const rawName = (input.name ?? '').trim();
+	const urlName = getFilenameFromUrl(input.public_url ?? undefined);
+
+	// If API sent "hash_originalFilename" keep only the original part.
+	let base = rawName;
+	const underscoreIdx = rawName.indexOf('_');
+	if (underscoreIdx > 0 && underscoreIdx < rawName.length - 1) {
+		const prefix = rawName.slice(0, underscoreIdx);
+		const rest = rawName.slice(underscoreIdx + 1);
+		// Heuristic: the prefix is typically a long hash-like token.
+		if (prefix.length >= 16 && rest.trim().length > 0) {
+			base = rest.trim();
+		}
+	}
+
+	// If the API name has no extension, try to append one from the URL filename.
+	const baseExt = base.includes('.') ? getFileExt(base) : undefined;
+	const urlExt = urlName ? getFileExt(urlName) : undefined;
+	if (!baseExt && urlExt) {
+		base = `${base}.${urlExt}`;
+	}
+
+	return base || urlName || rawName || 'Attachment';
+};
+
 const getNextPageParam = (end: number, totalResults?: number) => {
 	const hasMoreData = end < totalResults!;
 
@@ -296,6 +338,7 @@ export default {
 	getYoutubeUrl,
 	getBase64,
 	getFileExt,
+	getAttachmentDisplayName,
 	getNextPageParam,
 	isSessionWithin72Hours,
 	isSessionFromPast,

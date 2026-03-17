@@ -133,7 +133,12 @@ const LoginNotification = ({
 								<Text size="sm" style={styles.attachmentLabel}>
 									Attachments:{' '}
 									{displayedAttachments
-										.map(f => f.name)
+										.map(f =>
+											Func.getAttachmentDisplayName({
+												name: f.name,
+												public_url: f.public_url,
+											}),
+										)
 										.join(', ')}
 									{remainingCount > 0 &&
 										` + ${remainingCount} more`}

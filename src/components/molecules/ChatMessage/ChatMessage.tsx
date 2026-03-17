@@ -169,7 +169,12 @@ const ChatMessage = (props: ChatMessageProps) => {
 									<LinkPreview
 										key={f.id}
 										link={f.public_url}
-										filename={f.name}
+										filename={Func.getAttachmentDisplayName(
+											{
+												name: f.name,
+												public_url: f.public_url,
+											},
+										)}
 									/>
 								);
 							})}
