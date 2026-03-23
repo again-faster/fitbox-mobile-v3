@@ -19,7 +19,7 @@ import {
 	View,
 } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import Icon from 'react-native-vector-icons/FontAwesome5';
+import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import WebView from 'react-native-webview';
 
 const Shop = ({ navigation, route }: ApplicationScreenProps) => {
@@ -47,7 +47,6 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [hasTriggeredPay, setHasTriggeredPay] = useState(false);
-	const [canGoBack, setCanGoBack] = useState(false);
 	const [showBackButton, setShowBackButton] = useState(false);
 
 	const storeUrl = useMemo(() => {
@@ -77,21 +76,17 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 	const renderBackButton = () => (
 		<TouchableOpacity
 			onPress={() => {
-				if (canGoBack) {
-					ref.current?.goBack();
-				} else {
-					const base = shopUrl.split('?')[0];
-					const timestamp = Date.now();
+				const base = shopUrl.split('?')[0];
+				const timestamp = Date.now();
 
-					setState('shopUrl', `${base}?v=${timestamp}`);
-				}
+				setState('shopUrl', `${base}?v=${timestamp}`);
 			}}
 			style={{
 				paddingLeft: config.metrics.rg,
 				paddingRight: config.metrics.md,
 			}}
 		>
-			<Icon name="arrow-left" size={config.metrics.lg} color="white" />
+			<Ionicons name="home" size={config.metrics.lg} color="white" />
 		</TouchableOpacity>
 	);
 
@@ -101,7 +96,7 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 			headerLeft: showBackButton ? renderBackButton : undefined,
 			title: 'Gym Shop',
 		});
-	}, [showBackButton, canGoBack]);
+	}, [showBackButton]);
 
 	useEffect(() => {
 		ref.current?.reload();
@@ -316,8 +311,6 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 					} else {
 						setShowBackButton(true);
 					}
-					setCanGoBack(navState.canGoBack);
-					// console.log('Can go back:', navState.canGoBack);
 				}}
 				onLoadStart={() => {
 					setIsLoading(true);
