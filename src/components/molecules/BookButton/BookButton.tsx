@@ -467,7 +467,7 @@ const BookButton = ({
 						compact
 						fullWidth
 						mode="contained"
-						title={`Join Waitlist (${waitlistLength ?? 0})`}
+						title={`Join ${waitlistLength ?? 0} on Waitlist`}
 						onPress={handleWaitlist}
 						loading={isLoading}
 					/>
@@ -477,7 +477,7 @@ const BookButton = ({
 						compact
 						fullWidth
 						mode="outlined"
-						title={`${waitlistLength ?? 0} on Waitlist`}
+						title={`Join ${waitlistLength ?? 0} on Waitlist`}
 						onPress={handleWaitlist}
 						loading={isLoading}
 					/>
