@@ -1,14 +1,16 @@
-import { navigate } from '@/navigators/NavigationRef';
 import { config } from '@/theme/_config';
 import {
 	normalizeForLinkPreviewRequest,
 	normalizePlainTextUrlToHttps,
 } from '@/utils/plainTextUrl';
+import { Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 import { getLinkPreview } from 'link-preview-js';
 import { useEffect, useState } from 'react';
 import type { StyleProp, TextStyle } from 'react-native';
 import {
 	ActivityIndicator,
+	Linking,
 	Pressable,
 	StyleSheet,
 	TouchableWithoutFeedback,
@@ -33,6 +35,10 @@ type LoadState =
 	| { status: 'loading' }
 	| { status: 'success'; preview: PreviewTypes }
 	| { status: 'error' };
+
+const openExternalLink = (uri: string) => {
+	void Linking.openURL(uri).catch(err => Say.err(err as ICatchError));
+};
 
 const LinkPreview = ({
 	link,
@@ -102,10 +108,7 @@ const LinkPreview = ({
 				<Pressable
 					hitSlop={6}
 					onPress={() =>
-						navigate('Webview', {
-							title: link,
-							uri: normalizePlainTextUrlToHttps(link),
-						})
+						openExternalLink(normalizePlainTextUrlToHttps(link))
 					}
 				>
 					<Text
@@ -136,9 +139,7 @@ const LinkPreview = ({
 	const title = filename || preview.title || preview.url || link;
 
 	return (
-		<TouchableWithoutFeedback
-			onPress={() => navigate('Webview', { title, uri: openUri })}
-		>
+		<TouchableWithoutFeedback onPress={() => openExternalLink(openUri)}>
 			<View style={styles.textContainer}>
 				<Text bold center numberOfLines={1}>
 					{title}

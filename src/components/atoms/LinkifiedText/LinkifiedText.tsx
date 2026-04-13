@@ -1,11 +1,13 @@
-import { navigate } from '@/navigators/NavigationRef';
 import { config } from '@/theme/_config';
 import {
 	normalizePlainTextUrlToHttps,
 	trimTrailingNonUrlChars,
 } from '@/utils/plainTextUrl';
+import { Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 import type { ComponentProps } from 'react';
 import {
+	Linking,
 	Pressable,
 	StyleProp,
 	StyleSheet,
@@ -64,9 +66,13 @@ type LinkifiedTextProps = Omit<TextProps, 'children'> & {
 	linkStyle?: StyleProp<TextStyle>;
 };
 
+const openExternalLink = (uri: string) => {
+	void Linking.openURL(uri).catch(err => Say.err(err as ICatchError));
+};
+
 /**
  * Uses `Pressable` per link so taps work inside parent `Pressable` (e.g. chat bubble long-press).
- * Opens links in the in-app WebView.
+ * Opens links in the phone browser.
  */
 const LinkifiedText = ({
 	children,
@@ -95,12 +101,7 @@ const LinkifiedText = ({
 										seg.value,
 									);
 									if (!uri) return;
-									navigate('Webview', {
-										title: trimTrailingNonUrlChars(
-											seg.value.trim(),
-										),
-										uri,
-									});
+									openExternalLink(uri);
 								}}
 							>
 								<Text
