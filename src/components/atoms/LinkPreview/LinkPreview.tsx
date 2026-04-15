@@ -1,14 +1,22 @@
-import { navigate } from '@/navigators/NavigationRef';
 import { config } from '@/theme/_config';
+import {
+	normalizeForLinkPreviewRequest,
+	normalizePlainTextUrlToHttps,
+} from '@/utils/plainTextUrl';
+import { Say } from '@/utils';
+import { ICatchError } from '@/utils/Say';
 import { getLinkPreview } from 'link-preview-js';
 import { useEffect, useState } from 'react';
-import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
+import type { StyleProp, TextStyle } from 'react-native';
+import {
+	ActivityIndicator,
+	Linking,
+	Pressable,
+	StyleSheet,
+	TouchableWithoutFeedback,
+	View,
+} from 'react-native';
 import Text from '../Text/Text';
-
-type Props = {
-	link: string;
-	preview: PreviewTypes | null;
-};
 
 type PreviewTypes = {
 	charset: string;
@@ -23,28 +31,99 @@ type PreviewTypes = {
 	videos: unknown[];
 };
 
+type LoadState =
+	| { status: 'loading' }
+	| { status: 'success'; preview: PreviewTypes }
+	| { status: 'error' };
+
+const openExternalLink = (uri: string) => {
+	void Linking.openURL(uri).catch(err => Say.err(err as ICatchError));
+};
+
 const LinkPreview = ({
 	link,
 	filename,
+	plainTextLeadUrl,
+	plainTextFallbackStyle,
 }: {
 	link: string;
 	filename?: string;
+	/** Leading URL peeled from plain-text chat body — on fetch failure, show tappable URL only. */
+	plainTextLeadUrl?: boolean;
+	/** Inline link look when preview fails (e.g. bubble-aware colors from ChatMessage). */
+	plainTextFallbackStyle?: StyleProp<TextStyle>;
 }) => {
-	const [state, setState] = useState<Props>({
-		link,
-		preview: null,
-	});
+	const [state, setState] = useState<LoadState>({ status: 'loading' });
 
 	useEffect(() => {
-		void getLinkPreview(link).then(prev => {
-			setState(prevState => ({
-				...prevState,
-				preview: prev as PreviewTypes,
-			}));
-		});
-	}, []);
+		setState({ status: 'loading' });
+		const fetchUrl = normalizeForLinkPreviewRequest(link);
+		const previewOpts = {
+			followRedirects: 'follow' as const,
+			timeout: 10_000,
+		};
 
-	if (!state.preview)
+		const run = (url: string) =>
+			getLinkPreview(url, previewOpts).then(prev =>
+				setState({
+					status: 'success',
+					preview: prev as PreviewTypes,
+				}),
+			);
+
+		void run(fetchUrl)
+			.catch(() => {
+				if (/^http:\/\//i.test(fetchUrl)) {
+					const httpsUrl = fetchUrl.replace(
+						/^http:\/\//i,
+						'https://',
+					);
+					return run(httpsUrl);
+				}
+				throw new Error('preview failed');
+			})
+			.catch(() => {
+				setState({ status: 'error' });
+			});
+	}, [link]);
+
+	if (state.status === 'loading') {
+		if (plainTextLeadUrl) {
+			return (
+				<View style={styles.leadUrlLoading}>
+					<ActivityIndicator size="small" />
+				</View>
+			);
+		}
+		return (
+			<View style={styles.textContainer}>
+				<ActivityIndicator />
+			</View>
+		);
+	}
+
+	if (state.status === 'error') {
+		if (plainTextLeadUrl) {
+			return (
+				<Pressable
+					hitSlop={6}
+					onPress={() =>
+						openExternalLink(normalizePlainTextUrlToHttps(link))
+					}
+				>
+					<Text
+						numberOfLines={2}
+						style={[
+							styles.fallbackLink,
+							plainTextFallbackStyle ??
+								styles.fallbackLinkDefault,
+						]}
+					>
+						{link}
+					</Text>
+				</Pressable>
+			);
+		}
 		return (
 			<View style={styles.textContainer}>
 				<Text bold center numberOfLines={1}>
@@ -52,32 +131,24 @@ const LinkPreview = ({
 				</Text>
 			</View>
 		);
+	}
+
+	const { preview } = state;
+	const openUri = preview.url || normalizePlainTextUrlToHttps(link);
+
+	const title = filename || preview.title || preview.url || link;
 
 	return (
-		<TouchableWithoutFeedback
-			onPress={() =>
-				navigate('Webview', {
-					title:
-						filename ||
-						(state.preview as PreviewTypes).title ||
-						state.link,
-					uri: link || state.preview?.url,
-				})
-			}
-		>
+		<TouchableWithoutFeedback onPress={() => openExternalLink(openUri)}>
 			<View style={styles.textContainer}>
 				<Text bold center numberOfLines={1}>
-					{filename ||
-						state.preview.title ||
-						state.preview.url ||
-						link}
+					{title}
 				</Text>
-				{state.preview.description !== '' &&
-					state.preview.description && (
-						<Text size="sm" center numberOfLines={1}>
-							{state.preview.description}
-						</Text>
-					)}
+				{preview.description !== '' && preview.description && (
+					<Text size="sm" center numberOfLines={1}>
+						{preview.description}
+					</Text>
+				)}
 			</View>
 		</TouchableWithoutFeedback>
 	);
@@ -87,6 +158,18 @@ const styles = StyleSheet.create({
 	textContainer: {
 		backgroundColor: '#eee',
 		padding: config.metrics.rg,
+	},
+	leadUrlLoading: {
+		paddingVertical: config.metrics.xs,
+		alignSelf: 'flex-start',
+	},
+	fallbackLink: {
+		textDecorationLine: 'underline',
+		textDecorationStyle: 'solid',
+	},
+	fallbackLinkDefault: {
+		color: '#0066CC',
+		textDecorationColor: '#0066CC',
 	},
 });
 

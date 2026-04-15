@@ -1,9 +1,18 @@
 import useAuth from '@/auth/hooks/useAuth';
-import { Avatar, LinkPreview, Row, Spacer, Text } from '@/components/atoms';
+import {
+	Avatar,
+	LinkifiedText,
+	LinkPreview,
+	Row,
+	Spacer,
+	Text,
+} from '@/components/atoms';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { SendMessageDataType } from '@/types/schemas/message';
-import { Func } from '@/utils';
+import { Func, Say } from '@/utils';
+import { splitLeadingPlainTextUrl } from '@/utils/plainTextUrl';
+import { ICatchError } from '@/utils/Say';
 import { isEmpty } from 'lodash';
 import moment from 'moment';
 import React from 'react';
@@ -11,13 +20,38 @@ import {
 	Image,
 	ImageSourcePropType,
 	ImageStyle,
+	Linking,
+	Pressable,
 	StyleProp,
 	StyleSheet,
-	TouchableOpacity,
 	View,
 } from 'react-native';
 import HTMLView from 'react-native-htmlview';
 import ImagePop from '../ImagePop/ImagePop';
+
+const htmlMessageStylesFromUser = {
+	p: {
+		color: 'white',
+		fontSize: config.fonts.metrics.md,
+		fontFamily: 'Montserrat-Regular',
+	},
+	a: {
+		color: 'white',
+		textDecorationLine: 'underline' as const,
+	},
+};
+
+const htmlMessageStylesFromOther = {
+	p: {
+		color: 'black',
+		fontSize: config.fonts.metrics.md,
+		fontFamily: 'Montserrat-Regular',
+	},
+	a: {
+		color: '#007AFF',
+		textDecorationLine: 'underline' as const,
+	},
+};
 
 type ChatMessageProps = {
 	data: SendMessageDataType;
@@ -54,16 +88,15 @@ const ChatMessage = (props: ChatMessageProps) => {
 			? lines.slice(0, -1).join('\n')
 			: lines.join('\n');
 
-	let link: string | null = null;
-	if (combinedString.substring(0, 4).toLowerCase() === 'http') {
-		const splitString = combinedString.split(' ');
-		link = splitString.shift() as string;
-		combinedString = splitString.join(' ');
+	const { url: leadUrl, remainder: afterLeadUrl } =
+		splitLeadingPlainTextUrl(combinedString);
+	const link = leadUrl;
+	if (leadUrl) {
+		combinedString = afterLeadUrl;
 	}
 
 	const flexDirection = isFromUser ? 'row-reverse' : 'row';
 	const alignItems = isFromUser ? 'flex-end' : 'flex-start';
-	const textColor = isFromUser ? 'white' : 'black';
 	const messageBubble = isFromUser
 		? { borderBottomRightRadius: 0 }
 		: { borderBottomLeftRadius: 0 };
@@ -134,18 +167,37 @@ const ChatMessage = (props: ChatMessageProps) => {
 						(isHTML ? (
 							<HTMLView
 								value={combinedString}
-								stylesheet={{
-									p: {
-										color: isFromUser ? 'white' : 'black',
-										fontSize: config.fonts.metrics.md,
-										fontFamily: 'Montserrat-Regular',
-									},
+								onLinkPress={url => {
+									const decoded = url.trim();
+									const uri = /^www\./i.test(decoded)
+										? `https://${decoded}`
+										: decoded;
+									void Linking.openURL(uri).catch(err =>
+										Say.err(err as ICatchError),
+									);
 								}}
+								stylesheet={
+									isFromUser
+										? htmlMessageStylesFromUser
+										: htmlMessageStylesFromOther
+								}
 							/>
 						) : (
-							<Text size="md" style={{ color: textColor }}>
+							<LinkifiedText
+								size="md"
+								style={
+									isFromUser
+										? styles.plainTextFromUser
+										: styles.plainTextFromOther
+								}
+								linkStyle={
+									isFromUser
+										? styles.plainLinkFromUser
+										: styles.plainLinkFromOther
+								}
+							>
 								{combinedString}
-							</Text>
+							</LinkifiedText>
 						))}
 					{hasGIF && (
 						<MemoizedImage
@@ -181,20 +233,26 @@ const ChatMessage = (props: ChatMessageProps) => {
 						</>
 					)}
 
-					{link && <LinkPreview link={link} />}
+					{link && (
+						<LinkPreview
+							link={link}
+							plainTextLeadUrl
+							plainTextFallbackStyle={
+								isFromUser
+									? styles.plainLinkFromUser
+									: styles.plainLinkFromOther
+							}
+						/>
+					)}
 				</View>
 			</View>
 		</Row>
 	);
 
 	return (
-		<TouchableOpacity
-			activeOpacity={0.9}
-			onLongPress={onLongPress}
-			delayLongPress={1000}
-		>
+		<Pressable onLongPress={onLongPress} delayLongPress={1000}>
 			{renderMessage()}
-		</TouchableOpacity>
+		</Pressable>
 	);
 };
 
@@ -211,6 +269,25 @@ const styles = StyleSheet.create({
 	msg: {
 		padding: config.metrics.rg,
 		borderRadius: config.metrics.rg,
+	},
+	plainTextFromUser: {
+		color: 'white',
+	},
+	plainTextFromOther: {
+		color: 'black',
+	},
+	/** Distinct from body white on info-blue bubble; underline signals tappability */
+	plainLinkFromUser: {
+		color: '#C8E8FF',
+		textDecorationLine: 'underline',
+		textDecorationStyle: 'solid',
+		textDecorationColor: '#FFFFFF',
+	},
+	plainLinkFromOther: {
+		color: '#0066CC',
+		textDecorationLine: 'underline',
+		textDecorationStyle: 'solid',
+		textDecorationColor: '#0066CC',
 	},
 	gif: {
 		width: 150,

@@ -2,7 +2,7 @@ import { useTheme } from '@/theme';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { ComponentProps } from 'react';
-import { StyleProp, TextStyle, Text as Txt } from 'react-native';
+import { StyleProp, StyleSheet, TextStyle, Text as Txt } from 'react-native';
 
 type FontSizeMetrics = keyof typeof config.fonts.metrics;
 type FontColors = keyof typeof config.fonts.colors;
@@ -54,12 +54,14 @@ const Text = ({
 		customStyle.color = config.fonts.colors[color];
 	}
 
+	const flatStyle = StyleSheet.flatten(style) as TextStyle | undefined;
+
 	return (
 		<Txt
 			{...rest}
 			style={{
 				...customStyle,
-				...(style as TextStyle),
+				...flatStyle,
 			}}
 			allowFontScaling={false}
 		>

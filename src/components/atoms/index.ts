@@ -6,6 +6,7 @@ export { default as HTMLRenderer } from './HTMLRenderer/HTMLRenderer';
 export { default as HTMLView } from './HTMLView/HTMLView';
 export { default as ImageVariant } from './ImageVariant/ImageVariant';
 export { default as KeyboardSpacer } from './KeyboardSpacer/KeyboardSpacer';
+export { default as LinkifiedText } from './LinkifiedText/LinkifiedText';
 export { default as LinkPreview } from './LinkPreview/LinkPreview';
 export { default as Row } from './Row/Row';
 export { default as ScrollView } from './ScrollView/ScrollView';
