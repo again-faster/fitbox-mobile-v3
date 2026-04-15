@@ -348,7 +348,7 @@ const Calendar = () => {
 		const startDate = moment().startOf('isoWeek');
 		const endingDate = moment().endOf('isoWeek');
 		const dates = Array.from(
-			{ length: endingDate.diff(startDate, 'days') },
+			{ length: endingDate.diff(startDate, 'days') + 1 },
 			(_, i) =>
 				startDate
 					.clone()

@@ -62,7 +62,9 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 			fb_gym: String(teamId ?? ''),
 		});
 
-		return `${shopUrl}?${params.toString()}`;
+		const separator = shopUrl.includes('?') ? '&' : '?';
+
+		return `${shopUrl}${separator}${params.toString()}`;
 	}, [shopUrl, user, storeSignature, storeSignatureExpiry, teamId]);
 
 	const getHostname = (url: string | undefined) => {
