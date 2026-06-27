@@ -1,17 +1,18 @@
 {
-    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
-    "editor.formatOnType": false,
-    "java.compile.nullAnalysis.mode": "disabled",
-    "editor.codeActionsOnSave": {
-        "source.organizeImports": "explicit",
-        "source.fixAll.eslint": "explicit"
-    },
-    "java.configuration.updateBuildConfiguration": "disabled",
-    "CodeGPT.apiKey": "OpenAI",
-    "[typescriptreact]": {
-        "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
-    },
-    "[typescript]": {
-        "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
-    }
+	"editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
+	"editor.formatOnType": false,
+	"java.compile.nullAnalysis.mode": "disabled",
+	"editor.codeActionsOnSave": {
+		"source.organizeImports": "explicit",
+		"source.fixAll.eslint": "explicit"
+	},
+	"java.configuration.updateBuildConfiguration": "disabled",
+	"CodeGPT.apiKey": "OpenAI",
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+	},
+	"[typescript]": {
+		"editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+	},
+	"python.terminal.useEnvFile": true
 }

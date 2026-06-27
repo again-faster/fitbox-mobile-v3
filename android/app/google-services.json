@@ -1,85 +1,114 @@
 {
-    "project_info": {
-        "project_number": "914074971016",
-        "firebase_url": "https://fitbox-b96f0.firebaseio.com",
-        "project_id": "fitbox-b96f0",
-        "storage_bucket": "fitbox-b96f0.appspot.com"
-    },
-    "client": [
-        {
-            "client_info": {
-                "mobilesdk_app_id": "1:914074971016:android:78a19bb7e7a41b94fca83d",
-                "android_client_info": {
-                    "package_name": "com.wa.fitbox"
-                }
-            },
-            "oauth_client": [
-                {
-                    "client_id": "914074971016-cd74murer7ebd307quq5cqu5lr45fjc1.apps.googleusercontent.com",
-                    "client_type": 3
-                }
-            ],
-            "api_key": [
-                {
-                    "current_key": "AIzaSyD7n63l2fY4EMKqIYA92TiKegIu7xwuCiA"
-                }
-            ],
-            "services": {
-                "appinvite_service": {
-                    "other_platform_oauth_client": [
-                        {
-                            "client_id": "914074971016-cd74murer7ebd307quq5cqu5lr45fjc1.apps.googleusercontent.com",
-                            "client_type": 3
-                        },
-                        {
-                            "client_id": "914074971016-q4261ueqe3avl763n7cds8mtguu2frqa.apps.googleusercontent.com",
-                            "client_type": 2,
-                            "ios_info": {
-                                "bundle_id": "com.af.fitbox",
-                                "app_store_id": "1462002702"
-                            }
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "client_info": {
-                "mobilesdk_app_id": "1:914074971016:android:f432e668dce8f5c4fca83d",
-                "android_client_info": {
-                    "package_name": "com.wa.fitbox"
-                }
-            },
-            "oauth_client": [
-                {
-                    "client_id": "914074971016-cd74murer7ebd307quq5cqu5lr45fjc1.apps.googleusercontent.com",
-                    "client_type": 3
-                }
-            ],
-            "api_key": [
-                {
-                    "current_key": "AIzaSyD7n63l2fY4EMKqIYA92TiKegIu7xwuCiA"
-                }
-            ],
-            "services": {
-                "appinvite_service": {
-                    "other_platform_oauth_client": [
-                        {
-                            "client_id": "914074971016-cd74murer7ebd307quq5cqu5lr45fjc1.apps.googleusercontent.com",
-                            "client_type": 3
-                        },
-                        {
-                            "client_id": "914074971016-q4261ueqe3avl763n7cds8mtguu2frqa.apps.googleusercontent.com",
-                            "client_type": 2,
-                            "ios_info": {
-                                "bundle_id": "com.againfaster.fitbox",
-                                "app_store_id": "1462002702"
-                            }
-                        }
-                    ]
-                }
-            }
-        }
-    ],
-    "configuration_version": "1"
+	"project_info": {
+		"project_number": "914074971016",
+		"firebase_url": "https://fitbox-b96f0.firebaseio.com",
+		"project_id": "fitbox-b96f0",
+		"storage_bucket": "fitbox-b96f0.appspot.com"
+	},
+	"client": [
+		{
+			"client_info": {
+				"mobilesdk_app_id": "1:914074971016:android:78a19bb7e7a41b94fca83d",
+				"android_client_info": {
+					"package_name": "com.wa.fitbox"
+				}
+			},
+			"oauth_client": [
+				{
+					"client_id": "914074971016-cd74murer7ebd307quq5cqu5lr45fjc1.apps.googleusercontent.com",
+					"client_type": 3
+				}
+			],
+			"api_key": [
+				{
+					"current_key": "AIzaSyD7n63l2fY4EMKqIYA92TiKegIu7xwuCiA"
+				}
+			],
+			"services": {
+				"appinvite_service": {
+					"other_platform_oauth_client": [
+						{
+							"client_id": "914074971016-cd74murer7ebd307quq5cqu5lr45fjc1.apps.googleusercontent.com",
+							"client_type": 3
+						},
+						{
+							"client_id": "914074971016-q4261ueqe3avl763n7cds8mtguu2frqa.apps.googleusercontent.com",
+							"client_type": 2,
+							"ios_info": {
+								"bundle_id": "com.af.fitbox",
+								"app_store_id": "1462002702"
+							}
+						}
+					]
+				}
+			}
+		},
+		{
+			"client_info": {
+				"mobilesdk_app_id": "1:914074971016:android:f432e668dce8f5c4fca83d",
+				"android_client_info": {
+					"package_name": "com.wa.fitbox"
+				}
+			},
+			"oauth_client": [
+				{
+					"client_id": "914074971016-cd74murer7ebd307quq5cqu5lr45fjc1.apps.googleusercontent.com",
+					"client_type": 3
+				}
+			],
+			"api_key": [
+				{
+					"current_key": "AIzaSyD7n63l2fY4EMKqIYA92TiKegIu7xwuCiA"
+				}
+			],
+			"services": {
+				"appinvite_service": {
+					"other_platform_oauth_client": [
+						{
+							"client_id": "914074971016-cd74murer7ebd307quq5cqu5lr45fjc1.apps.googleusercontent.com",
+							"client_type": 3
+						},
+						{
+							"client_id": "914074971016-q4261ueqe3avl763n7cds8mtguu2frqa.apps.googleusercontent.com",
+							"client_type": 2,
+							"ios_info": {
+								"bundle_id": "com.againfaster.fitbox",
+								"app_store_id": "1462002702"
+							}
+						}
+					]
+				}
+			}
+		},
+		{
+			"client_info": {
+				"mobilesdk_app_id": "1:914074971016:android:78a19bb7e7a41b94fca83d",
+				"android_client_info": {
+					"package_name": "com.wa.fitbox.dev"
+				}
+			},
+			"oauth_client": [
+				{
+					"client_id": "914074971016-cd74murer7ebd307quq5cqu5lr45fjc1.apps.googleusercontent.com",
+					"client_type": 3
+				}
+			],
+			"api_key": [
+				{
+					"current_key": "AIzaSyD7n63l2fY4EMKqIYA92TiKegIu7xwuCiA"
+				}
+			],
+			"services": {
+				"appinvite_service": {
+					"other_platform_oauth_client": [
+						{
+							"client_id": "914074971016-cd74murer7ebd307quq5cqu5lr45fjc1.apps.googleusercontent.com",
+							"client_type": 3
+						}
+					]
+				}
+			}
+		}
+	],
+	"configuration_version": "1"
 }
