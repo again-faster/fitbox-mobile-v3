@@ -276,6 +276,7 @@ export type TrainingStackParamList = {
 	TrainingCoachNotes: undefined;
 	TrainingNotifications: undefined;
 	TrainingSettings: undefined;
+	TrainingAppleHealth: undefined;
 	TrainingBuildList: undefined;
 	TrainingBuildEditor: { workoutId?: string };
 	TrainingBuildSchedule: { workoutId: string; workoutName: string };

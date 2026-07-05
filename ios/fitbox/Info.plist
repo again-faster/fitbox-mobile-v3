@@ -117,5 +117,12 @@
     <string>14.0</string>
 	<key>UIUserInterfaceStyle</key>
     <string>Light</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>fitbox reads your workouts, heart rate, and sleep to personalize your training.</string>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.wa.fitbox.dev.healthsync</string>
+		<string>com.transistorsoft.fetch</string>
+	</array>
 </dict>
 </plist>

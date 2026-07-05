@@ -1,10 +1,12 @@
-﻿import { wsApi } from '@/services/workoutStudio/api';
+﻿import { syncNow } from '@/services/healthKit';
+import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import type {
 	AthleteRM,
 	WellnessResponse,
 	WorkoutAssignment,
 } from '@/services/workoutStudio/types';
+import { mmkvStorage } from '@/storage';
 import { useTheme } from '@/theme';
 import type { TrainingStackParamList } from '@/types/navigation';
 import { useNavigation } from '@react-navigation/native';
@@ -12,6 +14,8 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useQuery } from '@tanstack/react-query';
 import moment from 'moment';
 import {
+	AppState,
+	Platform,
 	RefreshControl,
 	ScrollView,
 	StyleSheet,
@@ -20,6 +24,7 @@ import {
 	View,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useRef, useEffect } from 'react';
 import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
 import SkeletonCard from '../components/SkeletonCard';
 
@@ -126,6 +131,35 @@ const Today = () => {
 	const persona = session?.user.persona;
 	const isSolo = persona === 'solo';
 	const { data: hasCustomWorkouts } = useCustomWorkouts();
+
+	const appStateRef = useRef(AppState.currentState);
+
+	useEffect(() => {
+		if (Platform.OS !== 'ios') return undefined;
+
+		const subscription = AppState.addEventListener('change', nextState => {
+			const prevState = appStateRef.current;
+			appStateRef.current = nextState;
+
+			const isForegrounding =
+				(prevState === 'background' || prevState === 'inactive') &&
+				nextState === 'active';
+
+			if (
+				isForegrounding &&
+				mmkvStorage.getString('healthkit.authorized') === 'true'
+			) {
+				syncNow().catch(e => {
+					// eslint-disable-next-line no-console
+					console.error('[HealthSync] foreground sync error', e);
+				});
+			}
+		});
+
+		return () => {
+			subscription.remove();
+		};
+	}, []);
 
 	const isLoading = assignments.isLoading || wellness.isLoading;
 	const isRefreshing = assignments.isRefetching || wellness.isRefetching;
