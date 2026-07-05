@@ -1,5 +1,9 @@
 ﻿import { wsApi, wsRpc } from '@/services/workoutStudio/api';
-import { getStoredWSSession } from '@/services/workoutStudio/auth';
+import {
+	getStoredWSSession,
+	getValidWSToken,
+} from '@/services/workoutStudio/auth';
+import { Constant } from '@/utils';
 import type {
 	WellnessDimension,
 	WellnessTrend,
@@ -78,20 +82,37 @@ const Wellness = () => {
 	});
 
 	const grantConsent = useMutation({
-		mutationFn: () =>
-			wsApi()
-				.post('member_wellness_consents', {
-					json: {
-						user_id: uid,
-						consent_text_version: CONSENT_VERSION,
-						tenant_id: tenantId,
-					},
-				})
-				.json(),
+		mutationFn: async () => {
+			const token = await getValidWSToken();
+			const url = `${Constant.WS_SUPABASE_URL}/rest/v1/member_wellness_consents`;
+			const resp = await fetch(url, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					apikey: Constant.WS_SUPABASE_ANON_KEY,
+					...(token ? { Authorization: `Bearer ${token}` } : {}),
+					Prefer: 'return=minimal',
+				},
+				body: JSON.stringify({
+					user_id: uid,
+					tenant_id: tenantId,
+					consent_text_version: CONSENT_VERSION,
+					purpose: CONSENT_TEXT,
+				}),
+			});
+			if (!resp.ok) {
+				const body = await resp.text();
+				throw new Error(`${resp.status}: ${body}`);
+			}
+		},
 		onSuccess: () => {
 			void qc.invalidateQueries({
 				queryKey: ['ws-wellness-consent', uid, tenantId],
 			});
+		},
+		onError: (err: unknown) => {
+			const detail = err instanceof Error ? err.message : String(err);
+			Alert.alert('Error', detail);
 		},
 	});
 

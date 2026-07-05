@@ -3,13 +3,12 @@ import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import type {
 	BlockMovement,
 	SectionBlock,
-	WorkoutDetail,
 	WorkoutSection,
 } from '@/services/workoutStudio/types';
+import { useWorkoutDetail } from '@/screens/Training/hooks/useWorkoutDetail';
 import { useTheme } from '@/theme';
 import type { TrainingStackParamList } from '@/types/navigation';
 import type { StackScreenProps } from '@react-navigation/stack';
-import { useQuery } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import {
 	ActivityIndicator,
@@ -53,20 +52,7 @@ const RunWorkout = ({ route, navigation }: Props) => {
 	const restInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 	const startedAt = useRef(Date.now());
 
-	const { data: workout, isLoading } = useQuery({
-		queryKey: ['ws-workout', workoutId],
-		queryFn: () =>
-			wsApi()
-				.get('workouts', {
-					searchParams: {
-						select: '*,workout_sections(*,section_blocks(*,block_movements(*,movements(*))))',
-						id: `eq.${workoutId}`,
-					},
-				})
-				.json<WorkoutDetail[]>()
-				.then(r => r[0]),
-		staleTime: 300_000,
-	});
+	const { data: workout, isLoading } = useWorkoutDetail(workoutId);
 
 	useEffect(() => {
 		if (!uid || !workoutId || workoutResultId) return;

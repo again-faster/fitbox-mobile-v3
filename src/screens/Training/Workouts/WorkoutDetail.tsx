@@ -1,38 +1,124 @@
-﻿import { wsApi } from '@/services/workoutStudio/api';
-import type { WorkoutDetail } from '@/services/workoutStudio/types';
+import { wsApi } from '@/services/workoutStudio/api';
+import { getStoredWSSession } from '@/services/workoutStudio/auth';
+import { useWorkoutDetail } from '@/screens/Training/hooks/useWorkoutDetail';
 import { useTheme } from '@/theme';
 import type { TrainingStackParamList } from '@/types/navigation';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import {
 	ActivityIndicator,
+	Alert,
 	ScrollView,
 	StyleSheet,
+	Switch,
 	Text,
+	TextInput,
 	TouchableOpacity,
 	View,
 } from 'react-native';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingWorkoutDetail'>;
 
+type WorkoutShell = {
+	id: string;
+	name: string;
+	type: string | null;
+	estimated_duration_minutes: number | null;
+};
+
 const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	const { colors } = useTheme();
 	const { workoutId, assignmentId } = route.params;
+	const session = getStoredWSSession();
+	const uid = session?.user.id;
+	const tenantId = session?.user.active_tenant_id;
 
-	const { data, isLoading } = useQuery({
-		queryKey: ['ws-workout', workoutId],
+	const [isRx, setIsRx] = useState(true);
+	const [notes, setNotes] = useState('');
+	const [timeMin, setTimeMin] = useState('');
+	const [timeSec, setTimeSec] = useState('');
+	const [rounds, setRounds] = useState('');
+	const [partialReps, setPartialReps] = useState('');
+	const [weightKg, setWeightKg] = useState('');
+	const [reps, setReps] = useState('');
+	const [submitting, setSubmitting] = useState(false);
+
+	const { data: workout, isLoading } = useQuery({
+		queryKey: ['ws-workout-shell', workoutId],
 		queryFn: () =>
 			wsApi()
 				.get('workouts', {
 					searchParams: {
-						select: '*,workout_sections(*,section_blocks(*,block_movements(*,movements(*))))',
+						select: 'id,name,type,estimated_duration_minutes',
 						id: `eq.${workoutId}`,
 					},
 				})
-				.json<WorkoutDetail[]>()
+				.json<WorkoutShell[]>()
 				.then(r => r[0]),
 		staleTime: 300_000,
 	});
+
+	const { data: detail } = useWorkoutDetail(workoutId);
+
+	const wType = workout?.type ?? 'custom';
+	const isForTime = ['for_time', 'chipper', 'emom'].includes(wType);
+	const isAmrap = wType === 'amrap';
+	const isStrength = wType === 'strength';
+	const isCustom = wType === 'custom';
+
+	const submit = async () => {
+		if (!uid || !tenantId || !workout) return;
+		setSubmitting(true);
+		try {
+			const scoreTimeSeconds =
+				(isForTime || isCustom) && (timeMin || timeSec)
+					? parseInt(timeMin || '0', 10) * 60 +
+						parseInt(timeSec || '0', 10)
+					: null;
+
+			await wsApi().post('workout_results', {
+				json: {
+					workout_id: workoutId,
+					assignment_id: assignmentId ?? null,
+					athlete_id: uid,
+					tenant_id: tenantId,
+					completed_at: new Date().toISOString(),
+					is_rx: isRx,
+					notes: notes.trim() || null,
+					score_time_seconds: scoreTimeSeconds,
+					score_rounds:
+						(isAmrap || isCustom) && rounds
+							? parseInt(rounds, 10)
+							: null,
+					score_partial_reps:
+						(isAmrap || isCustom) && partialReps
+							? parseInt(partialReps, 10)
+							: null,
+					score_weight_kg:
+						(isStrength || isCustom) && weightKg
+							? parseFloat(weightKg)
+							: null,
+					score_reps:
+						(isStrength || isCustom) && reps
+							? parseInt(reps, 10)
+							: null,
+				},
+				headers: { Prefer: 'return=minimal' },
+			});
+
+			Alert.alert('Result logged.', '', [
+				{
+					text: 'OK',
+					onPress: () => navigation.navigate('TrainingToday'),
+				},
+			]);
+		} catch {
+			Alert.alert('Error', 'Could not save result. Please try again.');
+		} finally {
+			setSubmitting(false);
+		}
+	};
 
 	if (isLoading) {
 		return (
@@ -42,7 +128,7 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 		);
 	}
 
-	if (!data) {
+	if (!workout) {
 		return (
 			<View style={[styles.center, { backgroundColor: '#F9FAFB' }]}>
 				<Text style={{ color: '#6B7280' }}>Workout not found</Text>
@@ -52,118 +138,271 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 
 	return (
 		<View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
-			<ScrollView contentContainerStyle={styles.container}>
+			<ScrollView
+				contentContainerStyle={styles.container}
+				keyboardShouldPersistTaps="handled"
+			>
 				<Text style={[styles.title, { color: '#111827' }]}>
-					{data.name}
+					{workout.name}
 				</Text>
-				{data.estimated_duration_minutes && (
+				{workout.estimated_duration_minutes && (
 					<Text style={[styles.meta, { color: '#6B7280' }]}>
-						~{data.estimated_duration_minutes} min
+						~{workout.estimated_duration_minutes} min
 					</Text>
 				)}
 
-				{data.workout_sections
-					?.sort((a, b) => a.position - b.position)
-					.map(section => (
-						<View key={section.id} style={styles.section}>
-							<Text
-								style={[
-									styles.sectionName,
-									{ color: '#3B82F6' },
-								]}
-							>
-								{section.name}
-							</Text>
-							{section.section_blocks
-								?.sort((a, b) => a.position - b.position)
-								.map(block => (
-									<View
-										key={block.id}
+				{detail?.workout_sections &&
+					detail.workout_sections.length > 0 && (
+						<View style={styles.sectionsCard}>
+							{detail.workout_sections.map(s => (
+								<View key={s.id} style={styles.sectionRow}>
+									<Text
 										style={[
-											styles.block,
-											{ backgroundColor: '#FFFFFF' },
+											styles.sectionName,
+											{ color: '#374151' },
 										]}
 									>
-										{block.label && (
-											<Text
-												style={[
-													styles.blockName,
-													{ color: '#6B7280' },
-												]}
-											>
-												{block.label}
-											</Text>
-										)}
-										{block.block_movements
-											?.sort(
-												(a, b) =>
-													a.position - b.position,
-											)
-											.map(bm => (
-												<View
-													key={bm.id}
-													style={styles.movement}
+										{s.name}
+									</Text>
+									{s.section_blocks?.map(b => (
+										<View
+											key={b.id}
+											style={styles.blockRow}
+										>
+											{b.label ? (
+												<Text
+													style={[
+														styles.blockLabel,
+														{ color: '#6B7280' },
+													]}
 												>
+													{b.label}
+												</Text>
+											) : null}
+											{b.block_movements?.map(bm => {
+												const parts: string[] = [];
+												if (bm.sets)
+													parts.push(
+														`${bm.sets} sets`,
+													);
+												if (bm.reps_scheme)
+													parts.push(bm.reps_scheme);
+												if (bm.weight_kg)
+													parts.push(
+														`@ ${bm.weight_kg}kg`,
+													);
+												return (
 													<Text
+														key={bm.id}
 														style={[
-															styles.movementName,
+															styles.movementText,
 															{
 																color: '#111827',
 															},
 														]}
 													>
 														{bm.movements.name}
+														{parts.length > 0
+															? `  ${parts.join(' · ')}`
+															: ''}
 													</Text>
-													<Text
-														style={[
-															styles.movementPrescription,
-															{
-																color: '#6B7280',
-															},
-														]}
-													>
-														{[
-															bm.sets &&
-																`${bm.sets} sets`,
-															bm.reps_scheme,
-															bm.weight_kg &&
-																`@ ${bm.weight_kg}kg`,
-														]
-															.filter(Boolean)
-															.join(' · ')}
-													</Text>
-													{bm.notes && (
-														<Text
-															style={[
-																styles.scalingNote,
-																{
-																	color: '#6B7280',
-																},
-															]}
-														>
-															{bm.notes}
-														</Text>
-													)}
-												</View>
-											))}
-									</View>
-								))}
+												);
+											})}
+										</View>
+									))}
+								</View>
+							))}
 						</View>
-					))}
+					)}
+
+				<View style={[styles.formCard, { backgroundColor: '#FFFFFF' }]}>
+					<Text style={[styles.formTitle, { color: '#111827' }]}>
+						Log result
+					</Text>
+
+					{(isForTime || isCustom) && (
+						<View style={styles.fieldGroup}>
+							<Text style={[styles.label, { color: '#6B7280' }]}>
+								Time
+							</Text>
+							<View style={styles.timeRow}>
+								<TextInput
+									style={[
+										styles.timeInput,
+										{
+											borderColor: '#D1D5DB',
+											color: '#111827',
+										},
+									]}
+									keyboardType="number-pad"
+									placeholder="mm"
+									placeholderTextColor="#9CA3AF"
+									value={timeMin}
+									onChangeText={setTimeMin}
+									maxLength={2}
+								/>
+								<Text
+									style={[
+										styles.timeSep,
+										{ color: '#6B7280' },
+									]}
+								>
+									:
+								</Text>
+								<TextInput
+									style={[
+										styles.timeInput,
+										{
+											borderColor: '#D1D5DB',
+											color: '#111827',
+										},
+									]}
+									keyboardType="number-pad"
+									placeholder="ss"
+									placeholderTextColor="#9CA3AF"
+									value={timeSec}
+									onChangeText={setTimeSec}
+									maxLength={2}
+								/>
+							</View>
+						</View>
+					)}
+
+					{(isAmrap || isCustom) && (
+						<View style={styles.fieldGroup}>
+							<Text style={[styles.label, { color: '#6B7280' }]}>
+								Rounds
+							</Text>
+							<TextInput
+								style={[
+									styles.input,
+									{
+										borderColor: '#D1D5DB',
+										color: '#111827',
+									},
+								]}
+								keyboardType="number-pad"
+								placeholder="0"
+								placeholderTextColor="#9CA3AF"
+								value={rounds}
+								onChangeText={setRounds}
+							/>
+							<Text
+								style={[
+									styles.label,
+									{ color: '#6B7280', marginTop: 12 },
+								]}
+							>
+								Partial reps
+							</Text>
+							<TextInput
+								style={[
+									styles.input,
+									{
+										borderColor: '#D1D5DB',
+										color: '#111827',
+									},
+								]}
+								keyboardType="number-pad"
+								placeholder="0"
+								placeholderTextColor="#9CA3AF"
+								value={partialReps}
+								onChangeText={setPartialReps}
+							/>
+						</View>
+					)}
+
+					{(isStrength || isCustom) && (
+						<View style={styles.fieldGroup}>
+							<Text style={[styles.label, { color: '#6B7280' }]}>
+								Weight (kg)
+							</Text>
+							<TextInput
+								style={[
+									styles.input,
+									{
+										borderColor: '#D1D5DB',
+										color: '#111827',
+									},
+								]}
+								keyboardType="decimal-pad"
+								placeholder="0"
+								placeholderTextColor="#9CA3AF"
+								value={weightKg}
+								onChangeText={setWeightKg}
+							/>
+							<Text
+								style={[
+									styles.label,
+									{ color: '#6B7280', marginTop: 12 },
+								]}
+							>
+								Reps
+							</Text>
+							<TextInput
+								style={[
+									styles.input,
+									{
+										borderColor: '#D1D5DB',
+										color: '#111827',
+									},
+								]}
+								keyboardType="number-pad"
+								placeholder="0"
+								placeholderTextColor="#9CA3AF"
+								value={reps}
+								onChangeText={setReps}
+							/>
+						</View>
+					)}
+
+					<View style={styles.rxRow}>
+						<Text style={[styles.label, { color: '#6B7280' }]}>
+							Rx
+						</Text>
+						<Switch
+							value={isRx}
+							onValueChange={setIsRx}
+							trackColor={{ false: '#D1D5DB', true: '#3B82F6' }}
+							thumbColor="#FFFFFF"
+						/>
+					</View>
+
+					<View style={styles.fieldGroup}>
+						<Text style={[styles.label, { color: '#6B7280' }]}>
+							Notes
+						</Text>
+						<TextInput
+							style={[
+								styles.notesInput,
+								{ borderColor: '#D1D5DB', color: '#111827' },
+							]}
+							placeholder="How did it feel?"
+							placeholderTextColor="#9CA3AF"
+							multiline
+							numberOfLines={3}
+							value={notes}
+							onChangeText={setNotes}
+						/>
+					</View>
+				</View>
 			</ScrollView>
 
 			<View style={[styles.footer, { backgroundColor: '#F9FAFB' }]}>
 				<TouchableOpacity
-					style={[styles.startBtn, { backgroundColor: '#3B82F6' }]}
-					onPress={() =>
-						navigation.navigate('TrainingRunWorkout', {
-							workoutId,
-							assignmentId,
-							workoutName: data.name,
-						})
-					}
+					style={[
+						styles.submitBtn,
+						{ backgroundColor: '#3B82F6' },
+						submitting && { opacity: 0.6 },
+					]}
+					onPress={() => void submit()}
+					disabled={submitting}
 				>
-					<Text style={styles.startBtnText}>Start workout</Text>
+					{submitting ? (
+						<ActivityIndicator color="#fff" />
+					) : (
+						<Text style={styles.submitBtnText}>Log result</Text>
+					)}
 				</TouchableOpacity>
 			</View>
 		</View>
@@ -173,33 +412,68 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 const styles = StyleSheet.create({
 	center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 	container: { padding: 16, paddingBottom: 100 },
-	title: { fontSize: 24, fontWeight: '700' },
-	meta: { fontSize: 14, marginTop: 4, marginBottom: 16 },
-	section: { marginBottom: 20 },
-	sectionName: { fontSize: 15, fontWeight: '700', marginBottom: 8 },
-	block: { borderRadius: 12, padding: 14, marginBottom: 10 },
-	blockName: {
-		fontSize: 12,
-		fontWeight: '600',
-		textTransform: 'uppercase',
-		marginBottom: 8,
+	title: { fontSize: 22, fontWeight: '700' },
+	meta: { fontSize: 13, marginTop: 4, marginBottom: 16 },
+	sectionsCard: {
+		backgroundColor: '#FFFFFF',
+		borderRadius: 12,
+		padding: 14,
+		marginBottom: 16,
 	},
-	movement: { marginBottom: 10 },
-	movementName: { fontSize: 15, fontWeight: '600' },
-	movementPrescription: { fontSize: 13, marginTop: 2 },
-	scalingNote: { fontSize: 12, fontStyle: 'italic', marginTop: 2 },
-	footer: {
+	sectionRow: { marginBottom: 12 },
+	sectionName: { fontSize: 14, fontWeight: '700', marginBottom: 4 },
+	sectionMeta: { fontSize: 12, marginTop: 2 },
+	blockRow: { marginTop: 4, paddingLeft: 8 },
+	blockLabel: { fontSize: 12, fontWeight: '600', marginBottom: 2 },
+	movementText: { fontSize: 13, paddingVertical: 1 },
+	formCard: {
+		borderRadius: 12,
 		padding: 16,
-		paddingBottom: 32,
-		borderTopWidth: 1,
-		borderTopColor: '#333',
 	},
-	startBtn: {
+	formTitle: { fontSize: 16, fontWeight: '700', marginBottom: 16 },
+	fieldGroup: { marginBottom: 8 },
+	label: { fontSize: 13, fontWeight: '500', marginBottom: 6 },
+	input: {
+		borderWidth: 1,
+		borderRadius: 8,
+		paddingHorizontal: 12,
+		paddingVertical: 10,
+		fontSize: 16,
+	},
+	timeRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+	timeInput: {
+		borderWidth: 1,
+		borderRadius: 8,
+		paddingHorizontal: 12,
+		paddingVertical: 10,
+		fontSize: 20,
+		fontWeight: '600',
+		width: 72,
+		textAlign: 'center',
+	},
+	timeSep: { fontSize: 24, fontWeight: '700' },
+	rxRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		marginVertical: 16,
+	},
+	notesInput: {
+		borderWidth: 1,
+		borderRadius: 8,
+		paddingHorizontal: 12,
+		paddingVertical: 10,
+		fontSize: 15,
+		minHeight: 80,
+		textAlignVertical: 'top',
+	},
+	footer: { padding: 16, paddingBottom: 32 },
+	submitBtn: {
 		padding: 16,
 		borderRadius: 12,
 		alignItems: 'center',
 	},
-	startBtnText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+	submitBtnText: { color: '#fff', fontSize: 17, fontWeight: '700' },
 });
 
 export default WorkoutDetailScreen;

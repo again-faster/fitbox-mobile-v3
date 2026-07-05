@@ -198,18 +198,7 @@ const Today = () => {
 						</Text>
 					)}
 				</View>
-				<TouchableOpacity
-					style={[styles.startBtn, { backgroundColor: '#3B82F6' }]}
-					onPress={() =>
-						nav.navigate('TrainingRunWorkout', {
-							workoutId: a.workout_id,
-							assignmentId: a.id,
-							workoutName: a.workouts.name,
-						})
-					}
-				>
-					<Text style={styles.startBtnText}>Start</Text>
-				</TouchableOpacity>
+				<Ionicons name="chevron-right" size={20} color="#6B7280" />
 			</TouchableOpacity>
 		));
 	};
@@ -434,8 +423,6 @@ const styles = StyleSheet.create({
 	workoutCardLeft: { flex: 1 },
 	workoutName: { fontSize: 16, fontWeight: '600' },
 	workoutMeta: { fontSize: 13, marginTop: 2 },
-	startBtn: { paddingHorizontal: 20, paddingVertical: 8, borderRadius: 8 },
-	startBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
 	emptyCard: { borderRadius: 12, padding: 20, alignItems: 'center', gap: 8 },
 	emptyText: { fontSize: 14 },
 	link: { fontSize: 14, fontWeight: '600' },
