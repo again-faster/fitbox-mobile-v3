@@ -19,6 +19,7 @@ import TrainingRoot from '@/screens/Training/TrainingRoot';
 import Wellness from '@/screens/Training/Wellness/Wellness';
 import WorkoutDetail from '@/screens/Training/Workouts/WorkoutDetail';
 import WorkoutList from '@/screens/Training/Workouts/WorkoutList';
+import AppleHealthScreen from '@/screens/Training/AppleHealth/AppleHealthScreen';
 import RunWorkout from '@/screens/Training/Workouts/RunWorkout';
 
 const Stack = createStackNavigator<TrainingStackParamList>();
@@ -112,6 +113,11 @@ const TrainingStackNavigator = () => {
 				name="TrainingSettings"
 				component={TrainingSettings}
 				options={{ title: 'Training Settings' }}
+			/>
+			<Stack.Screen
+				name="TrainingAppleHealth"
+				component={AppleHealthScreen}
+				options={{ title: 'Apple Health' }}
 			/>
 			<Stack.Screen
 				name="TrainingBuildList"

@@ -2,7 +2,14 @@
 import { useTheme } from '@/theme';
 import type { TrainingStackParamList } from '@/types/navigation';
 import type { StackScreenProps } from '@react-navigation/stack';
-import { StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import {
+	Platform,
+	StyleSheet,
+	Switch,
+	Text,
+	TouchableOpacity,
+	View,
+} from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useState } from 'react';
 
@@ -89,6 +96,19 @@ const TrainingSettings = ({ navigation }: Props) => {
 				</Text>
 				<Ionicons name="chevron-right" size={20} color="#6B7280" />
 			</TouchableOpacity>
+
+			{/* Apple Health — iOS only */}
+			{Platform.OS === 'ios' ? (
+				<TouchableOpacity
+					style={[styles.row, { backgroundColor: '#FFFFFF' }]}
+					onPress={() => navigation.navigate('TrainingAppleHealth')}
+				>
+					<Text style={[styles.label, { color: '#111827' }]}>
+						Apple Health
+					</Text>
+					<Ionicons name="chevron-right" size={20} color="#6B7280" />
+				</TouchableOpacity>
+			) : null}
 
 			{/* Disconnect */}
 			<TouchableOpacity
