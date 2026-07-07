@@ -171,3 +171,18 @@ export type MovementDetail = {
 	description: string | null;
 	video_url: string | null;
 };
+
+export type InjurySide = 'left' | 'right' | 'na';
+export type InjuryStatus = 'active' | 'recovered' | 'stopped';
+
+export interface Injury {
+	id: string;
+	body_area: string;
+	side: InjurySide;
+	started_on: string;
+	initial_severity: number;
+	status: InjuryStatus;
+	share_with_coaches: boolean;
+	resolved_at: string | null;
+	note?: string;
+}
