@@ -8,6 +8,8 @@ import moment from 'moment';
 import { useRef, useState } from 'react';
 import {
 	Alert,
+	FlatList,
+	Modal,
 	ScrollView,
 	StyleSheet,
 	Switch,
@@ -18,6 +20,30 @@ import {
 } from 'react-native';
 
 type Props = TrainingStackScreenProps<'TrainingInjuryLog'>;
+
+const BODY_AREAS = [
+	'Neck',
+	'Shoulder',
+	'Upper back',
+	'Lower back',
+	'Elbow',
+	'Wrist',
+	'Chest',
+	'Hip',
+	'Knee',
+	'Ankle',
+	'Foot',
+	'Hamstring',
+	'Quad',
+	'Calf',
+	'Other',
+] as const;
+
+const BodyAreaSeparator = () => (
+	<View
+		style={{ height: 1, backgroundColor: '#F3F4F6', marginHorizontal: 20 }}
+	/>
+);
 
 const SIDES: { key: InjurySide; label: string }[] = [
 	{ key: 'left', label: 'Left' },
@@ -31,7 +57,8 @@ const InjuryLog = ({ navigation }: Props) => {
 	const tenantId = session?.user.active_tenant_id;
 	const qc = useQueryClient();
 
-	const [bodyArea, setBodyArea] = useState('');
+	const [bodyArea, setBodyArea] = useState<string>('');
+	const [bodyAreaSheetOpen, setBodyAreaSheetOpen] = useState(false);
 	const [side, setSide] = useState<InjurySide>('na');
 	const [severity, setSeverity] = useState<number | null>(null);
 	const [startedOn] = useState(moment().format('YYYY-MM-DD'));
@@ -98,14 +125,21 @@ const InjuryLog = ({ navigation }: Props) => {
 				keyboardShouldPersistTaps="handled"
 			>
 				<Text style={styles.label}>Body area *</Text>
-				<TextInput
-					style={styles.input}
-					value={bodyArea}
-					onChangeText={setBodyArea}
-					placeholder="e.g. Left knee, Lower back"
-					placeholderTextColor="#9CA3AF"
-					autoFocus
-				/>
+				<TouchableOpacity
+					style={styles.pickerTrigger}
+					onPress={() => setBodyAreaSheetOpen(true)}
+				>
+					<Text
+						style={
+							bodyArea
+								? styles.pickerValue
+								: styles.pickerPlaceholder
+						}
+					>
+						{bodyArea || 'Select body area'}
+					</Text>
+					<Text style={styles.pickerChevron}>›</Text>
+				</TouchableOpacity>
 
 				<Text style={styles.label}>Side</Text>
 				<View style={styles.segmentRow}>
@@ -201,6 +235,46 @@ const InjuryLog = ({ navigation }: Props) => {
 					<Text style={styles.toastText}>Injury logged.</Text>
 				</View>
 			) : null}
+
+			<Modal
+				visible={bodyAreaSheetOpen}
+				transparent
+				animationType="slide"
+				onRequestClose={() => setBodyAreaSheetOpen(false)}
+			>
+				<View style={styles.sheetContainer}>
+					<TouchableOpacity
+						style={styles.sheetBackdrop}
+						activeOpacity={1}
+						onPress={() => setBodyAreaSheetOpen(false)}
+					/>
+					<View style={styles.sheet}>
+						<View style={styles.sheetHandle} />
+						<Text style={styles.sheetTitle}>Body area</Text>
+						<FlatList
+							data={BODY_AREAS}
+							keyExtractor={item => item}
+							renderItem={({ item }) => (
+								<TouchableOpacity
+									style={styles.sheetRow}
+									onPress={() => {
+										setBodyArea(item);
+										setBodyAreaSheetOpen(false);
+									}}
+								>
+									<Text style={styles.sheetRowText}>
+										{item}
+									</Text>
+									{bodyArea === item ? (
+										<Text style={styles.sheetCheck}>✓</Text>
+									) : null}
+								</TouchableOpacity>
+							)}
+							ItemSeparatorComponent={BodyAreaSeparator}
+						/>
+					</View>
+				</View>
+			</Modal>
 		</View>
 	);
 };
@@ -305,6 +379,64 @@ const styles = StyleSheet.create({
 		elevation: 4,
 	},
 	toastText: { fontSize: 14, fontWeight: '600', color: '#111827' },
+	pickerTrigger: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		backgroundColor: '#FFFFFF',
+		borderRadius: 10,
+		padding: 12,
+		borderWidth: 1,
+		borderColor: '#E5E7EB',
+	},
+	pickerValue: { fontSize: 15, color: '#111827' },
+	pickerPlaceholder: { fontSize: 15, color: '#9CA3AF' },
+	pickerChevron: { fontSize: 20, color: '#9CA3AF', marginLeft: 8 },
+	sheetContainer: {
+		flex: 1,
+		justifyContent: 'flex-end',
+	},
+	sheetBackdrop: {
+		...StyleSheet.absoluteFillObject,
+		backgroundColor: 'rgba(0,0,0,0.35)',
+	},
+	sheet: {
+		backgroundColor: '#FFFFFF',
+		borderTopLeftRadius: 20,
+		borderTopRightRadius: 20,
+		paddingBottom: 32,
+		maxHeight: '70%',
+	},
+	sheetHandle: {
+		width: 40,
+		height: 4,
+		borderRadius: 2,
+		backgroundColor: '#D1D5DB',
+		alignSelf: 'center',
+		marginTop: 12,
+		marginBottom: 8,
+	},
+	sheetTitle: {
+		fontSize: 16,
+		fontWeight: '700',
+		color: '#111827',
+		paddingHorizontal: 20,
+		paddingVertical: 12,
+	},
+	sheetRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		paddingVertical: 14,
+		paddingHorizontal: 20,
+	},
+	sheetRowText: { fontSize: 15, color: '#111827' },
+	sheetCheck: { fontSize: 16, color: '#3B82F6', fontWeight: '700' },
+	sheetSeparator: {
+		height: 1,
+		backgroundColor: '#F3F4F6',
+		marginHorizontal: 20,
+	},
 });
 
 export default InjuryLog;
