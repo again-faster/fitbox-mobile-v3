@@ -73,6 +73,7 @@ export type AthleteRM = {
 	achieved_on: string;
 	source: string;
 	notes: string | null;
+	workout_id?: string | null;
 	movements: {
 		name: string;
 	};

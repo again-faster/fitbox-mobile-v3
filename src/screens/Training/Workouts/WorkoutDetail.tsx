@@ -2,6 +2,12 @@ import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import { useWorkoutDetail } from '@/screens/Training/hooks/useWorkoutDetail';
 import { useWorkoutLeaderboard } from '@/screens/Training/hooks/useWorkoutLeaderboard';
+import {
+	computeScoreValue,
+	isBetterScore,
+	useWorkoutPersonalBest,
+} from '@/screens/Training/hooks/useWorkoutPersonalBest';
+import { PRBadge } from '@/screens/Training/components/PRBadge';
 import type {
 	ProgramContext,
 	ScalingLevel,
@@ -84,6 +90,7 @@ type WorkoutShell = {
 	name: string;
 	type: string | null;
 	estimated_duration_minutes: number | null;
+	is_benchmark: boolean | null;
 };
 
 const WorkoutDetailScreen = ({ route, navigation }: Props) => {
@@ -107,6 +114,7 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	const [submitting, setSubmitting] = useState(false);
 	const [tab, setTab] = useState<'overview' | 'leaderboard'>('overview');
 	const [leaderboardOpened, setLeaderboardOpened] = useState(false);
+	const [isPR, setIsPR] = useState(false);
 
 	const { data: workout, isLoading } = useQuery({
 		queryKey: ['ws-workout-shell', workoutId],
@@ -114,7 +122,7 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 			wsApi()
 				.get('workouts', {
 					searchParams: {
-						select: 'id,name,type,estimated_duration_minutes',
+						select: 'id,name,type,estimated_duration_minutes,is_benchmark',
 						id: `eq.${workoutId}`,
 					},
 				})
@@ -175,6 +183,12 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	const isStrength = wType === 'strength';
 	const isCustom = wType === 'custom';
 
+	const { data: personalBest } = useWorkoutPersonalBest(
+		workoutId,
+		uid,
+		wType,
+	);
+
 	const { data: leaderboard, isLoading: leaderboardLoading } =
 		useWorkoutLeaderboard(workoutId, wType, leaderboardOpened);
 
@@ -188,11 +202,22 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	const submit = async () => {
 		if (!uid || !tenantId || !workout) return;
 		setSubmitting(true);
+		const bestBeforeSubmit = personalBest ?? null;
 		try {
 			const scoreTimeSeconds =
 				(isForTime || isCustom) && (timeMin || timeSec)
 					? parseInt(timeMin || '0', 10) * 60 +
 						parseInt(timeSec || '0', 10)
+					: null;
+			const scoreRounds =
+				(isAmrap || isCustom) && rounds ? parseInt(rounds, 10) : null;
+			const scorePartialReps =
+				(isAmrap || isCustom) && partialReps
+					? parseInt(partialReps, 10)
+					: null;
+			const scoreWeightKg =
+				(isStrength || isCustom) && weightKg
+					? parseFloat(weightKg)
 					: null;
 
 			await wsApi().post('workout_results', {
@@ -206,18 +231,9 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 					scaling_level: scalingLevel,
 					notes: notes.trim() || null,
 					score_time_seconds: scoreTimeSeconds,
-					score_rounds:
-						(isAmrap || isCustom) && rounds
-							? parseInt(rounds, 10)
-							: null,
-					score_partial_reps:
-						(isAmrap || isCustom) && partialReps
-							? parseInt(partialReps, 10)
-							: null,
-					score_weight_kg:
-						(isStrength || isCustom) && weightKg
-							? parseFloat(weightKg)
-							: null,
+					score_rounds: scoreRounds,
+					score_partial_reps: scorePartialReps,
+					score_weight_kg: scoreWeightKg,
 					score_reps:
 						(isStrength || isCustom) && reps
 							? parseInt(reps, 10)
@@ -226,12 +242,28 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 				headers: { Prefer: 'return=minimal' },
 			});
 
-			Alert.alert('Result logged.', '', [
+			const newScoreValue = computeScoreValue(
 				{
-					text: 'OK',
-					onPress: () => navigation.navigate('TrainingToday'),
+					score_time_seconds: scoreTimeSeconds,
+					score_rounds: scoreRounds,
+					score_partial_reps: scorePartialReps,
+					score_weight_kg: scoreWeightKg,
+					completed_at: new Date().toISOString(),
 				},
-			]);
+				wType,
+			);
+
+			if (isBetterScore(newScoreValue, bestBeforeSubmit, wType)) {
+				setIsPR(true);
+				setTimeout(() => setIsPR(false), 3000);
+			} else {
+				Alert.alert('Result logged.', '', [
+					{
+						text: 'OK',
+						onPress: () => navigation.navigate('TrainingToday'),
+					},
+				]);
+			}
 		} catch {
 			Alert.alert('Error', 'Could not save result. Please try again.');
 		} finally {
@@ -683,6 +715,7 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 						<Text style={styles.submitBtnText}>Log result</Text>
 					)}
 				</TouchableOpacity>
+				<PRBadge visible={isPR} />
 			</View>
 		</View>
 	);
