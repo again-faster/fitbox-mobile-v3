@@ -211,15 +211,23 @@ const Wellness = ({ navigation }: Props) => {
 
 			{dimensions.data?.map(d => (
 				<View key={d.id} style={styles.sliderRow}>
-					<Text style={[styles.dimensionLabel, { color: '#111827' }]}>
-						{d.label}
-					</Text>
-					<View style={styles.sliderWrap}>
+					<View style={styles.sliderHeader}>
+						<Text
+							style={[
+								styles.dimensionLabel,
+								{ color: '#111827' },
+							]}
+						>
+							{d.label}
+						</Text>
 						<Text
 							style={[styles.sliderValue, { color: '#3B82F6' }]}
 						>
 							{scores[d.id] ?? 3}
 						</Text>
+					</View>
+					<View style={styles.sliderWrap}>
+						<Text style={styles.sliderEndLabel}>1</Text>
 						<Slider
 							values={[scores[d.id] ?? 3]}
 							min={1}
@@ -249,7 +257,13 @@ const Wellness = ({ navigation }: Props) => {
 								slipDisplacement: 40,
 							}}
 						/>
+						<Text style={styles.sliderEndLabel}>5</Text>
 					</View>
+					<Text style={styles.sliderDirection}>
+						{d.higher_is_better
+							? '← worse  ·  better →'
+							: '← better  ·  worse →'}
+					</Text>
 				</View>
 			))}
 
@@ -335,10 +349,28 @@ const styles = StyleSheet.create({
 	consentText: { fontSize: 15, lineHeight: 22 },
 	privacy: { fontSize: 13, fontStyle: 'italic' },
 	sectionHeader: { fontSize: 17, fontWeight: '600', marginTop: 8 },
-	sliderRow: { gap: 6 },
-	sliderWrap: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+	sliderRow: { gap: 4 },
+	sliderHeader: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+	},
+	sliderWrap: { flexDirection: 'row', alignItems: 'center', gap: 8 },
 	dimensionLabel: { fontSize: 15, fontWeight: '500' },
-	sliderValue: { fontSize: 18, fontWeight: '700', width: 24 },
+	sliderValue: { fontSize: 18, fontWeight: '700' },
+	sliderEndLabel: {
+		fontSize: 12,
+		fontWeight: '600',
+		color: '#9CA3AF',
+		width: 14,
+		textAlign: 'center',
+	},
+	sliderDirection: {
+		fontSize: 11,
+		color: '#9CA3AF',
+		textAlign: 'center',
+		letterSpacing: 0.2,
+	},
 	trendCard: { borderRadius: 12, padding: 14 },
 	trendDelta: { fontSize: 14, marginTop: 4 },
 	injuryCard: {
