@@ -91,7 +91,6 @@ type WorkoutShell = {
 	name: string;
 	type: string | null;
 	estimated_duration_minutes: number | null;
-	is_benchmark: boolean | null;
 };
 
 const WorkoutDetailScreen = ({ route }: Props) => {
@@ -124,18 +123,32 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 	const [secError, setSecError] = useState<string | null>(null);
 	const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	const { data: workout, isLoading } = useQuery({
+	const {
+		data: workout,
+		isLoading,
+		isError: isWorkoutError,
+	} = useQuery({
 		queryKey: ['ws-workout-shell', workoutId],
 		queryFn: () =>
 			wsApi()
 				.get('workouts', {
 					searchParams: {
-						select: 'id,name,type,estimated_duration_minutes,is_benchmark',
+						select: 'id,name,type,estimated_duration_minutes',
 						id: `eq.${workoutId}`,
 					},
 				})
 				.json<WorkoutShell[]>()
-				.then(r => r[0]),
+				.then(r => {
+					if (!r[0]) {
+						// eslint-disable-next-line no-console
+						console.warn('[WorkoutDetail] empty', {
+							workoutId,
+							uid,
+							tenantId,
+						});
+					}
+					return r[0];
+				}),
 		staleTime: 300_000,
 	});
 
@@ -311,10 +324,14 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 		);
 	}
 
-	if (!workout) {
+	if (isWorkoutError || !workout) {
 		return (
 			<View style={[styles.center, { backgroundColor: '#F9FAFB' }]}>
-				<Text style={{ color: '#6B7280' }}>Workout not found</Text>
+				<Text style={{ color: '#6B7280' }}>
+					{isWorkoutError
+						? 'Could not load workout — check connection'
+						: 'Workout not found'}
+				</Text>
 			</View>
 		);
 	}
