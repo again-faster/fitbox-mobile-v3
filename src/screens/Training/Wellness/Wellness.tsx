@@ -233,11 +233,20 @@ const Wellness = ({ navigation }: Props) => {
 								}))
 							}
 							selectedStyle={{ backgroundColor: '#3B82F6' }}
-							unselectedStyle={{ backgroundColor: '#6B7280' }}
+							unselectedStyle={{ backgroundColor: '#D1D5DB' }}
 							markerStyle={{
 								backgroundColor: '#3B82F6',
 								borderColor: '#fff',
 								borderWidth: 2,
+								width: 32,
+								height: 32,
+								borderRadius: 16,
+							}}
+							touchDimensions={{
+								height: 56,
+								width: 56,
+								borderRadius: 28,
+								slipDisplacement: 40,
 							}}
 						/>
 					</View>
