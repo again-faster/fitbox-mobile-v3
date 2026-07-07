@@ -31,6 +31,15 @@ export type WorkoutSection = {
 
 export type ScalingLevel = 'rx' | 'scaled' | 'foundations';
 
+export type LeaderboardEntry = {
+	athleteId: string;
+	displayName: string;
+	scoreDisplay: string;
+	scoreValue: number | null;
+	scalingLevel: ScalingLevel | null;
+	loggedAt: string;
+};
+
 export type SectionBlock = {
 	id: string;
 	label: string | null;
