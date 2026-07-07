@@ -164,3 +164,10 @@ export type WellnessTrend = {
 	baseline_avg: number | null;
 	higher_is_better: boolean;
 };
+
+export type MovementDetail = {
+	id: string;
+	name: string;
+	description: string | null;
+	video_url: string | null;
+};
