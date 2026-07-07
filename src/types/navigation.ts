@@ -262,7 +262,15 @@ export type TrainingStackParamList = {
 	};
 	TrainingToday: undefined;
 	TrainingWorkouts: undefined;
-	TrainingWorkoutDetail: { workoutId: string; assignmentId?: string };
+	TrainingWorkoutDetail: {
+		workoutId: string;
+		assignmentId?: string;
+		programContext?: {
+			programName: string;
+			dayNumber: number;
+			totalDays: number | null;
+		};
+	};
 	TrainingRunWorkout: {
 		workoutId: string;
 		assignmentId?: string;

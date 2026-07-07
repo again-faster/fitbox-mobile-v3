@@ -38,7 +38,7 @@ type WorkoutShell = {
 
 const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	const { colors } = useTheme();
-	const { workoutId, assignmentId } = route.params;
+	const { workoutId, assignmentId, programContext } = route.params;
 	const session = getStoredWSSession();
 	const uid = session?.user.id;
 	const tenantId = session?.user.active_tenant_id;
@@ -185,6 +185,40 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 						~{workout.estimated_duration_minutes} min
 					</Text>
 				)}
+				{programContext ? (
+					<View style={styles.programStrip}>
+						<Text
+							style={[
+								styles.programStripText,
+								{ color: '#6B7280' },
+							]}
+						>
+							{programContext.programName} &middot; Day{' '}
+							{programContext.dayNumber}
+							{programContext.totalDays
+								? ` of ${programContext.totalDays}`
+								: ''}
+						</Text>
+						{programContext.totalDays ? (
+							<View
+								style={[
+									styles.progressTrack,
+									{ backgroundColor: '#E5E7EB' },
+								]}
+							>
+								<View
+									style={[
+										styles.progressFill,
+										{
+											backgroundColor: '#3B82F6',
+											width: `${Math.min((programContext.dayNumber / programContext.totalDays) * 100, 100)}%`,
+										},
+									]}
+								/>
+							</View>
+						) : null}
+					</View>
+				) : null}
 
 				{detail?.workout_sections &&
 					detail.workout_sections.length > 0 && (
@@ -491,7 +525,11 @@ const styles = StyleSheet.create({
 	center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 	container: { padding: 16, paddingBottom: 100 },
 	title: { fontSize: 22, fontWeight: '700' },
-	meta: { fontSize: 13, marginTop: 4, marginBottom: 16 },
+	meta: { fontSize: 13, marginTop: 4, marginBottom: 8 },
+	programStrip: { marginBottom: 12 },
+	programStripText: { fontSize: 12, marginBottom: 6 },
+	progressTrack: { height: 4, borderRadius: 2, overflow: 'hidden' },
+	progressFill: { height: 4, borderRadius: 2 },
 	sectionsCard: {
 		backgroundColor: '#FFFFFF',
 		borderRadius: 12,
