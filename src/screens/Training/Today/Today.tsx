@@ -289,7 +289,10 @@ const Today = () => {
 					style={[styles.emptyCard, { backgroundColor: '#FFFFFF' }]}
 				>
 					<Text style={[styles.emptyText, { color: '#6B7280' }]}>
-						No workouts scheduled for today
+						No workouts today
+					</Text>
+					<Text style={styles.emptySubtext}>
+						Your coach hasn&apos;t added you to a program yet.
 					</Text>
 					{isSolo || hasCustomWorkouts ? (
 						<TouchableOpacity
@@ -350,12 +353,12 @@ const Today = () => {
 									{ color: '#6B7280' },
 								]}
 							>
-								{programContext.programName} &middot; Wk{' '}
-								{programContext.weekNumber} &middot; Day{' '}
-								{programContext.dayIndex}
+								{programContext.programName} · Week{' '}
+								{programContext.weekNumber}
 								{programContext.totalWeeks
-									? ` · ${programContext.totalWeeks}wk`
-									: ''}
+									? ` of ${programContext.totalWeeks}`
+									: ''}{' '}
+								· Day {programContext.dayIndex}
 							</Text>
 						) : null}
 					</View>
@@ -588,6 +591,7 @@ const styles = StyleSheet.create({
 	programStrip: { fontSize: 12, marginTop: 3 },
 	emptyCard: { borderRadius: 12, padding: 20, alignItems: 'center', gap: 8 },
 	emptyText: { fontSize: 14 },
+	emptySubtext: { fontSize: 13, color: '#9CA3AF', textAlign: 'center' },
 	link: { fontSize: 14, fontWeight: '600' },
 	prScroll: { gap: 10, paddingBottom: 4 },
 	prCard: { borderRadius: 12, padding: 14, width: 140, gap: 6 },
