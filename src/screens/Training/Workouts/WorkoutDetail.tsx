@@ -18,7 +18,7 @@ import { useTheme } from '@/theme';
 import type { TrainingStackParamList } from '@/types/navigation';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { useQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
 	ActivityIndicator,
 	Alert,
@@ -93,7 +93,7 @@ type WorkoutShell = {
 	is_benchmark: boolean | null;
 };
 
-const WorkoutDetailScreen = ({ route, navigation }: Props) => {
+const WorkoutDetailScreen = ({ route }: Props) => {
 	const { colors } = useTheme();
 	const { workoutId, assignmentId, programContext } = route.params;
 	const session = getStoredWSSession();
@@ -115,6 +115,9 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	const [tab, setTab] = useState<'overview' | 'leaderboard'>('overview');
 	const [leaderboardOpened, setLeaderboardOpened] = useState(false);
 	const [isPR, setIsPR] = useState(false);
+	const [toastVisible, setToastVisible] = useState(false);
+	const [secError, setSecError] = useState<string | null>(null);
+	const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const { data: workout, isLoading } = useQuery({
 		queryKey: ['ws-workout-shell', workoutId],
@@ -199,6 +202,35 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 		setLeaderboardOpened(true);
 	};
 
+	useEffect(
+		() => () => {
+			if (toastTimer.current) clearTimeout(toastTimer.current);
+		},
+		[],
+	);
+
+	const showLoggedToast = () => {
+		setToastVisible(true);
+		if (toastTimer.current) clearTimeout(toastTimer.current);
+		toastTimer.current = setTimeout(() => setToastVisible(false), 2500);
+	};
+	const onToastPress = () => {
+		openLeaderboardTab();
+		setToastVisible(false);
+	};
+	const handleSecChange = (v: string) => {
+		setTimeSec(v);
+		setSecError(null);
+	};
+	const validateSec = () => {
+		if (timeSec !== '' && parseInt(timeSec, 10) > 59) {
+			setSecError('0–59 seconds');
+			setTimeSec('59');
+		} else {
+			setSecError(null);
+		}
+	};
+
 	const submit = async () => {
 		if (!uid || !tenantId || !workout) return;
 		setSubmitting(true);
@@ -257,12 +289,7 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 				setIsPR(true);
 				setTimeout(() => setIsPR(false), 3000);
 			} else {
-				Alert.alert('Result logged.', '', [
-					{
-						text: 'OK',
-						onPress: () => navigation.navigate('TrainingToday'),
-					},
-				]);
+				showLoggedToast();
 			}
 		} catch {
 			Alert.alert('Error', 'Could not save result. Please try again.');
@@ -309,12 +336,12 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 								{ color: '#6B7280' },
 							]}
 						>
-							{effectiveContext.programName} &middot; Wk{' '}
-							{effectiveContext.weekNumber} &middot; Day{' '}
-							{effectiveContext.dayIndex}
+							{effectiveContext.programName} · Week{' '}
+							{effectiveContext.weekNumber}
 							{effectiveContext.totalWeeks
-								? ` · ${effectiveContext.totalWeeks}wk`
-								: ''}
+								? ` of ${effectiveContext.totalWeeks}`
+								: ''}{' '}
+							· Day {effectiveContext.dayIndex}
 						</Text>
 						{effectiveContext.totalWeeks ? (
 							<View
@@ -452,7 +479,7 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 						]}
 					>
 						<Text style={[styles.formTitle, { color: '#111827' }]}>
-							Log result
+							How&apos;d it go?
 						</Text>
 
 						{(isForTime || isCustom) && (
@@ -498,10 +525,16 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 										placeholder="ss"
 										placeholderTextColor="#9CA3AF"
 										value={timeSec}
-										onChangeText={setTimeSec}
+										onChangeText={handleSecChange}
+										onBlur={validateSec}
 										maxLength={2}
 									/>
 								</View>
+								{secError ? (
+									<Text style={styles.errorText}>
+										{secError}
+									</Text>
+								) : null}
 							</View>
 						)}
 
@@ -716,7 +749,21 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 					)}
 				</TouchableOpacity>
 				<PRBadge visible={isPR} />
+				<Text style={styles.coachNote}>
+					Your score is visible to your coach and the gym leaderboard.
+				</Text>
 			</View>
+			{toastVisible ? (
+				<TouchableOpacity
+					style={styles.toast}
+					onPress={onToastPress}
+					activeOpacity={0.85}
+				>
+					<Text style={styles.toastText}>
+						Logged! See how you rank →
+					</Text>
+				</TouchableOpacity>
+			) : null}
 		</View>
 	);
 };
@@ -835,6 +882,32 @@ const styles = StyleSheet.create({
 	tabTextActive: {
 		color: '#FFFFFF',
 	},
+	errorText: { color: '#DC2626', fontSize: 12, marginTop: 4 },
+	coachNote: {
+		fontSize: 12,
+		color: '#9CA3AF',
+		textAlign: 'center',
+		marginTop: 8,
+		paddingHorizontal: 16,
+	},
+	toast: {
+		position: 'absolute',
+		left: 16,
+		right: 16,
+		bottom: 24,
+		backgroundColor: '#FFFFFF',
+		borderRadius: 6,
+		padding: 16,
+		borderLeftWidth: 4,
+		borderLeftColor: '#3B82F6',
+		zIndex: 200,
+		shadowColor: '#000',
+		shadowOpacity: 0.15,
+		shadowRadius: 8,
+		shadowOffset: { width: 0, height: 2 },
+		elevation: 4,
+	},
+	toastText: { fontSize: 14, fontWeight: '600', color: '#111827' },
 	footer: { padding: 16, paddingBottom: 32 },
 	submitBtn: {
 		padding: 16,
