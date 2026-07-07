@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 	},
 	sliderDirection: {
-		fontSize: 11,
+		fontSize: 13,
 		color: '#9CA3AF',
 		textAlign: 'center',
 		letterSpacing: 0.2,
