@@ -1,5 +1,6 @@
 import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
+import { HTTPError } from 'ky';
 import { useWorkoutDetail } from '@/screens/Training/hooks/useWorkoutDetail';
 import { useWorkoutLeaderboard } from '@/screens/Training/hooks/useWorkoutLeaderboard';
 import {
@@ -129,26 +130,40 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 		isError: isWorkoutError,
 	} = useQuery({
 		queryKey: ['ws-workout-shell', workoutId],
-		queryFn: () =>
-			wsApi()
-				.get('workouts', {
-					searchParams: {
-						select: 'id,name,type,estimated_duration_minutes',
-						id: `eq.${workoutId}`,
-					},
-				})
-				.json<WorkoutShell[]>()
-				.then(r => {
-					if (!r[0]) {
-						// eslint-disable-next-line no-console
-						console.warn('[WorkoutDetail] empty', {
-							workoutId,
-							uid,
-							tenantId,
-						});
-					}
-					return r[0];
-				}),
+		queryFn: async () => {
+			// eslint-disable-next-line no-console
+			console.log('[WorkoutDetail] fetching', {
+				workoutId,
+				uid,
+				tenantId,
+			});
+			try {
+				const rows = await wsApi()
+					.get('workouts', {
+						searchParams: {
+							select: 'id,name,type,estimated_duration_minutes',
+							id: `eq.${workoutId}`,
+						},
+					})
+					.json<WorkoutShell[]>();
+				// eslint-disable-next-line no-console
+				console.log('[WorkoutDetail] result', rows);
+				return rows[0];
+			} catch (e) {
+				if (e instanceof HTTPError) {
+					const body = await e.response
+						.text()
+						.catch(() => '(unreadable)');
+					// eslint-disable-next-line no-console
+					console.error(
+						'[WorkoutDetail] HTTP error',
+						e.response.status,
+						body,
+					);
+				}
+				throw e;
+			}
+		},
 		staleTime: 300_000,
 	});
 
