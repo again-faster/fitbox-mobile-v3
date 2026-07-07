@@ -1,14 +1,15 @@
+export type ProgramContext = {
+	programName: string;
+	dayNumber: number;
+	weekNumber: number;
+	totalDays: number | null;
+};
+
 export type WorkoutAssignment = {
 	id: string;
 	workout_id: string;
 	due_date: string;
 	notes: string | null;
-	program_id?: string | null;
-	day_number?: number | null;
-	programs?: {
-		name: string;
-		total_days: number | null;
-	} | null;
 	workouts: {
 		name: string;
 		estimated_duration_minutes: number | null;

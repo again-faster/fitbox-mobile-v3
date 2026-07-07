@@ -1,8 +1,9 @@
-﻿import { syncNow } from '@/services/healthKit';
+import { syncNow } from '@/services/healthKit';
 import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import type {
 	AthleteRM,
+	ProgramContext,
 	WellnessResponse,
 	WorkoutAssignment,
 } from '@/services/workoutStudio/types';
@@ -24,11 +25,57 @@ import {
 	View,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
 import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
 import SkeletonCard from '../components/SkeletonCard';
 
 type Nav = StackNavigationProp<TrainingStackParamList>;
+
+type ProgramRowEmbed = {
+	id: string;
+	name: string;
+	total_days: number | null;
+};
+
+type ProgramWeekRowEmbed = {
+	week_number: number;
+	programs: ProgramRowEmbed | ProgramRowEmbed[] | null;
+};
+
+type ProgramDayRowEmbed = {
+	day_number: number;
+	program_weeks: ProgramWeekRowEmbed | ProgramWeekRowEmbed[] | null;
+};
+
+type ProgramDayWorkoutRow = {
+	workout_id: string;
+	program_days: ProgramDayRowEmbed | ProgramDayRowEmbed[] | null;
+};
+
+const normalizeOne = <T,>(v: T | T[] | null | undefined): T | null =>
+	Array.isArray(v) ? (v[0] ?? null) : (v ?? null);
+
+function buildProgramCtxMap(
+	rows: ProgramDayWorkoutRow[],
+): Map<string, ProgramContext> {
+	const map = new Map<string, ProgramContext>();
+	rows.forEach(row => {
+		if (map.has(row.workout_id)) return;
+		const pd = normalizeOne(row.program_days);
+		if (!pd) return;
+		const pw = normalizeOne(pd.program_weeks);
+		if (!pw) return;
+		const prog = normalizeOne(pw.programs);
+		if (!prog) return;
+		map.set(row.workout_id, {
+			programName: prog.name,
+			dayNumber: pd.day_number,
+			weekNumber: pw.week_number,
+			totalDays: prog.total_days ?? null,
+		});
+	});
+	return map;
+}
 
 const greeting = () => {
 	const h = new Date().getHours();
@@ -52,7 +99,7 @@ const useToday = () => {
 			wsApi()
 				.get('workout_assignments', {
 					searchParams: {
-						select: 'id,workout_id,due_date,notes,program_id,day_number,programs(name,total_days),workouts(name,estimated_duration_minutes)',
+						select: 'id,workout_id,due_date,notes,workouts(name,estimated_duration_minutes)',
 						athlete_id: `eq.${uid}`,
 						due_date: `eq.${todayStr}`,
 					},
@@ -61,6 +108,36 @@ const useToday = () => {
 		enabled: !!uid && !!tenantId,
 		staleTime: 60_000,
 	});
+
+	const ids = useMemo(
+		() =>
+			Array.from(
+				new Set((assignments.data ?? []).map(a => a.workout_id)),
+			).sort(),
+		[assignments.data],
+	);
+	const workoutIdsKey = ids.join(',');
+
+	const programDayCtx = useQuery({
+		queryKey: ['ws-program-ctx-today', workoutIdsKey],
+		enabled: (assignments.data?.length ?? 0) > 0,
+		staleTime: 300_000,
+		queryFn: () =>
+			wsApi()
+				.get('program_day_workouts', {
+					searchParams: {
+						select: 'workout_id,program_days(day_number,program_weeks(week_number,programs(id,name,total_days)))',
+						workout_id: `in.(${ids.join(',')})`,
+						limit: '50',
+					},
+				})
+				.json<ProgramDayWorkoutRow[]>(),
+	});
+
+	const programCtxMap = useMemo(
+		() => buildProgramCtxMap(programDayCtx.data ?? []),
+		[programDayCtx.data],
+	);
 
 	const wellness = useQuery({
 		queryKey: ['ws-wellness-today', uid],
@@ -119,14 +196,27 @@ const useToday = () => {
 		staleTime: 300_000,
 	});
 
-	return { assignments, wellness, coachNotes, recentPRs, firstName };
+	return {
+		assignments,
+		wellness,
+		coachNotes,
+		recentPRs,
+		firstName,
+		programCtxMap,
+	};
 };
 
 const Today = () => {
 	const { colors } = useTheme();
 	const nav = useNavigation<Nav>();
-	const { assignments, wellness, coachNotes, recentPRs, firstName } =
-		useToday();
+	const {
+		assignments,
+		wellness,
+		coachNotes,
+		recentPRs,
+		firstName,
+		programCtxMap,
+	} = useToday();
 	const session = getStoredWSSession();
 	const persona = session?.user.persona;
 	const isSolo = persona === 'solo';
@@ -210,17 +300,7 @@ const Today = () => {
 			);
 		}
 		return assignments.data?.map(a => {
-			const dayNumber = a.day_number ?? null;
-			const program = a.programs ?? null;
-			const week = dayNumber ? Math.ceil(dayNumber / 7) : null;
-			const programContext =
-				program && dayNumber
-					? {
-							programName: program.name,
-							dayNumber,
-							totalDays: program.total_days ?? null,
-						}
-					: undefined;
+			const programContext = programCtxMap.get(a.workout_id);
 
 			return (
 				<TouchableOpacity
@@ -250,7 +330,7 @@ const Today = () => {
 								~{a.workouts.estimated_duration_minutes} min
 							</Text>
 						)}
-						{program && dayNumber ? (
+						{programContext ? (
 							<Text
 								numberOfLines={1}
 								style={[
@@ -258,10 +338,11 @@ const Today = () => {
 									{ color: '#6B7280' },
 								]}
 							>
-								{program.name} &middot; Wk {week} &middot; Day{' '}
-								{dayNumber}
-								{program.total_days
-									? ` of ${program.total_days}`
+								{programContext.programName} &middot; Wk{' '}
+								{programContext.weekNumber} &middot; Day{' '}
+								{programContext.dayNumber}
+								{programContext.totalDays
+									? ` of ${programContext.totalDays}`
 									: ''}
 							</Text>
 						) : null}

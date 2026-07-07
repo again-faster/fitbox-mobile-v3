@@ -2,7 +2,10 @@ import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import { useWorkoutDetail } from '@/screens/Training/hooks/useWorkoutDetail';
 import { useWorkoutLeaderboard } from '@/screens/Training/hooks/useWorkoutLeaderboard';
-import type { ScalingLevel } from '@/services/workoutStudio/types';
+import type {
+	ProgramContext,
+	ScalingLevel,
+} from '@/services/workoutStudio/types';
 import WorkoutLeaderboard from '@/screens/Training/Workouts/WorkoutLeaderboard';
 import { mmkvStorage } from '@/storage';
 import { useTheme } from '@/theme';
@@ -30,6 +33,49 @@ const LEVELS: { key: ScalingLevel; label: string }[] = [
 ];
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingWorkoutDetail'>;
+
+type ProgramRowCtx = {
+	id: string;
+	name: string;
+	total_days: number | null;
+};
+
+type ProgramWeekCtx = {
+	week_number: number;
+	programs: ProgramRowCtx | ProgramRowCtx[] | null;
+};
+
+type ProgramDayCtx = {
+	day_number: number;
+	program_weeks: ProgramWeekCtx | ProgramWeekCtx[] | null;
+};
+
+type ProgramCtxRow = {
+	program_days: ProgramDayCtx | ProgramDayCtx[] | null;
+};
+
+const normalizeOne = <T,>(v: T | T[] | null | undefined): T | null =>
+	Array.isArray(v) ? (v[0] ?? null) : (v ?? null);
+
+function deriveEffectiveContext(
+	navCtx: ProgramContext | undefined,
+	row: ProgramCtxRow | undefined,
+): ProgramContext | undefined {
+	if (navCtx) return navCtx;
+	if (!row) return undefined;
+	const pd = normalizeOne(row.program_days);
+	if (!pd) return undefined;
+	const pw = normalizeOne(pd.program_weeks);
+	if (!pw) return undefined;
+	const prog = normalizeOne(pw.programs);
+	if (!prog) return undefined;
+	return {
+		programName: prog.name,
+		dayNumber: pd.day_number,
+		weekNumber: pw.week_number,
+		totalDays: prog.total_days ?? null,
+	};
+}
 
 type WorkoutShell = {
 	id: string;
@@ -76,6 +122,28 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	});
 
 	const { data: detail } = useWorkoutDetail(workoutId);
+
+	const { data: fallbackRow } = useQuery({
+		queryKey: ['ws-program-ctx', workoutId],
+		enabled: !programContext,
+		staleTime: 300_000,
+		queryFn: () =>
+			wsApi()
+				.get('program_day_workouts', {
+					searchParams: {
+						select: 'program_days(day_number,program_weeks(week_number,programs(id,name,total_days)))',
+						workout_id: `eq.${workoutId}`,
+						limit: '1',
+					},
+				})
+				.json<ProgramCtxRow[]>()
+				.then(r => r[0]),
+	});
+
+	const effectiveContext = useMemo(
+		() => deriveEffectiveContext(programContext, fallbackRow),
+		[programContext, fallbackRow],
+	);
 
 	const selectScalingLevel = (level: ScalingLevel) => {
 		setScalingLevel(level);
@@ -199,7 +267,7 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 						~{workout.estimated_duration_minutes} min
 					</Text>
 				)}
-				{programContext ? (
+				{effectiveContext ? (
 					<View style={styles.programStrip}>
 						<Text
 							style={[
@@ -207,13 +275,13 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 								{ color: '#6B7280' },
 							]}
 						>
-							{programContext.programName} &middot; Day{' '}
-							{programContext.dayNumber}
-							{programContext.totalDays
-								? ` of ${programContext.totalDays}`
+							{effectiveContext.programName} &middot; Day{' '}
+							{effectiveContext.dayNumber}
+							{effectiveContext.totalDays
+								? ` of ${effectiveContext.totalDays}`
 								: ''}
 						</Text>
-						{programContext.totalDays ? (
+						{effectiveContext.totalDays ? (
 							<View
 								style={[
 									styles.progressTrack,
@@ -225,7 +293,7 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 										styles.progressFill,
 										{
 											backgroundColor: '#3B82F6',
-											width: `${Math.min((programContext.dayNumber / programContext.totalDays) * 100, 100)}%`,
+											width: `${Math.min((effectiveContext.dayNumber / effectiveContext.totalDays) * 100, 100)}%`,
 										},
 									]}
 								/>

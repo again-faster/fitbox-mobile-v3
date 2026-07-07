@@ -1,4 +1,5 @@
 import type { StackScreenProps } from '@react-navigation/stack';
+import type { ProgramContext } from '@/services/workoutStudio/types';
 import { ContactMembersType, MessageItemType } from './schemas/message';
 import {
 	FailedInvoicesType,
@@ -265,11 +266,7 @@ export type TrainingStackParamList = {
 	TrainingWorkoutDetail: {
 		workoutId: string;
 		assignmentId?: string;
-		programContext?: {
-			programName: string;
-			dayNumber: number;
-			totalDays: number | null;
-		};
+		programContext?: ProgramContext;
 	};
 	TrainingRunWorkout: {
 		workoutId: string;
