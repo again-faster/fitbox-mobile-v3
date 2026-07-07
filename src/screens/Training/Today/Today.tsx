@@ -52,7 +52,7 @@ const useToday = () => {
 			wsApi()
 				.get('workout_assignments', {
 					searchParams: {
-						select: 'id,workout_id,due_date,notes,workouts(name,estimated_duration_minutes)',
+						select: 'id,workout_id,due_date,notes,program_id,day_number,programs(name,total_days),workouts(name,estimated_duration_minutes)',
 						athlete_id: `eq.${uid}`,
 						due_date: `eq.${todayStr}`,
 					},
@@ -209,32 +209,67 @@ const Today = () => {
 				</View>
 			);
 		}
-		return assignments.data?.map(a => (
-			<TouchableOpacity
-				key={a.id}
-				style={[styles.workoutCard, { backgroundColor: '#FFFFFF' }]}
-				onPress={() =>
-					nav.navigate('TrainingWorkoutDetail', {
-						workoutId: a.workout_id,
-						assignmentId: a.id,
-					})
-				}
-			>
-				<View style={styles.workoutCardLeft}>
-					<Text style={[styles.workoutName, { color: '#111827' }]}>
-						{a.workouts.name}
-					</Text>
-					{a.workouts.estimated_duration_minutes && (
+		return assignments.data?.map(a => {
+			const dayNumber = a.day_number ?? null;
+			const program = a.programs ?? null;
+			const week = dayNumber ? Math.ceil(dayNumber / 7) : null;
+			const programContext =
+				program && dayNumber
+					? {
+							programName: program.name,
+							dayNumber,
+							totalDays: program.total_days ?? null,
+						}
+					: undefined;
+
+			return (
+				<TouchableOpacity
+					key={a.id}
+					style={[styles.workoutCard, { backgroundColor: '#FFFFFF' }]}
+					onPress={() =>
+						nav.navigate('TrainingWorkoutDetail', {
+							workoutId: a.workout_id,
+							assignmentId: a.id,
+							programContext,
+						})
+					}
+				>
+					<View style={styles.workoutCardLeft}>
 						<Text
-							style={[styles.workoutMeta, { color: '#6B7280' }]}
+							style={[styles.workoutName, { color: '#111827' }]}
 						>
-							~{a.workouts.estimated_duration_minutes} min
+							{a.workouts.name}
 						</Text>
-					)}
-				</View>
-				<Ionicons name="chevron-right" size={20} color="#6B7280" />
-			</TouchableOpacity>
-		));
+						{a.workouts.estimated_duration_minutes && (
+							<Text
+								style={[
+									styles.workoutMeta,
+									{ color: '#6B7280' },
+								]}
+							>
+								~{a.workouts.estimated_duration_minutes} min
+							</Text>
+						)}
+						{program && dayNumber ? (
+							<Text
+								numberOfLines={1}
+								style={[
+									styles.programStrip,
+									{ color: '#6B7280' },
+								]}
+							>
+								{program.name} &middot; Wk {week} &middot; Day{' '}
+								{dayNumber}
+								{program.total_days
+									? ` of ${program.total_days}`
+									: ''}
+							</Text>
+						) : null}
+					</View>
+					<Ionicons name="chevron-right" size={20} color="#6B7280" />
+				</TouchableOpacity>
+			);
+		});
 	};
 
 	return (
@@ -457,6 +492,7 @@ const styles = StyleSheet.create({
 	workoutCardLeft: { flex: 1 },
 	workoutName: { fontSize: 16, fontWeight: '600' },
 	workoutMeta: { fontSize: 13, marginTop: 2 },
+	programStrip: { fontSize: 12, marginTop: 3 },
 	emptyCard: { borderRadius: 12, padding: 20, alignItems: 'center', gap: 8 },
 	emptyText: { fontSize: 14 },
 	link: { fontSize: 14, fontWeight: '600' },
