@@ -1,22 +1,31 @@
 import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import { useWorkoutDetail } from '@/screens/Training/hooks/useWorkoutDetail';
+import type { ScalingLevel } from '@/services/workoutStudio/types';
+import { mmkvStorage } from '@/storage';
 import { useTheme } from '@/theme';
 import type { TrainingStackParamList } from '@/types/navigation';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
 	ActivityIndicator,
 	Alert,
 	ScrollView,
 	StyleSheet,
-	Switch,
 	Text,
 	TextInput,
 	TouchableOpacity,
 	View,
 } from 'react-native';
+
+const SCALING_LEVEL_KEY = 'ws:last-scaling-level';
+
+const LEVELS: { key: ScalingLevel; label: string }[] = [
+	{ key: 'rx', label: 'Rx' },
+	{ key: 'scaled', label: 'Scaled' },
+	{ key: 'foundations', label: 'Foundations' },
+];
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingWorkoutDetail'>;
 
@@ -34,7 +43,10 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	const uid = session?.user.id;
 	const tenantId = session?.user.active_tenant_id;
 
-	const [isRx, setIsRx] = useState(true);
+	const [scalingLevel, setScalingLevel] = useState<ScalingLevel>(() => {
+		const stored = mmkvStorage.getString(SCALING_LEVEL_KEY);
+		return stored === 'scaled' || stored === 'foundations' ? stored : 'rx';
+	});
 	const [notes, setNotes] = useState('');
 	const [timeMin, setTimeMin] = useState('');
 	const [timeSec, setTimeSec] = useState('');
@@ -61,6 +73,28 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 
 	const { data: detail } = useWorkoutDetail(workoutId);
 
+	const selectScalingLevel = (level: ScalingLevel) => {
+		setScalingLevel(level);
+		mmkvStorage.set(SCALING_LEVEL_KEY, level);
+	};
+
+	const scalingNotes = useMemo(() => {
+		if (scalingLevel === 'rx' || !detail) return [];
+		const result: { id: string; label: string | null; note: string }[] = [];
+		detail.workout_sections.forEach(s => {
+			s.section_blocks.forEach(b => {
+				const note =
+					scalingLevel === 'scaled'
+						? b.scaled_notes
+						: b.foundations_notes;
+				if (note) {
+					result.push({ id: b.id, label: b.label, note });
+				}
+			});
+		});
+		return result;
+	}, [detail, scalingLevel]);
+
 	const wType = workout?.type ?? 'custom';
 	const isForTime = ['for_time', 'chipper', 'emom'].includes(wType);
 	const isAmrap = wType === 'amrap';
@@ -84,7 +118,8 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 					athlete_id: uid,
 					tenant_id: tenantId,
 					completed_at: new Date().toISOString(),
-					is_rx: isRx,
+					is_rx: scalingLevel === 'rx',
+					scaling_level: scalingLevel,
 					notes: notes.trim() || null,
 					score_time_seconds: scoreTimeSeconds,
 					score_rounds:
@@ -356,17 +391,60 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 						</View>
 					)}
 
-					<View style={styles.rxRow}>
+					<View style={styles.fieldGroup}>
 						<Text style={[styles.label, { color: '#6B7280' }]}>
-							Rx
+							Scaling
 						</Text>
-						<Switch
-							value={isRx}
-							onValueChange={setIsRx}
-							trackColor={{ false: '#D1D5DB', true: '#3B82F6' }}
-							thumbColor="#FFFFFF"
-						/>
+						<View style={styles.segmentRow}>
+							{LEVELS.map(({ key, label }) => (
+								<TouchableOpacity
+									key={key}
+									style={[
+										styles.segmentBtn,
+										scalingLevel === key &&
+											styles.segmentBtnActive,
+									]}
+									onPress={() => selectScalingLevel(key)}
+								>
+									<Text
+										style={[
+											styles.segmentText,
+											scalingLevel === key &&
+												styles.segmentTextActive,
+										]}
+									>
+										{label}
+									</Text>
+								</TouchableOpacity>
+							))}
+						</View>
 					</View>
+					{scalingNotes.length > 0 && (
+						<View style={styles.fieldGroup}>
+							{scalingNotes.map(({ id, label, note }) => (
+								<View key={id} style={styles.scalingNoteCard}>
+									{label ? (
+										<Text
+											style={[
+												styles.blockLabel,
+												{ color: '#6B7280' },
+											]}
+										>
+											{label}
+										</Text>
+									) : null}
+									<Text
+										style={[
+											styles.scalingNoteText,
+											{ color: '#374151' },
+										]}
+									>
+										{note}
+									</Text>
+								</View>
+							))}
+						</View>
+					)}
 
 					<View style={styles.fieldGroup}>
 						<Text style={[styles.label, { color: '#6B7280' }]}>
@@ -452,11 +530,38 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 	},
 	timeSep: { fontSize: 24, fontWeight: '700' },
-	rxRow: {
+	segmentRow: {
 		flexDirection: 'row',
+		gap: 8,
+	},
+	segmentBtn: {
+		flex: 1,
+		borderWidth: 1,
+		borderColor: '#D1D5DB',
+		borderRadius: 8,
+		paddingVertical: 10,
 		alignItems: 'center',
-		justifyContent: 'space-between',
-		marginVertical: 16,
+	},
+	segmentBtnActive: {
+		backgroundColor: '#3B82F6',
+		borderColor: '#3B82F6',
+	},
+	segmentText: {
+		fontSize: 14,
+		fontWeight: '500',
+		color: '#374151',
+	},
+	segmentTextActive: {
+		color: '#FFFFFF',
+	},
+	scalingNoteCard: {
+		backgroundColor: '#F3F4F6',
+		borderRadius: 8,
+		padding: 10,
+		marginBottom: 6,
+	},
+	scalingNoteText: {
+		fontSize: 13,
 	},
 	notesInput: {
 		borderWidth: 1,
