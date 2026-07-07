@@ -23,12 +23,16 @@ export type WorkoutSection = {
 	section_blocks: SectionBlock[];
 };
 
+export type ScalingLevel = 'rx' | 'scaled' | 'foundations';
+
 export type SectionBlock = {
 	id: string;
 	label: string | null;
 	intent: string;
 	position: number;
 	rest_seconds: number | null;
+	scaled_notes: string | null;
+	foundations_notes: string | null;
 	block_movements: BlockMovement[];
 };
 

@@ -14,6 +14,8 @@ type RawBlock = {
 	intent: string;
 	position: number;
 	rest_seconds: number | null;
+	scaled_notes: string | null;
+	foundations_notes: string | null;
 };
 type RawBM = {
 	id: string;
@@ -67,7 +69,7 @@ const fetchWorkoutDetail = async (
 	const rawBlocks = await wsApi()
 		.get('section_blocks', {
 			searchParams: {
-				select: 'id,section_id,label,intent,position,rest_seconds',
+				select: 'id,section_id,label,intent,position,rest_seconds,scaled_notes,foundations_notes',
 				section_id: `in.(${sectionIds})`,
 				order: 'position.asc',
 			},
