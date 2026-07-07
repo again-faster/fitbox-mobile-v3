@@ -66,7 +66,11 @@ const PRs = () => {
 				) : (
 					<View style={styles.empty}>
 						<Text style={[styles.emptyText, { color: '#6B7280' }]}>
-							No PRs yet — log a workout to get started
+							No personal records yet.
+						</Text>
+						<Text style={styles.emptySubtext}>
+							Log a benchmark workout to start tracking your
+							progress.
 						</Text>
 					</View>
 				)
@@ -100,6 +104,9 @@ const PRs = () => {
 						<Text style={[styles.weight, { color: '#3B82F6' }]}>
 							{item.weight_kg}kg x {item.rep_max}RM
 						</Text>
+						{item.workout_id ? (
+							<Text style={styles.chevron}>›</Text>
+						) : null}
 					</View>
 				</TouchableOpacity>
 			)}
@@ -123,6 +130,13 @@ const styles = StyleSheet.create({
 	weight: { fontSize: 16, fontWeight: '700' },
 	empty: { alignItems: 'center', padding: 40 },
 	emptyText: { fontSize: 15, textAlign: 'center' },
+	emptySubtext: {
+		fontSize: 13,
+		color: '#9CA3AF',
+		textAlign: 'center',
+		marginTop: 4,
+	},
+	chevron: { fontSize: 20, color: '#9CA3AF', marginLeft: 'auto' },
 });
 
 export default PRs;

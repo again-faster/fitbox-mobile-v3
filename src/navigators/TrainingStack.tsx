@@ -97,7 +97,7 @@ const TrainingStackNavigator = () => {
 			<Stack.Screen
 				name="TrainingPRs"
 				component={PRs}
-				options={{ title: 'My PRs' }}
+				options={{ title: 'Personal Records' }}
 			/>
 			<Stack.Screen
 				name="TrainingCoachNotes"

@@ -87,14 +87,16 @@ const WorkoutLeaderboard = ({
 							filter === 'rx' && styles.filterTextActive,
 						]}
 					>
-						Rx
+						Rx only
 					</Text>
 				</TouchableOpacity>
 			</View>
 
 			{visibleEntries.length === 0 ? (
 				<View style={styles.emptyContainer}>
-					<Text style={styles.emptyText}>No results logged yet</Text>
+					<Text style={styles.emptyText}>
+						Be the first to log this one.
+					</Text>
 				</View>
 			) : (
 				visibleEntries.map((entry, index) => {
