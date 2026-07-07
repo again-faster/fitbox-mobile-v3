@@ -8,6 +8,7 @@ import type {
 	WellnessDimension,
 	WellnessTrend,
 } from '@/services/workoutStudio/types';
+import type { TrainingStackScreenProps } from '@/types/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
@@ -22,13 +23,15 @@ import Slider from '@ptomasroos/react-native-multi-slider';
 import moment from 'moment';
 import SkeletonCard from '../components/SkeletonCard';
 
+type Props = TrainingStackScreenProps<'TrainingWellness'>;
+
 const CONSENT_VERSION = '2026-06-v1';
 const CONSENT_TEXT =
 	'Wellness check-ins are optional. They help you and (if you choose) your coach see how training feels over time. Your responses are never used to gate participation or change programming automatically. You can withdraw consent or delete any entry at any time.';
 
 const today = moment().format('YYYY-MM-DD');
 
-const Wellness = () => {
+const Wellness = ({ navigation }: Props) => {
 	const qc = useQueryClient();
 	const session = getStoredWSSession();
 	const uid = session?.user.id;
@@ -302,6 +305,16 @@ const Wellness = () => {
 					})}
 				</>
 			)}
+
+			{/* My Injuries entry point */}
+			<TouchableOpacity
+				style={styles.injuryCard}
+				onPress={() => navigation.navigate('TrainingInjuryList')}
+				activeOpacity={0.7}
+			>
+				<Text style={styles.injuryCardLabel}>My Injuries</Text>
+				<Text style={styles.injuryCardChevron}>›</Text>
+			</TouchableOpacity>
 		</ScrollView>
 	);
 };
@@ -319,6 +332,17 @@ const styles = StyleSheet.create({
 	sliderValue: { fontSize: 18, fontWeight: '700', width: 24 },
 	trendCard: { borderRadius: 12, padding: 14 },
 	trendDelta: { fontSize: 14, marginTop: 4 },
+	injuryCard: {
+		backgroundColor: '#FFFFFF',
+		borderRadius: 12,
+		padding: 16,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		marginTop: 8,
+	},
+	injuryCardLabel: { fontSize: 16, fontWeight: '600', color: '#111827' },
+	injuryCardChevron: { fontSize: 22, color: '#6B7280' },
 	primaryBtn: {
 		padding: 16,
 		borderRadius: 12,

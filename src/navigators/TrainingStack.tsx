@@ -21,6 +21,9 @@ import WorkoutDetail from '@/screens/Training/Workouts/WorkoutDetail';
 import WorkoutList from '@/screens/Training/Workouts/WorkoutList';
 import AppleHealthScreen from '@/screens/Training/AppleHealth/AppleHealthScreen';
 import RunWorkout from '@/screens/Training/Workouts/RunWorkout';
+import InjuryList from '@/screens/Training/Injuries/InjuryList';
+import InjuryLog from '@/screens/Training/Injuries/InjuryLog';
+import InjuryDailyUpdate from '@/screens/Training/Injuries/InjuryDailyUpdate';
 
 const Stack = createStackNavigator<TrainingStackParamList>();
 
@@ -138,6 +141,21 @@ const TrainingStackNavigator = () => {
 				name="TrainingCustomWorkoutsUpsell"
 				component={CustomWorkoutsUpsell}
 				options={{ title: 'Custom Workouts' }}
+			/>
+			<Stack.Screen
+				name="TrainingInjuryList"
+				component={InjuryList}
+				options={{ title: 'My Injuries' }}
+			/>
+			<Stack.Screen
+				name="TrainingInjuryLog"
+				component={InjuryLog}
+				options={{ title: 'Log Injury' }}
+			/>
+			<Stack.Screen
+				name="TrainingInjuryDailyUpdate"
+				component={InjuryDailyUpdate}
+				options={{ title: 'Daily Update' }}
 			/>
 		</Stack.Navigator>
 	);

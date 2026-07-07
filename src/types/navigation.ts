@@ -286,6 +286,9 @@ export type TrainingStackParamList = {
 	TrainingBuildEditor: { workoutId?: string };
 	TrainingBuildSchedule: { workoutId: string; workoutName: string };
 	TrainingCustomWorkoutsUpsell: undefined;
+	TrainingInjuryList: undefined;
+	TrainingInjuryLog: undefined;
+	TrainingInjuryDailyUpdate: { injuryId: string; injuryBodyArea: string };
 };
 export type TrainingStackScreenProps<T extends keyof TrainingStackParamList> =
 	StackScreenProps<TrainingStackParamList, T>;
