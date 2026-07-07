@@ -1,7 +1,9 @@
 import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import { useWorkoutDetail } from '@/screens/Training/hooks/useWorkoutDetail';
+import { useWorkoutLeaderboard } from '@/screens/Training/hooks/useWorkoutLeaderboard';
 import type { ScalingLevel } from '@/services/workoutStudio/types';
+import WorkoutLeaderboard from '@/screens/Training/Workouts/WorkoutLeaderboard';
 import { mmkvStorage } from '@/storage';
 import { useTheme } from '@/theme';
 import type { TrainingStackParamList } from '@/types/navigation';
@@ -55,6 +57,8 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	const [weightKg, setWeightKg] = useState('');
 	const [reps, setReps] = useState('');
 	const [submitting, setSubmitting] = useState(false);
+	const [tab, setTab] = useState<'overview' | 'leaderboard'>('overview');
+	const [leaderboardOpened, setLeaderboardOpened] = useState(false);
 
 	const { data: workout, isLoading } = useQuery({
 		queryKey: ['ws-workout-shell', workoutId],
@@ -100,6 +104,16 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	const isAmrap = wType === 'amrap';
 	const isStrength = wType === 'strength';
 	const isCustom = wType === 'custom';
+
+	const { data: leaderboard, isLoading: leaderboardLoading } =
+		useWorkoutLeaderboard(workoutId, wType, leaderboardOpened);
+
+	const openOverviewTab = () => setTab('overview');
+
+	const openLeaderboardTab = () => {
+		setTab('leaderboard');
+		setLeaderboardOpened(true);
+	};
 
 	const submit = async () => {
 		if (!uid || !tenantId || !workout) return;
@@ -220,287 +234,369 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 					</View>
 				) : null}
 
-				{detail?.workout_sections &&
-					detail.workout_sections.length > 0 && (
-						<View style={styles.sectionsCard}>
-							{detail.workout_sections.map(s => (
-								<View key={s.id} style={styles.sectionRow}>
-									<Text
-										style={[
-											styles.sectionName,
-											{ color: '#374151' },
-										]}
-									>
-										{s.name}
-									</Text>
-									{s.section_blocks?.map(b => (
-										<View
-											key={b.id}
-											style={styles.blockRow}
+				<View style={styles.tabRow}>
+					<TouchableOpacity
+						style={[
+							styles.tabBtn,
+							tab === 'overview' && styles.tabBtnActive,
+						]}
+						onPress={openOverviewTab}
+					>
+						<Text
+							style={[
+								styles.tabText,
+								tab === 'overview' && styles.tabTextActive,
+							]}
+						>
+							Overview
+						</Text>
+					</TouchableOpacity>
+					<TouchableOpacity
+						style={[
+							styles.tabBtn,
+							tab === 'leaderboard' && styles.tabBtnActive,
+						]}
+						onPress={openLeaderboardTab}
+					>
+						<Text
+							style={[
+								styles.tabText,
+								tab === 'leaderboard' && styles.tabTextActive,
+							]}
+						>
+							Leaderboard
+						</Text>
+					</TouchableOpacity>
+				</View>
+
+				<View
+					style={{
+						display: tab === 'overview' ? 'flex' : 'none',
+					}}
+				>
+					{detail?.workout_sections &&
+						detail.workout_sections.length > 0 && (
+							<View style={styles.sectionsCard}>
+								{detail.workout_sections.map(s => (
+									<View key={s.id} style={styles.sectionRow}>
+										<Text
+											style={[
+												styles.sectionName,
+												{ color: '#374151' },
+											]}
 										>
-											{b.label ? (
-												<Text
-													style={[
-														styles.blockLabel,
-														{ color: '#6B7280' },
-													]}
-												>
-													{b.label}
-												</Text>
-											) : null}
-											{b.block_movements?.map(bm => {
-												const parts: string[] = [];
-												if (bm.sets)
-													parts.push(
-														`${bm.sets} sets`,
-													);
-												if (bm.reps_scheme)
-													parts.push(bm.reps_scheme);
-												if (bm.weight_kg)
-													parts.push(
-														`@ ${bm.weight_kg}kg`,
-													);
-												return (
+											{s.name}
+										</Text>
+										{s.section_blocks?.map(b => (
+											<View
+												key={b.id}
+												style={styles.blockRow}
+											>
+												{b.label ? (
 													<Text
-														key={bm.id}
 														style={[
-															styles.movementText,
+															styles.blockLabel,
 															{
-																color: '#111827',
+																color: '#6B7280',
 															},
 														]}
 													>
-														{bm.movements.name}
-														{parts.length > 0
-															? `  ${parts.join(' · ')}`
-															: ''}
+														{b.label}
 													</Text>
-												);
-											})}
-										</View>
-									))}
-								</View>
-							))}
-						</View>
-					)}
+												) : null}
+												{b.block_movements?.map(bm => {
+													const parts: string[] = [];
+													if (bm.sets)
+														parts.push(
+															`${bm.sets} sets`,
+														);
+													if (bm.reps_scheme)
+														parts.push(
+															bm.reps_scheme,
+														);
+													if (bm.weight_kg)
+														parts.push(
+															`@ ${bm.weight_kg}kg`,
+														);
+													return (
+														<Text
+															key={bm.id}
+															style={[
+																styles.movementText,
+																{
+																	color: '#111827',
+																},
+															]}
+														>
+															{bm.movements.name}
+															{parts.length > 0
+																? `  ${parts.join(' · ')}`
+																: ''}
+														</Text>
+													);
+												})}
+											</View>
+										))}
+									</View>
+								))}
+							</View>
+						)}
 
-				<View style={[styles.formCard, { backgroundColor: '#FFFFFF' }]}>
-					<Text style={[styles.formTitle, { color: '#111827' }]}>
-						Log result
-					</Text>
+					<View
+						style={[
+							styles.formCard,
+							{ backgroundColor: '#FFFFFF' },
+						]}
+					>
+						<Text style={[styles.formTitle, { color: '#111827' }]}>
+							Log result
+						</Text>
 
-					{(isForTime || isCustom) && (
-						<View style={styles.fieldGroup}>
-							<Text style={[styles.label, { color: '#6B7280' }]}>
-								Time
-							</Text>
-							<View style={styles.timeRow}>
-								<TextInput
-									style={[
-										styles.timeInput,
-										{
-											borderColor: '#D1D5DB',
-											color: '#111827',
-										},
-									]}
-									keyboardType="number-pad"
-									placeholder="mm"
-									placeholderTextColor="#9CA3AF"
-									value={timeMin}
-									onChangeText={setTimeMin}
-									maxLength={2}
-								/>
+						{(isForTime || isCustom) && (
+							<View style={styles.fieldGroup}>
 								<Text
-									style={[
-										styles.timeSep,
-										{ color: '#6B7280' },
-									]}
+									style={[styles.label, { color: '#6B7280' }]}
 								>
-									:
+									Time
+								</Text>
+								<View style={styles.timeRow}>
+									<TextInput
+										style={[
+											styles.timeInput,
+											{
+												borderColor: '#D1D5DB',
+												color: '#111827',
+											},
+										]}
+										keyboardType="number-pad"
+										placeholder="mm"
+										placeholderTextColor="#9CA3AF"
+										value={timeMin}
+										onChangeText={setTimeMin}
+										maxLength={2}
+									/>
+									<Text
+										style={[
+											styles.timeSep,
+											{ color: '#6B7280' },
+										]}
+									>
+										:
+									</Text>
+									<TextInput
+										style={[
+											styles.timeInput,
+											{
+												borderColor: '#D1D5DB',
+												color: '#111827',
+											},
+										]}
+										keyboardType="number-pad"
+										placeholder="ss"
+										placeholderTextColor="#9CA3AF"
+										value={timeSec}
+										onChangeText={setTimeSec}
+										maxLength={2}
+									/>
+								</View>
+							</View>
+						)}
+
+						{(isAmrap || isCustom) && (
+							<View style={styles.fieldGroup}>
+								<Text
+									style={[styles.label, { color: '#6B7280' }]}
+								>
+									Rounds
 								</Text>
 								<TextInput
 									style={[
-										styles.timeInput,
+										styles.input,
 										{
 											borderColor: '#D1D5DB',
 											color: '#111827',
 										},
 									]}
 									keyboardType="number-pad"
-									placeholder="ss"
+									placeholder="0"
 									placeholderTextColor="#9CA3AF"
-									value={timeSec}
-									onChangeText={setTimeSec}
-									maxLength={2}
+									value={rounds}
+									onChangeText={setRounds}
+								/>
+								<Text
+									style={[
+										styles.label,
+										{ color: '#6B7280', marginTop: 12 },
+									]}
+								>
+									Partial reps
+								</Text>
+								<TextInput
+									style={[
+										styles.input,
+										{
+											borderColor: '#D1D5DB',
+											color: '#111827',
+										},
+									]}
+									keyboardType="number-pad"
+									placeholder="0"
+									placeholderTextColor="#9CA3AF"
+									value={partialReps}
+									onChangeText={setPartialReps}
 								/>
 							</View>
-						</View>
-					)}
+						)}
 
-					{(isAmrap || isCustom) && (
-						<View style={styles.fieldGroup}>
-							<Text style={[styles.label, { color: '#6B7280' }]}>
-								Rounds
-							</Text>
-							<TextInput
-								style={[
-									styles.input,
-									{
-										borderColor: '#D1D5DB',
-										color: '#111827',
-									},
-								]}
-								keyboardType="number-pad"
-								placeholder="0"
-								placeholderTextColor="#9CA3AF"
-								value={rounds}
-								onChangeText={setRounds}
-							/>
-							<Text
-								style={[
-									styles.label,
-									{ color: '#6B7280', marginTop: 12 },
-								]}
-							>
-								Partial reps
-							</Text>
-							<TextInput
-								style={[
-									styles.input,
-									{
-										borderColor: '#D1D5DB',
-										color: '#111827',
-									},
-								]}
-								keyboardType="number-pad"
-								placeholder="0"
-								placeholderTextColor="#9CA3AF"
-								value={partialReps}
-								onChangeText={setPartialReps}
-							/>
-						</View>
-					)}
-
-					{(isStrength || isCustom) && (
-						<View style={styles.fieldGroup}>
-							<Text style={[styles.label, { color: '#6B7280' }]}>
-								Weight (kg)
-							</Text>
-							<TextInput
-								style={[
-									styles.input,
-									{
-										borderColor: '#D1D5DB',
-										color: '#111827',
-									},
-								]}
-								keyboardType="decimal-pad"
-								placeholder="0"
-								placeholderTextColor="#9CA3AF"
-								value={weightKg}
-								onChangeText={setWeightKg}
-							/>
-							<Text
-								style={[
-									styles.label,
-									{ color: '#6B7280', marginTop: 12 },
-								]}
-							>
-								Reps
-							</Text>
-							<TextInput
-								style={[
-									styles.input,
-									{
-										borderColor: '#D1D5DB',
-										color: '#111827',
-									},
-								]}
-								keyboardType="number-pad"
-								placeholder="0"
-								placeholderTextColor="#9CA3AF"
-								value={reps}
-								onChangeText={setReps}
-							/>
-						</View>
-					)}
-
-					<View style={styles.fieldGroup}>
-						<Text style={[styles.label, { color: '#6B7280' }]}>
-							Scaling
-						</Text>
-						<View style={styles.segmentRow}>
-							{LEVELS.map(({ key, label }) => (
-								<TouchableOpacity
-									key={key}
-									style={[
-										styles.segmentBtn,
-										scalingLevel === key &&
-											styles.segmentBtnActive,
-									]}
-									onPress={() => selectScalingLevel(key)}
+						{(isStrength || isCustom) && (
+							<View style={styles.fieldGroup}>
+								<Text
+									style={[styles.label, { color: '#6B7280' }]}
 								>
-									<Text
-										style={[
-											styles.segmentText,
-											scalingLevel === key &&
-												styles.segmentTextActive,
-										]}
-									>
-										{label}
-									</Text>
-								</TouchableOpacity>
-							))}
-						</View>
-					</View>
-					{scalingNotes.length > 0 && (
+									Weight (kg)
+								</Text>
+								<TextInput
+									style={[
+										styles.input,
+										{
+											borderColor: '#D1D5DB',
+											color: '#111827',
+										},
+									]}
+									keyboardType="decimal-pad"
+									placeholder="0"
+									placeholderTextColor="#9CA3AF"
+									value={weightKg}
+									onChangeText={setWeightKg}
+								/>
+								<Text
+									style={[
+										styles.label,
+										{ color: '#6B7280', marginTop: 12 },
+									]}
+								>
+									Reps
+								</Text>
+								<TextInput
+									style={[
+										styles.input,
+										{
+											borderColor: '#D1D5DB',
+											color: '#111827',
+										},
+									]}
+									keyboardType="number-pad"
+									placeholder="0"
+									placeholderTextColor="#9CA3AF"
+									value={reps}
+									onChangeText={setReps}
+								/>
+							</View>
+						)}
+
 						<View style={styles.fieldGroup}>
-							{scalingNotes.map(({ id, label, note }) => (
-								<View key={id} style={styles.scalingNoteCard}>
-									{label ? (
+							<Text style={[styles.label, { color: '#6B7280' }]}>
+								Scaling
+							</Text>
+							<View style={styles.segmentRow}>
+								{LEVELS.map(({ key, label }) => (
+									<TouchableOpacity
+										key={key}
+										style={[
+											styles.segmentBtn,
+											scalingLevel === key &&
+												styles.segmentBtnActive,
+										]}
+										onPress={() => selectScalingLevel(key)}
+									>
 										<Text
 											style={[
-												styles.blockLabel,
-												{ color: '#6B7280' },
+												styles.segmentText,
+												scalingLevel === key &&
+													styles.segmentTextActive,
 											]}
 										>
 											{label}
 										</Text>
-									) : null}
-									<Text
-										style={[
-											styles.scalingNoteText,
-											{ color: '#374151' },
-										]}
-									>
-										{note}
-									</Text>
-								</View>
-							))}
+									</TouchableOpacity>
+								))}
+							</View>
 						</View>
-					)}
+						{scalingNotes.length > 0 && (
+							<View style={styles.fieldGroup}>
+								{scalingNotes.map(({ id, label, note }) => (
+									<View
+										key={id}
+										style={styles.scalingNoteCard}
+									>
+										{label ? (
+											<Text
+												style={[
+													styles.blockLabel,
+													{ color: '#6B7280' },
+												]}
+											>
+												{label}
+											</Text>
+										) : null}
+										<Text
+											style={[
+												styles.scalingNoteText,
+												{ color: '#374151' },
+											]}
+										>
+											{note}
+										</Text>
+									</View>
+								))}
+							</View>
+						)}
 
-					<View style={styles.fieldGroup}>
-						<Text style={[styles.label, { color: '#6B7280' }]}>
-							Notes
-						</Text>
-						<TextInput
-							style={[
-								styles.notesInput,
-								{ borderColor: '#D1D5DB', color: '#111827' },
-							]}
-							placeholder="How did it feel?"
-							placeholderTextColor="#9CA3AF"
-							multiline
-							numberOfLines={3}
-							value={notes}
-							onChangeText={setNotes}
-						/>
+						<View style={styles.fieldGroup}>
+							<Text style={[styles.label, { color: '#6B7280' }]}>
+								Notes
+							</Text>
+							<TextInput
+								style={[
+									styles.notesInput,
+									{
+										borderColor: '#D1D5DB',
+										color: '#111827',
+									},
+								]}
+								placeholder="How did it feel?"
+								placeholderTextColor="#9CA3AF"
+								multiline
+								numberOfLines={3}
+								value={notes}
+								onChangeText={setNotes}
+							/>
+						</View>
 					</View>
+				</View>
+
+				<View
+					style={{
+						display: tab === 'leaderboard' ? 'flex' : 'none',
+					}}
+				>
+					<WorkoutLeaderboard
+						entries={leaderboard ?? []}
+						isLoading={leaderboardLoading}
+						currentAthleteId={uid}
+					/>
 				</View>
 			</ScrollView>
 
-			<View style={[styles.footer, { backgroundColor: '#F9FAFB' }]}>
+			<View
+				style={[
+					styles.footer,
+					{
+						backgroundColor: '#F9FAFB',
+						display: tab === 'leaderboard' ? 'none' : 'flex',
+					},
+				]}
+			>
 				<TouchableOpacity
 					style={[
 						styles.submitBtn,
@@ -609,6 +705,31 @@ const styles = StyleSheet.create({
 		fontSize: 15,
 		minHeight: 80,
 		textAlignVertical: 'top',
+	},
+	tabRow: {
+		flexDirection: 'row',
+		gap: 8,
+		marginBottom: 16,
+	},
+	tabBtn: {
+		flex: 1,
+		borderWidth: 1,
+		borderColor: '#D1D5DB',
+		borderRadius: 8,
+		paddingVertical: 10,
+		alignItems: 'center',
+	},
+	tabBtnActive: {
+		backgroundColor: '#3B82F6',
+		borderColor: '#3B82F6',
+	},
+	tabText: {
+		fontSize: 14,
+		fontWeight: '500',
+		color: '#374151',
+	},
+	tabTextActive: {
+		color: '#FFFFFF',
 	},
 	footer: { padding: 16, paddingBottom: 32 },
 	submitBtn: {
