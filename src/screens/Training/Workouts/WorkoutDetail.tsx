@@ -7,6 +7,7 @@ import {
 	isBetterScore,
 	useWorkoutPersonalBest,
 } from '@/screens/Training/hooks/useWorkoutPersonalBest';
+import { MovementSheet } from '@/screens/Training/components/MovementSheet';
 import { PRBadge } from '@/screens/Training/components/PRBadge';
 import type {
 	ProgramContext,
@@ -100,6 +101,10 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 	const uid = session?.user.id;
 	const tenantId = session?.user.active_tenant_id;
 
+	const [selectedMovement, setSelectedMovement] = useState<{
+		id: string;
+		name: string;
+	} | null>(null);
 	const [scalingLevel, setScalingLevel] = useState<ScalingLevel>(() => {
 		const stored = mmkvStorage.getString(SCALING_LEVEL_KEY);
 		return stored === 'scaled' || stored === 'foundations' ? stored : 'rx';
@@ -449,20 +454,42 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 															`@ ${bm.weight_kg}kg`,
 														);
 													return (
-														<Text
+														<TouchableOpacity
 															key={bm.id}
-															style={[
-																styles.movementText,
-																{
-																	color: '#111827',
-																},
-															]}
+															activeOpacity={0.7}
+															onPress={() =>
+																setSelectedMovement(
+																	{
+																		id: bm
+																			.movements
+																			.id,
+																		name: bm
+																			.movements
+																			.name,
+																	},
+																)
+															}
 														>
-															{bm.movements.name}
-															{parts.length > 0
-																? `  ${parts.join(' · ')}`
-																: ''}
-														</Text>
+															<Text
+																style={[
+																	styles.movementText,
+																	{
+																		color: '#111827',
+																		textDecorationLine:
+																			'underline',
+																	},
+																]}
+															>
+																{
+																	bm.movements
+																		.name
+																}
+																{parts.length >
+																0
+																	? `  ${parts.join(' · ')}`
+																	: ''}
+															</Text>
+														</TouchableOpacity>
 													);
 												})}
 											</View>
@@ -749,6 +776,12 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 					)}
 				</TouchableOpacity>
 				<PRBadge visible={isPR} />
+				<MovementSheet
+					movementId={selectedMovement?.id ?? null}
+					movementName={selectedMovement?.name ?? ''}
+					uid={uid ?? null}
+					onClose={() => setSelectedMovement(null)}
+				/>
 				<Text style={styles.coachNote}>
 					Your score is visible to your coach and the gym leaderboard.
 				</Text>
