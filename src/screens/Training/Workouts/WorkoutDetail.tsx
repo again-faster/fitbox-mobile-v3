@@ -37,21 +37,23 @@ type Props = StackScreenProps<TrainingStackParamList, 'TrainingWorkoutDetail'>;
 type ProgramRowCtx = {
 	id: string;
 	name: string;
-	total_days: number | null;
+	total_weeks: number | null;
+	duration_weeks: number | null;
 };
 
 type ProgramWeekCtx = {
 	week_number: number;
-	programs: ProgramRowCtx | ProgramRowCtx[] | null;
+	program: ProgramRowCtx | ProgramRowCtx[] | null;
 };
 
 type ProgramDayCtx = {
-	day_number: number;
-	program_weeks: ProgramWeekCtx | ProgramWeekCtx[] | null;
+	day_index: number;
+	label: string | null;
+	week: ProgramWeekCtx | ProgramWeekCtx[] | null;
 };
 
 type ProgramCtxRow = {
-	program_days: ProgramDayCtx | ProgramDayCtx[] | null;
+	day: ProgramDayCtx | ProgramDayCtx[] | null;
 };
 
 const normalizeOne = <T,>(v: T | T[] | null | undefined): T | null =>
@@ -63,17 +65,17 @@ function deriveEffectiveContext(
 ): ProgramContext | undefined {
 	if (navCtx) return navCtx;
 	if (!row) return undefined;
-	const pd = normalizeOne(row.program_days);
+	const pd = normalizeOne(row.day);
 	if (!pd) return undefined;
-	const pw = normalizeOne(pd.program_weeks);
+	const pw = normalizeOne(pd.week);
 	if (!pw) return undefined;
-	const prog = normalizeOne(pw.programs);
+	const prog = normalizeOne(pw.program);
 	if (!prog) return undefined;
 	return {
 		programName: prog.name,
-		dayNumber: pd.day_number,
+		dayIndex: pd.day_index,
 		weekNumber: pw.week_number,
-		totalDays: prog.total_days ?? null,
+		totalWeeks: prog.total_weeks ?? prog.duration_weeks ?? null,
 	};
 }
 
@@ -131,7 +133,7 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 			wsApi()
 				.get('program_day_workouts', {
 					searchParams: {
-						select: 'program_days(day_number,program_weeks(week_number,programs(id,name,total_days)))',
+						select: 'workout_id,sort_order,day:program_days(day_index,label,week:program_weeks(week_number,program:programs(id,name,total_weeks,duration_weeks)))',
 						workout_id: `eq.${workoutId}`,
 						limit: '1',
 					},
@@ -275,13 +277,14 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 								{ color: '#6B7280' },
 							]}
 						>
-							{effectiveContext.programName} &middot; Day{' '}
-							{effectiveContext.dayNumber}
-							{effectiveContext.totalDays
-								? ` of ${effectiveContext.totalDays}`
+							{effectiveContext.programName} &middot; Wk{' '}
+							{effectiveContext.weekNumber} &middot; Day{' '}
+							{effectiveContext.dayIndex}
+							{effectiveContext.totalWeeks
+								? ` · ${effectiveContext.totalWeeks}wk`
 								: ''}
 						</Text>
-						{effectiveContext.totalDays ? (
+						{effectiveContext.totalWeeks ? (
 							<View
 								style={[
 									styles.progressTrack,
@@ -293,7 +296,7 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 										styles.progressFill,
 										{
 											backgroundColor: '#3B82F6',
-											width: `${Math.min((effectiveContext.dayNumber / effectiveContext.totalDays) * 100, 100)}%`,
+											width: `${Math.min((effectiveContext.weekNumber / effectiveContext.totalWeeks) * 100, 100)}%`,
 										},
 									]}
 								/>

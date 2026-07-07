@@ -34,22 +34,25 @@ type Nav = StackNavigationProp<TrainingStackParamList>;
 type ProgramRowEmbed = {
 	id: string;
 	name: string;
-	total_days: number | null;
+	total_weeks: number | null;
+	duration_weeks: number | null;
 };
 
 type ProgramWeekRowEmbed = {
 	week_number: number;
-	programs: ProgramRowEmbed | ProgramRowEmbed[] | null;
+	program: ProgramRowEmbed | ProgramRowEmbed[] | null;
 };
 
 type ProgramDayRowEmbed = {
-	day_number: number;
-	program_weeks: ProgramWeekRowEmbed | ProgramWeekRowEmbed[] | null;
+	day_index: number;
+	label: string | null;
+	week: ProgramWeekRowEmbed | ProgramWeekRowEmbed[] | null;
 };
 
 type ProgramDayWorkoutRow = {
 	workout_id: string;
-	program_days: ProgramDayRowEmbed | ProgramDayRowEmbed[] | null;
+	sort_order: number | null;
+	day: ProgramDayRowEmbed | ProgramDayRowEmbed[] | null;
 };
 
 const normalizeOne = <T,>(v: T | T[] | null | undefined): T | null =>
@@ -59,19 +62,28 @@ function buildProgramCtxMap(
 	rows: ProgramDayWorkoutRow[],
 ): Map<string, ProgramContext> {
 	const map = new Map<string, ProgramContext>();
-	rows.forEach(row => {
+	const sorted = [...rows].sort((a, b) => {
+		const dayA = normalizeOne(a.day);
+		const dayB = normalizeOne(b.day);
+		const weekA = normalizeOne(dayA?.week ?? null);
+		const weekB = normalizeOne(dayB?.week ?? null);
+		const wn = (weekA?.week_number ?? 0) - (weekB?.week_number ?? 0);
+		if (wn !== 0) return wn;
+		return (dayA?.day_index ?? 0) - (dayB?.day_index ?? 0);
+	});
+	sorted.forEach(row => {
 		if (map.has(row.workout_id)) return;
-		const pd = normalizeOne(row.program_days);
+		const pd = normalizeOne(row.day);
 		if (!pd) return;
-		const pw = normalizeOne(pd.program_weeks);
+		const pw = normalizeOne(pd.week);
 		if (!pw) return;
-		const prog = normalizeOne(pw.programs);
+		const prog = normalizeOne(pw.program);
 		if (!prog) return;
 		map.set(row.workout_id, {
 			programName: prog.name,
-			dayNumber: pd.day_number,
+			dayIndex: pd.day_index,
 			weekNumber: pw.week_number,
-			totalDays: prog.total_days ?? null,
+			totalWeeks: prog.total_weeks ?? prog.duration_weeks ?? null,
 		});
 	});
 	return map;
@@ -126,7 +138,7 @@ const useToday = () => {
 			wsApi()
 				.get('program_day_workouts', {
 					searchParams: {
-						select: 'workout_id,program_days(day_number,program_weeks(week_number,programs(id,name,total_days)))',
+						select: 'workout_id,sort_order,day:program_days(day_index,label,week:program_weeks(week_number,program:programs(id,name,total_weeks,duration_weeks)))',
 						workout_id: `in.(${ids.join(',')})`,
 						limit: '50',
 					},
@@ -340,9 +352,9 @@ const Today = () => {
 							>
 								{programContext.programName} &middot; Wk{' '}
 								{programContext.weekNumber} &middot; Day{' '}
-								{programContext.dayNumber}
-								{programContext.totalDays
-									? ` of ${programContext.totalDays}`
+								{programContext.dayIndex}
+								{programContext.totalWeeks
+									? ` · ${programContext.totalWeeks}wk`
 									: ''}
 							</Text>
 						) : null}

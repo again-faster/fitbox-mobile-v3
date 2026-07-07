@@ -1,8 +1,8 @@
 export type ProgramContext = {
 	programName: string;
-	dayNumber: number;
-	weekNumber: number;
-	totalDays: number | null;
+	dayIndex: number; // from program_days.day_index
+	weekNumber: number; // from program_weeks.week_number
+	totalWeeks: number | null; // from programs.total_weeks ?? programs.duration_weeks
 };
 
 export type WorkoutAssignment = {
