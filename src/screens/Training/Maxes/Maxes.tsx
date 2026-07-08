@@ -25,7 +25,7 @@ const Maxes = () => {
 				.get('athlete_rms', {
 					searchParams: {
 						select: 'id,rep_max,weight_kg,achieved_on,notes,movements(name)',
-						user_id: `eq.${uid}`,
+						athlete_id: `eq.${uid}`,
 						rep_max: 'in.(1,3,5)',
 						order: 'movements(name).asc,rep_max.asc',
 					},
