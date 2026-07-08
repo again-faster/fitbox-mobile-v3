@@ -429,7 +429,7 @@ const Today = () => {
 							<Text
 								style={[styles.cardTitle, { color: '#111827' }]}
 							>
-								Log today&apos;s check-in
+								Wellness check-in
 							</Text>
 							<Text
 								style={[styles.cardSub, { color: '#6B7280' }]}
@@ -448,7 +448,7 @@ const Today = () => {
 				<View style={styles.wellnessDoneRow}>
 					<Ionicons name="check-circle" size={16} color="#43A047" />
 					<Text style={styles.wellnessDoneText}>
-						Wellness logged today
+						Wellness check-in done
 					</Text>
 				</View>
 			)}
