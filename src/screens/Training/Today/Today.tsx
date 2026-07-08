@@ -28,6 +28,7 @@ import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useRef, useEffect, useMemo } from 'react';
 import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
 import SkeletonCard from '../components/SkeletonCard';
+import ConsistencyCard from './components/ConsistencyCard';
 
 type Nav = StackNavigationProp<TrainingStackParamList>;
 
@@ -409,6 +410,8 @@ const Today = () => {
 					)}
 				</TouchableOpacity>
 			</View>
+
+			<ConsistencyCard />
 
 			{/* Wellness check-in card */}
 			<TouchableOpacity
