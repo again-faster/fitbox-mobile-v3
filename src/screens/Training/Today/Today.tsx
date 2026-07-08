@@ -414,29 +414,44 @@ const Today = () => {
 			<ConsistencyCard />
 
 			{/* Wellness check-in card */}
-			<TouchableOpacity
-				style={[styles.card, { backgroundColor: '#FFFFFF' }]}
-				onPress={() => nav.navigate('TrainingWellness')}
-			>
-				<View style={styles.cardRow}>
-					<Ionicons
-						name={hasWellnessToday ? 'heart' : 'heart-outline'}
-						size={22}
-						color={hasWellnessToday ? '#3B82F6' : '#6B7280'}
-					/>
-					<View style={styles.cardText}>
-						<Text style={[styles.cardTitle, { color: '#111827' }]}>
-							{hasWellnessToday
-								? "Today's wellness logged"
-								: "Log today's check-in"}
-						</Text>
-						<Text style={[styles.cardSub, { color: '#6B7280' }]}>
-							{hasWellnessToday ? 'Tap to edit' : '≈ 10 seconds'}
-						</Text>
+			{!hasWellnessToday ? (
+				<TouchableOpacity
+					style={[styles.card, { backgroundColor: '#FFFFFF' }]}
+					onPress={() => nav.navigate('TrainingWellness')}
+				>
+					<View style={styles.cardRow}>
+						<Ionicons
+							name="heart-outline"
+							size={22}
+							color="#6B7280"
+						/>
+						<View style={styles.cardText}>
+							<Text
+								style={[styles.cardTitle, { color: '#111827' }]}
+							>
+								Log today&apos;s check-in
+							</Text>
+							<Text
+								style={[styles.cardSub, { color: '#6B7280' }]}
+							>
+								≈ 10 seconds
+							</Text>
+						</View>
+						<Ionicons
+							name="chevron-right"
+							size={20}
+							color="#6B7280"
+						/>
 					</View>
-					<Ionicons name="chevron-right" size={20} color="#6B7280" />
+				</TouchableOpacity>
+			) : (
+				<View style={styles.wellnessDoneRow}>
+					<Ionicons name="check-circle" size={16} color="#43A047" />
+					<Text style={styles.wellnessDoneText}>
+						Wellness logged today
+					</Text>
 				</View>
-			</TouchableOpacity>
+			)}
 
 			{/* Today's training */}
 			<Text style={[styles.sectionHeader, { color: '#111827' }]}>
@@ -600,6 +615,17 @@ const styles = StyleSheet.create({
 	prCard: { borderRadius: 12, padding: 14, width: 140, gap: 6 },
 	prName: { fontSize: 13, fontWeight: '600' },
 	prWeight: { fontSize: 15, fontWeight: '700' },
+	wellnessDoneRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 6,
+		paddingHorizontal: 4,
+		paddingVertical: 2,
+	},
+	wellnessDoneText: {
+		fontSize: 13,
+		color: '#6B7280',
+	},
 });
 
 export default Today;
