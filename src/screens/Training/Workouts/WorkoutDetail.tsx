@@ -8,6 +8,7 @@ import {
 	isBetterScore,
 	useWorkoutPersonalBest,
 } from '@/screens/Training/hooks/useWorkoutPersonalBest';
+import Confetti from '@/screens/Training/components/Confetti';
 import { MovementSheet } from '@/screens/Training/components/MovementSheet';
 import { PRBadge } from '@/screens/Training/components/PRBadge';
 import type {
@@ -829,6 +830,7 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 					</Text>
 				</TouchableOpacity>
 			) : null}
+			{isPR ? <Confetti /> : null}
 		</View>
 	);
 };
