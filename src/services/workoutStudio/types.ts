@@ -158,7 +158,7 @@ export type PersonalWorkout = {
 };
 
 export type WellnessTrend = {
-	dimension: string;
+	slug: string;
 	label: string;
 	recent_avg: number | null;
 	baseline_avg: number | null;

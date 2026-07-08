@@ -140,7 +140,7 @@ const Wellness = ({ navigation }: Props) => {
 					wsApi()
 						.post('wellness_dimension_responses', {
 							json: {
-								wellness_response_id: responseId,
+								response_id: responseId,
 								dimension_id: d.id,
 								value: scores[d.id] ?? 3,
 							},
@@ -301,7 +301,7 @@ const Wellness = ({ navigation }: Props) => {
 						}
 						return (
 							<View
-								key={t.dimension}
+								key={t.slug}
 								style={[
 									styles.trendCard,
 									{ backgroundColor: '#FFFFFF' },
