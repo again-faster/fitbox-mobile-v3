@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
-	Dimensions,
 	ImageSourcePropType,
 	StyleSheet,
+	useWindowDimensions,
 	View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-// import useAuth from '@/auth/hooks/useAuth';
 import useAuth from '@/auth/hooks/useAuth';
 import { Button, ImageVariant, Row, Spacer, Text } from '@/components/atoms';
 import { Modal } from '@/components/molecules';
@@ -18,17 +18,38 @@ import { ApplicationScreenProps } from '@/types/navigation';
 import { Constant } from '@/utils';
 import { useTranslation } from 'react-i18next';
 
-const { width } = Dimensions.get('window');
-
 const LandingScreen = ({ navigation }: ApplicationScreenProps) => {
 	const { t } = useTranslation(['landing', 'common']);
 	const { getApiUrl, setApiUrl } = useAuth();
+	const { width } = useWindowDimensions();
+	const insets = useSafeAreaInsets();
 
 	// enable or disable the environment picker by setting the value in Constant.ts
 	const enableEnvPicker = Constant.ENABLE_ENV_PICKER;
 
 	const [optionsVisibility, setOptionsVisibility] = useState<boolean>(false);
 	const [currentApi, setCurrentApi] = useState<string>(getApiUrl());
+
+	const layoutStyles = useMemo(
+		() => ({
+			main: {
+				paddingTop: insets.top,
+				paddingBottom: insets.bottom,
+			},
+			container: {
+				paddingBottom: width * 0.3,
+			},
+			logoImage: {
+				top: width * 0.35,
+				width: width * 0.6,
+				height: width * 0.3,
+			},
+			changeEnvButton: {
+				top: insets.top + width * 0.02,
+			},
+		}),
+		[insets.bottom, insets.top, width],
+	);
 
 	const toggleOptionVisibility = () =>
 		setOptionsVisibility(!optionsVisibility);
@@ -71,9 +92,14 @@ const LandingScreen = ({ navigation }: ApplicationScreenProps) => {
 	};
 
 	return (
-		<View style={styles.main}>
+		<View style={[styles.main, layoutStyles.main]}>
 			{enableEnvPicker && (
-				<View style={styles.changeEnvButton}>
+				<View
+					style={[
+						styles.changeEnvButton,
+						layoutStyles.changeEnvButton,
+					]}
+				>
 					<Button
 						title={currentApi
 							.replace('https://', '')
@@ -88,24 +114,24 @@ const LandingScreen = ({ navigation }: ApplicationScreenProps) => {
 				</View>
 			)}
 
-			<View style={styles.container}>
+			<View style={[styles.container, layoutStyles.container]}>
 				<ImageVariant
 					source={LogoImage as ImageSourcePropType}
-					height={50}
-					style={styles.logoImage}
-					width={50}
+					style={[styles.logoImage, layoutStyles.logoImage]}
 				/>
 
-				<View>
+				<View style={styles.buttonGroup}>
 					<Button
 						title={t('landing:login')}
 						variant="darkgray"
 						onPress={handleLogin}
+						style={{ width: width * 0.55 }}
 					/>
 					<Spacer size="rg" />
 					<Button
 						title={t('landing:register')}
 						onPress={toggleOptionVisibility}
+						style={{ width: width * 0.55 }}
 					/>
 					<Spacer size="rg" />
 				</View>
@@ -153,13 +179,16 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		justifyContent: 'space-between',
-		paddingBottom: width * 0.3,
+		width: '100%',
+		paddingHorizontal: '10%',
 	},
 	logoImage: {
-		top: width * 0.35,
+		alignSelf: 'center',
 		resizeMode: 'contain',
-		width: width * 0.6,
-		height: width * 0.3,
+	},
+	buttonGroup: {
+		width: '100%',
+		alignItems: 'center',
 	},
 	mainContainer: {
 		flex: 1,
@@ -185,6 +214,5 @@ const styles = StyleSheet.create({
 	changeEnvButton: {
 		position: 'absolute',
 		right: '5%',
-		top: '5%',
 	},
 });

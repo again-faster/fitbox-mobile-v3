@@ -150,6 +150,11 @@ const BETA_ACTIVE = 'https://fitbox.iq/beta_active';
  */
 const MIN_VERSION_URL = 'https://fitbox.iq/appVersionConfig.json';
 
+const APP_URL =
+	Platform.OS === 'android'
+		? 'https://play.google.com/store/apps/details?id=com.wa.fitbox'
+		: 'https://apps.apple.com/US/app/id1462002702';
+
 export default {
 	ENABLE_ENV_PICKER,
 	MASQUERADE_USER_API_TOKEN,
@@ -172,4 +177,5 @@ export default {
 	TRANSACTION_FEES,
 	BETA_ACTIVE,
 	MIN_VERSION_URL,
+	APP_URL,
 };

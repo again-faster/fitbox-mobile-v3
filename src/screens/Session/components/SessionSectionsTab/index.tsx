@@ -8,9 +8,11 @@ import {
 	Text,
 } from '@/components/atoms';
 import { Loader, Modal } from '@/components/molecules';
+import { getScore } from '@/services/leaderboards';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import { ApplicationStackParamList } from '@/types/navigation';
+import { ScoreResultType } from '@/types/schemas/leaderboards';
 import {
 	SessionDetailSchemaType,
 	SessionSectionSchemaType,
@@ -20,7 +22,7 @@ import { Constant, Func, Say } from '@/utils';
 import { SessionTabsEnum } from '@/utils/Enum';
 import useStore from '@/zustand/Store';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { isArray, isEmpty, parseInt } from 'lodash';
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -70,6 +72,16 @@ const SessionsSectionsTab = ({
 	const isAttend = !!session.member_attendance.some(
 		member => member.user_id === loggedInUser?.id,
 	);
+
+	const { data: allScores = [] } = useQuery({
+		queryKey: ['sessionScores', session.id],
+		queryFn: async () => {
+			const res = await getScore(session.id);
+			if (res.error) throw new Error(res.message);
+			return (res.data ?? []) as ScoreResultType[];
+		},
+		enabled: !!session.id,
+	});
 
 	useLayoutEffect(() => {
 		navigation.setOptions({
@@ -157,6 +169,10 @@ const SessionsSectionsTab = ({
 		void queryClient.invalidateQueries({
 			queryKey: ['sessionGetScheduleDetail'],
 		});
+
+		void queryClient.invalidateQueries({
+			queryKey: ['sessionScores', session.id],
+		});
 	};
 
 	const handleCloseVideo = () => setVideoModalActive(false);
@@ -167,10 +183,14 @@ const SessionsSectionsTab = ({
 		setVideoModalActive(false);
 	};
 
-	const submitScore = (section: SessionSectionSchemaType) => {
+	const submitScore = (
+		section: SessionSectionSchemaType,
+		hasLoggedScores: boolean,
+	) => {
 		navigation.navigate('Scoring', {
 			section,
 			sessionId: session.id,
+			isEdit: hasLoggedScores,
 		});
 	};
 
@@ -187,6 +207,10 @@ const SessionsSectionsTab = ({
 					...sData,
 					leaderboard_section_id: sData.id,
 				};
+
+				const hasLoggedScores = allScores.some(
+					score => score.wod_section_id === section.id,
+				);
 
 				if (fbWod != null) {
 					// Merge data if section have fb_wod
@@ -819,9 +843,16 @@ const SessionsSectionsTab = ({
 									{section.scored && isAttend && (
 										<Row>
 											<Button
-												title="Add Result"
+												title={
+													hasLoggedScores
+														? 'Edit Result'
+														: 'Add Result'
+												}
 												onPress={() =>
-													submitScore(section)
+													submitScore(
+														section,
+														hasLoggedScores,
+													)
 												}
 												labelStyle={styles.logResultBtn}
 												style={
@@ -861,7 +892,7 @@ const SessionsSectionsTab = ({
 				);
 			})
 		);
-	}, [sections, toggledSections, isAttend]);
+	}, [sections, toggledSections, isAttend, allScores]);
 
 	if (Array.isArray(sections)) {
 		if (sections.length > 0) {
