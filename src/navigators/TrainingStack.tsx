@@ -24,6 +24,15 @@ import RunWorkout from '@/screens/Training/Workouts/RunWorkout';
 import InjuryList from '@/screens/Training/Injuries/InjuryList';
 import InjuryLog from '@/screens/Training/Injuries/InjuryLog';
 import InjuryDailyUpdate from '@/screens/Training/Injuries/InjuryDailyUpdate';
+import WorkoutComplete from '@/screens/Training/Workouts/WorkoutComplete';
+import ResultDetail from '@/screens/Training/Results/ResultDetail';
+import TrainingProfile from '@/screens/Training/Profile/TrainingProfile';
+import Benchmarks from '@/screens/Training/Benchmarks/Benchmarks';
+import Progress from '@/screens/Training/Progress/Progress';
+import Wearables from '@/screens/Training/Wearables/Wearables';
+import WeeklyRecap from '@/screens/Training/Recap/WeeklyRecap';
+import TrainingMore from '@/screens/Training/More/TrainingMore';
+import BookingsHub from '@/screens/Training/Bookings/BookingsHub';
 
 const Stack = createStackNavigator<TrainingStackParamList>();
 
@@ -78,9 +87,24 @@ const TrainingStackNavigator = () => {
 				})}
 			/>
 			<Stack.Screen
+				name="TrainingBenchmarks"
+				component={Benchmarks}
+				options={{ title: 'Benchmarks' }}
+			/>
+			<Stack.Screen
+				name="TrainingWorkoutComplete"
+				component={WorkoutComplete}
+				options={{ headerShown: false, gestureEnabled: false }}
+			/>
+			<Stack.Screen
 				name="TrainingResults"
 				component={Results}
 				options={{ title: 'My Results' }}
+			/>
+			<Stack.Screen
+				name="TrainingResultDetail"
+				component={ResultDetail}
+				options={{ title: 'Workout result' }}
 			/>
 			<Stack.Screen
 				name="TrainingGymFeed"
@@ -118,9 +142,39 @@ const TrainingStackNavigator = () => {
 				options={{ title: 'Training Settings' }}
 			/>
 			<Stack.Screen
+				name="TrainingProgress"
+				component={Progress}
+				options={{ title: 'My Progress' }}
+			/>
+			<Stack.Screen
+				name="TrainingWeeklyRecap"
+				component={WeeklyRecap}
+				options={{ title: 'Weekly Recap' }}
+			/>
+			<Stack.Screen
+				name="TrainingMore"
+				component={TrainingMore}
+				options={{ title: 'More' }}
+			/>
+			<Stack.Screen
+				name="TrainingPT"
+				component={BookingsHub}
+				options={{ title: 'Bookings' }}
+			/>
+			<Stack.Screen
+				name="TrainingProfile"
+				component={TrainingProfile}
+				options={{ title: 'Training Profile' }}
+			/>
+			<Stack.Screen
 				name="TrainingAppleHealth"
 				component={AppleHealthScreen}
 				options={{ title: 'Apple Health' }}
+			/>
+			<Stack.Screen
+				name="TrainingWearables"
+				component={Wearables}
+				options={{ title: 'Wearables' }}
 			/>
 			<Stack.Screen
 				name="TrainingBuildList"

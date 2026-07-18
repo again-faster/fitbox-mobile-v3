@@ -1,9 +1,6 @@
-﻿import { clearWSSession } from '@/services/workoutStudio/auth';
-import { useTheme } from '@/theme';
-import type { TrainingStackParamList } from '@/types/navigation';
-import type { StackScreenProps } from '@react-navigation/stack';
+import { useState } from 'react';
 import {
-	Platform,
+	ScrollView,
 	StyleSheet,
 	Switch,
 	Text,
@@ -11,138 +8,223 @@ import {
 	View,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useState } from 'react';
+import type { StackScreenProps } from '@react-navigation/stack';
+import { clearWSSession } from '@/services/workoutStudio/auth';
+import { mmkvStorage } from '@/storage';
+import { trainingTheme } from '@/theme/training';
+import type { TrainingStackParamList } from '@/types/navigation';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingSettings'>;
+const wellnessPromptsEnabledKey = 'training.wellnessPromptsEnabled';
+const wellnessPromptDismissedDateKey = 'training.wellnessPromptDismissedDate';
 
 const TrainingSettings = ({ navigation }: Props) => {
-	const { colors } = useTheme();
 	const [unitKg, setUnitKg] = useState(true);
 	const [restSound, setRestSound] = useState<'off' | 'chime' | 'vibrate'>(
 		'off',
 	);
-
+	const [wellnessPromptsEnabled, setWellnessPromptsEnabled] = useState(
+		() => mmkvStorage.getString(wellnessPromptsEnabledKey) !== 'false',
+	);
+	const updateWellnessPrompts = (enabled: boolean) => {
+		mmkvStorage.set(wellnessPromptsEnabledKey, String(enabled));
+		if (enabled) mmkvStorage.delete(wellnessPromptDismissedDateKey);
+		setWellnessPromptsEnabled(enabled);
+	};
 	const disconnect = () => {
-		clearWSSession();
+		void clearWSSession();
 		navigation.replace('TrainingRoot');
 	};
+	const chevron = (
+		<Ionicons
+			name="chevron-right"
+			size={20}
+			color={trainingTheme.colors.textMuted}
+		/>
+	);
 
 	return (
-		<View style={[styles.container, { backgroundColor: '#F9FAFB' }]}>
-			{/* Unit preference */}
-			<View style={[styles.row, { backgroundColor: '#FFFFFF' }]}>
-				<Text style={[styles.label, { color: '#111827' }]}>
-					Weight unit
+		<ScrollView
+			style={styles.screen}
+			contentContainerStyle={styles.container}
+		>
+			<View style={styles.header}>
+				<Text style={styles.title}>Training settings</Text>
+				<Text style={styles.subtitle}>
+					Personalise your workout experience.
 				</Text>
-				<View style={styles.unitToggle}>
-					<Text
-						style={[
-							styles.unitLabel,
-							{ color: unitKg ? '#3B82F6' : '#6B7280' },
-						]}
-					>
+			</View>
+			<TouchableOpacity
+				style={styles.row}
+				onPress={() => navigation.navigate('TrainingProfile')}
+			>
+				<View>
+					<Text style={styles.label}>Training profile</Text>
+					<Text style={styles.description}>
+						Scaling level and rep maxes
+					</Text>
+				</View>
+				{chevron}
+			</TouchableOpacity>
+			<View style={styles.row}>
+				<Text style={styles.label}>Weight unit</Text>
+				<View style={styles.inline}>
+					<Text style={[styles.unit, unitKg && styles.active]}>
 						kg
 					</Text>
 					<Switch
 						value={!unitKg}
-						onValueChange={v => setUnitKg(!v)}
-						trackColor={{ true: '#3B82F6', false: '#6B7280' }}
+						onValueChange={value => setUnitKg(!value)}
+						trackColor={{
+							true: trainingTheme.colors.primary,
+							false: trainingTheme.colors.border,
+						}}
 					/>
-					<Text
-						style={[
-							styles.unitLabel,
-							{ color: !unitKg ? '#3B82F6' : '#6B7280' },
-						]}
-					>
+					<Text style={[styles.unit, !unitKg && styles.active]}>
 						lb
 					</Text>
 				</View>
 			</View>
-
-			{/* Rest timer sound */}
-			<View style={[styles.section, { backgroundColor: '#FFFFFF' }]}>
-				<Text style={[styles.sectionTitle, { color: '#6B7280' }]}>
-					Rest timer sound
-				</Text>
-				{(['off', 'chime', 'vibrate'] as const).map(opt => (
+			<View style={styles.section}>
+				<Text style={styles.sectionTitle}>REST TIMER SOUND</Text>
+				{(['off', 'chime', 'vibrate'] as const).map(option => (
 					<TouchableOpacity
-						key={opt}
-						style={styles.optRow}
-						onPress={() => setRestSound(opt)}
+						key={option}
+						style={styles.option}
+						onPress={() => setRestSound(option)}
 					>
 						<Ionicons
 							name={
-								restSound === opt
+								restSound === option
 									? 'radiobox-marked'
 									: 'radiobox-blank'
 							}
-							size={20}
-							color={restSound === opt ? '#3B82F6' : '#6B7280'}
+							size={21}
+							color={
+								restSound === option
+									? trainingTheme.colors.primary
+									: trainingTheme.colors.textMuted
+							}
 						/>
-						<Text style={[styles.optLabel, { color: '#111827' }]}>
-							{opt.charAt(0).toUpperCase() + opt.slice(1)}
+						<Text style={styles.optionLabel}>
+							{option.charAt(0).toUpperCase() + option.slice(1)}
 						</Text>
 					</TouchableOpacity>
 				))}
 			</View>
-
-			{/* Wellness consent */}
+			<View style={styles.row}>
+				<View style={styles.rowCopy}>
+					<Text style={styles.label}>Daily wellness prompt</Text>
+					<Text style={styles.description}>
+						Show a check-in reminder each day
+					</Text>
+				</View>
+				<Switch
+					value={wellnessPromptsEnabled}
+					onValueChange={updateWellnessPrompts}
+					trackColor={{
+						true: trainingTheme.colors.primary,
+						false: trainingTheme.colors.border,
+					}}
+				/>
+			</View>
 			<TouchableOpacity
-				style={[styles.row, { backgroundColor: '#FFFFFF' }]}
+				style={styles.row}
 				onPress={() => navigation.navigate('TrainingWellness')}
 			>
-				<Text style={[styles.label, { color: '#111827' }]}>
-					Wellness consent
-				</Text>
-				<Ionicons name="chevron-right" size={20} color="#6B7280" />
+				<Text style={styles.label}>Wellness consent</Text>
+				{chevron}
 			</TouchableOpacity>
-
-			{/* Apple Health — iOS only */}
-			{Platform.OS === 'ios' ? (
-				<TouchableOpacity
-					style={[styles.row, { backgroundColor: '#FFFFFF' }]}
-					onPress={() => navigation.navigate('TrainingAppleHealth')}
-				>
-					<Text style={[styles.label, { color: '#111827' }]}>
-						Apple Health
-					</Text>
-					<Ionicons name="chevron-right" size={20} color="#6B7280" />
-				</TouchableOpacity>
-			) : null}
-
-			{/* Disconnect */}
 			<TouchableOpacity
-				style={[styles.row, { backgroundColor: '#FFFFFF' }]}
+				style={styles.row}
+				onPress={() => navigation.navigate('TrainingWearables')}
+			>
+				<View>
+					<Text style={styles.label}>Wearables</Text>
+					<Text style={styles.description}>
+						Connections, sync and readiness
+					</Text>
+				</View>
+				{chevron}
+			</TouchableOpacity>
+			<TouchableOpacity
+				style={[styles.row, styles.disconnect]}
 				onPress={disconnect}
 			>
-				<Text style={[styles.label, { color: colors.danger }]}>
+				<Text style={[styles.label, styles.danger]}>
 					Disconnect Training account
 				</Text>
 			</TouchableOpacity>
-		</View>
+		</ScrollView>
 	);
 };
 
 const styles = StyleSheet.create({
-	container: { flex: 1, padding: 16, gap: 12 },
+	screen: { flex: 1, backgroundColor: trainingTheme.colors.background },
+	container: { padding: 16, paddingBottom: 48, gap: 12 },
+	header: { marginBottom: 4 },
+	title: {
+		color: trainingTheme.colors.text,
+		fontSize: 26,
+		fontWeight: '700',
+	},
+	subtitle: {
+		color: trainingTheme.colors.textMuted,
+		fontSize: 14,
+		marginTop: 4,
+	},
 	row: {
-		borderRadius: 12,
+		minHeight: 72,
+		backgroundColor: trainingTheme.colors.surface,
+		borderColor: trainingTheme.colors.border,
+		borderWidth: 1,
+		borderRadius: 18,
 		padding: 16,
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'space-between',
 	},
-	label: { fontSize: 16 },
-	unitToggle: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-	unitLabel: { fontSize: 15, fontWeight: '600' },
-	section: { borderRadius: 12, padding: 16, gap: 12 },
-	sectionTitle: {
-		fontSize: 13,
-		textTransform: 'uppercase',
-		letterSpacing: 0.5,
+	section: {
+		backgroundColor: trainingTheme.colors.surface,
+		borderColor: trainingTheme.colors.border,
+		borderWidth: 1,
+		borderRadius: 18,
+		padding: 16,
+		gap: 14,
 	},
-	optRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-	optLabel: { fontSize: 15 },
+	label: {
+		color: trainingTheme.colors.text,
+		fontSize: 16,
+		fontWeight: '600',
+	},
+	description: {
+		color: trainingTheme.colors.textMuted,
+		fontSize: 12,
+		marginTop: 3,
+	},
+	rowCopy: { flex: 1, paddingRight: 12 },
+	inline: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+	unit: {
+		color: trainingTheme.colors.textMuted,
+		fontSize: 15,
+		fontWeight: '600',
+	},
+	active: { color: trainingTheme.colors.primary },
+	sectionTitle: {
+		color: trainingTheme.colors.textMuted,
+		fontSize: 12,
+		fontWeight: '700',
+		letterSpacing: 0.8,
+	},
+	option: {
+		minHeight: 44,
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 11,
+	},
+	optionLabel: { color: trainingTheme.colors.text, fontSize: 15 },
+	disconnect: { marginTop: 6, justifyContent: 'center' },
+	danger: { color: trainingTheme.colors.danger },
 });
 
 export default TrainingSettings;

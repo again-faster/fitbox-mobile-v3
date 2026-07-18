@@ -6,6 +6,7 @@ import {
 import { mmkvStorage } from '@/storage';
 import {
 	ActivityIndicator,
+	Alert,
 	Platform,
 	StyleSheet,
 	Switch,
@@ -47,6 +48,11 @@ const AppleHealthScreen = () => {
 				mmkvStorage.set('healthkit.authorized', 'true');
 				await configureBgSync();
 				setIsAuthorized(true);
+			} else {
+				Alert.alert(
+					'Apple Health not connected',
+					'Review Health permissions and try again.',
+				);
 			}
 		} else {
 			stopBgSync();
@@ -62,9 +68,17 @@ const AppleHealthScreen = () => {
 			setLastSyncedAt(
 				mmkvStorage.getString('healthkit.lastSyncedAt') ?? null,
 			);
+			Alert.alert(
+				'Sync complete',
+				'Your latest Apple Health data has been sent to Workout Studio.',
+			);
 		} catch (e) {
 			// eslint-disable-next-line no-console
 			console.error('[AppleHealth] manual sync error', e);
+			Alert.alert(
+				"Apple Health couldn't sync",
+				'Check your connection and Health permissions, then try again.',
+			);
 		} finally {
 			setIsSyncing(false);
 		}

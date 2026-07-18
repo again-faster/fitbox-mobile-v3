@@ -16,6 +16,9 @@ import type {
 	ScalingLevel,
 } from '@/services/workoutStudio/types';
 import WorkoutLeaderboard from '@/screens/Training/Workouts/WorkoutLeaderboard';
+import PrimaryButton from '@/screens/Training/components/PrimaryButton';
+import { trainingTheme } from '@/theme/training';
+import { useScalingPreference } from '@/screens/Training/hooks/useScalingPreference';
 import { mmkvStorage } from '@/storage';
 import { useTheme } from '@/theme';
 import type { TrainingStackParamList } from '@/types/navigation';
@@ -95,12 +98,14 @@ type WorkoutShell = {
 	estimated_duration_minutes: number | null;
 };
 
-const WorkoutDetailScreen = ({ route }: Props) => {
+const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	const { colors } = useTheme();
 	const { workoutId, assignmentId, programContext } = route.params;
 	const session = getStoredWSSession();
 	const uid = session?.user.id;
 	const tenantId = session?.user.active_tenant_id;
+	const scalingPreference = useScalingPreference(uid, tenantId);
+	const serverScalingApplied = useRef(false);
 
 	const [selectedMovement, setSelectedMovement] = useState<{
 		id: string;
@@ -110,6 +115,15 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 		const stored = mmkvStorage.getString(SCALING_LEVEL_KEY);
 		return stored === 'scaled' || stored === 'foundations' ? stored : 'rx';
 	});
+
+	useEffect(() => {
+		if (serverScalingApplied.current || !scalingPreference.preferredLevel) {
+			return;
+		}
+		serverScalingApplied.current = true;
+		setScalingLevel(scalingPreference.preferredLevel);
+		mmkvStorage.set(SCALING_LEVEL_KEY, scalingPreference.preferredLevel);
+	}, [scalingPreference.preferredLevel]);
 	const [notes, setNotes] = useState('');
 	const [timeMin, setTimeMin] = useState('');
 	const [timeSec, setTimeSec] = useState('');
@@ -184,17 +198,21 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 					},
 				})
 				.json<ProgramCtxRow[]>()
-				.then(r => r[0]),
+				.then(r => r[0] ?? null),
 	});
 
 	const effectiveContext = useMemo(
-		() => deriveEffectiveContext(programContext, fallbackRow),
+		() => deriveEffectiveContext(programContext, fallbackRow ?? undefined),
 		[programContext, fallbackRow],
 	);
 
 	const selectScalingLevel = (level: ScalingLevel) => {
 		setScalingLevel(level);
 		mmkvStorage.set(SCALING_LEVEL_KEY, level);
+		void scalingPreference.savePreference(level).catch(() => {
+			// The local value remains available as an offline fallback. The server
+			// preference can be retried the next time the member changes it.
+		});
 	};
 
 	const scalingNotes = useMemo(() => {
@@ -401,6 +419,25 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 						) : null}
 					</View>
 				) : null}
+
+				<View style={styles.startCard}>
+					<View style={styles.startCopy}>
+						<Text style={styles.startTitle}>Ready to train?</Text>
+						<Text style={styles.startDescription}>
+							Track sets, rest periods and elapsed time as you go.
+						</Text>
+					</View>
+					<PrimaryButton
+						label="Start workout"
+						onPress={() =>
+							navigation.navigate('TrainingRunWorkout', {
+								workoutId,
+								assignmentId,
+								workoutName: workout.name,
+							})
+						}
+					/>
+				</View>
 
 				<View style={styles.tabRow}>
 					<TouchableOpacity
@@ -844,6 +881,28 @@ const styles = StyleSheet.create({
 	programStripText: { fontSize: 12, marginBottom: 6 },
 	progressTrack: { height: 4, borderRadius: 2, overflow: 'hidden' },
 	progressFill: { height: 4, borderRadius: 2 },
+	startCard: {
+		backgroundColor: trainingTheme.colors.primarySoft,
+		borderColor: '#C9D9FF',
+		borderWidth: StyleSheet.hairlineWidth,
+		borderRadius: trainingTheme.radius.md,
+		padding: trainingTheme.spacing.lg,
+		gap: trainingTheme.spacing.md,
+		marginBottom: trainingTheme.spacing.lg,
+	},
+	startCopy: { gap: trainingTheme.spacing.xs },
+	startTitle: {
+		color: trainingTheme.colors.text,
+		fontFamily: 'Inter-Variable',
+		fontSize: 17,
+		fontWeight: '700',
+	},
+	startDescription: {
+		color: trainingTheme.colors.textMuted,
+		fontFamily: 'Inter-Variable',
+		fontSize: 13,
+		lineHeight: 19,
+	},
 	sectionsCard: {
 		backgroundColor: '#FFFFFF',
 		borderRadius: 12,

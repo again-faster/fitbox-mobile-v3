@@ -26,6 +26,7 @@ import { mmkvStorage } from '@/storage';
 import { useTheme } from '@/theme';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import resources from '@/theme/resources';
 import { ApplicationStackParamList } from '@/types/navigation';
 import { GymVenueType } from '@/types/schemas/gym';
@@ -100,7 +101,7 @@ const actionButtons = [
 ];
 
 const { height } = Dimensions.get('window');
-const { metrics, fonts } = config;
+const { metrics } = config;
 
 // const isAndroid = Platform.OS === 'ios';
 
@@ -116,7 +117,7 @@ const Dashboard = () => {
 		AnnouncementsItemType[]
 	>([]);
 	// const headerHeight = useHeaderHeight();
-	const { variant, navigationTheme } = useTheme();
+	const { variant } = useTheme();
 
 	const headerMarginTop = Platform.OS === 'ios' && Platform.isPad ? 50 : 0;
 
@@ -898,13 +899,16 @@ const Dashboard = () => {
 				<Row
 					align="center"
 					spacing="space-between"
-					style={{ marginBottom: config.metrics.lg }}
+					style={styles.greetingRow}
 				>
 					<View>
 						<Text bold size="xxl">
 							{t('dashboard:sessions.member.greeting', {
 								name: user?.user_data.first_name ?? '',
 							})}
+						</Text>
+						<Text style={styles.greetingSubtitle}>
+							Here is your training at a glance
 						</Text>
 					</View>
 
@@ -937,10 +941,7 @@ const Dashboard = () => {
 					) : (
 						!isEmpty(attendanceReportState) && (
 							<TouchableOpacity
-								style={{
-									marginTop: config.metrics.lg,
-									marginBottom: config.metrics.xl,
-								}}
+								style={styles.attendanceCard}
 								onPress={handleAttendancePress}
 							>
 								{showAttendanceReportLabel && (
@@ -965,7 +966,10 @@ const Dashboard = () => {
 									</Row>
 								)}
 
-								<Row spacing="space-evenly">
+								<Row
+									spacing="space-evenly"
+									style={styles.attendanceStats}
+								>
 									{attendanceFilter.includes('month') && (
 										<View
 											style={
@@ -1102,7 +1106,11 @@ const Dashboard = () => {
 				) : (
 					upcomingSessionsState.length > 0 && (
 						<>
-							<Spacer size="md" />
+							<View style={styles.sectionHeadingRow}>
+								<Text bold size="lg">
+									Coming up
+								</Text>
+							</View>
 							<View style={styles.bookedSessionsContainer}>
 								{upcomingSessionsState // show only 1
 									.slice(0, 1)
@@ -1140,7 +1148,11 @@ const Dashboard = () => {
 					</>
 				) : (
 					<>
-						<Spacer size="xl" />
+						<View style={styles.sectionHeadingRow}>
+							<Text bold size="lg">
+								Explore
+							</Text>
+						</View>
 						<Row
 							spacing="space-between"
 							style={styles.presetFilters}
@@ -1158,12 +1170,7 @@ const Dashboard = () => {
 	};
 
 	return (
-		<SafeAreaView
-			style={[
-				layout.flex_1,
-				{ backgroundColor: navigationTheme.colors.background },
-			]}
-		>
+		<SafeAreaView style={[layout.flex_1, styles.screen]}>
 			<StatusBar
 				barStyle={variant === 'dark' ? 'light-content' : 'dark-content'}
 			/>
@@ -1175,7 +1182,7 @@ const Dashboard = () => {
 			<ScrollView
 				refreshing={refreshing}
 				onRefresh={onRefresh}
-				style={{ marginTop: headerMarginTop }}
+				style={[styles.scrollView, { marginTop: headerMarginTop }]}
 			>
 				<View style={styles.section}>
 					<View>
@@ -1230,15 +1237,45 @@ const Dashboard = () => {
 };
 
 const styles = StyleSheet.create({
+	screen: {
+		backgroundColor: memberTheme.colors.background,
+	},
+	scrollView: {
+		backgroundColor: memberTheme.colors.background,
+	},
 	section: {
-		paddingHorizontal: metrics.lg,
+		paddingHorizontal: memberTheme.spacing.lg,
 		paddingVertical: metrics.xl,
 		justifyContent: 'space-between',
 	},
+	greetingRow: {
+		marginBottom: memberTheme.spacing.md,
+	},
+	greetingSubtitle: {
+		color: memberTheme.colors.textMuted,
+		marginTop: memberTheme.spacing.xs,
+	},
+	attendanceCard: {
+		marginTop: memberTheme.spacing.lg,
+		marginBottom: memberTheme.spacing.xl,
+		padding: memberTheme.spacing.lg,
+		backgroundColor: memberTheme.colors.surface,
+		borderRadius: memberTheme.radius.lg,
+		borderWidth: 1,
+		borderColor: memberTheme.colors.border,
+		...memberTheme.shadow,
+	},
+	attendanceStats: {
+		paddingTop: memberTheme.spacing.sm,
+	},
+	sectionHeadingRow: {
+		marginTop: memberTheme.spacing.xl,
+		marginBottom: memberTheme.spacing.md,
+	},
 	bookedSessionsContainer: {
 		overflow: 'hidden',
-		gap: 1,
-		backgroundColor: fonts.colors.light,
+		borderRadius: memberTheme.radius.lg,
+		backgroundColor: memberTheme.colors.surface,
 	},
 	rowButton: {
 		flexDirection: 'row',
@@ -1310,15 +1347,15 @@ const styles = StyleSheet.create({
 	},
 	viewMoreButton: {
 		alignItems: 'flex-end',
-		backgroundColor: 'white',
-		padding: 5,
+		backgroundColor: 'transparent',
+		paddingTop: memberTheme.spacing.sm,
+		paddingHorizontal: memberTheme.spacing.sm,
 	},
 	viewMorePlaceholder: {
 		height: 27,
 	},
 	presetFilters: {
 		flexWrap: 'wrap',
-		marginTop: config.metrics.xl,
 	},
 	attendanceIcon: {
 		width: 25,
@@ -1345,8 +1382,7 @@ const styles = StyleSheet.create({
 	},
 	viewAttendance: {
 		marginBottom: config.metrics.sm,
-		color: config.colors.info,
-		textDecorationLine: 'underline',
+		color: memberTheme.colors.primary,
 	},
 });
 

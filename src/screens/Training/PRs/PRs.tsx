@@ -1,7 +1,6 @@
 ﻿import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import type { AthleteRM } from '@/services/workoutStudio/types';
-import { useTheme } from '@/theme';
 import type { TrainingStackParamList } from '@/types/navigation';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -16,12 +15,12 @@ import {
 	View,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { trainingTheme } from '@/theme/training';
 import SkeletonCard from '../components/SkeletonCard';
 
 type Nav = StackNavigationProp<TrainingStackParamList, 'TrainingPRs'>;
 
 const PRs = () => {
-	const { colors } = useTheme();
 	const navigation = useNavigation<Nav>();
 	const session = getStoredWSSession();
 	const uid = session?.user.id;
@@ -44,7 +43,7 @@ const PRs = () => {
 
 	return (
 		<FlatList
-			style={{ backgroundColor: '#F9FAFB' }}
+			style={styles.screen}
 			contentContainerStyle={styles.container}
 			data={data}
 			keyExtractor={item => item.id}
@@ -54,7 +53,7 @@ const PRs = () => {
 					onRefresh={() => {
 						void refetch();
 					}}
-					tintColor={colors.brand}
+					tintColor={trainingTheme.colors.primary}
 				/>
 			}
 			ListEmptyComponent={
@@ -65,7 +64,7 @@ const PRs = () => {
 					</View>
 				) : (
 					<View style={styles.empty}>
-						<Text style={[styles.emptyText, { color: '#6B7280' }]}>
+						<Text style={styles.emptyText}>
 							No personal records yet.
 						</Text>
 						<Text style={styles.emptySubtext}>
@@ -86,26 +85,31 @@ const PRs = () => {
 						}
 					}}
 				>
-					<View style={[styles.card, { backgroundColor: '#FFFFFF' }]}>
-						<Ionicons name="trophy" size={22} color="#FFB300" />
+					<View style={styles.card}>
+						<View style={styles.icon}>
+							<Ionicons
+								name="trophy"
+								size={22}
+								color={trainingTheme.colors.warning}
+							/>
+						</View>
 						<View style={styles.info}>
-							<Text
-								style={[
-									styles.movementName,
-									{ color: '#111827' },
-								]}
-							>
+							<Text style={[styles.movementName]}>
 								{item.movements.name}
 							</Text>
-							<Text style={[styles.date, { color: '#6B7280' }]}>
+							<Text style={styles.date}>
 								{moment(item.achieved_on).format('MMM D, YYYY')}
 							</Text>
 						</View>
-						<Text style={[styles.weight, { color: '#3B82F6' }]}>
+						<Text style={styles.weight}>
 							{item.weight_kg}kg x {item.rep_max}RM
 						</Text>
 						{item.workout_id ? (
-							<Text style={styles.chevron}>›</Text>
+							<Ionicons
+								name="chevron-right"
+								size={20}
+								color={trainingTheme.colors.textMuted}
+							/>
 						) : null}
 					</View>
 				</TouchableOpacity>
@@ -115,28 +119,51 @@ const PRs = () => {
 };
 
 const styles = StyleSheet.create({
+	screen: { backgroundColor: trainingTheme.colors.background },
 	container: { padding: 16, paddingBottom: 40 },
 	card: {
-		borderRadius: 12,
+		backgroundColor: trainingTheme.colors.surface,
+		borderColor: trainingTheme.colors.border,
+		borderWidth: 1,
+		borderRadius: 18,
 		padding: 14,
 		marginBottom: 10,
 		flexDirection: 'row',
 		alignItems: 'center',
 		gap: 12,
 	},
+	icon: {
+		width: 42,
+		height: 42,
+		borderRadius: 21,
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: trainingTheme.colors.warningSoft,
+	},
 	info: { flex: 1 },
-	movementName: { fontSize: 15, fontWeight: '600' },
-	date: { fontSize: 12, marginTop: 2 },
-	weight: { fontSize: 16, fontWeight: '700' },
+	movementName: {
+		color: trainingTheme.colors.text,
+		fontSize: 15,
+		fontWeight: '700',
+	},
+	date: { color: trainingTheme.colors.textMuted, fontSize: 12, marginTop: 2 },
+	weight: {
+		color: trainingTheme.colors.primary,
+		fontSize: 16,
+		fontWeight: '700',
+	},
 	empty: { alignItems: 'center', padding: 40 },
-	emptyText: { fontSize: 15, textAlign: 'center' },
+	emptyText: {
+		color: trainingTheme.colors.textMuted,
+		fontSize: 15,
+		textAlign: 'center',
+	},
 	emptySubtext: {
 		fontSize: 13,
-		color: '#9CA3AF',
+		color: trainingTheme.colors.textMuted,
 		textAlign: 'center',
 		marginTop: 4,
 	},
-	chevron: { fontSize: 20, color: '#9CA3AF', marginLeft: 'auto' },
 });
 
 export default PRs;

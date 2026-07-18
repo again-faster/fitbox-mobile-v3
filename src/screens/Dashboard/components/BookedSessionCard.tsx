@@ -1,6 +1,7 @@
 import { Button, Row, Spacer, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { ApplicationStackParamList } from '@/types/navigation';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import moment from 'moment';
@@ -44,8 +45,8 @@ const BookedSessionCard = ({
 		});
 
 	const buttonStyle = {
-		backgroundColor: 'white',
-		borderColor: config.colors.info,
+		backgroundColor: memberTheme.colors.surface,
+		borderColor: memberTheme.colors.primary,
 	};
 
 	return (
@@ -116,15 +117,14 @@ export default memo(BookedSessionCard);
 
 const styles = StyleSheet.create({
 	container: {
-		backgroundColor: fonts.colors.light,
+		backgroundColor: memberTheme.colors.surface,
 		flexDirection: 'row',
-		paddingVertical: metrics.rg,
-		paddingHorizontal: metrics.rg,
+		padding: memberTheme.spacing.lg,
 		alignItems: 'center',
-		marginBottom: metrics.sm,
-		borderColor: '#F2F2F2',
+		borderColor: memberTheme.colors.border,
 		borderWidth: 1,
-		borderRadius: 2,
+		borderRadius: memberTheme.radius.lg,
+		...memberTheme.shadow,
 	},
 	warningTxt: {
 		color: '#595959',

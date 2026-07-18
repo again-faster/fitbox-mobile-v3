@@ -16,6 +16,8 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
+import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { trainingTheme } from '@/theme/training';
 import SkeletonCard from '../components/SkeletonCard';
 
 type Nav = StackNavigationProp<TrainingStackParamList>;
@@ -68,6 +70,32 @@ const WorkoutList = () => {
 			contentContainerStyle={styles.container}
 			sections={sections}
 			keyExtractor={item => item.id}
+			ListHeaderComponent={
+				<TouchableOpacity
+					accessibilityRole="button"
+					style={styles.benchmarkCard}
+					onPress={() => nav.navigate('TrainingBenchmarks')}
+				>
+					<View style={styles.benchmarkIcon}>
+						<Ionicons
+							name="trophy-outline"
+							size={22}
+							color={trainingTheme.colors.warning}
+						/>
+					</View>
+					<View style={styles.cardLeft}>
+						<Text style={styles.benchmarkTitle}>Benchmarks</Text>
+						<Text style={styles.benchmarkCopy}>
+							Browse, repeat and track recognised workouts
+						</Text>
+					</View>
+					<Ionicons
+						name="chevron-right"
+						size={21}
+						color={trainingTheme.colors.textMuted}
+					/>
+				</TouchableOpacity>
+			}
 			refreshControl={
 				<RefreshControl
 					refreshing={isRefetching}
@@ -146,6 +174,36 @@ const styles = StyleSheet.create({
 	cardLeft: { flex: 1 },
 	workoutName: { fontSize: 16, fontWeight: '600' },
 	meta: { fontSize: 13, marginTop: 2 },
+	benchmarkCard: {
+		minHeight: 78,
+		borderRadius: 16,
+		padding: 14,
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: 12,
+		backgroundColor: trainingTheme.colors.surface,
+		borderWidth: 1,
+		borderColor: trainingTheme.colors.border,
+		marginBottom: 8,
+	},
+	benchmarkIcon: {
+		width: 42,
+		height: 42,
+		borderRadius: 21,
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: trainingTheme.colors.warningSoft,
+	},
+	benchmarkTitle: {
+		color: trainingTheme.colors.text,
+		fontSize: 16,
+		fontWeight: '700',
+	},
+	benchmarkCopy: {
+		color: trainingTheme.colors.textMuted,
+		fontSize: 12,
+		marginTop: 3,
+	},
 
 	empty: { alignItems: 'center', padding: 40 },
 	emptyText: { fontSize: 15, textAlign: 'center' },

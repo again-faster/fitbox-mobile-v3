@@ -1,7 +1,9 @@
 import { HR, Row, Spacer, Text } from '@/components/atoms';
+import { MemberCard, MemberPill } from '@/components/member';
 import getAttendanceGraph from '@/services/leaderboards/getAttendanceGraph';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import resources from '@/theme/resources';
 import { AttendanceGraphType } from '@/types/schemas/leaderboards';
 import { Say } from '@/utils';
@@ -14,12 +16,12 @@ import {
 	Image,
 	ScrollView,
 	StyleSheet,
-	TouchableOpacity,
 	View,
 } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { Line } from 'react-native-svg';
 import { BarChart, XAxis, YAxis } from 'react-native-svg-charts';
+import MonthlyAttendanceGoal from './MonthlyAttendanceGoal';
 
 // TODO: Add target lines once data is available
 // const TargetLines = ({ targetData, x, y, bandwidth }) => (
@@ -57,8 +59,10 @@ const AttendanceScreen = () => {
 
 	const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
 
-	const { attendanceReportState } = useStore(state => ({
+	const { attendanceReportState, gymId, memberId } = useStore(state => ({
 		attendanceReportState: state.attendanceReportState,
+		gymId: state.teamId,
+		memberId: state.loggedInUser?.user_data.user_id,
 	}));
 
 	const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -159,28 +163,14 @@ const AttendanceScreen = () => {
 
 	const renderTabs = () => {
 		return (
-			<View style={layout.row}>
+			<View style={styles.tabRow}>
 				{tabs.map(tab => (
-					<TouchableOpacity
-						style={{
-							backgroundColor:
-								activeTab === tab.value
-									? config.colors.info
-									: config.backgrounds.lightgrey,
-							...styles.tabButton,
-						}}
+					<MemberPill
 						key={tab.value}
+						label={tab.label}
+						selected={activeTab === tab.value}
 						onPress={() => setActiveTab(tab.value)}
-					>
-						<Text
-							color={
-								activeTab === tab.value ? 'light' : 'darkgray'
-							}
-							bold
-						>
-							{tab.label}
-						</Text>
-					</TouchableOpacity>
+					/>
 				))}
 			</View>
 		);
@@ -210,9 +200,23 @@ const AttendanceScreen = () => {
 	};
 
 	return (
-		<ScrollView style={styles.container}>
+		<ScrollView
+			style={styles.container}
+			contentContainerStyle={styles.contentContainer}
+			showsVerticalScrollIndicator={false}
+		>
+			<Text bold style={styles.pageTitle}>
+				Build your training rhythm.
+			</Text>
+			<Text style={styles.pageSubtitle}>
+				Every visit adds up. Set a goal and see your consistency grow.
+			</Text>
+			<MonthlyAttendanceGoal
+				attendanceCount={attendanceReportState.monthToDate ?? 0}
+				gymId={gymId}
+				memberId={memberId}
+			/>
 			{renderTabs()}
-			<Spacer />
 			{/* TODO: Add legends once we have target data */}
 			{/* <View style={[layout.row, layout.itemsCenter]}>
 				<View
@@ -232,108 +236,126 @@ const AttendanceScreen = () => {
 				/>
 				<Text size="sm">Target</Text>
 			</View> */}
-			{activeTab === 'month' && !isDropdownLoading && (
-				<DropDownPicker
-					open={isFilterOpen}
-					value={filterValue}
-					items={yearFilters}
-					setOpen={setIsFilterOpen}
-					setValue={value => setFilterValue(value)}
-					textStyle={{ fontSize: config.fonts.metrics.sm }}
-					style={styles.dropDownStyle}
-					dropDownContainerStyle={styles.dropDownContainerStyle}
-					listItemLabelStyle={{
-						fontSize: config.fonts.metrics.sm,
-					}}
-					labelStyle={{
-						fontSize: config.fonts.metrics.sm,
-					}}
-					arrowIconStyle={{
-						width: config.metrics.rg,
-						height: config.metrics.rg,
-					}}
-					tickIconStyle={{
-						width: config.metrics.md,
-						height: config.metrics.md,
-					}}
-					listMode="SCROLLVIEW"
-					placeholder=""
-				/>
-			)}
-			<View style={styles.chartContainer}>
-				{isLoading ? (
-					<View
-						style={[
-							layout.itemsCenter,
-							layout.justifyCenter,
-							layout.flex_1,
-						]}
-					>
-						<ActivityIndicator color={config.colors.brand} />
+			<MemberCard style={styles.trendCard}>
+				<View style={styles.trendHeader}>
+					<View>
+						<Text bold style={styles.sectionTitle}>
+							Attendance trend
+						</Text>
+						<Text style={styles.sectionSubtitle}>
+							{activeTab === 'month'
+								? `Monthly visits in ${filterValue}`
+								: 'Your year-by-year consistency'}
+						</Text>
 					</View>
-				) : (
-					<Row>
-						<YAxis
-							data={attendanceData}
-							contentInset={{ top: 20, bottom: 20 }}
-							svg={{ fontSize: 10, fill: 'grey' }}
-							numberOfTicks={numberOfTicks}
-							style={styles.y}
-							formatLabel={(value: number) =>
-								value === 0 ? '' : value.toString()
+					{activeTab === 'month' && !isDropdownLoading && (
+						<DropDownPicker
+							open={isFilterOpen}
+							value={filterValue}
+							items={yearFilters}
+							setOpen={setIsFilterOpen}
+							setValue={value => setFilterValue(value)}
+							textStyle={{ fontSize: config.fonts.metrics.sm }}
+							style={styles.dropDownStyle}
+							dropDownContainerStyle={
+								styles.dropDownContainerStyle
 							}
-							min={0}
+							listItemLabelStyle={{
+								fontSize: config.fonts.metrics.sm,
+							}}
+							labelStyle={{ fontSize: config.fonts.metrics.sm }}
+							arrowIconStyle={{
+								width: config.metrics.rg,
+								height: config.metrics.rg,
+							}}
+							tickIconStyle={{
+								width: config.metrics.md,
+								height: config.metrics.md,
+							}}
+							listMode="SCROLLVIEW"
+							placeholder=""
 						/>
+					)}
+				</View>
+				<View style={styles.chartContainer}>
+					{isLoading ? (
 						<View
 							style={[
+								layout.itemsCenter,
+								layout.justifyCenter,
 								layout.flex_1,
-								{ marginLeft: config.metrics.rg },
 							]}
 						>
-							<BarChart
-								style={styles.barChart}
-								data={attendanceData}
-								svg={{ fill: config.colors.brand }}
-								spacingInner={0.5}
-								contentInset={{ top: 20, bottom: 20 }}
-								yMin={0}
-							>
-								<Line
-									x1="0"
-									x2="0"
-									y1="0"
-									y2="90%"
-									stroke="black"
-									strokeWidth="1"
-								/>
-								<Line
-									x1="0"
-									x2="100%"
-									y1="90%"
-									y2="90%"
-									stroke="black"
-									strokeWidth="1"
-								/>
-							</BarChart>
-							<XAxis
-								data={attendanceData}
-								formatLabel={(_value: unknown, index: number) =>
-									labels[index]
-								}
-								contentInset={getXContentInset(
-									attendanceData.length,
-								)}
-								svg={{ fontSize: 10, fill: 'grey' }}
-								style={styles.x}
-								spacingInner={0.5}
-							/>
+							<ActivityIndicator color={config.colors.brand} />
 						</View>
-					</Row>
-				)}
-			</View>
+					) : (
+						<Row>
+							<YAxis
+								data={attendanceData}
+								contentInset={{ top: 20, bottom: 20 }}
+								svg={{ fontSize: 10, fill: 'grey' }}
+								numberOfTicks={numberOfTicks}
+								style={styles.y}
+								formatLabel={(value: number) =>
+									value === 0 ? '' : value.toString()
+								}
+								min={0}
+							/>
+							<View
+								style={[
+									layout.flex_1,
+									{ marginLeft: config.metrics.rg },
+								]}
+							>
+								<BarChart
+									style={styles.barChart}
+									data={attendanceData}
+									svg={{ fill: config.colors.brand }}
+									spacingInner={0.5}
+									contentInset={{ top: 20, bottom: 20 }}
+									yMin={0}
+								>
+									<Line
+										x1="0"
+										x2="0"
+										y1="0"
+										y2="90%"
+										stroke="black"
+										strokeWidth="1"
+									/>
+									<Line
+										x1="0"
+										x2="100%"
+										y1="90%"
+										y2="90%"
+										stroke="black"
+										strokeWidth="1"
+									/>
+								</BarChart>
+								<XAxis
+									data={attendanceData}
+									formatLabel={(
+										_value: unknown,
+										index: number,
+									) => labels[index]}
+									contentInset={getXContentInset(
+										attendanceData.length,
+									)}
+									svg={{ fontSize: 10, fill: 'grey' }}
+									style={styles.x}
+									spacingInner={0.5}
+								/>
+							</View>
+						</Row>
+					)}
+				</View>
+			</MemberCard>
 			<View style={[layout.row, layout.justifyBetween]}>
 				{activeTab === 'month' ? (
-					<View style={[layout.flex_1, styles.attendanceContainer]}>
+					<MemberCard
+						elevated={false}
+						style={[layout.flex_1, styles.attendanceContainer]}
+					>
 						<Row align="center">
 							<Image
 								source={resources.icon.monthToDate}
@@ -354,9 +376,12 @@ const AttendanceScreen = () => {
 								this month
 							</Text>
 						</Row>
-					</View>
+					</MemberCard>
 				) : (
-					<View style={[layout.flex_1, styles.attendanceContainer]}>
+					<MemberCard
+						elevated={false}
+						style={[layout.flex_1, styles.attendanceContainer]}
+					>
 						<Row align="center">
 							<Image
 								source={resources.icon.yearToDate}
@@ -377,9 +402,12 @@ const AttendanceScreen = () => {
 								this year
 							</Text>
 						</Row>
-					</View>
+					</MemberCard>
 				)}
-				<View style={[layout.flex_1, styles.attendanceContainer]}>
+				<MemberCard
+					elevated={false}
+					style={[layout.flex_1, styles.attendanceContainer]}
+				>
 					<Row align="center">
 						<Image
 							source={resources.icon.trophy}
@@ -400,41 +428,76 @@ const AttendanceScreen = () => {
 							all time
 						</Text>
 					</Row>
-				</View>
+				</MemberCard>
 			</View>
-			<Spacer size={config.metrics.xl} />
-			<Text
-				size="sm"
-				bold
-			>{`${tableTitle}ly Attendance Summary ${activeTab === 'month' ? filterValue : ''}: `}</Text>
-			<Spacer />
-			<View>
+			<MemberCard style={styles.summaryCard}>
+				<Text bold style={styles.sectionTitle}>
+					{`${tableTitle}ly summary ${activeTab === 'month' ? filterValue : ''}`}
+				</Text>
+				<Spacer />
 				<FlatList
 					data={tableData}
 					renderItem={renderTableItems}
 					scrollEnabled={false}
 				/>
-			</View>
-			<Spacer />
+			</MemberCard>
 		</ScrollView>
 	);
 };
 
 const styles = StyleSheet.create({
 	chartContainer: {
-		padding: 10,
+		paddingTop: memberTheme.spacing.sm,
 		height: 250,
 	},
 	container: {
 		flex: 1,
-		paddingHorizontal: config.metrics.lg,
-		marginTop: 20,
+		backgroundColor: memberTheme.colors.background,
 	},
-	tabButton: {
-		alignItems: 'center',
-		justifyContent: 'center',
-		height: 35,
-		flex: 1,
+	contentContainer: {
+		paddingHorizontal: memberTheme.spacing.lg,
+		paddingTop: memberTheme.spacing.xl,
+		paddingBottom: 48,
+	},
+	pageTitle: {
+		fontSize: 30,
+		lineHeight: 36,
+		color: memberTheme.colors.ink,
+		maxWidth: 320,
+	},
+	pageSubtitle: {
+		fontSize: 14,
+		lineHeight: 21,
+		color: memberTheme.colors.textMuted,
+		marginTop: memberTheme.spacing.sm,
+		marginBottom: memberTheme.spacing.xl,
+		maxWidth: 330,
+	},
+	tabRow: {
+		flexDirection: 'row',
+		gap: memberTheme.spacing.sm,
+		marginBottom: memberTheme.spacing.lg,
+	},
+	trendCard: {
+		marginBottom: memberTheme.spacing.md,
+		zIndex: 2,
+	},
+	trendHeader: {
+		flexDirection: 'row',
+		alignItems: 'flex-start',
+		justifyContent: 'space-between',
+		zIndex: 4,
+	},
+	sectionTitle: {
+		fontSize: 18,
+		lineHeight: 24,
+		color: memberTheme.colors.ink,
+	},
+	sectionSubtitle: {
+		fontSize: 12,
+		lineHeight: 18,
+		color: memberTheme.colors.textMuted,
+		marginTop: memberTheme.spacing.xs,
 	},
 	legend: {
 		height: 4,
@@ -445,19 +508,24 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	attendanceText: {
-		paddingBottom: 2,
-		alignSelf: 'flex-end',
-		marginLeft: config.metrics.sm,
+		fontSize: 11,
+		color: memberTheme.colors.textMuted,
+		marginTop: memberTheme.spacing.xs,
 	},
 	attendanceContainer: {
-		alignItems: 'center',
-		marginBottom: config.metrics.sm,
+		marginHorizontal: memberTheme.spacing.xs,
+		marginBottom: memberTheme.spacing.md,
+		padding: memberTheme.spacing.md,
 	},
-	attendanceValue: { fontSize: 20 },
+	attendanceValue: {
+		fontSize: 24,
+		lineHeight: 28,
+		color: memberTheme.colors.ink,
+	},
 	attendanceIcon: {
-		width: 25,
-		height: 25,
-		marginRight: 8,
+		width: 22,
+		height: 22,
+		marginRight: memberTheme.spacing.sm,
 	},
 	labelsContainer: {
 		flexDirection: 'row',
@@ -481,22 +549,24 @@ const styles = StyleSheet.create({
 		marginTop: 20,
 	},
 	dropDownStyle: {
-		width: 80,
-		height: 30,
-		borderRadius: 0,
+		width: 82,
+		height: 38,
+		borderRadius: memberTheme.radius.pill,
 		paddingVertical: 0,
-		paddingHorizontal: 8,
-		minHeight: 30,
-		alignSelf: 'flex-end',
-		borderColor: config.borders.colors.lightgrey,
-		marginTop: config.metrics.rg,
+		paddingHorizontal: memberTheme.spacing.md,
+		minHeight: 38,
+		borderColor: memberTheme.colors.border,
+		backgroundColor: memberTheme.colors.surfaceSoft,
 	},
 	dropDownContainerStyle: {
-		width: 80,
-		borderRadius: 0,
+		width: 82,
+		borderRadius: memberTheme.radius.md,
 		alignSelf: 'flex-end',
-		borderColor: config.borders.colors.lightgrey,
-		marginTop: config.metrics.rg,
+		borderColor: memberTheme.colors.border,
+		backgroundColor: memberTheme.colors.surface,
+	},
+	summaryCard: {
+		marginTop: memberTheme.spacing.sm,
 	},
 });
 

@@ -44,12 +44,12 @@ export const MovementSheet = ({
 		try {
 			await wsApi().post('athlete_rms', {
 				json: {
-					user_id: uid,
+					athlete_id: uid,
 					movement_id: movementId,
 					rep_max: selectedRep,
 					weight_kg: parseFloat(weightInput),
 					achieved_on: new Date().toISOString().slice(0, 10),
-					source: 'mobile',
+					source: 'manual',
 				},
 				headers: { Prefer: 'return=minimal' },
 			});

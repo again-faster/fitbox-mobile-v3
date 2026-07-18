@@ -100,6 +100,13 @@ export type WorkoutResult = {
 	total_volume_kg: number | null;
 	duration_seconds: number | null;
 	subjective_rating: string | null;
+	notes?: string | null;
+	scaling_level?: ScalingLevel | null;
+	score_time_seconds?: number | null;
+	score_rounds?: number | null;
+	score_partial_reps?: number | null;
+	score_weight_kg?: number | null;
+	score_reps?: number | null;
 	workouts: {
 		name: string;
 	};

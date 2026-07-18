@@ -304,5 +304,6 @@ export const syncNow = async (): Promise<void> => {
 	} catch (err) {
 		// eslint-disable-next-line no-console
 		console.error('[HealthSync] syncNow error', err);
+		throw err;
 	}
 };

@@ -263,6 +263,7 @@ export type TrainingStackParamList = {
 	};
 	TrainingToday: undefined;
 	TrainingWorkouts: undefined;
+	TrainingBenchmarks: undefined;
 	TrainingWorkoutDetail: {
 		workoutId: string;
 		assignmentId?: string;
@@ -273,15 +274,28 @@ export type TrainingStackParamList = {
 		assignmentId?: string;
 		workoutName: string;
 	};
+	TrainingWorkoutComplete: {
+		workoutResultId: string;
+		workoutName: string;
+		durationSeconds: number;
+		completedSets: number;
+	};
 	TrainingResults: undefined;
+	TrainingResultDetail: { workoutResultId: string };
 	TrainingGymFeed: undefined;
 	TrainingWellness: undefined;
 	TrainingMaxes: undefined;
 	TrainingPRs: undefined;
+	TrainingProgress: undefined;
+	TrainingWeeklyRecap: undefined;
+	TrainingMore: undefined;
+	TrainingPT: { initialTab?: 'book' | 'mine' } | undefined;
 	TrainingCoachNotes: undefined;
 	TrainingNotifications: undefined;
 	TrainingSettings: undefined;
+	TrainingProfile: undefined;
 	TrainingAppleHealth: undefined;
+	TrainingWearables: undefined;
 	TrainingBuildList: undefined;
 	TrainingBuildEditor: { workoutId?: string };
 	TrainingBuildSchedule: { workoutId: string; workoutName: string };
