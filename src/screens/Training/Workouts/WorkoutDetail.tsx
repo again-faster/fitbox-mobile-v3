@@ -1,4 +1,8 @@
 import { wsApi } from '@/services/workoutStudio/api';
+import {
+	movementPrescriptionParts,
+	sectionScoringSummary,
+} from '@/services/workoutStudio/scoreable';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import { HTTPError } from 'ky';
 import { useWorkoutDetail } from '@/screens/Training/hooks/useWorkoutDetail';
@@ -484,86 +488,105 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 							<View style={styles.sectionsCard}>
 								{detail.workout_sections.map(s => (
 									<View key={s.id} style={styles.sectionRow}>
-										<Text
-											style={[
-												styles.sectionName,
-												{ color: '#374151' },
-											]}
-										>
-											{s.name}
-										</Text>
-										{s.section_blocks?.map(b => (
-											<View
-												key={b.id}
-												style={styles.blockRow}
+										<View style={styles.sectionHeaderRow}>
+											<Text
+												style={[
+													styles.sectionName,
+													{ color: '#374151' },
+												]}
 											>
-												{b.label ? (
+												{s.name}
+											</Text>
+											{sectionScoringSummary(s) ? (
+												<View
+													style={styles.sectionBadge}
+												>
 													<Text
-														style={[
-															styles.blockLabel,
-															{
-																color: '#6B7280',
-															},
-														]}
+														style={
+															styles.sectionBadgeText
+														}
 													>
-														{b.label}
+														{sectionScoringSummary(
+															s,
+														)}
 													</Text>
-												) : null}
-												{b.block_movements?.map(bm => {
-													const parts: string[] = [];
-													if (bm.sets)
-														parts.push(
-															`${bm.sets} sets`,
-														);
-													if (bm.reps_scheme)
-														parts.push(
-															bm.reps_scheme,
-														);
-													if (bm.weight_kg)
-														parts.push(
-															`@ ${bm.weight_kg}kg`,
-														);
-													return (
-														<TouchableOpacity
-															key={bm.id}
-															activeOpacity={0.7}
-															onPress={() =>
-																setSelectedMovement(
-																	{
-																		id: bm
-																			.movements
-																			.id,
-																		name: bm
-																			.movements
-																			.name,
-																	},
-																)
-															}
-														>
-															<Text
-																style={[
-																	styles.movementText,
-																	{
-																		color: '#111827',
-																		textDecorationLine:
-																			'underline',
-																	},
-																]}
-															>
+												</View>
+											) : null}
+										</View>
+										{s.coach_notes ? (
+											<Text style={styles.sectionNotes}>
+												{s.coach_notes}
+											</Text>
+										) : null}
+										{s.section_mode === 'workout' &&
+											s.section_blocks?.map(b => (
+												<View
+													key={b.id}
+													style={styles.blockRow}
+												>
+													{b.label ? (
+														<Text
+															style={[
+																styles.blockLabel,
 																{
-																	bm.movements
-																		.name
-																}
-																{parts.length >
-																0
-																	? `  ${parts.join(' · ')}`
-																	: ''}
-															</Text>
-														</TouchableOpacity>
-													);
-												})}
-											</View>
-										))}
+																	color: '#6B7280',
+																},
+															]}
+														>
+															{b.label}
+														</Text>
+													) : null}
+													{b.block_movements?.map(
+														bm => {
+															const parts =
+																movementPrescriptionParts(
+																	bm,
+																);
+															return (
+																<TouchableOpacity
+																	key={bm.id}
+																	activeOpacity={
+																		0.7
+																	}
+																	onPress={() =>
+																		setSelectedMovement(
+																			{
+																				id: bm
+																					.movements
+																					.id,
+																				name: bm
+																					.movements
+																					.name,
+																			},
+																		)
+																	}
+																>
+																	<Text
+																		style={[
+																			styles.movementText,
+																			{
+																				color: '#111827',
+																				textDecorationLine:
+																					'underline',
+																			},
+																		]}
+																	>
+																		{
+																			bm
+																				.movements
+																				.name
+																		}
+																		{parts.length >
+																		0
+																			? `  ${parts.join(' · ')}`
+																			: ''}
+																	</Text>
+																</TouchableOpacity>
+															);
+														},
+													)}
+												</View>
+											))}
 									</View>
 								))}
 							</View>
@@ -910,7 +933,31 @@ const styles = StyleSheet.create({
 		marginBottom: 16,
 	},
 	sectionRow: { marginBottom: 12 },
-	sectionName: { fontSize: 14, fontWeight: '700', marginBottom: 4 },
+	sectionHeaderRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		gap: 8,
+		marginBottom: 4,
+	},
+	sectionName: { flex: 1, fontSize: 14, fontWeight: '700' },
+	sectionBadge: {
+		borderRadius: 999,
+		backgroundColor: trainingTheme.colors.primarySoft,
+		paddingHorizontal: 8,
+		paddingVertical: 3,
+	},
+	sectionBadgeText: {
+		color: trainingTheme.colors.primary,
+		fontSize: 10,
+		fontWeight: '700',
+	},
+	sectionNotes: {
+		color: trainingTheme.colors.textMuted,
+		fontSize: 13,
+		lineHeight: 19,
+		marginBottom: 6,
+	},
 	sectionMeta: { fontSize: 12, marginTop: 2 },
 	blockRow: { marginTop: 4, paddingLeft: 8 },
 	blockLabel: { fontSize: 12, fontWeight: '600', marginBottom: 2 },
