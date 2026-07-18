@@ -1,4 +1,4 @@
-﻿import { wsApi } from '@/services/workoutStudio/api';
+﻿import { getMemberWorkouts } from '@/services/workoutStudio/workouts';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import type { WorkoutAssignment } from '@/services/workoutStudio/types';
 import { useTheme } from '@/theme';
@@ -34,18 +34,7 @@ const WorkoutList = () => {
 
 	const { data, isLoading, isRefetching, refetch } = useQuery({
 		queryKey: ['ws-assignments', uid, tenantId, from],
-		queryFn: () =>
-			wsApi()
-				.get('workout_assignments', {
-					searchParams: {
-						select: 'id,workout_id,due_date,notes,workouts(name,estimated_duration_minutes)',
-						athlete_id: `eq.${uid}`,
-						due_date: `gte.${from}`,
-						'due_date.lte': to,
-						order: 'due_date.asc',
-					},
-				})
-				.json<WorkoutAssignment[]>(),
+		queryFn: () => getMemberWorkouts(tenantId!, from, to),
 		enabled: !!uid && !!tenantId,
 		staleTime: 300_000,
 	});
@@ -131,7 +120,10 @@ const WorkoutList = () => {
 					onPress={() =>
 						nav.navigate('TrainingWorkoutDetail', {
 							workoutId: item.workout_id,
-							assignmentId: item.id,
+							assignmentId:
+								item.source?.type === 'class'
+									? undefined
+									: item.id,
 						})
 					}
 				>
@@ -146,6 +138,14 @@ const WorkoutList = () => {
 								~{item.workouts.estimated_duration_minutes} min
 							</Text>
 						)}
+						{item.source?.type === 'class' &&
+							item.source.class_name && (
+								<Text
+									style={[styles.meta, { color: '#6B7280' }]}
+								>
+									{item.source.class_name}
+								</Text>
+							)}
 					</View>
 				</TouchableOpacity>
 			)}

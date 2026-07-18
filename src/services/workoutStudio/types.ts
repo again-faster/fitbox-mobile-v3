@@ -14,6 +14,13 @@ export type WorkoutAssignment = {
 		name: string;
 		estimated_duration_minutes: number | null;
 	};
+	source?: {
+		type: 'member' | 'class';
+		class_id?: string;
+		class_name?: string;
+		event_ids?: string[];
+		is_attending?: boolean;
+	};
 };
 
 export type WorkoutDetail = {

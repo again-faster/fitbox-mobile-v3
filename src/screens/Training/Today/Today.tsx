@@ -5,8 +5,8 @@ import type {
 	AthleteRM,
 	ProgramContext,
 	WellnessResponse,
-	WorkoutAssignment,
 } from '@/services/workoutStudio/types';
+import { getMemberWorkouts } from '@/services/workoutStudio/workouts';
 import { mmkvStorage } from '@/storage';
 import type { TrainingStackParamList } from '@/types/navigation';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -151,16 +151,7 @@ const useToday = () => {
 
 	const assignments = useQuery({
 		queryKey: ['ws-assignments-today', uid, tenantId],
-		queryFn: () =>
-			wsApi()
-				.get('workout_assignments', {
-					searchParams: {
-						select: 'id,workout_id,due_date,notes,workouts(name,estimated_duration_minutes)',
-						athlete_id: `eq.${uid}`,
-						due_date: `eq.${todayStr}`,
-					},
-				})
-				.json<WorkoutAssignment[]>(),
+		queryFn: () => getMemberWorkouts(tenantId!, todayStr, todayStr),
 		enabled: !!uid && !!tenantId,
 		staleTime: 60_000,
 	});
@@ -451,7 +442,8 @@ const Today = () => {
 					onPress={() =>
 						nav.navigate('TrainingWorkoutDetail', {
 							workoutId: a.workout_id,
-							assignmentId: a.id,
+							assignmentId:
+								a.source?.type === 'class' ? undefined : a.id,
 							programContext,
 						})
 					}
