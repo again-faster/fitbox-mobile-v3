@@ -1,5 +1,6 @@
 import { wsApi } from '@/services/workoutStudio/api';
 import {
+	createSubmissionId,
 	movementPrescriptionParts,
 	sectionScoringSummary,
 } from '@/services/workoutStudio/scoreable';
@@ -18,7 +19,9 @@ import { PRBadge } from '@/screens/Training/components/PRBadge';
 import type {
 	ProgramContext,
 	ScalingLevel,
+	WorkoutSection,
 } from '@/services/workoutStudio/types';
+import SectionScoreModal from '@/screens/Training/Workouts/SectionScoreModal';
 import WorkoutLeaderboard from '@/screens/Training/Workouts/WorkoutLeaderboard';
 import PrimaryButton from '@/screens/Training/components/PrimaryButton';
 import { trainingTheme } from '@/theme/training';
@@ -115,6 +118,9 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 		id: string;
 		name: string;
 	} | null>(null);
+	const [selectedScoreSection, setSelectedScoreSection] =
+		useState<WorkoutSection | null>(null);
+	const sessionSubmissionId = useRef(createSubmissionId()).current;
 	const [scalingLevel, setScalingLevel] = useState<ScalingLevel>(() => {
 		const stored = mmkvStorage.getString(SCALING_LEVEL_KEY);
 		return stored === 'scaled' || stored === 'foundations' ? stored : 'rx';
@@ -187,6 +193,10 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	});
 
 	const { data: detail } = useWorkoutDetail(workoutId);
+	const usesSectionScoring =
+		detail?.workout_sections.some(
+			section => section.section_mode === 'workout' && section.is_scored,
+		) ?? false;
 
 	const { data: fallbackRow } = useQuery({
 		queryKey: ['ws-program-ctx', workoutId],
@@ -587,248 +597,286 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 													)}
 												</View>
 											))}
+										{s.section_mode === 'workout' &&
+										s.is_scored ? (
+											<TouchableOpacity
+												style={
+													styles.sectionScoreButton
+												}
+												onPress={() =>
+													setSelectedScoreSection(s)
+												}
+											>
+												<Text
+													style={
+														styles.sectionScoreButtonText
+													}
+												>
+													Log score
+												</Text>
+											</TouchableOpacity>
+										) : null}
 									</View>
 								))}
 							</View>
 						)}
 
-					<View
-						style={[
-							styles.formCard,
-							{ backgroundColor: '#FFFFFF' },
-						]}
-					>
-						<Text style={[styles.formTitle, { color: '#111827' }]}>
-							How&apos;d it go?
-						</Text>
+					{!usesSectionScoring ? (
+						<View
+							style={[
+								styles.formCard,
+								{ backgroundColor: '#FFFFFF' },
+							]}
+						>
+							<Text
+								style={[styles.formTitle, { color: '#111827' }]}
+							>
+								How&apos;d it go?
+							</Text>
 
-						{(isForTime || isCustom) && (
-							<View style={styles.fieldGroup}>
-								<Text
-									style={[styles.label, { color: '#6B7280' }]}
-								>
-									Time
-								</Text>
-								<View style={styles.timeRow}>
-									<TextInput
-										style={[
-											styles.timeInput,
-											{
-												borderColor: '#D1D5DB',
-												color: '#111827',
-											},
-										]}
-										keyboardType="number-pad"
-										placeholder="mm"
-										placeholderTextColor="#9CA3AF"
-										value={timeMin}
-										onChangeText={setTimeMin}
-										maxLength={2}
-									/>
+							{(isForTime || isCustom) && (
+								<View style={styles.fieldGroup}>
 									<Text
 										style={[
-											styles.timeSep,
+											styles.label,
 											{ color: '#6B7280' },
 										]}
 									>
-										:
+										Time
+									</Text>
+									<View style={styles.timeRow}>
+										<TextInput
+											style={[
+												styles.timeInput,
+												{
+													borderColor: '#D1D5DB',
+													color: '#111827',
+												},
+											]}
+											keyboardType="number-pad"
+											placeholder="mm"
+											placeholderTextColor="#9CA3AF"
+											value={timeMin}
+											onChangeText={setTimeMin}
+											maxLength={2}
+										/>
+										<Text
+											style={[
+												styles.timeSep,
+												{ color: '#6B7280' },
+											]}
+										>
+											:
+										</Text>
+										<TextInput
+											style={[
+												styles.timeInput,
+												{
+													borderColor: '#D1D5DB',
+													color: '#111827',
+												},
+											]}
+											keyboardType="number-pad"
+											placeholder="ss"
+											placeholderTextColor="#9CA3AF"
+											value={timeSec}
+											onChangeText={handleSecChange}
+											onBlur={validateSec}
+											maxLength={2}
+										/>
+									</View>
+									{secError ? (
+										<Text style={styles.errorText}>
+											{secError}
+										</Text>
+									) : null}
+								</View>
+							)}
+
+							{(isAmrap || isCustom) && (
+								<View style={styles.fieldGroup}>
+									<Text
+										style={[
+											styles.label,
+											{ color: '#6B7280' },
+										]}
+									>
+										Rounds
 									</Text>
 									<TextInput
 										style={[
-											styles.timeInput,
+											styles.input,
 											{
 												borderColor: '#D1D5DB',
 												color: '#111827',
 											},
 										]}
 										keyboardType="number-pad"
-										placeholder="ss"
+										placeholder="0"
 										placeholderTextColor="#9CA3AF"
-										value={timeSec}
-										onChangeText={handleSecChange}
-										onBlur={validateSec}
-										maxLength={2}
+										value={rounds}
+										onChangeText={setRounds}
+									/>
+									<Text
+										style={[
+											styles.label,
+											{ color: '#6B7280', marginTop: 12 },
+										]}
+									>
+										Partial reps
+									</Text>
+									<TextInput
+										style={[
+											styles.input,
+											{
+												borderColor: '#D1D5DB',
+												color: '#111827',
+											},
+										]}
+										keyboardType="number-pad"
+										placeholder="0"
+										placeholderTextColor="#9CA3AF"
+										value={partialReps}
+										onChangeText={setPartialReps}
 									/>
 								</View>
-								{secError ? (
-									<Text style={styles.errorText}>
-										{secError}
-									</Text>
-								) : null}
-							</View>
-						)}
+							)}
 
-						{(isAmrap || isCustom) && (
-							<View style={styles.fieldGroup}>
-								<Text
-									style={[styles.label, { color: '#6B7280' }]}
-								>
-									Rounds
-								</Text>
-								<TextInput
-									style={[
-										styles.input,
-										{
-											borderColor: '#D1D5DB',
-											color: '#111827',
-										},
-									]}
-									keyboardType="number-pad"
-									placeholder="0"
-									placeholderTextColor="#9CA3AF"
-									value={rounds}
-									onChangeText={setRounds}
-								/>
-								<Text
-									style={[
-										styles.label,
-										{ color: '#6B7280', marginTop: 12 },
-									]}
-								>
-									Partial reps
-								</Text>
-								<TextInput
-									style={[
-										styles.input,
-										{
-											borderColor: '#D1D5DB',
-											color: '#111827',
-										},
-									]}
-									keyboardType="number-pad"
-									placeholder="0"
-									placeholderTextColor="#9CA3AF"
-									value={partialReps}
-									onChangeText={setPartialReps}
-								/>
-							</View>
-						)}
-
-						{(isStrength || isCustom) && (
-							<View style={styles.fieldGroup}>
-								<Text
-									style={[styles.label, { color: '#6B7280' }]}
-								>
-									Weight (kg)
-								</Text>
-								<TextInput
-									style={[
-										styles.input,
-										{
-											borderColor: '#D1D5DB',
-											color: '#111827',
-										},
-									]}
-									keyboardType="decimal-pad"
-									placeholder="0"
-									placeholderTextColor="#9CA3AF"
-									value={weightKg}
-									onChangeText={setWeightKg}
-								/>
-								<Text
-									style={[
-										styles.label,
-										{ color: '#6B7280', marginTop: 12 },
-									]}
-								>
-									Reps
-								</Text>
-								<TextInput
-									style={[
-										styles.input,
-										{
-											borderColor: '#D1D5DB',
-											color: '#111827',
-										},
-									]}
-									keyboardType="number-pad"
-									placeholder="0"
-									placeholderTextColor="#9CA3AF"
-									value={reps}
-									onChangeText={setReps}
-								/>
-							</View>
-						)}
-
-						<View style={styles.fieldGroup}>
-							<Text style={[styles.label, { color: '#6B7280' }]}>
-								Scaling
-							</Text>
-							<View style={styles.segmentRow}>
-								{LEVELS.map(({ key, label }) => (
-									<TouchableOpacity
-										key={key}
+							{(isStrength || isCustom) && (
+								<View style={styles.fieldGroup}>
+									<Text
 										style={[
-											styles.segmentBtn,
-											scalingLevel === key &&
-												styles.segmentBtnActive,
+											styles.label,
+											{ color: '#6B7280' },
 										]}
-										onPress={() => selectScalingLevel(key)}
 									>
-										<Text
-											style={[
-												styles.segmentText,
-												scalingLevel === key &&
-													styles.segmentTextActive,
-											]}
-										>
-											{label}
-										</Text>
-									</TouchableOpacity>
-								))}
-							</View>
-						</View>
-						{scalingNotes.length > 0 && (
+										Weight (kg)
+									</Text>
+									<TextInput
+										style={[
+											styles.input,
+											{
+												borderColor: '#D1D5DB',
+												color: '#111827',
+											},
+										]}
+										keyboardType="decimal-pad"
+										placeholder="0"
+										placeholderTextColor="#9CA3AF"
+										value={weightKg}
+										onChangeText={setWeightKg}
+									/>
+									<Text
+										style={[
+											styles.label,
+											{ color: '#6B7280', marginTop: 12 },
+										]}
+									>
+										Reps
+									</Text>
+									<TextInput
+										style={[
+											styles.input,
+											{
+												borderColor: '#D1D5DB',
+												color: '#111827',
+											},
+										]}
+										keyboardType="number-pad"
+										placeholder="0"
+										placeholderTextColor="#9CA3AF"
+										value={reps}
+										onChangeText={setReps}
+									/>
+								</View>
+							)}
+
 							<View style={styles.fieldGroup}>
-								{scalingNotes.map(({ id, label, note }) => (
-									<View
-										key={id}
-										style={styles.scalingNoteCard}
-									>
-										{label ? (
+								<Text
+									style={[styles.label, { color: '#6B7280' }]}
+								>
+									Scaling
+								</Text>
+								<View style={styles.segmentRow}>
+									{LEVELS.map(({ key, label }) => (
+										<TouchableOpacity
+											key={key}
+											style={[
+												styles.segmentBtn,
+												scalingLevel === key &&
+													styles.segmentBtnActive,
+											]}
+											onPress={() =>
+												selectScalingLevel(key)
+											}
+										>
 											<Text
 												style={[
-													styles.blockLabel,
-													{ color: '#6B7280' },
+													styles.segmentText,
+													scalingLevel === key &&
+														styles.segmentTextActive,
 												]}
 											>
 												{label}
 											</Text>
-										) : null}
-										<Text
-											style={[
-												styles.scalingNoteText,
-												{ color: '#374151' },
-											]}
-										>
-											{note}
-										</Text>
-									</View>
-								))}
+										</TouchableOpacity>
+									))}
+								</View>
 							</View>
-						)}
+							{scalingNotes.length > 0 && (
+								<View style={styles.fieldGroup}>
+									{scalingNotes.map(({ id, label, note }) => (
+										<View
+											key={id}
+											style={styles.scalingNoteCard}
+										>
+											{label ? (
+												<Text
+													style={[
+														styles.blockLabel,
+														{ color: '#6B7280' },
+													]}
+												>
+													{label}
+												</Text>
+											) : null}
+											<Text
+												style={[
+													styles.scalingNoteText,
+													{ color: '#374151' },
+												]}
+											>
+												{note}
+											</Text>
+										</View>
+									))}
+								</View>
+							)}
 
-						<View style={styles.fieldGroup}>
-							<Text style={[styles.label, { color: '#6B7280' }]}>
-								Notes
-							</Text>
-							<TextInput
-								style={[
-									styles.notesInput,
-									{
-										borderColor: '#D1D5DB',
-										color: '#111827',
-									},
-								]}
-								placeholder="How did it feel?"
-								placeholderTextColor="#9CA3AF"
-								multiline
-								numberOfLines={3}
-								value={notes}
-								onChangeText={setNotes}
-							/>
+							<View style={styles.fieldGroup}>
+								<Text
+									style={[styles.label, { color: '#6B7280' }]}
+								>
+									Notes
+								</Text>
+								<TextInput
+									style={[
+										styles.notesInput,
+										{
+											borderColor: '#D1D5DB',
+											color: '#111827',
+										},
+									]}
+									placeholder="How did it feel?"
+									placeholderTextColor="#9CA3AF"
+									multiline
+									numberOfLines={3}
+									value={notes}
+									onChangeText={setNotes}
+								/>
+							</View>
 						</View>
-					</View>
+					) : null}
 				</View>
 
 				<View
@@ -849,7 +897,10 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 					styles.footer,
 					{
 						backgroundColor: '#F9FAFB',
-						display: tab === 'leaderboard' ? 'none' : 'flex',
+						display:
+							tab === 'leaderboard' || usesSectionScoring
+								? 'none'
+								: 'flex',
 					},
 				]}
 			>
@@ -879,6 +930,15 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 					Your score is visible to your coach and the gym leaderboard.
 				</Text>
 			</View>
+			<SectionScoreModal
+				section={selectedScoreSection}
+				visible={selectedScoreSection !== null}
+				onClose={() => setSelectedScoreSection(null)}
+				onLogged={() => showLoggedToast()}
+				sessionSubmissionId={sessionSubmissionId}
+				assignmentId={assignmentId}
+				scalingLevel={scalingLevel}
+			/>
 			{toastVisible ? (
 				<TouchableOpacity
 					style={styles.toast}
@@ -957,6 +1017,20 @@ const styles = StyleSheet.create({
 		fontSize: 13,
 		lineHeight: 19,
 		marginBottom: 6,
+	},
+	sectionScoreButton: {
+		alignSelf: 'flex-start',
+		minHeight: 40,
+		justifyContent: 'center',
+		borderRadius: 10,
+		backgroundColor: trainingTheme.colors.primary,
+		paddingHorizontal: 14,
+		marginTop: 8,
+	},
+	sectionScoreButtonText: {
+		color: '#FFFFFF',
+		fontSize: 13,
+		fontWeight: '700',
 	},
 	sectionMeta: { fontSize: 12, marginTop: 2 },
 	blockRow: { marginTop: 4, paddingLeft: 8 },
