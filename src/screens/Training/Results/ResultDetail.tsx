@@ -43,6 +43,32 @@ type CoachFeedback = {
 	created_at: string;
 };
 
+type SectionScoreShape = {
+	score_time_seconds: number | null;
+	score_rounds: number | null;
+	score_partial_reps: number | null;
+	score_weight_kg: number | null;
+	score_reps: number | null;
+	score_distance_meters: number | null;
+	score_calories: number | null;
+	score_points: number | null;
+	score_text?: string | null;
+};
+
+type SectionScoreEntry = SectionScoreShape & {
+	id: string;
+	segment_index: number | null;
+	segment_label: string | null;
+};
+
+type SectionResult = SectionScoreShape & {
+	id: string;
+	notes: string | null;
+	scaling_level: ScalingLevel;
+	workout_sections: { name: string };
+	section_score_entries: SectionScoreEntry[];
+};
+
 const formatDuration = (seconds: number) => {
 	const minutes = Math.floor(seconds / 60);
 	const remaining = seconds % 60;
@@ -58,6 +84,21 @@ const formatScore = (result: WorkoutResult) => {
 		return `${result.score_weight_kg} kg${result.score_reps ? ` × ${result.score_reps}` : ''}`;
 	if (result.score_reps != null) return `${result.score_reps} reps`;
 	return null;
+};
+
+const formatSectionScore = (score: SectionScoreShape) => {
+	if (score.score_time_seconds != null)
+		return formatDuration(score.score_time_seconds);
+	if (score.score_rounds != null)
+		return `${score.score_rounds} rounds${score.score_partial_reps ? ` + ${score.score_partial_reps}` : ''}`;
+	if (score.score_weight_kg != null)
+		return `${score.score_weight_kg} kg${score.score_reps != null ? ` × ${score.score_reps}` : ''}`;
+	if (score.score_reps != null) return `${score.score_reps} reps`;
+	if (score.score_distance_meters != null)
+		return `${score.score_distance_meters} m`;
+	if (score.score_calories != null) return `${score.score_calories} cal`;
+	if (score.score_points != null) return `${score.score_points} points`;
+	return score.score_text ?? 'Score recorded';
 };
 
 const ResultDetail = ({ route, navigation }: Props) => {
@@ -98,6 +139,19 @@ const ResultDetail = ({ route, navigation }: Props) => {
 					},
 				})
 				.json<ResultSet[]>(),
+	});
+	const sectionResults = useQuery({
+		queryKey: ['ws-section-results', workoutResultId],
+		queryFn: () =>
+			wsApi()
+				.get('section_results', {
+					searchParams: {
+						select: 'id,notes,scaling_level,score_time_seconds,score_rounds,score_partial_reps,score_weight_kg,score_reps,score_distance_meters,score_calories,score_points,workout_sections(name),section_score_entries(id,segment_index,segment_label,score_time_seconds,score_rounds,score_partial_reps,score_weight_kg,score_reps,score_distance_meters,score_calories,score_points,score_text)',
+						workout_result_id: `eq.${workoutResultId}`,
+						order: 'created_at.asc',
+					},
+				})
+				.json<SectionResult[]>(),
 	});
 	const feedback = useQuery({
 		queryKey: ['ws-result-feedback', workoutResultId],
@@ -269,6 +323,11 @@ const ResultDetail = ({ route, navigation }: Props) => {
 	}
 
 	const score = formatScore(result.data);
+	const hasSectionResults = (sectionResults.data?.length ?? 0) > 0;
+	const hasSummaryMetrics =
+		score != null ||
+		result.data.duration_seconds != null ||
+		result.data.total_volume_kg != null;
 	return (
 		<ScrollView
 			style={styles.screen}
@@ -290,39 +349,80 @@ const ResultDetail = ({ route, navigation }: Props) => {
 				</View>
 			</View>
 
-			<TrainingCard style={styles.metrics} accent="success">
-				{score ? <Metric label="Score" value={score} /> : null}
-				{result.data.duration_seconds != null ? (
-					<Metric
-						label="Duration"
-						value={formatDuration(result.data.duration_seconds)}
-					/>
-				) : null}
-				{result.data.total_volume_kg != null ? (
-					<Metric
-						label="Volume"
-						value={`${result.data.total_volume_kg.toLocaleString()} kg`}
-					/>
-				) : null}
-			</TrainingCard>
+			{hasSummaryMetrics ? (
+				<TrainingCard style={styles.metrics} accent="success">
+					{score ? <Metric label="Score" value={score} /> : null}
+					{result.data.duration_seconds != null ? (
+						<Metric
+							label="Duration"
+							value={formatDuration(result.data.duration_seconds)}
+						/>
+					) : null}
+					{result.data.total_volume_kg != null ? (
+						<Metric
+							label="Volume"
+							value={`${result.data.total_volume_kg.toLocaleString()} kg`}
+						/>
+					) : null}
+				</TrainingCard>
+			) : null}
 
 			<View style={styles.metaRow}>
 				{result.data.scaling_level ? (
 					<Text style={styles.pill}>{result.data.scaling_level}</Text>
 				) : null}
-				<TouchableOpacity
-					accessibilityRole="button"
-					onPress={() => setIsEditing(true)}
-					style={styles.editButton}
-				>
-					<Ionicons
-						name="pencil-outline"
-						size={16}
-						color={trainingTheme.colors.primary}
-					/>
-					<Text style={styles.editLabel}>Edit result</Text>
-				</TouchableOpacity>
+				{!hasSectionResults ? (
+					<TouchableOpacity
+						accessibilityRole="button"
+						onPress={() => setIsEditing(true)}
+						style={styles.editButton}
+					>
+						<Ionicons
+							name="pencil-outline"
+							size={16}
+							color={trainingTheme.colors.primary}
+						/>
+						<Text style={styles.editLabel}>Edit result</Text>
+					</TouchableOpacity>
+				) : null}
 			</View>
+
+			{hasSectionResults ? (
+				<>
+					<Text style={styles.sectionTitle}>Section scores</Text>
+					{sectionResults.data?.map(sectionResult => (
+						<TrainingCard key={sectionResult.id}>
+							<View style={styles.sectionScoreHeading}>
+								<Text style={styles.sectionScoreName}>
+									{sectionResult.workout_sections.name}
+								</Text>
+								<Text style={styles.sectionScoreValue}>
+									{formatSectionScore(sectionResult)}
+								</Text>
+							</View>
+							{sectionResult.section_score_entries.map(entry => (
+								<View
+									key={entry.id}
+									style={styles.sectionEntryRow}
+								>
+									<Text style={styles.sectionEntryLabel}>
+										{entry.segment_label ??
+											`Entry ${(entry.segment_index ?? 0) + 1}`}
+									</Text>
+									<Text style={styles.sectionEntryValue}>
+										{formatSectionScore(entry)}
+									</Text>
+								</View>
+							))}
+							{sectionResult.notes ? (
+								<Text style={styles.sectionScoreNotes}>
+									{sectionResult.notes}
+								</Text>
+							) : null}
+						</TrainingCard>
+					))}
+				</>
+			) : null}
 
 			{sets.data && sets.data.length > 0 ? (
 				<>
@@ -648,6 +748,49 @@ const styles = StyleSheet.create({
 		fontSize: 17,
 		fontWeight: '700',
 		marginBottom: -4,
+	},
+	sectionScoreHeading: {
+		flexDirection: 'row',
+		alignItems: 'flex-start',
+		justifyContent: 'space-between',
+		gap: 12,
+	},
+	sectionScoreName: {
+		flex: 1,
+		color: trainingTheme.colors.text,
+		fontSize: 16,
+		fontWeight: '700',
+	},
+	sectionScoreValue: {
+		color: trainingTheme.colors.primary,
+		fontSize: 15,
+		fontWeight: '700',
+	},
+	sectionEntryRow: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		gap: 12,
+		borderTopWidth: 1,
+		borderTopColor: trainingTheme.colors.border,
+		paddingTop: 10,
+		marginTop: 10,
+	},
+	sectionEntryLabel: {
+		flex: 1,
+		color: trainingTheme.colors.textMuted,
+		fontSize: 13,
+		textTransform: 'capitalize',
+	},
+	sectionEntryValue: {
+		color: trainingTheme.colors.text,
+		fontSize: 13,
+		fontWeight: '600',
+	},
+	sectionScoreNotes: {
+		color: trainingTheme.colors.textMuted,
+		fontSize: 13,
+		lineHeight: 19,
+		marginTop: 10,
 	},
 	setRow: {
 		minHeight: 44,

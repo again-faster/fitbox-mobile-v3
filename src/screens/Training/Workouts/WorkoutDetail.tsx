@@ -120,6 +120,8 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	} | null>(null);
 	const [selectedScoreSection, setSelectedScoreSection] =
 		useState<WorkoutSection | null>(null);
+	const [selectedLeaderboardSectionId, setSelectedLeaderboardSectionId] =
+		useState<string | null>(null);
 	const sessionSubmissionId = useRef(createSubmissionId()).current;
 	const [scalingLevel, setScalingLevel] = useState<ScalingLevel>(() => {
 		const stored = mmkvStorage.getString(SCALING_LEVEL_KEY);
@@ -197,6 +199,28 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 		detail?.workout_sections.some(
 			section => section.section_mode === 'workout' && section.is_scored,
 		) ?? false;
+	const leaderboardSections =
+		detail?.workout_sections.filter(
+			section =>
+				section.section_mode === 'workout' &&
+				section.is_scored &&
+				section.leaderboard_enabled,
+		) ?? [];
+	const selectedLeaderboardSection =
+		leaderboardSections.find(
+			section => section.id === selectedLeaderboardSectionId,
+		) ?? leaderboardSections[0];
+
+	useEffect(() => {
+		if (
+			leaderboardSections.length > 0 &&
+			!leaderboardSections.some(
+				section => section.id === selectedLeaderboardSectionId,
+			)
+		) {
+			setSelectedLeaderboardSectionId(leaderboardSections[0]!.id);
+		}
+	}, [leaderboardSections, selectedLeaderboardSectionId]);
 
 	const { data: fallbackRow } = useQuery({
 		queryKey: ['ws-program-ctx', workoutId],
@@ -259,7 +283,13 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	);
 
 	const { data: leaderboard, isLoading: leaderboardLoading } =
-		useWorkoutLeaderboard(workoutId, wType, leaderboardOpened);
+		useWorkoutLeaderboard(
+			workoutId,
+			selectedLeaderboardSection?.scoring_type ?? wType,
+			leaderboardOpened,
+			usesSectionScoring ? selectedLeaderboardSection?.id : undefined,
+			selectedLeaderboardSection?.leaderboard_sort_direction,
+		);
 
 	const openOverviewTab = () => setTab('overview');
 
@@ -884,6 +914,43 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 						display: tab === 'leaderboard' ? 'flex' : 'none',
 					}}
 				>
+					{usesSectionScoring && leaderboardSections.length > 0 ? (
+						<ScrollView
+							horizontal
+							showsHorizontalScrollIndicator={false}
+							contentContainerStyle={
+								styles.leaderboardSectionTabs
+							}
+						>
+							{leaderboardSections.map(section => (
+								<TouchableOpacity
+									key={section.id}
+									onPress={() =>
+										setSelectedLeaderboardSectionId(
+											section.id,
+										)
+									}
+									style={[
+										styles.leaderboardSectionTab,
+										selectedLeaderboardSection?.id ===
+											section.id &&
+											styles.leaderboardSectionTabActive,
+									]}
+								>
+									<Text
+										style={[
+											styles.leaderboardSectionTabText,
+											selectedLeaderboardSection?.id ===
+												section.id &&
+												styles.leaderboardSectionTabTextActive,
+										]}
+									>
+										{section.name}
+									</Text>
+								</TouchableOpacity>
+							))}
+						</ScrollView>
+					) : null}
 					<WorkoutLeaderboard
 						entries={leaderboard ?? []}
 						isLoading={leaderboardLoading}
@@ -1128,6 +1195,30 @@ const styles = StyleSheet.create({
 	},
 	tabTextActive: {
 		color: '#FFFFFF',
+	},
+	leaderboardSectionTabs: {
+		gap: 8,
+		paddingBottom: 12,
+	},
+	leaderboardSectionTab: {
+		borderWidth: 1,
+		borderColor: trainingTheme.colors.border,
+		borderRadius: 999,
+		paddingHorizontal: 14,
+		paddingVertical: 8,
+		backgroundColor: trainingTheme.colors.surface,
+	},
+	leaderboardSectionTabActive: {
+		borderColor: trainingTheme.colors.primary,
+		backgroundColor: trainingTheme.colors.primarySoft,
+	},
+	leaderboardSectionTabText: {
+		color: trainingTheme.colors.textMuted,
+		fontSize: 13,
+		fontWeight: '600',
+	},
+	leaderboardSectionTabTextActive: {
+		color: trainingTheme.colors.primary,
 	},
 	errorText: { color: '#DC2626', fontSize: 12, marginTop: 4 },
 	coachNote: {
