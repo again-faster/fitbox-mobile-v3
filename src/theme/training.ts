@@ -10,11 +10,13 @@ export const trainingTheme = {
 		border: memberTheme.colors.border,
 		primary: memberTheme.colors.primary,
 		primarySoft: memberTheme.colors.surfaceSoft,
+		onPrimary: memberTheme.colors.surface,
 		success: memberTheme.colors.success,
 		successSoft: '#EAF7EC',
 		warning: memberTheme.colors.warning,
 		warningSoft: '#FFF4DA',
 		danger: memberTheme.colors.danger,
+		dangerSoft: '#FDEDEC',
 	},
 	spacing: memberTheme.spacing,
 	radius: {

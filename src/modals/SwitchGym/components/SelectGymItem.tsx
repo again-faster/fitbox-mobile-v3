@@ -1,6 +1,7 @@
 import { Row, Spacer, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -28,6 +29,11 @@ const SelectGymItem = ({
 		style={styles.container}
 		activeOpacity={0.6}
 		onPress={onPress}
+		accessibilityRole="button"
+		accessibilityLabel={`${text}${selected ? ', current gym' : ''}`}
+		accessibilityHint={
+			selected ? 'This is your current gym' : 'Switches to this gym'
+		}
 	>
 		<Row style={layout.flex_1} align="center">
 			<View
@@ -65,7 +71,12 @@ const SelectGymItem = ({
 		</View>
 
 		{selected && ( // show check if current gym
-			<Icon name="check" style={styles.selectedIcon} />
+			<View style={styles.currentBadge}>
+				<Text bold style={styles.currentText}>
+					Current
+				</Text>
+				<Icon name="check-circle" style={styles.selectedIcon} />
+			</View>
 		)}
 	</TouchableOpacity>
 );
@@ -73,16 +84,21 @@ const SelectGymItem = ({
 const styles = StyleSheet.create({
 	container: {
 		flexDirection: 'row',
-		paddingHorizontal: 15,
-		paddingVertical: 10,
-		borderColor: '#f2f2f2',
+		padding: memberTheme.spacing.md,
+		backgroundColor: memberTheme.colors.surface,
+		borderColor: memberTheme.colors.border,
+		borderRadius: memberTheme.radius.md,
+		borderWidth: 1,
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		borderBottomWidth: 1,
+		marginBottom: memberTheme.spacing.sm,
+		marginHorizontal: memberTheme.spacing.lg,
+		minHeight: 72,
 	},
 	textStyle: {
 		maxWidth: '80%',
 		fontSize: 15,
+		color: memberTheme.colors.ink,
 	},
 	imageSize: {
 		width: 50,
@@ -91,7 +107,7 @@ const styles = StyleSheet.create({
 	imageStyle: {
 		alignItems: 'center',
 		justifyContent: 'center',
-		borderRadius: 10,
+		borderRadius: memberTheme.radius.sm,
 		overflow: 'hidden',
 	},
 	badgeStyle: {
@@ -103,8 +119,21 @@ const styles = StyleSheet.create({
 		alignSelf: 'flex-end',
 	},
 	selectedIcon: {
-		fontSize: fonts.metrics.lg,
-		color: fonts.colors.info,
+		fontSize: 20,
+		color: memberTheme.colors.success,
+		marginLeft: memberTheme.spacing.xs,
+	},
+	currentBadge: {
+		alignItems: 'center',
+		backgroundColor: '#EAF6EC',
+		borderRadius: memberTheme.radius.pill,
+		flexDirection: 'row',
+		paddingHorizontal: memberTheme.spacing.sm,
+		paddingVertical: 6,
+	},
+	currentText: {
+		color: memberTheme.colors.success,
+		fontSize: 11,
 	},
 });
 

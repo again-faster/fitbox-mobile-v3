@@ -9,6 +9,7 @@ import {
 
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 
 const UserInfoModal = ({
 	onDismiss,
@@ -40,14 +41,13 @@ const styles = StyleSheet.create({
 	card: {
 		width: '90%',
 		alignSelf: 'center',
-		backgroundColor: config.backgrounds.light,
-		borderRadius: config.metrics.sm,
-		padding: config.metrics.rg,
+		backgroundColor: memberTheme.colors.surface,
+		borderRadius: memberTheme.radius.lg,
+		padding: memberTheme.spacing.lg,
 		marginVertical: config.metrics.xs,
-		elevation: 2, // this only works on android
-		shadowOffset: { width: 0.5, height: 0.5 },
-		shadowColor: 'black',
-		shadowOpacity: 0.2,
+		borderColor: memberTheme.colors.border,
+		borderWidth: StyleSheet.hairlineWidth,
+		...memberTheme.shadow,
 		marginTop: 120,
 	},
 	safeArea: {

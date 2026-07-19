@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { useTheme } from '@/theme';
 import useStore from '@/zustand/Store';
 import getAttendanceGraph from '@/services/leaderboards/getAttendanceGraph';
+import { trainingTheme } from '@/theme/training';
+import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import SkeletonCard from '../../components/SkeletonCard';
 
 const deriveTarget = (lastWeek: number): number => {
@@ -34,7 +35,6 @@ const computeMonthStreak = (
 };
 
 const ConsistencyCard = (): React.JSX.Element => {
-	const { colors } = useTheme();
 	const currentYear = String(new Date().getFullYear());
 	const currentMonth = new Date().getMonth();
 
@@ -59,26 +59,40 @@ const ConsistencyCard = (): React.JSX.Element => {
 	}
 
 	return (
-		<View style={styles.card}>
+		<View style={styles.card} accessibilityLabel="Training consistency">
 			{/* Streak section */}
 			<View style={styles.streakSection}>
 				{streak > 0 ? (
 					<>
-						<Text
-							style={styles.streakHeadline}
-							accessibilityLabel={`${streak}-month streak`}
-						>
-							🔥 {streak}-month streak
-						</Text>
+						<View style={styles.streakHeadlineRow}>
+							<Ionicons
+								name="fire"
+								size={22}
+								color={trainingTheme.colors.warning}
+							/>
+							<Text
+								style={styles.streakHeadline}
+								accessibilityLabel={`${streak}-month streak`}
+							>
+								{streak}-month streak
+							</Text>
+						</View>
 						<Text style={styles.streakSub}>
 							Active for {streak} consecutive{' '}
 							{streak === 1 ? 'month' : 'months'}
 						</Text>
 					</>
 				) : (
-					<Text style={styles.noStreakText}>
-						📅 Start your streak this month
-					</Text>
+					<View style={styles.streakHeadlineRow}>
+						<Ionicons
+							name="calendar-check-outline"
+							size={20}
+							color={trainingTheme.colors.primary}
+						/>
+						<Text style={styles.noStreakText}>
+							Start your streak this month
+						</Text>
+					</View>
 				)}
 			</View>
 
@@ -93,7 +107,7 @@ const ConsistencyCard = (): React.JSX.Element => {
 							styles.progressFill,
 							{
 								width: `${fillPercent}%`,
-								backgroundColor: colors.brand,
+								backgroundColor: trainingTheme.colors.primary,
 							},
 						]}
 						accessibilityRole="progressbar"
@@ -115,50 +129,52 @@ const ConsistencyCard = (): React.JSX.Element => {
 
 const styles = StyleSheet.create({
 	card: {
-		backgroundColor: '#FFFFFF',
-		borderRadius: 16,
-		padding: 16,
-		marginHorizontal: 16,
-		marginBottom: 12,
-		shadowColor: '#000',
-		shadowOffset: { width: 0, height: 1 },
-		shadowOpacity: 0.08,
-		shadowRadius: 4,
-		elevation: 2,
+		backgroundColor: trainingTheme.colors.surface,
+		borderRadius: trainingTheme.radius.lg,
+		padding: trainingTheme.spacing.lg,
+		marginHorizontal: trainingTheme.spacing.lg,
+		marginBottom: trainingTheme.spacing.md,
+		...trainingTheme.shadow,
 	},
 	streakSection: {
-		marginBottom: 12,
+		marginBottom: trainingTheme.spacing.md,
+	},
+	streakHeadlineRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: trainingTheme.spacing.sm,
 	},
 	streakHeadline: {
 		fontSize: 18,
 		fontWeight: '700',
-		color: '#111827',
+		color: trainingTheme.colors.text,
 		marginBottom: 4,
 	},
 	streakSub: {
 		fontSize: 13,
-		color: '#6B7280',
+		color: trainingTheme.colors.textMuted,
+		marginTop: trainingTheme.spacing.xs,
 	},
 	noStreakText: {
 		fontSize: 15,
 		fontWeight: '500',
-		color: '#6B7280',
+		color: trainingTheme.colors.textMuted,
 	},
 	divider: {
 		height: 1,
-		backgroundColor: '#E5E7EB',
-		marginBottom: 12,
+		backgroundColor: trainingTheme.colors.border,
+		marginBottom: trainingTheme.spacing.md,
 	},
 	goalSection: {},
 	goalHeader: {
 		fontSize: 14,
 		fontWeight: '600',
-		color: '#111827',
+		color: trainingTheme.colors.text,
 		marginBottom: 8,
 	},
 	progressTrack: {
 		height: 8,
-		backgroundColor: '#E5E7EB',
+		backgroundColor: trainingTheme.colors.border,
 		borderRadius: 4,
 		overflow: 'hidden',
 		marginBottom: 6,
@@ -170,12 +186,12 @@ const styles = StyleSheet.create({
 	sessionCount: {
 		fontSize: 13,
 		fontWeight: '500',
-		color: '#111827',
+		color: trainingTheme.colors.text,
 		marginBottom: 4,
 	},
 	rationale: {
 		fontSize: 12,
-		color: '#6B7280',
+		color: trainingTheme.colors.textMuted,
 		fontStyle: 'italic',
 	},
 });

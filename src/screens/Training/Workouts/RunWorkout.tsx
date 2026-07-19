@@ -402,7 +402,12 @@ const RunWorkout = ({ route, navigation }: Props) => {
 
 	if (isLoading || !workout) {
 		return (
-			<View style={[styles.center, { backgroundColor: '#F9FAFB' }]}>
+			<View
+				style={[
+					styles.center,
+					{ backgroundColor: trainingTheme.colors.background },
+				]}
+			>
 				<ActivityIndicator color={colors.brand} />
 			</View>
 		);
@@ -473,7 +478,7 @@ const RunWorkout = ({ route, navigation }: Props) => {
 							<Text
 								style={[
 									styles.sectionName,
-									{ color: '#3B82F6' },
+									{ color: trainingTheme.colors.primary },
 								]}
 							>
 								{section.name}
@@ -488,7 +493,11 @@ const RunWorkout = ({ route, navigation }: Props) => {
 										key={block.id}
 										style={[
 											styles.block,
-											{ backgroundColor: '#FFFFFF' },
+											{
+												backgroundColor:
+													trainingTheme.colors
+														.surface,
+											},
 										]}
 									>
 										{block.block_movements
@@ -509,7 +518,9 @@ const RunWorkout = ({ route, navigation }: Props) => {
 															style={[
 																styles.movementName,
 																{
-																	color: '#111827',
+																	color: trainingTheme
+																		.colors
+																		.text,
 																},
 															]}
 														>
@@ -520,7 +531,9 @@ const RunWorkout = ({ route, navigation }: Props) => {
 																style={[
 																	styles.prescription,
 																	{
-																		color: '#6B7280',
+																		color: trainingTheme
+																			.colors
+																			.textMuted,
 																	},
 																]}
 															>
@@ -550,7 +563,9 @@ const RunWorkout = ({ route, navigation }: Props) => {
 																		style={[
 																			styles.setLabel,
 																			{
-																				color: '#6B7280',
+																				color: trainingTheme
+																					.colors
+																					.textMuted,
 																			},
 																		]}
 																	>
@@ -562,13 +577,21 @@ const RunWorkout = ({ route, navigation }: Props) => {
 																			styles.input,
 																			{
 																				borderColor:
-																					'#6B7280',
-																				color: '#111827',
+																					trainingTheme
+																						.colors
+																						.border,
+																				color: trainingTheme
+																					.colors
+																					.text,
 																			},
 																		]}
 																		keyboardType="numeric"
 																		placeholder="Reps"
-																		placeholderTextColor="#6B7280"
+																		placeholderTextColor={
+																			trainingTheme
+																				.colors
+																				.textMuted
+																		}
 																		value={
 																			s.reps
 																		}
@@ -589,13 +612,21 @@ const RunWorkout = ({ route, navigation }: Props) => {
 																			styles.input,
 																			{
 																				borderColor:
-																					'#6B7280',
-																				color: '#111827',
+																					trainingTheme
+																						.colors
+																						.border,
+																				color: trainingTheme
+																					.colors
+																					.text,
 																			},
 																		]}
 																		keyboardType="numeric"
 																		placeholder="kg"
-																		placeholderTextColor="#6B7280"
+																		placeholderTextColor={
+																			trainingTheme
+																				.colors
+																				.textMuted
+																		}
 																		value={
 																			s.weight
 																		}
@@ -658,7 +689,9 @@ const RunWorkout = ({ route, navigation }: Props) => {
 																					? trainingTheme
 																							.colors
 																							.textMuted
-																					: '#FFFFFF'
+																					: trainingTheme
+																							.colors
+																							.onPrimary
 																			}
 																		/>
 																	</TouchableOpacity>
@@ -683,7 +716,9 @@ const RunWorkout = ({ route, navigation }: Props) => {
 					onPress={finish}
 				>
 					{isFinishing ? (
-						<ActivityIndicator color="#FFFFFF" />
+						<ActivityIndicator
+							color={trainingTheme.colors.onPrimary}
+						/>
 					) : (
 						<Text style={styles.finishBtnText}>Finish workout</Text>
 					)}
@@ -703,7 +738,11 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		backgroundColor: trainingTheme.colors.primary,
 	},
-	restText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+	restText: {
+		color: trainingTheme.colors.onPrimary,
+		fontSize: 16,
+		fontWeight: '700',
+	},
 	recoveredBanner: {
 		minHeight: 44,
 		backgroundColor: trainingTheme.colors.primarySoft,
@@ -721,7 +760,7 @@ const styles = StyleSheet.create({
 	},
 	syncErrorBanner: {
 		minHeight: 44,
-		backgroundColor: '#FDEDEC',
+		backgroundColor: trainingTheme.colors.dangerSoft,
 		paddingHorizontal: trainingTheme.spacing.lg,
 		flexDirection: 'row',
 		alignItems: 'center',
@@ -809,7 +848,11 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		backgroundColor: trainingTheme.colors.primary,
 	},
-	finishBtnText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+	finishBtnText: {
+		color: trainingTheme.colors.onPrimary,
+		fontSize: 17,
+		fontWeight: '700',
+	},
 });
 
 export default RunWorkout;

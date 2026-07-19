@@ -5,6 +5,7 @@ import { applauseScore } from '@/services/leaderboards';
 import getClassLeaderboards from '@/services/leaderboards/getClassLeaderboards';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { ClassResultsParams } from '@/types/navigation';
 import { LeaderboardsDataType } from '@/types/schemas/leaderboards';
 import { Constant, Say } from '@/utils';
@@ -407,18 +408,13 @@ const ClassResultsScreen = ({
 						style={{
 							...styles.sectionsCard,
 							paddingBottom,
-							backgroundColor: config.backgrounds.brand,
 						}}
 					>
-						<Row
-							align="center"
-							style={{ paddingHorizontal: config.metrics.rg }}
-						>
+						<Row align="center" style={styles.sectionHeader}>
 							<Text
 								size="md"
-								color="light"
 								bold
-								style={layout.flex_1}
+								style={[layout.flex_1, styles.sectionTitle]}
 								numberOfLines={1}
 							>
 								{section.isMovement
@@ -431,7 +427,7 @@ const ClassResultsScreen = ({
 										? 'chevron-up'
 										: 'chevron-down'
 								}
-								color={config.backgrounds.light}
+								color={memberTheme.colors.primary}
 								size={25}
 								onPress={() => toggleSectionCard(sequenceId)}
 							/>
@@ -445,12 +441,7 @@ const ClassResultsScreen = ({
 				);
 			})
 		) : (
-			<Text
-				center
-				size="md"
-				color="darkgray"
-				style={{ marginTop: config.metrics.lg }}
-			>
+			<Text center size="md" style={styles.emptyText}>
 				No results found
 			</Text>
 		);
@@ -531,23 +522,13 @@ const ClassResultsScreen = ({
 					) : null;
 				})
 			) : (
-				<Text
-					center
-					size="md"
-					color="darkgray"
-					style={{ marginVertical: config.metrics.lg }}
-				>
+				<Text center size="md" style={styles.emptyText}>
 					No results found
 				</Text>
 			);
 		}
 		return (
-			<Text
-				center
-				size="md"
-				color="darkgray"
-				style={{ marginTop: config.metrics.lg }}
-			>
+			<Text center size="md" style={styles.emptyText}>
 				No results found
 			</Text>
 		);
@@ -651,15 +632,15 @@ const ClassResultsScreen = ({
 				<View style={styles.loader}>
 					<ActivityIndicator
 						size="large"
-						color={config.colors.brand}
+						color={memberTheme.colors.primary}
 					/>
 				</View>
 			) : (
 				<>
 					{state.showHeader && (
 						<View style={styles.headerCon}>
-							<Row align="center">
-								<Text size="md" bold color="darkgray" center>
+							<Row align="center" style={styles.classRow}>
+								<Text size="sm" bold style={styles.fieldLabel}>
 									Class:
 								</Text>
 								<Spacer horizontal />
@@ -668,11 +649,13 @@ const ClassResultsScreen = ({
 									onPress={toggleClassesModal}
 								>
 									<Text
-										color="darkgray"
 										size="md"
 										bold
 										center
-										style={layout.flex_1}
+										style={[
+											layout.flex_1,
+											styles.className,
+										]}
 									>
 										{
 											classes[
@@ -682,12 +665,13 @@ const ClassResultsScreen = ({
 									</Text>
 									<Icon
 										name="chevron-down"
-										color={config.backgrounds.darkgray}
+										color={memberTheme.colors.primaryInk}
 										size={config.metrics.lg}
 									/>
 								</TouchableOpacity>
 								<Spacer horizontal />
 								<TouchableOpacity
+									style={styles.filterButton}
 									onPress={() =>
 										setState(prevState => ({
 											...prevState,
@@ -697,7 +681,7 @@ const ClassResultsScreen = ({
 								>
 									<Icon
 										name="filter-outline"
-										color={config.backgrounds.darkgray}
+										color={memberTheme.colors.primaryInk}
 										size={config.metrics.lg}
 									/>
 									{hasFilter && (
@@ -709,14 +693,19 @@ const ClassResultsScreen = ({
 									)}
 								</TouchableOpacity>
 							</Row>
-							<Spacer size="lg" />
-							<Text center size="rg" bold color="darkgray">
+							<Spacer size="md" />
+							<Text
+								center
+								size="lg"
+								bold
+								style={styles.resultsTitle}
+							>
 								{resultDateParsed !== 'Today'
 									? `${resultDateParsed} - `
 									: "Today's"}{' '}
 								Results
 							</Text>
-							<Row style={{ marginTop: config.metrics.md }}>
+							<Row style={styles.genderRow}>
 								<TouchableOpacity
 									style={styles.maleFemaleBtns}
 									onPress={() =>
@@ -728,8 +717,9 @@ const ClassResultsScreen = ({
 											...styles.genderText,
 											backgroundColor:
 												state.gender === 'Male'
-													? config.colors.info
-													: config.backgrounds.light,
+													? memberTheme.colors.primary
+													: memberTheme.colors
+															.surface,
 										}}
 									>
 										<Text
@@ -749,8 +739,9 @@ const ClassResultsScreen = ({
 											...styles.genderText,
 											backgroundColor:
 												state.gender === 'Female'
-													? config.colors.info
-													: config.backgrounds.light,
+													? memberTheme.colors.primary
+													: memberTheme.colors
+															.surface,
 										}}
 									>
 										<Text
@@ -1083,43 +1074,75 @@ const ClassResultsScreen = ({
 const styles = StyleSheet.create({
 	mainCon: {
 		flex: 1,
-		paddingVertical: 15,
+		backgroundColor: memberTheme.colors.background,
 	},
 	loader: {
 		flex: 1,
 		justifyContent: 'center',
 	},
 	headerCon: {
-		paddingHorizontal: 15,
-		marginBottom: 20,
+		margin: memberTheme.spacing.md,
+		marginBottom: memberTheme.spacing.lg,
+		padding: memberTheme.spacing.lg,
+		borderRadius: memberTheme.radius.lg,
+		backgroundColor: memberTheme.colors.surface,
+		borderColor: memberTheme.colors.border,
+		borderWidth: StyleSheet.hairlineWidth,
+		...memberTheme.shadow,
+	},
+	classRow: {
+		width: '100%',
+	},
+	fieldLabel: {
+		color: memberTheme.colors.textMuted,
 	},
 	selectClassBtn: {
 		flex: 1,
-		paddingVertical: 5,
-		paddingHorizontal: 5,
+		minHeight: 44,
+		paddingVertical: memberTheme.spacing.sm,
+		paddingHorizontal: memberTheme.spacing.md,
 		justifyContent: 'center',
 		alignItems: 'center',
 		flexDirection: 'row',
-		borderColor: config.backgrounds.lightgrey,
+		borderColor: memberTheme.colors.border,
 		borderWidth: 1,
-		borderRadius: 2,
+		borderRadius: memberTheme.radius.sm,
+		backgroundColor: memberTheme.colors.surfaceSoft,
+	},
+	className: {
+		color: memberTheme.colors.text,
+	},
+	filterButton: {
+		width: 44,
+		height: 44,
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderRadius: memberTheme.radius.sm,
+		backgroundColor: memberTheme.colors.surfaceSoft,
+	},
+	resultsTitle: {
+		color: memberTheme.colors.text,
+	},
+	genderRow: {
+		marginTop: memberTheme.spacing.md,
+		justifyContent: 'center',
 	},
 	maleFemaleBtns: {
-		borderColor: config.colors.info,
-		borderRadius: 2,
+		borderColor: memberTheme.colors.border,
+		borderRadius: memberTheme.radius.pill,
 		flexDirection: 'row',
-		// alignSelf: 'flex-end',
-		// paddingHorizontal: 20,
-		// paddingVertical: 3,
 		borderWidth: 1,
+		overflow: 'hidden',
 	},
 	genderText: {
-		paddingHorizontal: 10,
+		minWidth: 46,
+		minHeight: 34,
+		alignItems: 'center',
 		justifyContent: 'center',
 	},
 	resultsContainer: {
-		paddingHorizontal: config.metrics.md,
-		paddingVertical: config.metrics.rg,
+		paddingHorizontal: memberTheme.spacing.md,
+		paddingBottom: memberTheme.spacing.xxl,
 	},
 	modalContainer: {
 		flex: 1,
@@ -1134,13 +1157,17 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		top: '20%',
 		maxHeight: Constant.DEVICEHEIGHT / 2,
-		// ...AppStyles.shadow.heavy
+		borderRadius: memberTheme.radius.lg,
+		backgroundColor: memberTheme.colors.surface,
+		...memberTheme.shadow,
 	},
 	ageInput: {
 		borderWidth: 1,
-		borderRadius: 4,
-		borderColor: config.backgrounds.lightgrey,
-		backgroundColor: 'transparent',
+		borderRadius: memberTheme.radius.sm,
+		borderColor: memberTheme.colors.border,
+		backgroundColor: memberTheme.colors.surfaceSoft,
+		color: memberTheme.colors.text,
+		minHeight: 44,
 		textAlign: 'center',
 	},
 	searchModalTouchableWithoutFeedback: {
@@ -1153,12 +1180,29 @@ const styles = StyleSheet.create({
 		backgroundColor: config.colors.danger,
 	},
 	sectionsCard: {
-		borderRadius: 2,
-		shadowOpacity: 0,
-		borderColor: config.borders.colors.lightgrey,
-		borderWidth: 1,
-		marginBottom: config.metrics.md,
+		borderRadius: memberTheme.radius.md,
+		borderColor: memberTheme.colors.border,
+		borderWidth: StyleSheet.hairlineWidth,
+		marginBottom: memberTheme.spacing.md,
 		paddingHorizontal: 0,
+		backgroundColor: memberTheme.colors.surface,
+		overflow: 'hidden',
+		...memberTheme.shadow,
+	},
+	sectionHeader: {
+		minHeight: 52,
+		paddingHorizontal: memberTheme.spacing.lg,
+		backgroundColor: memberTheme.colors.surfaceSoft,
+	},
+	sectionTitle: {
+		color: memberTheme.colors.text,
+	},
+	emptyText: {
+		margin: memberTheme.spacing.lg,
+		padding: memberTheme.spacing.xl,
+		borderRadius: memberTheme.radius.md,
+		backgroundColor: memberTheme.colors.surface,
+		color: memberTheme.colors.textMuted,
 	},
 	pickerContaineriOSStyle: {
 		paddingLeft: iosVersion >= 14 ? 18 : 0,

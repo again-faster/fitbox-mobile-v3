@@ -1,6 +1,7 @@
 import { Button, Row } from '@/components/atoms';
 import { BookButton } from '@/components/molecules';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { Func } from '@/utils';
 import moment from 'moment';
 import { memo, useCallback, useState } from 'react';
@@ -119,15 +120,20 @@ export default memo(SessionActionButtons);
 
 const styles = StyleSheet.create({
 	container: {
-		borderBottomWidth: 0.5,
-		borderColor: '#ccc',
-		paddingHorizontal: 15,
-		paddingVertical: 12,
-		gap: 10,
+		marginHorizontal: memberTheme.spacing.md,
+		marginBottom: memberTheme.spacing.sm,
+		paddingHorizontal: memberTheme.spacing.md,
+		paddingVertical: memberTheme.spacing.md,
+		gap: memberTheme.spacing.sm,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: memberTheme.colors.border,
+		borderRadius: memberTheme.radius.md,
+		backgroundColor: memberTheme.colors.surface,
 	},
 	warningTxt: {
-		color: '#595959',
+		color: memberTheme.colors.textMuted,
 		textAlign: 'center',
-		fontSize: 16,
+		fontSize: 14,
+		lineHeight: 20,
 	},
 });

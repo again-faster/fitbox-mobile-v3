@@ -1,3 +1,8 @@
+import { mmkvStorage } from '@/storage';
+import { trainingTheme } from '@/theme/training';
+import type { TrainingStackParamList } from '@/types/navigation';
+import type { StackScreenProps } from '@react-navigation/stack';
+import moment from 'moment';
 import {
 	Platform,
 	ScrollView,
@@ -6,12 +11,8 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
-import type { StackScreenProps } from '@react-navigation/stack';
-import moment from 'moment';
-import { mmkvStorage } from '@/storage';
-import type { TrainingStackParamList } from '@/types/navigation';
-import { trainingTheme } from '@/theme/training';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingWearables'>;
 type ProviderProps = {
@@ -20,6 +21,7 @@ type ProviderProps = {
 	icon: string;
 	status: string;
 	active?: boolean;
+	available?: boolean;
 	onPress?: () => void;
 };
 
@@ -28,23 +30,30 @@ const Provider = ({
 	description,
 	icon,
 	status,
-	active,
+	active = false,
+	available = false,
 	onPress,
 }: ProviderProps) => (
 	<TouchableOpacity
 		accessibilityRole={onPress ? 'button' : undefined}
+		accessibilityLabel={`${name}. ${description}. ${status}`}
+		accessibilityState={{ disabled: !onPress }}
 		disabled={!onPress}
 		onPress={onPress}
+		activeOpacity={0.75}
 		style={styles.provider}
 	>
 		<View
-			style={[styles.providerIcon, active && styles.providerIconActive]}
+			style={[
+				styles.providerIcon,
+				(active || available) && styles.providerIconAvailable,
+			]}
 		>
 			<Ionicons
 				name={icon}
-				size={23}
+				size={25}
 				color={
-					active
+					active || available
 						? trainingTheme.colors.primary
 						: trainingTheme.colors.textMuted
 				}
@@ -54,20 +63,30 @@ const Provider = ({
 			<Text style={styles.providerName}>{name}</Text>
 			<Text style={styles.providerDescription}>{description}</Text>
 		</View>
-		<View style={[styles.statusPill, active && styles.statusActive]}>
+		<View
+			style={[
+				styles.statusPill,
+				available && styles.statusAvailable,
+				active && styles.statusActive,
+			]}
+		>
 			<Text
-				style={[styles.statusText, active && styles.statusTextActive]}
+				style={[
+					styles.statusText,
+					available && styles.statusTextAvailable,
+					active && styles.statusTextActive,
+				]}
 			>
 				{status}
 			</Text>
 		</View>
-		{onPress ? (
+		{onPress && (
 			<Ionicons
 				name="chevron-right"
 				size={20}
 				color={trainingTheme.colors.textMuted}
 			/>
-		) : null}
+		)}
 	</TouchableOpacity>
 );
 
@@ -76,202 +95,366 @@ const Wearables = ({ navigation }: Props) => {
 		Platform.OS === 'ios' &&
 		mmkvStorage.getString('healthkit.authorized') === 'true';
 	const lastSync = mmkvStorage.getString('healthkit.lastSyncedAt');
+
 	return (
-		<ScrollView
-			style={styles.screen}
-			contentContainerStyle={styles.container}
-		>
-			<Text style={styles.title}>Wearables</Text>
-			<Text style={styles.subtitle}>
-				Connect health data to support recovery context and attach
-				recorded sessions to your training history.
-			</Text>
-			<View style={styles.privacyCard}>
-				<Ionicons
-					name="shield-check-outline"
-					size={22}
-					color={trainingTheme.colors.success}
-				/>
-				<View style={styles.providerCopy}>
-					<Text style={styles.privacyTitle}>You stay in control</Text>
-					<Text style={styles.privacyCopy}>
-						Workout Studio only reads the categories you approve.
-						Disconnecting stops future syncs.
+		<SafeAreaView style={styles.screen} edges={['top']}>
+			<View style={styles.header}>
+				<TouchableOpacity
+					accessibilityRole="button"
+					accessibilityLabel="Go back"
+					style={styles.backButton}
+					onPress={() => navigation.goBack()}
+				>
+					<Ionicons
+						name="arrow-left"
+						size={24}
+						color={trainingTheme.colors.text}
+					/>
+				</TouchableOpacity>
+				<View style={styles.headerCopy}>
+					<Text style={styles.headerTitle}>Wearables</Text>
+					<Text style={styles.headerSubtitle}>
+						Your health data, connected.
 					</Text>
 				</View>
 			</View>
-			<Text style={styles.sectionTitle}>On this phone</Text>
-			{Platform.OS === 'ios' ? (
-				<Provider
-					name="Apple Health"
-					description={
-						lastSync
-							? `Last synced ${moment(lastSync).fromNow()}`
-							: 'Workouts, sleep, heart and activity metrics'
-					}
-					icon="heart-pulse"
-					status={appleConnected ? 'Connected' : 'Set up'}
-					active={appleConnected}
-					onPress={() => navigation.navigate('TrainingAppleHealth')}
-				/>
-			) : (
-				<Provider
-					name="Health Connect"
-					description="Android health and fitness data"
-					icon="heart-pulse"
-					status="Not set up"
-				/>
-			)}
-			<Text style={styles.sectionTitle}>Other providers</Text>
-			<Provider
-				name="WHOOP"
-				description="Recovery, strain and sleep"
-				icon="watch-variant"
-				status="Web only"
-			/>
-			<Provider
-				name="Fitbit"
-				description="Activity, sleep and heart metrics"
-				icon="watch"
-				status="Web only"
-			/>
-			<Text style={styles.availability}>
-				WHOOP and Fitbit connections are currently managed in Workout
-				Studio on the web. Native mobile connection management will be
-				added once their OAuth callback flow is available in this app.
-			</Text>
-			<Text style={styles.sectionTitle}>Readiness</Text>
-			<View style={styles.readinessCard}>
-				<View style={styles.readinessIcon}>
-					<Ionicons
-						name="weather-sunset-up"
-						size={24}
-						color={trainingTheme.colors.primary}
+
+			<ScrollView
+				contentContainerStyle={styles.content}
+				showsVerticalScrollIndicator={false}
+			>
+				<View style={styles.heroCard}>
+					<View style={styles.heroIcon}>
+						<Ionicons
+							name="watch-variant"
+							size={37}
+							color={trainingTheme.colors.primary}
+						/>
+					</View>
+					<Text style={styles.heroEyebrow}>HEALTH CONNECTIONS</Text>
+					<Text style={styles.heroTitle}>
+						Bring recovery into focus
+					</Text>
+					<Text style={styles.heroBody}>
+						Connect approved health metrics and recorded sessions to
+						your Fitbox training history.
+					</Text>
+				</View>
+
+				<View style={styles.privacyCard}>
+					<View style={styles.privacyIcon}>
+						<Ionicons
+							name="shield-check-outline"
+							size={24}
+							color={trainingTheme.colors.success}
+						/>
+					</View>
+					<View style={styles.providerCopy}>
+						<Text style={styles.privacyTitle}>
+							You stay in control
+						</Text>
+						<Text style={styles.privacyBody}>
+							Only approved categories are read. Disconnecting
+							stops future syncs.
+						</Text>
+					</View>
+				</View>
+
+				<View style={styles.sectionHeading}>
+					<Text style={styles.sectionTitle}>On this phone</Text>
+					<Text style={styles.sectionHint}>
+						{Platform.OS === 'ios' ? 'iPhone' : 'Android'}
+					</Text>
+				</View>
+				{Platform.OS === 'ios' ? (
+					<Provider
+						name="Apple Health"
+						description={
+							lastSync
+								? `Last synced ${moment(lastSync).fromNow()}`
+								: 'Workouts, sleep, heart and activity metrics'
+						}
+						icon="heart-pulse"
+						status={appleConnected ? 'Connected' : 'Set up'}
+						active={appleConnected}
+						available
+						onPress={() =>
+							navigation.navigate('TrainingAppleHealth')
+						}
+					/>
+				) : (
+					<Provider
+						name="Health Connect"
+						description="Android health connection support is planned"
+						icon="heart-pulse"
+						status="Coming soon"
+					/>
+				)}
+
+				<View style={styles.sectionHeading}>
+					<Text style={styles.sectionTitle}>Other providers</Text>
+					<Text style={styles.sectionHint}>Web managed</Text>
+				</View>
+				<View style={styles.providerGroup}>
+					<Provider
+						name="WHOOP"
+						description="Recovery, strain and sleep"
+						icon="watch-variant"
+						status="Web only"
+					/>
+					<View style={styles.providerDivider} />
+					<Provider
+						name="Fitbit"
+						description="Activity, sleep and heart metrics"
+						icon="watch"
+						status="Web only"
 					/>
 				</View>
-				<View style={styles.providerCopy}>
-					<Text style={styles.providerName}>
-						{appleConnected && lastSync
-							? 'Health data synced'
-							: 'Connect a wearable to get started'}
-					</Text>
-					<Text style={styles.providerDescription}>
-						{appleConnected && lastSync
-							? 'Your synced metrics can contribute to readiness once Workout Studio has enough recent data.'
-							: 'Readiness will use available recovery signals without changing your prescribed workout automatically.'}
+				<View style={styles.webNote}>
+					<Ionicons
+						name="web"
+						size={20}
+						color={trainingTheme.colors.primary}
+					/>
+					<Text style={styles.webNoteText}>
+						WHOOP and Fitbit connections are currently managed in
+						Workout Studio on the web.
 					</Text>
 				</View>
-			</View>
-		</ScrollView>
+
+				<Text style={styles.sectionTitle}>Readiness</Text>
+				<View style={styles.readinessCard}>
+					<View style={styles.readinessIcon}>
+						<Ionicons
+							name="weather-sunset-up"
+							size={27}
+							color={trainingTheme.colors.primary}
+						/>
+					</View>
+					<View style={styles.providerCopy}>
+						<Text style={styles.providerName}>
+							{appleConnected && lastSync
+								? 'Health data synced'
+								: 'Connect a wearable to get started'}
+						</Text>
+						<Text style={styles.providerDescription}>
+							{appleConnected && lastSync
+								? 'Recent signals can contribute to readiness once enough data is available.'
+								: 'Readiness can add recovery context without automatically changing your prescribed workout.'}
+						</Text>
+					</View>
+				</View>
+			</ScrollView>
+		</SafeAreaView>
 	);
 };
 
 const styles = StyleSheet.create({
-	screen: { backgroundColor: trainingTheme.colors.background },
-	container: { padding: 16, paddingBottom: 48, gap: 14 },
-	title: {
-		color: trainingTheme.colors.text,
-		fontSize: 26,
-		fontWeight: '700',
+	screen: { flex: 1, backgroundColor: trainingTheme.colors.background },
+	header: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		paddingHorizontal: trainingTheme.spacing.lg,
+		paddingTop: trainingTheme.spacing.md,
+		paddingBottom: trainingTheme.spacing.lg,
+		gap: trainingTheme.spacing.md,
 	},
-	subtitle: {
-		color: trainingTheme.colors.textMuted,
+	backButton: {
+		width: trainingTheme.touchTarget,
+		height: trainingTheme.touchTarget,
+		borderRadius: trainingTheme.radius.pill,
+		backgroundColor: trainingTheme.colors.surface,
+		borderWidth: 1,
+		borderColor: trainingTheme.colors.border,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	headerCopy: { flex: 1 },
+	headerTitle: {
+		fontSize: 28,
+		lineHeight: 34,
+		fontWeight: '800',
+		color: trainingTheme.colors.text,
+	},
+	headerSubtitle: {
 		fontSize: 14,
 		lineHeight: 20,
-		marginTop: -8,
+		color: trainingTheme.colors.textMuted,
+		marginTop: 2,
 	},
-	sectionTitle: {
+	content: {
+		paddingHorizontal: trainingTheme.spacing.lg,
+		paddingBottom: trainingTheme.spacing.xxl,
+		gap: trainingTheme.spacing.lg,
+	},
+	heroCard: {
+		backgroundColor: trainingTheme.colors.primarySoft,
+		borderRadius: trainingTheme.radius.lg,
+		padding: trainingTheme.spacing.xl,
+		alignItems: 'flex-start',
+	},
+	heroIcon: {
+		width: 68,
+		height: 68,
+		borderRadius: trainingTheme.radius.lg,
+		backgroundColor: trainingTheme.colors.surface,
+		alignItems: 'center',
+		justifyContent: 'center',
+		marginBottom: trainingTheme.spacing.lg,
+	},
+	heroEyebrow: {
+		fontSize: 11,
+		lineHeight: 15,
+		fontWeight: '800',
+		letterSpacing: 1,
+		color: trainingTheme.colors.primary,
+	},
+	heroTitle: {
+		fontSize: 26,
+		lineHeight: 32,
+		fontWeight: '800',
 		color: trainingTheme.colors.text,
-		fontSize: 17,
-		fontWeight: '700',
-		marginTop: 6,
+		marginTop: trainingTheme.spacing.sm,
+	},
+	heroBody: {
+		fontSize: 15,
+		lineHeight: 22,
+		color: trainingTheme.colors.textMuted,
+		marginTop: trainingTheme.spacing.sm,
 	},
 	privacyCard: {
 		flexDirection: 'row',
-		gap: 12,
-		padding: 14,
-		borderRadius: 16,
+		alignItems: 'center',
+		gap: trainingTheme.spacing.md,
+		padding: trainingTheme.spacing.lg,
+		borderRadius: trainingTheme.radius.lg,
 		backgroundColor: trainingTheme.colors.successSoft,
 	},
+	privacyIcon: {
+		width: 46,
+		height: 46,
+		borderRadius: trainingTheme.radius.md,
+		backgroundColor: trainingTheme.colors.surface,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
 	privacyTitle: {
+		fontSize: 15,
+		lineHeight: 20,
+		fontWeight: '800',
 		color: trainingTheme.colors.text,
-		fontSize: 14,
-		fontWeight: '700',
 	},
-	privacyCopy: {
-		color: trainingTheme.colors.textMuted,
+	privacyBody: {
 		fontSize: 12,
-		lineHeight: 18,
-		marginTop: 3,
+		lineHeight: 17,
+		color: trainingTheme.colors.textMuted,
+		marginTop: 2,
 	},
-	provider: {
-		minHeight: 82,
+	sectionHeading: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		gap: 11,
-		padding: 13,
-		borderRadius: 16,
-		borderWidth: 1,
-		borderColor: trainingTheme.colors.border,
+		justifyContent: 'space-between',
+		marginTop: trainingTheme.spacing.sm,
+	},
+	sectionTitle: {
+		fontSize: 20,
+		lineHeight: 26,
+		fontWeight: '800',
+		color: trainingTheme.colors.text,
+	},
+	sectionHint: {
+		fontSize: 12,
+		lineHeight: 17,
+		color: trainingTheme.colors.textMuted,
+	},
+	provider: {
+		minHeight: 86,
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: trainingTheme.spacing.md,
+		padding: trainingTheme.spacing.lg,
+		borderRadius: trainingTheme.radius.lg,
 		backgroundColor: trainingTheme.colors.surface,
 	},
+	providerGroup: {
+		backgroundColor: trainingTheme.colors.surface,
+		borderRadius: trainingTheme.radius.lg,
+		...trainingTheme.shadow,
+	},
+	providerDivider: {
+		height: 1,
+		backgroundColor: trainingTheme.colors.border,
+		marginHorizontal: trainingTheme.spacing.lg,
+	},
 	providerIcon: {
-		width: 43,
-		height: 43,
-		borderRadius: 22,
+		width: 48,
+		height: 48,
+		borderRadius: trainingTheme.radius.md,
 		alignItems: 'center',
 		justifyContent: 'center',
 		backgroundColor: trainingTheme.colors.surfaceMuted,
 	},
-	providerIconActive: { backgroundColor: trainingTheme.colors.primarySoft },
+	providerIconAvailable: {
+		backgroundColor: trainingTheme.colors.primarySoft,
+	},
 	providerCopy: { flex: 1 },
 	providerName: {
+		fontSize: 16,
+		lineHeight: 21,
+		fontWeight: '800',
 		color: trainingTheme.colors.text,
-		fontSize: 15,
-		fontWeight: '700',
 	},
 	providerDescription: {
-		color: trainingTheme.colors.textMuted,
 		fontSize: 12,
 		lineHeight: 17,
+		color: trainingTheme.colors.textMuted,
 		marginTop: 3,
 	},
 	statusPill: {
-		borderRadius: 999,
-		paddingHorizontal: 9,
-		paddingVertical: 5,
+		borderRadius: trainingTheme.radius.pill,
+		paddingHorizontal: trainingTheme.spacing.sm,
+		paddingVertical: 6,
 		backgroundColor: trainingTheme.colors.surfaceMuted,
 	},
+	statusAvailable: { backgroundColor: trainingTheme.colors.primarySoft },
 	statusActive: { backgroundColor: trainingTheme.colors.successSoft },
 	statusText: {
-		color: trainingTheme.colors.textMuted,
 		fontSize: 10,
-		fontWeight: '700',
-	},
-	statusTextActive: { color: trainingTheme.colors.success },
-	availability: {
+		fontWeight: '800',
 		color: trainingTheme.colors.textMuted,
+	},
+	statusTextAvailable: { color: trainingTheme.colors.primary },
+	statusTextActive: { color: trainingTheme.colors.success },
+	webNote: {
+		flexDirection: 'row',
+		alignItems: 'flex-start',
+		gap: trainingTheme.spacing.sm,
+		paddingHorizontal: trainingTheme.spacing.sm,
+	},
+	webNoteText: {
+		flex: 1,
 		fontSize: 12,
 		lineHeight: 18,
+		color: trainingTheme.colors.textMuted,
 	},
 	readinessCard: {
-		minHeight: 100,
+		minHeight: 104,
 		flexDirection: 'row',
 		alignItems: 'center',
-		gap: 13,
-		padding: 15,
-		borderRadius: 16,
+		gap: trainingTheme.spacing.md,
+		padding: trainingTheme.spacing.lg,
+		borderRadius: trainingTheme.radius.lg,
 		backgroundColor: trainingTheme.colors.surface,
-		borderWidth: 1,
-		borderColor: trainingTheme.colors.border,
+		...trainingTheme.shadow,
 	},
 	readinessIcon: {
-		width: 48,
-		height: 48,
-		borderRadius: 24,
+		width: 54,
+		height: 54,
+		borderRadius: trainingTheme.radius.md,
 		alignItems: 'center',
 		justifyContent: 'center',
 		backgroundColor: trainingTheme.colors.primarySoft,
 	},
 });
+
 export default Wearables;

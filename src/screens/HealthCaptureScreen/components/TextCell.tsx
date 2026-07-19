@@ -1,5 +1,6 @@
 import { Row, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
+import { memberTheme } from '@/theme/member';
 import { StyleProp, StyleSheet, TextStyle, View } from 'react-native';
 
 const TextCell = ({
@@ -43,6 +44,8 @@ const styles = StyleSheet.create({
 		height: '100%',
 		alignItems: 'center',
 		justifyContent: 'center',
+		borderColor: memberTheme.colors.border,
+		backgroundColor: memberTheme.colors.surfaceSoft,
 	},
 	cellStyleNoBorder: {
 		paddingHorizontal: 5,
@@ -53,5 +56,6 @@ const styles = StyleSheet.create({
 	},
 	cellTextStyle: {
 		fontSize: config.fonts.metrics.md,
+		color: memberTheme.colors.text,
 	},
 });

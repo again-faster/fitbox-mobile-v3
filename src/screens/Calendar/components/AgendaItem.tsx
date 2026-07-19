@@ -1,13 +1,14 @@
 import { Text } from '@/components/atoms';
 import { BookButton } from '@/components/molecules';
 import { config } from '@/theme/_config';
+import { memberTheme } from '@/theme/member';
 import { ApplicationStackParamList } from '@/types/navigation';
 import { ClassItemData } from '@/zustand/interface/SessionInterface';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
-export const AGENDA_ITEM_HEIGHT = 84;
+export const AGENDA_ITEM_HEIGHT = 96;
 
 const { metrics, fonts } = config;
 
@@ -75,18 +76,25 @@ const AgendaItem: React.FC<AgendaItemProps> = React.memo(
 		if (isLoading === false) {
 			return (
 				<View style={styles.itemLoaderContainer}>
-					<Text color="black">No classes found</Text>
+					<Text style={styles.emptyText}>No classes found</Text>
 				</View>
 			);
 		}
 
 		return (
-			<TouchableOpacity onPress={handleViewSession} style={styles.item}>
+			<TouchableOpacity
+				onPress={handleViewSession}
+				style={styles.item}
+				accessibilityRole="button"
+				accessibilityLabel={`${title}, ${start}${location ? `, ${location}` : ''}`}
+			>
 				<View style={styles.timeContainer}>
-					<Text size="rg" bold>
+					<Text size="rg" bold style={styles.timeText}>
 						{start}
 					</Text>
-					<Text size="xs">{duration}</Text>
+					<Text size="xs" style={styles.durationText}>
+						{duration}
+					</Text>
 				</View>
 				<View
 					style={[
@@ -95,11 +103,17 @@ const AgendaItem: React.FC<AgendaItemProps> = React.memo(
 					]}
 				/>
 				<View style={styles.contentContainer}>
-					<Text bold size="md" numberOfLines={2} ellipsizeMode="tail">
+					<Text
+						bold
+						size="md"
+						numberOfLines={2}
+						ellipsizeMode="tail"
+						style={styles.titleText}
+					>
 						{title}
 					</Text>
 					{location ? (
-						<Text color="info" size="sm">
+						<Text size="sm" style={styles.locationText}>
 							{location}
 						</Text>
 					) : null}
@@ -147,17 +161,29 @@ export default AgendaItem;
 
 const styles = StyleSheet.create({
 	item: {
-		padding: 20,
-		backgroundColor: 'white',
-		borderBottomWidth: 1,
-		borderBottomColor: 'lightgrey',
+		height: AGENDA_ITEM_HEIGHT,
+		paddingHorizontal: memberTheme.spacing.md,
+		paddingVertical: memberTheme.spacing.sm,
+		marginHorizontal: memberTheme.spacing.md,
+		marginTop: memberTheme.spacing.sm,
+		backgroundColor: memberTheme.colors.surface,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: memberTheme.colors.border,
+		borderRadius: memberTheme.radius.md,
 		flexDirection: 'row',
-		minHeight: AGENDA_ITEM_HEIGHT,
+		...memberTheme.shadow,
 	},
 	itemLoaderContainer: {
-		marginLeft: config.metrics.md,
-		paddingTop: config.metrics.md,
+		margin: memberTheme.spacing.md,
+		padding: memberTheme.spacing.lg,
 		height: AGENDA_ITEM_HEIGHT,
+		borderRadius: memberTheme.radius.md,
+		backgroundColor: memberTheme.colors.surface,
+		borderColor: memberTheme.colors.border,
+		borderWidth: StyleSheet.hairlineWidth,
+	},
+	emptyText: {
+		color: memberTheme.colors.textMuted,
 	},
 	itemLoader: {
 		marginBottom: 15,
@@ -167,6 +193,12 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginRight: config.metrics.rg,
+	},
+	timeText: {
+		color: memberTheme.colors.text,
+	},
+	durationText: {
+		color: memberTheme.colors.textMuted,
 	},
 	divider: {
 		borderRadius: 8,
@@ -179,6 +211,12 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		flex: 1,
 		paddingRight: fonts.metrics.sm,
+	},
+	titleText: {
+		color: memberTheme.colors.text,
+	},
+	locationText: {
+		color: memberTheme.colors.primary,
 	},
 	itemTitleText: {
 		color: 'black',

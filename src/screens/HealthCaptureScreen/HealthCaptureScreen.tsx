@@ -4,6 +4,7 @@ import { getUserHealthInfo, saveHealthInfo } from '@/services/users';
 import getUserGymInfo from '@/services/users/getUserGymInfo';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import {
 	ApplicationScreenProps,
 	HealthCaptureParams,
@@ -722,10 +723,13 @@ const HealthCaptureScreen = ({
 
 	return state.loading ? (
 		<View style={styles.loader}>
-			<ActivityIndicator color={config.colors.brand} size="large" />
+			<ActivityIndicator
+				color={memberTheme.colors.primary}
+				size="large"
+			/>
 		</View>
 	) : (
-		<View style={layout.flex_1}>
+		<View style={[layout.flex_1, styles.screen]}>
 			<DateTimePicker
 				mode="date"
 				isVisible={checkType() === 'date'}
@@ -787,21 +791,36 @@ const HealthCaptureScreen = ({
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		paddingHorizontal: config.metrics.xl,
-		paddingTop: config.metrics.xl,
+		paddingHorizontal: memberTheme.spacing.md,
+		paddingTop: memberTheme.spacing.lg,
 		paddingBottom: config.metrics.rg,
 	},
 	loader: {
 		flex: 1,
 		justifyContent: 'center',
+		backgroundColor: memberTheme.colors.background,
 	},
-	itemContainer: { marginBottom: 50, alignItems: 'center' },
+	itemContainer: {
+		marginBottom: memberTheme.spacing.lg,
+		padding: memberTheme.spacing.xl,
+		alignItems: 'center',
+		borderRadius: memberTheme.radius.lg,
+		backgroundColor: memberTheme.colors.surface,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: memberTheme.colors.border,
+		...memberTheme.shadow,
+	},
 	questionContainer: { alignItems: 'center' },
 	headerStyle: {
-		textAlign: 'justify',
+		color: memberTheme.colors.textMuted,
+		lineHeight: 22,
+		padding: memberTheme.spacing.lg,
+		borderRadius: memberTheme.radius.md,
+		backgroundColor: memberTheme.colors.surfaceSoft,
 	},
 	questionText: {
 		textAlign: 'center',
+		color: memberTheme.colors.text,
 	},
 	dataNumberStyle: {
 		borderWidth: 1,
@@ -810,6 +829,7 @@ const styles = StyleSheet.create({
 		marginHorizontal: 5,
 		alignItems: 'center',
 		justifyContent: 'center',
+		borderRadius: memberTheme.radius.sm,
 	},
 	rowStyle: {
 		borderBottomWidth: 0,
@@ -821,11 +841,11 @@ const styles = StyleSheet.create({
 		marginTop: 15,
 	},
 	addMoreBtnStyle: {
-		backgroundColor: config.colors.brand,
+		backgroundColor: memberTheme.colors.primary,
 		paddingVertical: 10,
 		alignItems: 'center',
 		justifyContent: 'center',
-		borderRadius: 6,
+		borderRadius: memberTheme.radius.pill,
 		marginTop: 5,
 	},
 	removeButton: {
@@ -849,24 +869,31 @@ const styles = StyleSheet.create({
 	},
 	submitButtonStyle: {
 		minWidth: '40%',
-		backgroundColor: config.colors.brand,
+		backgroundColor: memberTheme.colors.primary,
+		borderColor: memberTheme.colors.primary,
+		borderRadius: memberTheme.radius.pill,
 	},
 	submitGobackContainer: {
 		paddingHorizontal: config.metrics.xl,
 		paddingVertical: config.metrics.rg,
 		justifyContent: 'center',
 		borderTopWidth: 1,
-		borderColor: config.borders.colors.lightgrey,
+		borderColor: memberTheme.colors.border,
+		backgroundColor: memberTheme.colors.surface,
 	},
 	goBackButtonStyle: {
 		minWidth: '40%',
 		backgroundColor: 'transparent',
 		marginTop: 8,
-		borderColor: config.borders.colors.darkgray,
+		borderColor: memberTheme.colors.border,
 		borderWidth: 1,
+		borderRadius: memberTheme.radius.pill,
 	},
 	columnSingleDataRow: {
 		marginTop: 40,
+	},
+	screen: {
+		backgroundColor: memberTheme.colors.background,
 	},
 });
 

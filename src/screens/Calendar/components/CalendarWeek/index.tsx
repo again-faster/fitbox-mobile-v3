@@ -1,6 +1,7 @@
 import { Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { Constant } from '@/utils';
 import useStore from '@/zustand/Store';
 import { useIsFocused } from '@react-navigation/native';
@@ -128,28 +129,30 @@ const CalendarWeek = forwardRef<CalendarWeekRef, CalendarWeekProps>(
 		);
 
 		return (
-			<View style={layout.shadowLight}>
-				<FlashList
-					ref={swiper}
-					horizontal
-					showsHorizontalScrollIndicator={false}
-					onMomentumScrollBegin={onMomentumScrollBegin}
-					onMomentumScrollEnd={onMomentumScrollEnd}
-					decelerationRate="fast"
-					data={weeks}
-					keyExtractor={(_, index) => index.toString()}
-					snapToAlignment="center"
-					snapToInterval={Constant.DEVICEWIDTH}
-					renderItem={renderItem}
-					estimatedItemSize={Constant.DEVICEWIDTH}
-					overrideItemLayout={l => {
-						// eslint-disable-next-line no-param-reassign
-						l.size = Constant.DEVICEWIDTH; // Set a fixed height for each item
-					}}
-				/>
+			<View style={[layout.shadowLight, styles.weekContainer]}>
+				<View style={styles.weekList}>
+					<FlashList
+						ref={swiper}
+						horizontal
+						showsHorizontalScrollIndicator={false}
+						onMomentumScrollBegin={onMomentumScrollBegin}
+						onMomentumScrollEnd={onMomentumScrollEnd}
+						decelerationRate="fast"
+						data={weeks}
+						keyExtractor={(_, index) => index.toString()}
+						snapToAlignment="center"
+						snapToInterval={Constant.DEVICEWIDTH}
+						renderItem={renderItem}
+						estimatedItemSize={Constant.DEVICEWIDTH}
+						overrideItemLayout={l => {
+							// eslint-disable-next-line no-param-reassign
+							l.size = Constant.DEVICEWIDTH;
+						}}
+					/>
+				</View>
 
 				<View style={styles.currentDay}>
-					<Text bold color="gray200">
+					<Text bold style={styles.currentDayText}>
 						{moment(currentDate).format('dddd, MMM DD')}
 					</Text>
 				</View>
@@ -161,6 +164,16 @@ const CalendarWeek = forwardRef<CalendarWeekRef, CalendarWeekProps>(
 export default CalendarWeek;
 
 const styles = StyleSheet.create({
+	weekContainer: {
+		backgroundColor: memberTheme.colors.surface,
+		borderBottomColor: memberTheme.colors.border,
+		borderBottomWidth: StyleSheet.hairlineWidth,
+	},
+	weekList: {
+		height: 78,
+		minHeight: 78,
+		backgroundColor: memberTheme.colors.surface,
+	},
 	item: {
 		flex: 1,
 		justifyContent: 'center',
@@ -168,15 +181,22 @@ const styles = StyleSheet.create({
 	},
 	currentDay: {
 		justifyContent: 'flex-end',
-		backgroundColor: 'white',
+		minHeight: 52,
+		backgroundColor: memberTheme.colors.surface,
 		padding: config.metrics.md,
+	},
+	currentDayText: {
+		color: memberTheme.colors.text,
+		fontSize: 17,
 	},
 	itemRow: {
 		width: Constant.DEVICEWIDTH,
+		height: 78,
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		paddingHorizontal: 4,
-		paddingVertical: 10,
+		paddingVertical: 8,
 		gap: 4,
+		backgroundColor: memberTheme.colors.surface,
 	},
 });

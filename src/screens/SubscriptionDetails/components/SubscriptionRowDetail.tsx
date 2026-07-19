@@ -2,6 +2,7 @@ import { Row, Text } from '@/components/atoms';
 import { Modal } from '@/components/molecules';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { useState } from 'react';
 import { StyleSheet, TextStyle, TouchableOpacity, View } from 'react-native';
 
@@ -30,11 +31,8 @@ const SubscriptionRowDetail = ({
 
 	return (
 		<>
-			<Row
-				spacing="space-between"
-				style={{ marginVertical: config.metrics.rg }}
-			>
-				<Text size="md" color="darkgray" style={layout.flex_1}>
+			<Row spacing="space-between" style={styles.row}>
+				<Text size="md" style={[layout.flex_1, styles.label]}>
 					{title}:
 				</Text>
 
@@ -63,10 +61,16 @@ const SubscriptionRowDetail = ({
 
 const styles = StyleSheet.create({
 	valueContainer: { flex: 1.5 },
+	row: {
+		borderBottomColor: memberTheme.colors.border,
+		borderBottomWidth: 1,
+		paddingVertical: memberTheme.spacing.md,
+	},
+	label: { color: memberTheme.colors.textMuted },
 	modalContainer: {
 		padding: config.metrics.sm,
-		backgroundColor: 'white',
-		borderRadius: config.metrics.md,
+		backgroundColor: memberTheme.colors.surface,
+		borderRadius: memberTheme.radius.lg,
 		width: '90%',
 		alignSelf: 'center',
 	},

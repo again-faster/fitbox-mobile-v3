@@ -10,6 +10,7 @@ import {
 import { Loader, Modal } from '@/components/molecules';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { ApplicationStackParamList } from '@/types/navigation';
 import {
 	SessionDetailSchemaType,
@@ -866,7 +867,7 @@ const SessionsSectionsTab = ({
 	if (Array.isArray(sections)) {
 		if (sections.length > 0) {
 			return (
-				<View style={layout.flex_1}>
+				<View style={[layout.flex_1, styles.screen]}>
 					<ScrollView
 						contentContainerStyle={styles.sectionsContainer}
 						refreshing={Boolean(refreshing)}
@@ -949,21 +950,26 @@ const SessionsSectionsTab = ({
 export default SessionsSectionsTab;
 
 const styles = StyleSheet.create({
-	sectionsContainer: {},
+	screen: {
+		backgroundColor: memberTheme.colors.background,
+	},
+	sectionsContainer: {
+		paddingBottom: memberTheme.spacing.xxl,
+	},
 	floatingActionBtn: {
-		...layout.shadowMedium,
-		height: 40,
-		width: 40,
-		borderRadius: 40,
+		...memberTheme.shadow,
+		height: 48,
+		width: 48,
+		borderRadius: memberTheme.radius.pill,
 		justifyContent: 'center',
 		alignItems: 'center',
 		position: 'absolute',
 		bottom: metrics.md,
 		right: metrics.md,
-		backgroundColor: fonts.colors.brand,
+		backgroundColor: memberTheme.colors.primary,
 	},
 	warningText: {
-		color: '#595959',
+		color: memberTheme.colors.textMuted,
 		textAlign: 'center',
 		fontSize: 16,
 	},
@@ -972,23 +978,26 @@ const styles = StyleSheet.create({
 		paddingBottom: 10,
 	},
 	sessionHeaderContainer: {
-		borderColor: '#F2F2F2',
-		borderWidth: 1,
-		marginHorizontal: config.metrics.rg,
-		marginBottom: config.metrics.rg,
-		...layout.shadowLight,
+		borderColor: memberTheme.colors.border,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderRadius: memberTheme.radius.md,
+		marginHorizontal: memberTheme.spacing.md,
+		marginBottom: memberTheme.spacing.md,
+		backgroundColor: memberTheme.colors.surface,
+		overflow: 'hidden',
+		...memberTheme.shadow,
 	},
 	sessionHeaderComponent: {
 		padding: 20,
 	},
 	grayedContainer: {
-		backgroundColor: '#F5F5F5',
+		backgroundColor: memberTheme.colors.surfaceSoft,
 	},
 	badgeStyle: {
 		padding: 5,
 		borderRadius: 8,
-		color: fonts.colors.light,
-		backgroundColor: fonts.colors.brand,
+		color: memberTheme.colors.surface,
+		backgroundColor: memberTheme.colors.primary,
 		minWidth: 75,
 		textAlign: 'center',
 		right: -10,
@@ -1020,8 +1029,8 @@ const styles = StyleSheet.create({
 		marginTop: config.fonts.metrics.sm,
 	},
 	resultBtn: {
-		backgroundColor: config.colors.brand,
-		borderRadius: 6,
+		backgroundColor: memberTheme.colors.primary,
+		borderRadius: memberTheme.radius.sm,
 		marginLeft: 5,
 		alignItems: 'center',
 		justifyContent: 'center',

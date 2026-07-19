@@ -25,6 +25,7 @@ import {
 	View,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCallback, useRef, useEffect, useMemo, useState } from 'react';
 import { trainingTheme } from '@/theme/training';
 import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
@@ -488,7 +489,7 @@ const Today = () => {
 	};
 
 	return (
-		<>
+		<SafeAreaView style={styles.safeArea} edges={['top']}>
 			<ScrollView
 				style={styles.screen}
 				contentContainerStyle={styles.container}
@@ -912,12 +913,13 @@ const Today = () => {
 					</View>
 				</View>
 			</Modal>
-		</>
+		</SafeAreaView>
 	);
 };
 
 const styles = StyleSheet.create({
-	screen: { backgroundColor: trainingTheme.colors.background },
+	safeArea: { flex: 1, backgroundColor: trainingTheme.colors.background },
+	screen: { flex: 1, backgroundColor: trainingTheme.colors.background },
 	container: {
 		padding: trainingTheme.spacing.lg,
 		paddingBottom: 40,

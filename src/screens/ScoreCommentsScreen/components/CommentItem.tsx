@@ -1,5 +1,6 @@
 import { Avatar, Row, Spacer, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
+import { memberTheme } from '@/theme/member';
 import { Constant } from '@/utils';
 import { isEmpty } from 'lodash';
 import {
@@ -56,10 +57,10 @@ const CommentItem = ({
 			: lines.join('\n');
 
 	return (
-		<View style={{ marginBottom: config.metrics.rg }}>
+		<View style={styles.commentContainer}>
 			<View style={[styles.boxStyle, alignSelf]}>
 				{!isEmpty(combinedString) && (
-					<Text size="rg" color="darkgray">
+					<Text size="rg" style={styles.commentText}>
 						{combinedString}
 					</Text>
 				)}
@@ -79,7 +80,7 @@ const CommentItem = ({
 					size={20}
 				/>
 
-				<Text color="darkgray" size="sm">
+				<Text size="sm" style={styles.authorText}>
 					{firstname} {lastname}
 				</Text>
 			</Row>
@@ -88,13 +89,18 @@ const CommentItem = ({
 };
 
 const styles = StyleSheet.create({
+	commentContainer: {
+		marginBottom: memberTheme.spacing.lg,
+	},
 	boxStyle: {
 		position: 'relative',
-		backgroundColor: '#F4F4F3',
+		backgroundColor: memberTheme.colors.surfaceSoft,
 		paddingVertical: config.metrics.md,
 		paddingHorizontal: config.metrics.lg,
-		borderRadius: 10,
-		maxWidth: '60%',
+		borderRadius: memberTheme.radius.md,
+		maxWidth: '78%',
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: memberTheme.colors.border,
 	},
 	triangleStyle: {
 		width: 0,
@@ -106,13 +112,21 @@ const styles = StyleSheet.create({
 		backgroundColor: 'transparent',
 		borderLeftColor: 'transparent',
 		borderRightColor: 'transparent',
-		borderTopColor: '#F4F4F3',
+		borderTopColor: memberTheme.colors.surfaceSoft,
 		position: 'absolute',
 		bottom: -10,
 	},
 	gifPreviewStyle: {
 		width: 170,
 		height: 170,
+		borderRadius: memberTheme.radius.sm,
+		marginTop: memberTheme.spacing.sm,
+	},
+	commentText: {
+		color: memberTheme.colors.text,
+	},
+	authorText: {
+		color: memberTheme.colors.textMuted,
 	},
 });
 

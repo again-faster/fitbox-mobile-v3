@@ -4,6 +4,7 @@ import OneRMComponent from '@/components/molecules/WODPastPerformance/components
 import ScoreDisplayFormat from '@/components/molecules/WODPastPerformance/components/ScoreDisplayFormat';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { PastPerformanceResultType } from '@/types/schemas/leaderboards';
 import BottomSheet, {
 	BottomSheetScrollView,
@@ -57,7 +58,7 @@ const MovementHistoryBS = ({
 							style={{
 								...styles.movementInfo,
 								...(data.wod_score_id == null
-									? layout.shadowMedium
+									? memberTheme.shadow
 									: null),
 							}}
 						>
@@ -109,13 +110,9 @@ const MovementHistoryBS = ({
 				<Row
 					align="center"
 					spacing="space-between"
-					style={{ paddingHorizontal: config.metrics.md }}
+					style={styles.sheetHeader}
 				>
-					<Text
-						size="md"
-						bold
-						style={{ marginVertical: config.fonts.metrics.md }}
-					>
+					<Text size="md" bold style={styles.sheetTitle}>
 						{isSheetOpened ? movementName : 'History'}
 					</Text>
 
@@ -129,16 +126,16 @@ const MovementHistoryBS = ({
 							<Icon
 								name="plus"
 								size={20}
-								color={config.fonts.colors.info}
+								color={memberTheme.colors.primary}
 							/>
 						) : (
 							<Icon
 								name="chevron-up"
 								size={20}
-								color={config.fonts.colors.info}
+								color={memberTheme.colors.primary}
 							/>
 						)}
-						<Text size="md" color="info">
+						<Text size="md" style={styles.actionText}>
 							{isSheetOpened ? 'Add' : 'View Scores'}
 						</Text>
 					</Row>
@@ -163,17 +160,21 @@ export default MovementHistoryBS;
 
 const styles = StyleSheet.create({
 	movementInfo: {
-		marginTop: config.metrics.sm,
-		marginBottom: config.metrics.md,
-		marginHorizontal: 5,
-		borderRadius: 4,
-		paddingHorizontal: 8,
-		paddingVertical: 5,
+		marginTop: memberTheme.spacing.sm,
+		marginBottom: memberTheme.spacing.md,
+		marginHorizontal: memberTheme.spacing.md,
+		borderRadius: memberTheme.radius.md,
+		padding: memberTheme.spacing.lg,
+		backgroundColor: memberTheme.colors.surfaceSoft,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: memberTheme.colors.border,
 	},
 	bottomSheetContainer: {
-		borderRadius: 0,
+		borderTopLeftRadius: memberTheme.radius.lg,
+		borderTopRightRadius: memberTheme.radius.lg,
 		borderTopWidth: 1,
-		borderColor: config.fonts.colors.gray200,
+		borderColor: memberTheme.colors.border,
+		backgroundColor: memberTheme.colors.surface,
 	},
 	loaderContainer: {
 		position: 'absolute',
@@ -183,5 +184,18 @@ const styles = StyleSheet.create({
 		top: 0,
 		justifyContent: 'center',
 		alignItems: 'center',
+	},
+	sheetHeader: {
+		paddingHorizontal: memberTheme.spacing.lg,
+		paddingVertical: memberTheme.spacing.lg,
+		minHeight: 64,
+		borderBottomWidth: StyleSheet.hairlineWidth,
+		borderBottomColor: memberTheme.colors.border,
+	},
+	sheetTitle: {
+		color: memberTheme.colors.text,
+	},
+	actionText: {
+		color: memberTheme.colors.primary,
 	},
 });

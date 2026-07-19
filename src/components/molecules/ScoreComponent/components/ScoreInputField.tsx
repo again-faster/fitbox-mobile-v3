@@ -1,6 +1,7 @@
 import { Spacer, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { Constant } from '@/utils';
 import { LegacyRef, memo } from 'react';
 import {
@@ -51,13 +52,15 @@ const FieldInput = ({
 				showBorder && styles.borderedContainer,
 			]}
 		>
-			<Text size="rg" color="darkgray" style={styles.inputFieldTitle}>
+			<Text size="rg" style={styles.inputFieldTitle}>
 				{title}
 			</Text>
 
 			{onChangeText ? (
 				<TextInput
 					style={styles.inputField}
+					placeholderTextColor={memberTheme.colors.textMuted}
+					selectionColor={memberTheme.colors.primary}
 					onChangeText={e => onChangeText(e)}
 					value={value}
 					{...rest}
@@ -416,7 +419,7 @@ const ScoreInputField = ({
 								size={25}
 								// eslint-disable-next-line react-native/no-inline-styles
 								style={{ zIndex: 9 }}
-								color={config.fonts.colors.info}
+								color={memberTheme.colors.primary}
 							/>
 						)}
 					</TouchableOpacity>
@@ -526,9 +529,10 @@ export default memo(ScoreInputField);
 
 const styles = StyleSheet.create({
 	borderedContainer: {
-		borderColor: config.fonts.colors.info,
-		borderWidth: 1.5,
-		borderRadius: 6,
+		borderColor: memberTheme.colors.primary,
+		borderWidth: 1,
+		borderRadius: memberTheme.radius.sm,
+		backgroundColor: memberTheme.colors.surface,
 	},
 	inputFieldContainer: {
 		width: '25%',
@@ -536,6 +540,7 @@ const styles = StyleSheet.create({
 	},
 	inputFieldTitle: {
 		marginBottom: config.metrics.sm,
+		color: memberTheme.colors.textMuted,
 	},
 	inputMainContainer: {
 		width: '100%',
@@ -546,6 +551,7 @@ const styles = StyleSheet.create({
 		marginBottom: config.metrics.rg,
 	},
 	inputField: {
+		color: memberTheme.colors.text,
 		textAlign: 'center',
 		width: '100%',
 		paddingBottom: config.metrics.rg,
@@ -554,9 +560,10 @@ const styles = StyleSheet.create({
 		...layout.fontMontserratRegular,
 	},
 	checkbox: {
-		borderRadius: 6,
+		borderRadius: memberTheme.radius.sm,
 		borderWidth: 1,
-		borderColor: config.fonts.colors.info,
+		borderColor: memberTheme.colors.primary,
+		backgroundColor: memberTheme.colors.surface,
 		width: 50,
 		height: 50,
 		padding: 0,
@@ -568,7 +575,7 @@ const styles = StyleSheet.create({
 		fontSize: config.fonts.metrics.md,
 		left: '-20%',
 		bottom: '40%',
-		color: 'gray',
+		color: memberTheme.colors.textMuted,
 		...layout.fontMontserratBold,
 	},
 });

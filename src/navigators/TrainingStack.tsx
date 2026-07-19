@@ -61,17 +61,17 @@ const TrainingStackNavigator = () => {
 			<Stack.Screen
 				name="TrainingActivate"
 				component={Activate}
-				options={{ title: 'Training' }}
+				options={{ headerShown: false }}
 			/>
 			<Stack.Screen
 				name="TrainingToday"
 				component={Today}
-				options={{ title: 'Training' }}
+				options={{ headerShown: false }}
 			/>
 			<Stack.Screen
 				name="TrainingWorkouts"
 				component={WorkoutList}
-				options={{ title: 'Workouts' }}
+				options={{ headerShown: false }}
 			/>
 			<Stack.Screen
 				name="TrainingWorkoutDetail"
@@ -134,12 +134,12 @@ const TrainingStackNavigator = () => {
 			<Stack.Screen
 				name="TrainingNotifications"
 				component={NotificationsInbox}
-				options={{ title: 'Notifications' }}
+				options={{ headerShown: false }}
 			/>
 			<Stack.Screen
 				name="TrainingSettings"
 				component={TrainingSettings}
-				options={{ title: 'Training Settings' }}
+				options={{ headerShown: false }}
 			/>
 			<Stack.Screen
 				name="TrainingProgress"
@@ -169,47 +169,47 @@ const TrainingStackNavigator = () => {
 			<Stack.Screen
 				name="TrainingAppleHealth"
 				component={AppleHealthScreen}
-				options={{ title: 'Apple Health' }}
+				options={{ headerShown: false }}
 			/>
 			<Stack.Screen
 				name="TrainingWearables"
 				component={Wearables}
-				options={{ title: 'Wearables' }}
+				options={{ headerShown: false }}
 			/>
 			<Stack.Screen
 				name="TrainingBuildList"
 				component={BuildList}
-				options={{ title: 'My Workouts' }}
+				options={{ headerShown: false }}
 			/>
 			<Stack.Screen
 				name="TrainingBuildEditor"
 				component={WorkoutEditor}
-				options={{ title: 'Build Workout' }}
+				options={{ headerShown: false }}
 			/>
 			<Stack.Screen
 				name="TrainingBuildSchedule"
 				component={BuildSchedule}
-				options={{ title: 'Schedule Workout' }}
+				options={{ headerShown: false }}
 			/>
 			<Stack.Screen
 				name="TrainingCustomWorkoutsUpsell"
 				component={CustomWorkoutsUpsell}
-				options={{ title: 'Custom Workouts' }}
+				options={{ headerShown: false }}
 			/>
 			<Stack.Screen
 				name="TrainingInjuryList"
 				component={InjuryList}
-				options={{ title: 'My Injuries' }}
+				options={{ headerShown: false }}
 			/>
 			<Stack.Screen
 				name="TrainingInjuryLog"
 				component={InjuryLog}
-				options={{ title: 'Log Injury' }}
+				options={{ headerShown: false }}
 			/>
 			<Stack.Screen
 				name="TrainingInjuryDailyUpdate"
 				component={InjuryDailyUpdate}
-				options={{ title: 'Daily Update' }}
+				options={{ headerShown: false }}
 			/>
 		</Stack.Navigator>
 	);

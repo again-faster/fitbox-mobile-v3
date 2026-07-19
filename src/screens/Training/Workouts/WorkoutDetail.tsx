@@ -282,14 +282,18 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 		wType,
 	);
 
-	const { data: leaderboard, isLoading: leaderboardLoading } =
-		useWorkoutLeaderboard(
-			workoutId,
-			selectedLeaderboardSection?.scoring_type ?? wType,
-			leaderboardOpened,
-			usesSectionScoring ? selectedLeaderboardSection?.id : undefined,
-			selectedLeaderboardSection?.leaderboard_sort_direction,
-		);
+	const {
+		data: leaderboard,
+		isLoading: leaderboardLoading,
+		isError: leaderboardError,
+		refetch: refetchLeaderboard,
+	} = useWorkoutLeaderboard(
+		workoutId,
+		selectedLeaderboardSection?.scoring_type ?? wType,
+		leaderboardOpened,
+		usesSectionScoring ? selectedLeaderboardSection?.id : undefined,
+		selectedLeaderboardSection?.leaderboard_sort_direction,
+	);
 
 	const openOverviewTab = () => setTab('overview');
 
@@ -396,7 +400,12 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 
 	if (isLoading) {
 		return (
-			<View style={[styles.center, { backgroundColor: '#F9FAFB' }]}>
+			<View
+				style={[
+					styles.center,
+					{ backgroundColor: trainingTheme.colors.background },
+				]}
+			>
 				<ActivityIndicator color={colors.brand} />
 			</View>
 		);
@@ -404,8 +413,13 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 
 	if (isWorkoutError || !workout) {
 		return (
-			<View style={[styles.center, { backgroundColor: '#F9FAFB' }]}>
-				<Text style={{ color: '#6B7280' }}>
+			<View
+				style={[
+					styles.center,
+					{ backgroundColor: trainingTheme.colors.background },
+				]}
+			>
+				<Text style={{ color: trainingTheme.colors.textMuted }}>
 					{isWorkoutError
 						? 'Could not load workout — check connection'
 						: 'Workout not found'}
@@ -415,16 +429,28 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	}
 
 	return (
-		<View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
+		<View
+			style={{
+				flex: 1,
+				backgroundColor: trainingTheme.colors.background,
+			}}
+		>
 			<ScrollView
 				contentContainerStyle={styles.container}
 				keyboardShouldPersistTaps="handled"
 			>
-				<Text style={[styles.title, { color: '#111827' }]}>
+				<Text
+					style={[styles.title, { color: trainingTheme.colors.text }]}
+				>
 					{workout.name}
 				</Text>
 				{workout.estimated_duration_minutes && (
-					<Text style={[styles.meta, { color: '#6B7280' }]}>
+					<Text
+						style={[
+							styles.meta,
+							{ color: trainingTheme.colors.textMuted },
+						]}
+					>
 						~{workout.estimated_duration_minutes} min
 					</Text>
 				)}
@@ -433,7 +459,7 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 						<Text
 							style={[
 								styles.programStripText,
-								{ color: '#6B7280' },
+								{ color: trainingTheme.colors.textMuted },
 							]}
 						>
 							{effectiveContext.programName} · Week{' '}
@@ -447,14 +473,18 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 							<View
 								style={[
 									styles.progressTrack,
-									{ backgroundColor: '#E5E7EB' },
+									{
+										backgroundColor:
+											trainingTheme.colors.border,
+									},
 								]}
 							>
 								<View
 									style={[
 										styles.progressFill,
 										{
-											backgroundColor: '#3B82F6',
+											backgroundColor:
+												trainingTheme.colors.primary,
 											width: `${Math.min((effectiveContext.weekNumber / effectiveContext.totalWeeks) * 100, 100)}%`,
 										},
 									]}
@@ -532,7 +562,10 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 											<Text
 												style={[
 													styles.sectionName,
-													{ color: '#374151' },
+													{
+														color: trainingTheme
+															.colors.text,
+													},
 												]}
 											>
 												{s.name}
@@ -569,7 +602,9 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 															style={[
 																styles.blockLabel,
 																{
-																	color: '#6B7280',
+																	color: trainingTheme
+																		.colors
+																		.textMuted,
 																},
 															]}
 														>
@@ -605,7 +640,9 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 																		style={[
 																			styles.movementText,
 																			{
-																				color: '#111827',
+																				color: trainingTheme
+																					.colors
+																					.text,
 																				textDecorationLine:
 																					'underline',
 																			},
@@ -655,11 +692,17 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 						<View
 							style={[
 								styles.formCard,
-								{ backgroundColor: '#FFFFFF' },
+								{
+									backgroundColor:
+										trainingTheme.colors.surface,
+								},
 							]}
 						>
 							<Text
-								style={[styles.formTitle, { color: '#111827' }]}
+								style={[
+									styles.formTitle,
+									{ color: trainingTheme.colors.text },
+								]}
 							>
 								How&apos;d it go?
 							</Text>
@@ -669,7 +712,10 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 									<Text
 										style={[
 											styles.label,
-											{ color: '#6B7280' },
+											{
+												color: trainingTheme.colors
+													.textMuted,
+											},
 										]}
 									>
 										Time
@@ -679,13 +725,18 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 											style={[
 												styles.timeInput,
 												{
-													borderColor: '#D1D5DB',
-													color: '#111827',
+													borderColor:
+														trainingTheme.colors
+															.border,
+													color: trainingTheme.colors
+														.text,
 												},
 											]}
 											keyboardType="number-pad"
 											placeholder="mm"
-											placeholderTextColor="#9CA3AF"
+											placeholderTextColor={
+												trainingTheme.colors.textMuted
+											}
 											value={timeMin}
 											onChangeText={setTimeMin}
 											maxLength={2}
@@ -693,7 +744,10 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 										<Text
 											style={[
 												styles.timeSep,
-												{ color: '#6B7280' },
+												{
+													color: trainingTheme.colors
+														.textMuted,
+												},
 											]}
 										>
 											:
@@ -702,13 +756,18 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 											style={[
 												styles.timeInput,
 												{
-													borderColor: '#D1D5DB',
-													color: '#111827',
+													borderColor:
+														trainingTheme.colors
+															.border,
+													color: trainingTheme.colors
+														.text,
 												},
 											]}
 											keyboardType="number-pad"
 											placeholder="ss"
-											placeholderTextColor="#9CA3AF"
+											placeholderTextColor={
+												trainingTheme.colors.textMuted
+											}
 											value={timeSec}
 											onChangeText={handleSecChange}
 											onBlur={validateSec}
@@ -728,7 +787,10 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 									<Text
 										style={[
 											styles.label,
-											{ color: '#6B7280' },
+											{
+												color: trainingTheme.colors
+													.textMuted,
+											},
 										]}
 									>
 										Rounds
@@ -737,20 +799,28 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 										style={[
 											styles.input,
 											{
-												borderColor: '#D1D5DB',
-												color: '#111827',
+												borderColor:
+													trainingTheme.colors.border,
+												color: trainingTheme.colors
+													.text,
 											},
 										]}
 										keyboardType="number-pad"
 										placeholder="0"
-										placeholderTextColor="#9CA3AF"
+										placeholderTextColor={
+											trainingTheme.colors.textMuted
+										}
 										value={rounds}
 										onChangeText={setRounds}
 									/>
 									<Text
 										style={[
 											styles.label,
-											{ color: '#6B7280', marginTop: 12 },
+											{
+												color: trainingTheme.colors
+													.textMuted,
+												marginTop: 12,
+											},
 										]}
 									>
 										Partial reps
@@ -759,13 +829,17 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 										style={[
 											styles.input,
 											{
-												borderColor: '#D1D5DB',
-												color: '#111827',
+												borderColor:
+													trainingTheme.colors.border,
+												color: trainingTheme.colors
+													.text,
 											},
 										]}
 										keyboardType="number-pad"
 										placeholder="0"
-										placeholderTextColor="#9CA3AF"
+										placeholderTextColor={
+											trainingTheme.colors.textMuted
+										}
 										value={partialReps}
 										onChangeText={setPartialReps}
 									/>
@@ -777,7 +851,10 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 									<Text
 										style={[
 											styles.label,
-											{ color: '#6B7280' },
+											{
+												color: trainingTheme.colors
+													.textMuted,
+											},
 										]}
 									>
 										Weight (kg)
@@ -786,20 +863,28 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 										style={[
 											styles.input,
 											{
-												borderColor: '#D1D5DB',
-												color: '#111827',
+												borderColor:
+													trainingTheme.colors.border,
+												color: trainingTheme.colors
+													.text,
 											},
 										]}
 										keyboardType="decimal-pad"
 										placeholder="0"
-										placeholderTextColor="#9CA3AF"
+										placeholderTextColor={
+											trainingTheme.colors.textMuted
+										}
 										value={weightKg}
 										onChangeText={setWeightKg}
 									/>
 									<Text
 										style={[
 											styles.label,
-											{ color: '#6B7280', marginTop: 12 },
+											{
+												color: trainingTheme.colors
+													.textMuted,
+												marginTop: 12,
+											},
 										]}
 									>
 										Reps
@@ -808,13 +893,17 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 										style={[
 											styles.input,
 											{
-												borderColor: '#D1D5DB',
-												color: '#111827',
+												borderColor:
+													trainingTheme.colors.border,
+												color: trainingTheme.colors
+													.text,
 											},
 										]}
 										keyboardType="number-pad"
 										placeholder="0"
-										placeholderTextColor="#9CA3AF"
+										placeholderTextColor={
+											trainingTheme.colors.textMuted
+										}
 										value={reps}
 										onChangeText={setReps}
 									/>
@@ -823,7 +912,13 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 
 							<View style={styles.fieldGroup}>
 								<Text
-									style={[styles.label, { color: '#6B7280' }]}
+									style={[
+										styles.label,
+										{
+											color: trainingTheme.colors
+												.textMuted,
+										},
+									]}
 								>
 									Scaling
 								</Text>
@@ -864,7 +959,11 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 												<Text
 													style={[
 														styles.blockLabel,
-														{ color: '#6B7280' },
+														{
+															color: trainingTheme
+																.colors
+																.textMuted,
+														},
 													]}
 												>
 													{label}
@@ -873,7 +972,10 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 											<Text
 												style={[
 													styles.scalingNoteText,
-													{ color: '#374151' },
+													{
+														color: trainingTheme
+															.colors.text,
+													},
 												]}
 											>
 												{note}
@@ -885,7 +987,13 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 
 							<View style={styles.fieldGroup}>
 								<Text
-									style={[styles.label, { color: '#6B7280' }]}
+									style={[
+										styles.label,
+										{
+											color: trainingTheme.colors
+												.textMuted,
+										},
+									]}
 								>
 									Notes
 								</Text>
@@ -893,12 +1001,15 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 									style={[
 										styles.notesInput,
 										{
-											borderColor: '#D1D5DB',
-											color: '#111827',
+											borderColor:
+												trainingTheme.colors.border,
+											color: trainingTheme.colors.text,
 										},
 									]}
 									placeholder="How did it feel?"
-									placeholderTextColor="#9CA3AF"
+									placeholderTextColor={
+										trainingTheme.colors.textMuted
+									}
 									multiline
 									numberOfLines={3}
 									value={notes}
@@ -954,6 +1065,8 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 					<WorkoutLeaderboard
 						entries={leaderboard ?? []}
 						isLoading={leaderboardLoading}
+						isError={leaderboardError}
+						onRetry={() => void refetchLeaderboard()}
 						currentAthleteId={uid}
 					/>
 				</View>
@@ -963,7 +1076,7 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 				style={[
 					styles.footer,
 					{
-						backgroundColor: '#F9FAFB',
+						backgroundColor: trainingTheme.colors.background,
 						display:
 							tab === 'leaderboard' || usesSectionScoring
 								? 'none'
@@ -974,14 +1087,16 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 				<TouchableOpacity
 					style={[
 						styles.submitBtn,
-						{ backgroundColor: '#3B82F6' },
+						{ backgroundColor: trainingTheme.colors.primary },
 						submitting && { opacity: 0.6 },
 					]}
 					onPress={() => void submit()}
 					disabled={submitting}
 				>
 					{submitting ? (
-						<ActivityIndicator color="#fff" />
+						<ActivityIndicator
+							color={trainingTheme.colors.onPrimary}
+						/>
 					) : (
 						<Text style={styles.submitBtnText}>Log result</Text>
 					)}
@@ -1033,7 +1148,7 @@ const styles = StyleSheet.create({
 	progressFill: { height: 4, borderRadius: 2 },
 	startCard: {
 		backgroundColor: trainingTheme.colors.primarySoft,
-		borderColor: '#C9D9FF',
+		borderColor: trainingTheme.colors.border,
 		borderWidth: StyleSheet.hairlineWidth,
 		borderRadius: trainingTheme.radius.md,
 		padding: trainingTheme.spacing.lg,
@@ -1054,7 +1169,9 @@ const styles = StyleSheet.create({
 		lineHeight: 19,
 	},
 	sectionsCard: {
-		backgroundColor: '#FFFFFF',
+		backgroundColor: trainingTheme.colors.surface,
+		borderColor: trainingTheme.colors.border,
+		borderWidth: StyleSheet.hairlineWidth,
 		borderRadius: 12,
 		padding: 14,
 		marginBottom: 16,
@@ -1095,7 +1212,7 @@ const styles = StyleSheet.create({
 		marginTop: 8,
 	},
 	sectionScoreButtonText: {
-		color: '#FFFFFF',
+		color: trainingTheme.colors.onPrimary,
 		fontSize: 13,
 		fontWeight: '700',
 	},
@@ -1136,25 +1253,25 @@ const styles = StyleSheet.create({
 	segmentBtn: {
 		flex: 1,
 		borderWidth: 1,
-		borderColor: '#D1D5DB',
+		borderColor: trainingTheme.colors.border,
 		borderRadius: 8,
 		paddingVertical: 10,
 		alignItems: 'center',
 	},
 	segmentBtnActive: {
-		backgroundColor: '#3B82F6',
-		borderColor: '#3B82F6',
+		backgroundColor: trainingTheme.colors.primary,
+		borderColor: trainingTheme.colors.primary,
 	},
 	segmentText: {
 		fontSize: 14,
 		fontWeight: '500',
-		color: '#374151',
+		color: trainingTheme.colors.text,
 	},
 	segmentTextActive: {
-		color: '#FFFFFF',
+		color: trainingTheme.colors.onPrimary,
 	},
 	scalingNoteCard: {
-		backgroundColor: '#F3F4F6',
+		backgroundColor: trainingTheme.colors.surfaceMuted,
 		borderRadius: 8,
 		padding: 10,
 		marginBottom: 6,
@@ -1179,22 +1296,22 @@ const styles = StyleSheet.create({
 	tabBtn: {
 		flex: 1,
 		borderWidth: 1,
-		borderColor: '#D1D5DB',
+		borderColor: trainingTheme.colors.border,
 		borderRadius: 8,
 		paddingVertical: 10,
 		alignItems: 'center',
 	},
 	tabBtnActive: {
-		backgroundColor: '#3B82F6',
-		borderColor: '#3B82F6',
+		backgroundColor: trainingTheme.colors.primary,
+		borderColor: trainingTheme.colors.primary,
 	},
 	tabText: {
 		fontSize: 14,
 		fontWeight: '500',
-		color: '#374151',
+		color: trainingTheme.colors.text,
 	},
 	tabTextActive: {
-		color: '#FFFFFF',
+		color: trainingTheme.colors.onPrimary,
 	},
 	leaderboardSectionTabs: {
 		gap: 8,
@@ -1220,10 +1337,14 @@ const styles = StyleSheet.create({
 	leaderboardSectionTabTextActive: {
 		color: trainingTheme.colors.primary,
 	},
-	errorText: { color: '#DC2626', fontSize: 12, marginTop: 4 },
+	errorText: {
+		color: trainingTheme.colors.danger,
+		fontSize: 12,
+		marginTop: 4,
+	},
 	coachNote: {
 		fontSize: 12,
-		color: '#9CA3AF',
+		color: trainingTheme.colors.textMuted,
 		textAlign: 'center',
 		marginTop: 8,
 		paddingHorizontal: 16,
@@ -1233,26 +1354,30 @@ const styles = StyleSheet.create({
 		left: 16,
 		right: 16,
 		bottom: 24,
-		backgroundColor: '#FFFFFF',
+		backgroundColor: trainingTheme.colors.surface,
 		borderRadius: 6,
 		padding: 16,
 		borderLeftWidth: 4,
-		borderLeftColor: '#3B82F6',
+		borderLeftColor: trainingTheme.colors.primary,
 		zIndex: 200,
-		shadowColor: '#000',
-		shadowOpacity: 0.15,
-		shadowRadius: 8,
-		shadowOffset: { width: 0, height: 2 },
-		elevation: 4,
+		...trainingTheme.shadow,
 	},
-	toastText: { fontSize: 14, fontWeight: '600', color: '#111827' },
+	toastText: {
+		fontSize: 14,
+		fontWeight: '600',
+		color: trainingTheme.colors.text,
+	},
 	footer: { padding: 16, paddingBottom: 32 },
 	submitBtn: {
 		padding: 16,
 		borderRadius: 12,
 		alignItems: 'center',
 	},
-	submitBtnText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+	submitBtnText: {
+		color: trainingTheme.colors.onPrimary,
+		fontSize: 17,
+		fontWeight: '700',
+	},
 });
 
 export default WorkoutDetailScreen;

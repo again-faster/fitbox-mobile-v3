@@ -1,6 +1,7 @@
 import { Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import useStore from '@/zustand/Store';
 import moment from 'moment';
 import { memo, useMemo } from 'react';
@@ -44,7 +45,12 @@ const DayItem = ({
 	}, [activeMonth]);
 
 	return (
-		<TouchableWithoutFeedback onPress={onPress}>
+		<TouchableWithoutFeedback
+			onPress={onPress}
+			accessibilityRole="button"
+			accessibilityLabel={`${weekday} ${moment(date).format('D MMMM')}`}
+			accessibilityState={{ selected: isActive }}
+		>
 			<View
 				pointerEvents="box-only"
 				style={[
@@ -54,7 +60,11 @@ const DayItem = ({
 				]}
 			>
 				<Text
-					color={isFirstOrLastDayOfMonth ? 'brand' : 'gray100'}
+					style={{
+						color: isFirstOrLastDayOfMonth
+							? memberTheme.colors.primary
+							: memberTheme.colors.textMuted,
+					}}
 					bold
 					size="xs"
 					allowFontScaling={false}
@@ -71,10 +81,15 @@ const DayItem = ({
 					<Text
 						allowFontScaling={false}
 						center
-						color={
-							// eslint-disable-next-line no-nested-ternary
-							isActive ? 'light' : isToday ? 'brand' : 'gray800'
-						}
+						style={{
+							color:
+								// eslint-disable-next-line no-nested-ternary
+								isActive
+									? memberTheme.colors.surface
+									: isToday
+										? memberTheme.colors.primary
+										: memberTheme.colors.text,
+						}}
 						size="rg"
 					>
 						{display}
@@ -104,10 +119,10 @@ const styles = StyleSheet.create({
 		overflow: 'hidden',
 	},
 	itemDayActive: {
-		backgroundColor: config.fonts.colors.brand,
+		backgroundColor: memberTheme.colors.primary,
 	},
 	itemDayToday: {
-		borderColor: config.fonts.colors.brand,
+		borderColor: memberTheme.colors.primary,
 		borderWidth: 1,
 	},
 });

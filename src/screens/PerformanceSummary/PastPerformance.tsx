@@ -3,6 +3,7 @@ import { FlatList } from '@/components/molecules';
 import { getPastPerformanceHistory } from '@/services/users';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { PerformanceSummaryScreenProps } from '@/types/navigation';
 import { PastPerformanceHistoryType } from '@/types/schemas/leaderboards';
 import { Func } from '@/utils';
@@ -180,15 +181,35 @@ const PastPerformance = ({ navigation }: PerformanceSummaryScreenProps) => {
 				style={styles.result}
 				onPress={() => onResultClick(item)}
 			>
+				<View style={styles.resultIcon}>
+					<FontAwesomeIcon
+						name={item.type === 'movement' ? 'dumbbell' : 'trophy'}
+						size={16}
+						color={memberTheme.colors.primary}
+					/>
+				</View>
 				<View style={layout.flex_1}>
-					<Text color="gray200" size="xs" transform="uppercase">
+					<Text
+						size="xs"
+						transform="uppercase"
+						style={styles.resultType}
+					>
 						{item.type}
 					</Text>
-					<Text>{item.displayName}</Text>
+					<Text bold style={styles.resultName}>
+						{item.displayName}
+					</Text>
 				</View>
-				<Text size="sm">
-					{moment(item.date_input).format('MMM DD, Y')}
-				</Text>
+				<View style={styles.resultMeta}>
+					<Text size="sm" style={styles.resultDate}>
+						{moment(item.date_input).format('DD MMM YYYY')}
+					</Text>
+					<FontAwesomeIcon
+						name="chevron-right"
+						size={12}
+						color={memberTheme.colors.primaryInk}
+					/>
+				</View>
 			</Row>
 		);
 	};
@@ -197,25 +218,29 @@ const PastPerformance = ({ navigation }: PerformanceSummaryScreenProps) => {
 		`${item.past_performance_id}`;
 
 	return (
-		<View style={layout.flex_1}>
-			<View style={layout.shadowMedium}>
+		<View style={[layout.flex_1, styles.screen]}>
+			<View style={styles.searchContainer}>
 				<Searchbar
 					placeholder="Search Results"
 					value={searchQuery}
 					onChangeText={text => setSearchQuery(text)}
 					style={styles.searchBar}
 					inputStyle={styles.searchBarInput}
-					placeholderTextColor={config.fonts.colors.gray200}
+					placeholderTextColor={memberTheme.colors.textMuted}
+					iconColor={memberTheme.colors.primaryInk}
+					selectionColor={memberTheme.colors.primary}
 					allowFontScaling={false}
 				/>
 			</View>
 
-			<View style={{ padding: config.metrics.md }}>
+			<View style={styles.sectionHeader}>
 				<Row spacing="space-between">
-					<Text color="gray200" style={layout.fontMontserratBold}>
+					<Text
+						style={[layout.fontMontserratBold, styles.sectionTitle]}
+					>
 						Recent Results
 					</Text>
-					<Text color="info" onPress={handleRefresh}>
+					<Text style={styles.refreshText} onPress={handleRefresh}>
 						Refresh
 					</Text>
 				</Row>
@@ -223,10 +248,22 @@ const PastPerformance = ({ navigation }: PerformanceSummaryScreenProps) => {
 
 			{data?.data.length === 0 ? (
 				<View style={styles.noResultsFound}>
-					<Text center>No history found</Text>
+					<View style={styles.emptyIcon}>
+						<FontAwesomeIcon
+							name="chart-line"
+							size={28}
+							color={memberTheme.colors.primary}
+						/>
+					</View>
+					<Text center size="lg" bold style={styles.emptyTitle}>
+						No history found
+					</Text>
+					<Text center style={styles.emptyHint}>
+						Your recorded workout and movement results will appear
+						here.
+					</Text>
 					<Button
 						title="Add New Result"
-						variant="info"
 						style={styles.addBtnNoResults}
 						onPress={() => navigation.navigate('ResultTypesModal')}
 					/>
@@ -254,7 +291,6 @@ const PastPerformance = ({ navigation }: PerformanceSummaryScreenProps) => {
 			{data?.data.length !== 0 && (
 				<Button
 					title="Add New Result"
-					variant="info"
 					style={styles.addBtn}
 					onPress={() => navigation.navigate('ResultTypesModal')}
 				/>
@@ -267,32 +303,101 @@ export default PastPerformance;
 
 const styles = StyleSheet.create({
 	searchBar: {
-		backgroundColor: config.fonts.colors.light,
-		borderRadius: 0,
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: config.fonts.colors.gray,
+		backgroundColor: memberTheme.colors.surface,
+		borderRadius: memberTheme.radius.pill,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: memberTheme.colors.border,
 	},
 	searchBarInput: {
 		fontSize: config.fonts.metrics.md,
 		...layout.fontMontserratRegular,
 	},
 	result: {
-		...layout.shadowLight,
-		padding: config.metrics.md,
-		borderRadius: config.metrics.sm,
-		marginHorizontal: config.metrics.md,
-		marginBottom: config.metrics.rg,
+		padding: memberTheme.spacing.lg,
+		borderRadius: memberTheme.radius.md,
+		marginHorizontal: memberTheme.spacing.md,
+		marginBottom: memberTheme.spacing.md,
+		backgroundColor: memberTheme.colors.surface,
+		borderColor: memberTheme.colors.border,
+		borderWidth: StyleSheet.hairlineWidth,
+		...memberTheme.shadow,
 	},
 	addBtn: {
-		borderRadius: 0,
+		margin: memberTheme.spacing.md,
+		backgroundColor: memberTheme.colors.primary,
+		borderColor: memberTheme.colors.primary,
+		borderRadius: memberTheme.radius.pill,
 	},
 	addBtnNoResults: {
-		borderRadius: 0,
-		marginTop: config.metrics.xl,
-		marginHorizontal: config.metrics.xl,
+		backgroundColor: memberTheme.colors.primary,
+		borderColor: memberTheme.colors.primary,
+		borderRadius: memberTheme.radius.pill,
+		marginTop: memberTheme.spacing.xl,
+		alignSelf: 'stretch',
 	},
 	noResultsFound: {
 		flex: 1,
 		justifyContent: 'center',
+		alignItems: 'center',
+		margin: memberTheme.spacing.lg,
+		padding: memberTheme.spacing.xl,
+		borderRadius: memberTheme.radius.lg,
+		backgroundColor: memberTheme.colors.surface,
+	},
+	screen: {
+		backgroundColor: memberTheme.colors.background,
+	},
+	searchContainer: {
+		padding: memberTheme.spacing.md,
+		backgroundColor: memberTheme.colors.background,
+	},
+	sectionHeader: {
+		paddingHorizontal: memberTheme.spacing.lg,
+		paddingVertical: memberTheme.spacing.sm,
+	},
+	sectionTitle: {
+		color: memberTheme.colors.text,
+	},
+	refreshText: {
+		color: memberTheme.colors.primary,
+	},
+	resultIcon: {
+		width: 40,
+		height: 40,
+		marginRight: memberTheme.spacing.md,
+		borderRadius: memberTheme.radius.sm,
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: memberTheme.colors.surfaceSoft,
+	},
+	resultType: {
+		color: memberTheme.colors.primaryInk,
+	},
+	resultName: {
+		color: memberTheme.colors.text,
+		marginTop: memberTheme.spacing.xs,
+	},
+	resultMeta: {
+		alignItems: 'flex-end',
+		gap: memberTheme.spacing.sm,
+	},
+	resultDate: {
+		color: memberTheme.colors.textMuted,
+	},
+	emptyIcon: {
+		width: 56,
+		height: 56,
+		borderRadius: memberTheme.radius.md,
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: memberTheme.colors.surfaceSoft,
+	},
+	emptyTitle: {
+		color: memberTheme.colors.text,
+		marginTop: memberTheme.spacing.lg,
+	},
+	emptyHint: {
+		color: memberTheme.colors.textMuted,
+		marginTop: memberTheme.spacing.sm,
 	},
 });

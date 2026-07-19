@@ -1,7 +1,8 @@
-import { HR, Row, ScrollView, Spacer, Text } from '@/components/atoms';
+import { Row, ScrollView, Text } from '@/components/atoms';
 import { goBack } from '@/navigators/NavigationRef';
 import { getSubscriptionDetails } from '@/services/subscription';
 import { config } from '@/theme/_config';
+import { memberTheme } from '@/theme/member';
 import {
 	MenuStackNavigatorProps,
 	SubscriptionDetailsParams,
@@ -101,12 +102,18 @@ const SubscriptionDetails = ({ route }: MenuStackNavigatorProps) => {
 			<ActivityIndicator size="large" color={config.colors.brand} />
 		</View>
 	) : (
-		<ScrollView contentContainerStyle={{ padding: config.metrics.md }}>
-			<Spacer size="sm" />
-			<Text size="md" center bold color="darkgray">
-				Membership Details:
-			</Text>
-			<HR thickness={1} color="#F2F2F2" />
+		<ScrollView contentContainerStyle={styles.scrollContent}>
+			<View style={styles.headerCard}>
+				<Text bold style={styles.eyebrow}>
+					MEMBERSHIP
+				</Text>
+				<Text bold style={styles.membershipName}>
+					{data?.name || 'Membership details'}
+				</Text>
+				<Text style={styles.headerHint}>
+					Your plan and billing information
+				</Text>
+			</View>
 
 			<View style={styles.mainDetailsStyle}>
 				<SubscriptionRowDetail title="Name" value={data?.name || ''} />
@@ -191,17 +198,40 @@ const SubscriptionDetails = ({ route }: MenuStackNavigatorProps) => {
 };
 
 const styles = StyleSheet.create({
+	scrollContent: {
+		backgroundColor: memberTheme.colors.background,
+		flexGrow: 1,
+		padding: memberTheme.spacing.lg,
+	},
+	headerCard: {
+		backgroundColor: memberTheme.colors.primaryDeep,
+		borderRadius: memberTheme.radius.lg,
+		marginBottom: memberTheme.spacing.md,
+		padding: memberTheme.spacing.xl,
+	},
+	eyebrow: { color: '#D9C8DA', fontSize: 11, letterSpacing: 1.4 },
+	membershipName: {
+		color: memberTheme.colors.surface,
+		fontSize: 22,
+		marginTop: 8,
+	},
+	headerHint: { color: '#EADFEB', fontSize: 13, marginTop: 6 },
 	loaderStyle: {
 		flex: 1,
 		justifyContent: 'center',
 	},
 	mainDetailsStyle: {
-		paddingHorizontal: 15,
-		paddingVertical: 8,
+		backgroundColor: memberTheme.colors.surface,
+		borderColor: memberTheme.colors.border,
+		borderRadius: memberTheme.radius.lg,
+		borderWidth: 1,
+		paddingHorizontal: memberTheme.spacing.lg,
+		paddingVertical: memberTheme.spacing.sm,
 	},
 	suspendedDetailsStyle: {
-		paddingHorizontal: 15,
-		paddingVertical: 8,
+		backgroundColor: memberTheme.colors.surface,
+		borderRadius: memberTheme.radius.lg,
+		padding: memberTheme.spacing.lg,
 	},
 });
 

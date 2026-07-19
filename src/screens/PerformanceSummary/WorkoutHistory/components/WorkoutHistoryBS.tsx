@@ -4,6 +4,7 @@ import OneRMComponent from '@/components/molecules/WODPastPerformance/components
 import ScoreDisplayFormat from '@/components/molecules/WODPastPerformance/components/ScoreDisplayFormat';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import {
 	GetPastPerformanceResultSchemaType,
 	PastPerformanceResultSchemaType,
@@ -119,7 +120,7 @@ const WorkoutHistoryBS = ({
 			}
 		});
 
-		if (Object.keys(showResults).length) {
+		if (!Object.keys(showResults).length) {
 			throw new Error('No movement scores');
 		}
 
@@ -203,10 +204,7 @@ const WorkoutHistoryBS = ({
 				<Row
 					align="center"
 					spacing="space-between"
-					style={{
-						paddingHorizontal: config.metrics.md,
-						paddingVertical: config.metrics.md,
-					}}
+					style={styles.sheetHeader}
 				>
 					<Text size="md" bold>
 						{isSheetOpened ? title : 'History'}
@@ -222,16 +220,16 @@ const WorkoutHistoryBS = ({
 							<Icon
 								name="plus"
 								size={20}
-								color={config.fonts.colors.info}
+								color={memberTheme.colors.primary}
 							/>
 						) : (
 							<Icon
 								name="chevron-up"
 								size={20}
-								color={config.fonts.colors.info}
+								color={memberTheme.colors.primary}
 							/>
 						)}
-						<Text size="md" color="info">
+						<Text size="md" style={styles.actionText}>
 							{isSheetOpened ? 'Add' : 'View Scores'}
 						</Text>
 					</Row>
@@ -265,9 +263,11 @@ const styles = StyleSheet.create({
 		paddingVertical: 5,
 	},
 	bottomSheetContainer: {
-		borderRadius: 0,
+		borderTopLeftRadius: memberTheme.radius.lg,
+		borderTopRightRadius: memberTheme.radius.lg,
 		borderTopWidth: 1,
-		borderColor: config.fonts.colors.gray200,
+		borderColor: memberTheme.colors.border,
+		backgroundColor: memberTheme.colors.surface,
 	},
 	loaderContainer: {
 		position: 'absolute',
@@ -279,7 +279,18 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	scoreContainerStyle: {
-		paddingHorizontal: config.metrics.sm,
+		padding: memberTheme.spacing.lg,
 		marginBottom: config.metrics.xl,
+		borderRadius: memberTheme.radius.md,
+		backgroundColor: memberTheme.colors.surfaceSoft,
+	},
+	sheetHeader: {
+		paddingHorizontal: memberTheme.spacing.lg,
+		paddingVertical: memberTheme.spacing.lg,
+		borderBottomWidth: StyleSheet.hairlineWidth,
+		borderBottomColor: memberTheme.colors.border,
+	},
+	actionText: {
+		color: memberTheme.colors.primary,
 	},
 });

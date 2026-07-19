@@ -16,6 +16,7 @@ import {
 } from '@/services/leaderboards';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import resources from '@/theme/resources';
 import {
 	ApplicationScreenProps,
@@ -209,14 +210,19 @@ const ScoreCommentsScreen = ({
 				<CommentItem key={index} {...comment} right={index % 2 === 0} />
 			))
 		) : (
-			<Text
-				size="lg"
-				center
-				color="darkgray"
-				style={{ marginTop: config.metrics.xs }}
-			>
-				No comments yet
-			</Text>
+			<View style={styles.emptyState}>
+				<MIcon
+					name="message-outline"
+					size={36}
+					color={memberTheme.colors.primary}
+				/>
+				<Text size="lg" center bold style={styles.emptyTitle}>
+					No comments yet
+				</Text>
+				<Text center style={styles.emptyHint}>
+					Start the conversation or celebrate this result.
+				</Text>
+			</View>
 		);
 
 	const renderCommentsTab = () => {
@@ -232,9 +238,7 @@ const ScoreCommentsScreen = ({
 						})
 					}
 					showsVerticalScrollIndicator
-					contentContainerStyle={{
-						paddingHorizontal: config.metrics.md,
-					}}
+					contentContainerStyle={styles.commentsContent}
 					refreshControl={
 						<RefreshControl
 							colors={[config.colors.brand]}
@@ -264,18 +268,17 @@ const ScoreCommentsScreen = ({
 						<MIcon
 							name="file-gif-box"
 							size={config.metrics.xl}
-							color={config.colors.brand}
+							color={memberTheme.colors.primary}
 						/>
 					</TouchableOpacity>
 					<Spacer horizontal size="sm" />
 
 					<View style={layout.flex_1}>
 						<TextInput
-							style={{
-								fontSize: config.fonts.metrics.md,
-								color: config.fonts.colors.dark,
-							}}
+							style={styles.commentInput}
 							placeholder="Add your comment"
+							placeholderTextColor={memberTheme.colors.textMuted}
+							selectionColor={memberTheme.colors.primary}
 							multiline
 							numberOfLines={3}
 							value={state.commentValue}
@@ -293,8 +296,12 @@ const ScoreCommentsScreen = ({
 						disabled={commentDisabled}
 					>
 						<Text
-							size="lg"
-							color={commentDisabled ? 'lightgrey' : 'info'}
+							size="md"
+							bold
+							style={[
+								styles.postText,
+								commentDisabled && styles.postTextDisabled,
+							]}
 						>
 							Post
 						</Text>
@@ -336,12 +343,7 @@ const ScoreCommentsScreen = ({
 				);
 			})
 		) : (
-			<Text
-				center
-				size="lg"
-				color="darkgray"
-				style={{ marginTop: config.metrics.xl }}
-			>
+			<Text center size="lg" style={styles.emptyHint}>
 				No reactions yet
 			</Text>
 		);
@@ -360,10 +362,13 @@ const ScoreCommentsScreen = ({
 
 	return state.loading ? (
 		<View style={styles.loadingContainer}>
-			<ActivityIndicator size="large" color={config.colors.brand} />
+			<ActivityIndicator
+				size="large"
+				color={memberTheme.colors.primary}
+			/>
 		</View>
 	) : (
-		<View style={layout.flex_1}>
+		<View style={[layout.flex_1, styles.screen]}>
 			<View style={styles.scoreHeaderStyle}>
 				<Row align="center">
 					<Avatar
@@ -372,10 +377,14 @@ const ScoreCommentsScreen = ({
 						size={50}
 					/>
 					<Spacer horizontal size="lg" />
-					<Text size="lg" color="darkgray" bold style={layout.flex_1}>
+					<Text
+						size="lg"
+						bold
+						style={[layout.flex_1, styles.memberName]}
+					>
 						{`${state.score_info?.firstname} ${state.score_info?.lastname}`}
 					</Text>
-					<Text size="md" color="darkgray">
+					<Text size="md" bold style={styles.scoreValue}>
 						{`${state.score_info?.value === 'Yes' ? 'Completed' : state.score_info?.value} ${!hideRxSwitch ? `(${state.score_info?.score_type})` : ''}`}
 					</Text>
 				</Row>
@@ -455,29 +464,44 @@ const ScoreCommentsScreen = ({
 };
 
 const styles = StyleSheet.create({
+	screen: {
+		backgroundColor: memberTheme.colors.background,
+	},
 	scoreHeaderStyle: {
-		paddingHorizontal: config.metrics.lg,
-		paddingTop: config.metrics.lg,
-		paddingBottom: config.metrics.rg,
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderColor: config.backgrounds.lightgrey,
-		color: config.backgrounds.darkgray,
+		margin: memberTheme.spacing.md,
+		padding: memberTheme.spacing.lg,
+		borderRadius: memberTheme.radius.lg,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: memberTheme.colors.border,
+		backgroundColor: memberTheme.colors.surface,
+		...memberTheme.shadow,
+	},
+	memberName: {
+		color: memberTheme.colors.text,
+	},
+	scoreValue: {
+		color: memberTheme.colors.primaryInk,
 	},
 	applauseTypes: {
 		alignSelf: 'flex-start',
 		marginTop: config.metrics.rg,
 	},
 	commentFieldContainer: {
-		paddingHorizontal: config.metrics.lg,
+		marginHorizontal: memberTheme.spacing.md,
+		marginBottom: memberTheme.spacing.sm,
+		paddingHorizontal: memberTheme.spacing.lg,
 		paddingVertical:
 			Platform.OS === 'android' ? config.metrics.sm : config.metrics.lg,
-		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: config.backgrounds.lightgrey,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: memberTheme.colors.border,
+		borderRadius: memberTheme.radius.lg,
+		backgroundColor: memberTheme.colors.surface,
 		alignItems: 'center',
 	},
 	loadingContainer: {
 		flex: 1,
 		justifyContent: 'center',
+		backgroundColor: memberTheme.colors.background,
 	},
 	justifyCenter: {
 		justifyContent: 'center',
@@ -509,11 +533,45 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		top: '28%',
 		maxHeight: Constant.DEVICEHEIGHT / 2,
+		borderRadius: memberTheme.radius.lg,
+		backgroundColor: memberTheme.colors.surface,
+		...memberTheme.shadow,
 	},
 	commentsLabel: {
 		flex: 1,
 		alignItems: 'flex-end',
 		justifyContent: 'flex-end',
+	},
+	commentsContent: {
+		paddingHorizontal: memberTheme.spacing.md,
+		paddingBottom: memberTheme.spacing.lg,
+	},
+	commentInput: {
+		fontSize: config.fonts.metrics.md,
+		color: memberTheme.colors.text,
+		minHeight: 40,
+	},
+	postText: {
+		color: memberTheme.colors.primary,
+	},
+	postTextDisabled: {
+		color: memberTheme.colors.textMuted,
+		opacity: 0.45,
+	},
+	emptyState: {
+		alignItems: 'center',
+		marginTop: memberTheme.spacing.xl,
+		padding: memberTheme.spacing.xl,
+		borderRadius: memberTheme.radius.lg,
+		backgroundColor: memberTheme.colors.surface,
+	},
+	emptyTitle: {
+		color: memberTheme.colors.text,
+		marginTop: memberTheme.spacing.md,
+	},
+	emptyHint: {
+		color: memberTheme.colors.textMuted,
+		marginTop: memberTheme.spacing.sm,
 	},
 });
 

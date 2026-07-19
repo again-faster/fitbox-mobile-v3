@@ -1,6 +1,7 @@
 import useAuth from '@/auth/hooks/useAuth';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { GIFItemType } from '@/types/schemas/message';
 import { SearchGIFResponseType } from '@/types/schemas/response';
 import { Constant, Say } from '@/utils';
@@ -85,7 +86,7 @@ const GIFList = ({
 					<Icon
 						name="close-outline"
 						size={config.metrics.lg}
-						color={config.backgrounds.darkgray}
+						color={memberTheme.colors.primaryInk}
 						style={styles.closeAttachmentIcon}
 						onPress={() => {
 							setToggleGIF(false);
@@ -99,6 +100,7 @@ const GIFList = ({
 						value={searchQuery as string}
 						onChangeText={text => setSearchQuery(text)}
 						inputStyle={styles.searchInputGIF}
+						placeholderTextColor={memberTheme.colors.textMuted}
 						allowFontScaling={false}
 					/>
 					<FlatList
@@ -116,7 +118,7 @@ const GIFList = ({
 					<Icon
 						name="close-outline"
 						size={config.metrics.lg}
-						color={config.backgrounds.darkgray}
+						color={memberTheme.colors.primaryInk}
 						style={styles.closeAttachmentIcon}
 						onPress={() => {
 							setChosenGIF('');
@@ -138,12 +140,14 @@ const GIFList = ({
 const styles = StyleSheet.create({
 	searchGIFContainer: {
 		minHeight: 104,
-		borderColor: config.backgrounds.gray,
-		borderTopLeftRadius: 10,
-		borderTopRightRadius: 10,
+		marginHorizontal: memberTheme.spacing.md,
+		borderColor: memberTheme.colors.border,
+		borderTopLeftRadius: memberTheme.radius.lg,
+		borderTopRightRadius: memberTheme.radius.lg,
 		borderTopWidth: 1,
 		borderLeftWidth: 1,
 		borderRightWidth: 1,
+		backgroundColor: memberTheme.colors.surface,
 	},
 	closeAttachmentIcon: {
 		marginTop: config.metrics.sm,
@@ -155,6 +159,8 @@ const styles = StyleSheet.create({
 		margin: 5,
 		justifyContent: 'center',
 		marginBottom: config.metrics.rg,
+		backgroundColor: memberTheme.colors.surfaceSoft,
+		borderRadius: memberTheme.radius.pill,
 	},
 	searchInputGIF: {
 		paddingBottom: Platform.OS === 'ios' ? 25 : 29,
@@ -167,10 +173,12 @@ const styles = StyleSheet.create({
 	gifStyle: {
 		width: 100,
 		height: 100,
+		borderRadius: memberTheme.radius.sm,
 	},
 	chosenGIFStyle: {
 		width: 170,
 		height: 170,
+		borderRadius: memberTheme.radius.sm,
 	},
 	chosenGIFContainer: {
 		paddingTop: config.metrics.xs,

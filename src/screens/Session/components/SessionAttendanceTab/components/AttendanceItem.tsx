@@ -4,6 +4,7 @@ import { navigate } from '@/navigators/NavigationRef';
 import { getAttendanceProfile } from '@/services/users';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import resources from '@/theme/resources';
 import {
 	FailedInvoiceType,
@@ -339,9 +340,19 @@ const AttendanceItem = ({
 								nameContainerWidth,
 							]}
 						>
-							<Text numberOfLines={1}>
+							<Text numberOfLines={1} style={styles.memberName}>
 								{name +
 									(id === loggedInUser?.id ? ' (You)' : '')}
+							</Text>
+							<Text
+								size="xs"
+								style={
+									checkedIn
+										? styles.checkedInText
+										: styles.bookedText
+								}
+							>
+								{checkedIn ? 'Checked in' : 'Booked'}
 							</Text>
 						</View>
 
@@ -1114,7 +1125,14 @@ export default AttendanceItem;
 
 const styles = StyleSheet.create({
 	container: {
-		paddingHorizontal: metrics.sm,
+		minHeight: 72,
+		marginHorizontal: memberTheme.spacing.md,
+		marginBottom: memberTheme.spacing.sm,
+		paddingHorizontal: memberTheme.spacing.md,
+		borderRadius: memberTheme.radius.md,
+		borderColor: memberTheme.colors.border,
+		borderWidth: StyleSheet.hairlineWidth,
+		backgroundColor: memberTheme.colors.surface,
 	},
 	actionButtonContainer: {
 		justifyContent: 'center',
@@ -1132,7 +1150,7 @@ const styles = StyleSheet.create({
 	infoAvatar: {
 		borderRadius: 130,
 		top: -140,
-		backgroundColor: 'white',
+		backgroundColor: memberTheme.colors.surface,
 		alignSelf: 'center',
 	},
 	infoDetailsContainer: {
@@ -1174,6 +1192,17 @@ const styles = StyleSheet.create({
 	},
 	attendanceListNameCon: {
 		width: '60%',
+	},
+	memberName: {
+		color: memberTheme.colors.text,
+		fontWeight: '600',
+	},
+	checkedInText: {
+		color: memberTheme.colors.success,
+		fontWeight: '600',
+	},
+	bookedText: {
+		color: memberTheme.colors.textMuted,
 	},
 	birthday: {
 		width: 16,

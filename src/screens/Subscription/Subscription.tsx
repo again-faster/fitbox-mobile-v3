@@ -6,6 +6,7 @@ import {
 } from '@/services/subscription';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import {
 	MenuStackNavigatorProps,
 	SubscriptionParams,
@@ -224,14 +225,27 @@ const Subscription = ({ navigation, route }: MenuStackNavigatorProps) => {
 			<ActivityIndicator size="large" color={config.colors.brand} />
 		</View>
 	) : (
-		<ScrollView contentContainerStyle={{ padding: config.metrics.md }}>
-			<Spacer size="sm" />
-			<Text size="md" center bold color="darkgray">
-				Your Membership Details
-			</Text>
-			<HR thickness={1} color="#F2F2F2" />
+		<ScrollView contentContainerStyle={styles.scrollContent}>
+			<View style={styles.heroCard}>
+				<View style={styles.heroIcon}>
+					<Icon
+						name="id-card"
+						size={22}
+						color={memberTheme.colors.primaryDeep}
+					/>
+				</View>
+				<View style={layout.flex_1}>
+					<Text bold style={styles.heroTitle}>
+						Your memberships
+					</Text>
+					<Text style={styles.heroText}>
+						Manage your plans, billing history and invoice
+						preferences.
+					</Text>
+				</View>
+			</View>
 
-			<View style={styles.viewStyle}>
+			<View style={styles.settingsCard}>
 				<Row spacing="space-between" align="center">
 					<Row>
 						{isToggleLoading && (
@@ -239,7 +253,7 @@ const Subscription = ({ navigation, route }: MenuStackNavigatorProps) => {
 								style={styles.toggleLoadingStyle}
 							/>
 						)}
-						<Text size="md" color="darkgray">
+						<Text size="md" style={styles.settingLabel}>
 							Invoice notice via email
 						</Text>
 					</Row>
@@ -261,6 +275,7 @@ const Subscription = ({ navigation, route }: MenuStackNavigatorProps) => {
 						})
 					}
 					icon="plus"
+					style={styles.addButton}
 				/>
 
 				<Spacer size="lg" />
@@ -282,15 +297,66 @@ const Subscription = ({ navigation, route }: MenuStackNavigatorProps) => {
 				<Spacer />
 			</View>
 
-			{renderCollapsibleSubscriptions(
-				'transactions',
-				'Your last 10 transactions',
-			)}
+			<View style={styles.transactionsCard}>
+				{renderCollapsibleSubscriptions(
+					'transactions',
+					'Your last 10 transactions',
+				)}
+			</View>
 		</ScrollView>
 	);
 };
 
 const styles = StyleSheet.create({
+	scrollContent: {
+		backgroundColor: memberTheme.colors.background,
+		flexGrow: 1,
+		padding: memberTheme.spacing.lg,
+	},
+	heroCard: {
+		alignItems: 'center',
+		backgroundColor: memberTheme.colors.surfaceSoft,
+		borderRadius: memberTheme.radius.lg,
+		flexDirection: 'row',
+		marginBottom: memberTheme.spacing.md,
+		padding: memberTheme.spacing.lg,
+	},
+	heroIcon: {
+		alignItems: 'center',
+		backgroundColor: memberTheme.colors.surface,
+		borderRadius: memberTheme.radius.md,
+		height: 46,
+		justifyContent: 'center',
+		marginRight: memberTheme.spacing.md,
+		width: 46,
+	},
+	heroTitle: { color: memberTheme.colors.ink, fontSize: 18 },
+	heroText: {
+		color: memberTheme.colors.textMuted,
+		fontSize: 12,
+		lineHeight: 17,
+		marginTop: memberTheme.spacing.xs,
+	},
+	settingsCard: {
+		backgroundColor: memberTheme.colors.surface,
+		borderColor: memberTheme.colors.border,
+		borderRadius: memberTheme.radius.lg,
+		borderWidth: 1,
+		padding: memberTheme.spacing.lg,
+	},
+	settingLabel: { color: memberTheme.colors.text },
+	addButton: {
+		backgroundColor: memberTheme.colors.primaryDeep,
+		borderRadius: memberTheme.radius.md,
+	},
+	transactionsCard: {
+		backgroundColor: memberTheme.colors.surface,
+		borderColor: memberTheme.colors.border,
+		borderRadius: memberTheme.radius.lg,
+		borderWidth: 1,
+		marginTop: memberTheme.spacing.md,
+		paddingVertical: memberTheme.spacing.md,
+	},
 	addSubscriptionButtonLabelStyle: {
 		fontSize: config.metrics.md,
 		textTransform: 'capitalize',

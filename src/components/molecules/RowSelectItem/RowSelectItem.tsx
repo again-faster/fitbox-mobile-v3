@@ -1,5 +1,6 @@
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Row from '../../atoms/Row/Row';
@@ -14,6 +15,7 @@ type SelectGymItemProps = {
 	onPress: () => void;
 	text: string;
 	selected: boolean;
+	subtitle?: string;
 };
 
 const RowSelectItem = ({
@@ -22,12 +24,16 @@ const RowSelectItem = ({
 	onPress,
 	text,
 	selected,
+	subtitle,
 }: SelectGymItemProps) => (
 	<TouchableOpacity
 		key={id}
 		style={styles.container}
 		activeOpacity={0.6}
 		onPress={onPress}
+		accessibilityRole="button"
+		accessibilityLabel={text}
+		accessibilityHint="Switches to this profile"
 	>
 		<Row style={layout.flex_1} align="center">
 			<View
@@ -48,34 +54,54 @@ const RowSelectItem = ({
 						}}
 					/>
 				) : (
-					<Icon name="home" size={fonts.metrics.xxl} />
+					<Icon
+						name="account-outline"
+						size={fonts.metrics.xxl}
+						color={memberTheme.colors.primaryDeep}
+					/>
 				)}
 			</View>
 			<Spacer horizontal size="sm" />
-			<Text size="lg" style={styles.textStyle}>
-				{text}
-			</Text>
+			<View style={styles.copyContainer}>
+				<Text size="lg" bold style={styles.textStyle}>
+					{text}
+				</Text>
+				{subtitle ? (
+					<Text style={styles.subtitle}>{subtitle}</Text>
+				) : null}
+			</View>
 		</Row>
 
 		{selected && ( // show check if current gym
 			<Icon name="check" style={styles.selectedIcon} />
 		)}
+		{!selected && <Icon name="chevron-right" style={styles.chevronIcon} />}
 	</TouchableOpacity>
 );
 
 const styles = StyleSheet.create({
 	container: {
 		flexDirection: 'row',
-		paddingHorizontal: 15,
-		paddingVertical: 10,
-		borderColor: '#f2f2f2',
+		padding: memberTheme.spacing.md,
+		backgroundColor: memberTheme.colors.surface,
+		borderColor: memberTheme.colors.border,
+		borderRadius: memberTheme.radius.md,
+		borderWidth: 1,
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		borderBottomWidth: 1,
+		marginBottom: memberTheme.spacing.sm,
+		minHeight: 72,
 	},
+	copyContainer: { flex: 1 },
 	textStyle: {
 		maxWidth: '80%',
 		fontSize: 15,
+		color: memberTheme.colors.ink,
+	},
+	subtitle: {
+		color: memberTheme.colors.textMuted,
+		fontSize: 12,
+		marginTop: memberTheme.spacing.xs,
 	},
 	imageSize: {
 		width: 50,
@@ -84,7 +110,7 @@ const styles = StyleSheet.create({
 	imageStyle: {
 		alignItems: 'center',
 		justifyContent: 'center',
-		borderRadius: 10,
+		borderRadius: memberTheme.radius.sm,
 		overflow: 'hidden',
 	},
 	badgeStyle: {
@@ -98,6 +124,7 @@ const styles = StyleSheet.create({
 		fontSize: fonts.metrics.lg,
 		color: fonts.colors.info,
 	},
+	chevronIcon: { color: memberTheme.colors.textMuted, fontSize: 24 },
 });
 
 export default RowSelectItem;

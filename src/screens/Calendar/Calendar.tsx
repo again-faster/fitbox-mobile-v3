@@ -4,6 +4,7 @@ import { SafeScreen } from '@/components/template';
 import { getGymClasses, getGymVenues } from '@/services/gym';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { GymVenueType } from '@/types/schemas/gym';
 import { Constant } from '@/utils';
 import { FilterTypeEnum, ModalEnum } from '@/utils/Enum';
@@ -528,13 +529,19 @@ const Calendar = () => {
 		return null;
 	}, [showTodayButton, currentDate]);
 
+	// Bottom tabs keep screens mounted while hiding them. FlashList measures the
+	// hidden Calendar at 0x0, so only mount the virtualized lists while focused.
+	if (!isFocused) {
+		return <SafeScreen />;
+	}
+
 	return (
 		<SafeScreen>
 			{(isInitialLoading || !isInitialLoadingComplete) && (
 				<CalendarSkeletonLoader />
 			)}
 
-			<View style={[layout.flex_1]}>
+			<View style={[layout.flex_1, styles.content]}>
 				<CalendarWeek
 					ref={calendarWeekRef}
 					currentDate={currentDate}
@@ -552,7 +559,7 @@ const Calendar = () => {
 									true,
 								);
 							}}
-							colors={[config.fonts.colors.brand]}
+							colors={[memberTheme.colors.primary]}
 						/>
 					}
 					data={memoizedClasses}
@@ -574,7 +581,7 @@ const Calendar = () => {
 								<Icon
 									name="filter-outline"
 									size={25}
-									color={config.backgrounds.darkgray}
+									color={memberTheme.colors.primary}
 								/>
 								<Badge
 									visible
@@ -586,7 +593,7 @@ const Calendar = () => {
 								</Badge>
 							</View>
 
-							<Text>
+							<Text style={styles.filterText}>
 								{numberOfFilters > 1
 									? 'Filters Applied'
 									: 'Filter Applied'}
@@ -622,21 +629,21 @@ const Calendar = () => {
 			<CalendarFilterSelect type={FilterTypeEnum.CLASS} />
 			<CalendarFilterSelect type={FilterTypeEnum.VENUE} />
 
-			{true && (
+			{showTodayButton && (
 				<TouchableOpacity
 					onPress={() => {
 						handleDateChange(today);
 					}}
 					style={[styles.floatingActionBtn]}
 				>
-					<Row>
-						<Text size="sm" bold color="brand">
+					<Row align="center">
+						<Text size="sm" bold style={styles.todayText}>
 							Today
 						</Text>
 						<Icon
 							name="arrow-right"
 							size={15}
-							color={config.backgrounds.brand}
+							color={memberTheme.colors.primary}
 							style={{ marginLeft: config.metrics.xs }}
 						/>
 					</Row>
@@ -649,6 +656,9 @@ const Calendar = () => {
 export default Calendar;
 
 const styles = StyleSheet.create({
+	content: {
+		backgroundColor: memberTheme.colors.background,
+	},
 	container: {
 		height: height - 100,
 	},
@@ -658,29 +668,36 @@ const styles = StyleSheet.create({
 		right: 1,
 	},
 	filterContainer: {
-		padding: config.metrics.xs,
-		paddingTop: config.metrics.sm,
-		backgroundColor: 'white',
-		shadowColor: '#000',
-		shadowOffset: {
-			width: 0,
-			height: 1,
-		},
-		shadowOpacity: 0.2,
-		shadowRadius: 1.41,
-		elevation: 2,
+		paddingHorizontal: memberTheme.spacing.lg,
+		paddingVertical: memberTheme.spacing.md,
+		backgroundColor: memberTheme.colors.surface,
+		borderTopColor: memberTheme.colors.border,
+		borderTopWidth: StyleSheet.hairlineWidth,
+		...memberTheme.shadow,
+	},
+	filterText: {
+		color: memberTheme.colors.text,
+		fontWeight: '600',
 	},
 	opacified: {
 		opacity: 0.5,
 	},
 	floatingActionBtn: {
-		...layout.shadowMedium,
-		borderRadius: 40,
-		paddingVertical: config.metrics.sm,
-		paddingHorizontal: config.metrics.md,
+		...memberTheme.shadow,
+		minHeight: 48,
+		justifyContent: 'center',
+		backgroundColor: memberTheme.colors.surface,
+		borderColor: memberTheme.colors.border,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderRadius: memberTheme.radius.pill,
+		paddingVertical: memberTheme.spacing.sm,
+		paddingHorizontal: memberTheme.spacing.lg,
 		position: 'absolute',
 		bottom: '7%',
-		left: config.metrics.md,
+		left: memberTheme.spacing.lg,
+	},
+	todayText: {
+		color: memberTheme.colors.primary,
 	},
 	animationContainer: {
 		position: 'absolute',
