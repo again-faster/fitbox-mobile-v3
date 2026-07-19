@@ -13,6 +13,9 @@ import Maxes from '@/screens/Training/Maxes/Maxes';
 import NotificationsInbox from '@/screens/Training/Notifications/NotificationsInbox';
 import PRs from '@/screens/Training/PRs/PRs';
 import Results from '@/screens/Training/Results/Results';
+import TrainingDay, {
+	trainingDayTitle,
+} from '@/screens/Training/Day/TrainingDay';
 import TrainingSettings from '@/screens/Training/Settings/TrainingSettings';
 import Today from '@/screens/Training/Today/Today';
 import TrainingRoot from '@/screens/Training/TrainingRoot';
@@ -67,6 +70,13 @@ const TrainingStackNavigator = () => {
 				name="TrainingToday"
 				component={Today}
 				options={{ headerShown: false }}
+			/>
+			<Stack.Screen
+				name="TrainingDay"
+				component={TrainingDay}
+				options={({ route }) => ({
+					title: trainingDayTitle(route.params.date),
+				})}
 			/>
 			<Stack.Screen
 				name="TrainingWorkouts"

@@ -108,6 +108,23 @@ const linking: LinkingOptions<ApplicationStackParamList> = {
 			Shop: {
 				path: 'auth/shop/pay/:orderKey',
 			},
+			Main: {
+				screens: {
+					TrainingStack: {
+						screens: {
+							TrainingToday: 'app/training/today',
+							TrainingDay: {
+								path: 'app/training/day/:date',
+								parse: {
+									date: (value: string) => value,
+								},
+							},
+							TrainingWellness: 'app/training/wellness',
+							TrainingPT: 'app/training/bookings',
+						},
+					},
+				},
+			},
 			// TODO: Still need to implement this
 			// SignupWithSub: {
 			// 	path: 'auth/signup/:gymCode/:subscriptionId',
