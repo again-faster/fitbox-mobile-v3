@@ -146,6 +146,7 @@ jobs:
                   -sdk iphoneos \
                   -configuration Release \
                   -destination generic/platform=iOS \
+                  -quiet \
                   -archivePath $RUNNER_TEMP/fitbox.xcarchive \
                   archive
 
