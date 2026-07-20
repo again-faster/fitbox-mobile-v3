@@ -9,6 +9,7 @@ import {
 	Spacer,
 	Text,
 } from '@/components/atoms';
+import { MemberProgressRing } from '@/components/member';
 import useSwitchableUsers from '@/hooks/useSwitchableUsers';
 import { navigate } from '@/navigators/NavigationRef';
 import { betaActive, savePushToken } from '@/services/auth';
@@ -146,6 +147,7 @@ const Dashboard = () => {
 		emptyRequiredFieldsState,
 		loggedInUser,
 		setLoggedInUser,
+		teamId,
 	} = useStore(state => ({
 		setAppState: state.setAppState,
 		classFilters: state.classFilters,
@@ -166,6 +168,7 @@ const Dashboard = () => {
 		emptyRequiredFieldsState: state.emptyRequiredFields,
 		loggedInUser: state.loggedInUser,
 		setLoggedInUser: state.setLoggedInUser,
+		teamId: state.teamId,
 	}));
 
 	const userState = loggedInUser as LoginResponseSchemaType;
@@ -177,6 +180,9 @@ const Dashboard = () => {
 	const [gymLogo, setGymLogo] = useState<string>('');
 	const [showAttendanceReport, setShowAttendanceReport] =
 		useState<boolean>(false);
+	const [monthlyAttendanceGoal, setMonthlyAttendanceGoal] = useState<
+		number | null
+	>(null);
 
 	const [hasPrevSubscriptions, setHasPrevSubscriptions] =
 		useState<boolean>(false);
@@ -201,6 +207,29 @@ const Dashboard = () => {
 		useState<boolean>(false);
 
 	const { hasSwitchableUsers } = useSwitchableUsers();
+
+	const attendanceGoalKey = useMemo(() => {
+		const memberId = loggedInUser?.user_data.user_id;
+		if (!teamId || !memberId) return null;
+
+		return `attendanceGoal:v1:${teamId}:${memberId}`;
+	}, [loggedInUser?.user_data.user_id, teamId]);
+
+	useFocusEffect(
+		useCallback(() => {
+			if (!attendanceGoalKey) {
+				setMonthlyAttendanceGoal(null);
+				return;
+			}
+
+			const savedGoal = mmkvStorage.getNumber(attendanceGoalKey);
+			setMonthlyAttendanceGoal(
+				savedGoal && savedGoal >= 1 && savedGoal <= 31
+					? savedGoal
+					: null,
+			);
+		}, [attendanceGoalKey]),
+	);
 
 	const [currentNotificationIndex, setCurrentNotificationIndex] =
 		useState<number>(0);
@@ -892,6 +921,24 @@ const Dashboard = () => {
 	};
 	const yearLeftPadding: number =
 		attendanceReportState.yearToDate?.toString().length === 1 ? 20 : 0;
+	const monthAttendance = attendanceReportState.monthToDate ?? 0;
+	const monthlyGoalProgress = monthlyAttendanceGoal
+		? Math.min(monthAttendance / monthlyAttendanceGoal, 1)
+		: 0;
+	const getMonthAttendanceStatStyle = () => {
+		if (monthlyAttendanceGoal && attendanceFilter.length === 3) {
+			return styles.monthlyGoalStat;
+		}
+
+		if (
+			attendanceFilter.length <= 2 ||
+			attendanceReportState.monthToDate.toString().length === 1
+		) {
+			return layout.flex_1;
+		}
+
+		return styles.monthToDate;
+	};
 
 	const renderDashboardComponents = () => {
 		return (
@@ -972,34 +1019,56 @@ const Dashboard = () => {
 								>
 									{attendanceFilter.includes('month') && (
 										<View
-											style={
-												attendanceFilter.length <= 2 ||
-												attendanceReportState.monthToDate.toString()
-													.length === 1
-													? layout.flex_1
-													: styles.monthToDate
-											}
+											style={getMonthAttendanceStatStyle()}
 										>
-											<Row align="flex-end">
-												<Image
-													source={
-														resources.icon
-															.monthToDate
-													}
-													style={
-														styles.attendanceIcon
-													}
-												/>
+											<Row align="center">
+												{monthlyAttendanceGoal ? (
+													<MemberProgressRing
+														progress={
+															monthlyGoalProgress
+														}
+														size={38}
+														strokeWidth={3}
+														trackColor={
+															memberTheme.colors
+																.surfaceSoft
+														}
+													>
+														<Text
+															style={
+																styles.goalAttendanceIcon
+															}
+															allowFontScaling={
+																false
+															}
+														>
+															🎯
+														</Text>
+													</MemberProgressRing>
+												) : (
+													<Image
+														source={
+															resources.icon
+																.monthToDate
+														}
+														style={
+															styles.attendanceIcon
+														}
+													/>
+												)}
 												<Text
-													style={
-														styles.attendanceValue
-													}
+													style={[
+														styles.attendanceValue,
+														monthlyAttendanceGoal
+															? styles.monthlyGoalValue
+															: null,
+													]}
 													bold
 													allowFontScaling={false}
 												>
-													{
-														attendanceReportState.monthToDate
-													}
+													{monthlyAttendanceGoal
+														? `${monthAttendance} / ${monthlyAttendanceGoal}`
+														: monthAttendance}
 												</Text>
 											</Row>
 											<Text
@@ -1007,7 +1076,9 @@ const Dashboard = () => {
 												style={styles.attendanceText}
 												allowFontScaling={false}
 											>
-												this month
+												{monthlyAttendanceGoal
+													? 'monthly goal'
+													: 'this month'}
 											</Text>
 										</View>
 									)}
@@ -1245,7 +1316,8 @@ const styles = StyleSheet.create({
 	},
 	section: {
 		paddingHorizontal: memberTheme.spacing.lg,
-		paddingVertical: metrics.xl,
+		paddingTop: memberTheme.spacing.lg,
+		paddingBottom: metrics.xl,
 		justifyContent: 'space-between',
 	},
 	greetingRow: {
@@ -1256,8 +1328,8 @@ const styles = StyleSheet.create({
 		marginTop: memberTheme.spacing.xs,
 	},
 	attendanceCard: {
-		marginTop: memberTheme.spacing.lg,
-		marginBottom: memberTheme.spacing.xl,
+		marginTop: memberTheme.spacing.sm,
+		marginBottom: memberTheme.spacing.lg,
 		padding: memberTheme.spacing.lg,
 		backgroundColor: memberTheme.colors.surface,
 		borderRadius: memberTheme.radius.lg,
@@ -1269,8 +1341,8 @@ const styles = StyleSheet.create({
 		paddingTop: memberTheme.spacing.sm,
 	},
 	sectionHeadingRow: {
-		marginTop: memberTheme.spacing.xl,
-		marginBottom: memberTheme.spacing.md,
+		marginTop: memberTheme.spacing.lg,
+		marginBottom: memberTheme.spacing.sm,
 	},
 	bookedSessionsContainer: {
 		overflow: 'hidden',
@@ -1363,11 +1435,19 @@ const styles = StyleSheet.create({
 		marginBottom: 5,
 		marginRight: 8,
 	},
+	goalAttendanceIcon: {
+		fontSize: 20,
+		lineHeight: 24,
+	},
 	attendanceText: {
 		paddingBottom: 5,
 		marginLeft: config.metrics.sm,
 	},
 	attendanceValue: { fontSize: 28 },
+	monthlyGoalValue: {
+		fontSize: 23,
+		marginLeft: memberTheme.spacing.xs,
+	},
 	switchIcon: {
 		position: 'absolute',
 		right: 0,
@@ -1379,6 +1459,10 @@ const styles = StyleSheet.create({
 	},
 	monthToDate: {
 		flex: 0.9,
+	},
+	monthlyGoalStat: {
+		flex: 1.35,
+		alignItems: 'center',
 	},
 	viewAttendance: {
 		marginBottom: config.metrics.sm,
