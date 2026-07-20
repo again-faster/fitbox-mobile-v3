@@ -49,6 +49,10 @@ jobs:
                   node-version: '18'
                   cache: 'yarn'
 
+            - uses: ruby/setup-ruby@v1
+              with:
+                  ruby-version: '3.3'
+
             - name: Clean workspace
               run: |
                   git clean -ffdx
@@ -90,7 +94,6 @@ jobs:
 
             - name: Update Bundler and Install Gems
               run: |
-                  gem update --system
                   gem install bundler -v 2.6.9
                   bundle _2.6.9_ install
 
