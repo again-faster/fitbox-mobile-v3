@@ -111,7 +111,7 @@ jobs:
                   pod --version
                   cd ios
                   pod repo update
-                  RCT_NEW_ARCH_ENABLED=1 bundle exec pod install --verbose
+                  RCT_NEW_ARCH_ENABLED=1 bundle exec pod update Sentry/HybridSDK --verbose
 
             - name: Configure preview app target
               run: |
