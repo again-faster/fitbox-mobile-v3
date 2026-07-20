@@ -103,6 +103,8 @@ jobs:
                   rm -rf ~/.bundle/cache
 
             - name: Install Pod Dependencies
+              env:
+                  RCT_NEW_ARCH_ENABLED: '0'
               run: |
                   echo "RCT_NEW_ARCH_ENABLED: $RCT_NEW_ARCH_ENABLED"
                   which bundle
@@ -111,7 +113,7 @@ jobs:
                   pod --version
                   cd ios
                   pod repo update
-                  RCT_NEW_ARCH_ENABLED=1 bundle exec pod update Sentry/HybridSDK --verbose
+                  bundle exec pod update Sentry/HybridSDK --verbose
 
             - name: Configure preview app target
               run: |
