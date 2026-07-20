@@ -6,6 +6,7 @@ import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import * as Sentry from '@sentry/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import DeviceInfo from 'react-native-device-info';
+import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { configureFonts, Provider } from 'react-native-paper';
 import PushNotification from 'react-native-push-notification';
@@ -41,6 +42,9 @@ Sentry.init({
 });
 
 const queryClient = new QueryClient();
+const isPreviewIosBuild =
+	Platform.OS === 'ios' &&
+	DeviceInfo.getBundleId() === 'com.againfaster.fitbox.preview';
 
 /**
  * Adding this here as per documentation
@@ -48,38 +52,40 @@ const queryClient = new QueryClient();
  * DO NOT USE .configure() INSIDE A COMPONENT, EVEN App
  * If you do, notification handlers will not fire, because they are not loaded
  */
-PushNotification.configure({
-	onNotification: (notification: NotificationsType) => {
-		if (notification.userInteraction) {
-			void NotificationService.notificationHandler(notification);
-			notification.finish(PushNotificationIOS.FetchResult.NoData);
-		}
-	},
-	permissions: {
-		alert: true,
-		badge: false,
-		sound: true,
-	},
-	popInitialNotification: true,
-	requestPermissions: true,
-});
+if (!isPreviewIosBuild) {
+	PushNotification.configure({
+		onNotification: (notification: NotificationsType) => {
+			if (notification.userInteraction) {
+				void NotificationService.notificationHandler(notification);
+				notification.finish(PushNotificationIOS.FetchResult.NoData);
+			}
+		},
+		permissions: {
+			alert: true,
+			badge: false,
+			sound: true,
+		},
+		popInitialNotification: true,
+		requestPermissions: true,
+	});
 
-// Create channel for session start notifications
-PushNotification.createChannel({
-	channelId: 'general-channel', // (
-	channelName: 'General App Notifications',
-	channelDescription: 'A channel for general app notifications',
-});
+	// Initialize Firebase listeners only when push notifications are available.
+	NotificationService.initialize();
+}
 
-// Create channel for session start notifications
-PushNotification.createChannel({
-	channelId: 'session-start', // (
-	channelName: 'Session Start Notifications',
-	channelDescription: 'A channel for session start',
-});
+if (Platform.OS === 'android') {
+	PushNotification.createChannel({
+		channelId: 'general-channel',
+		channelName: 'General App Notifications',
+		channelDescription: 'A channel for general app notifications',
+	});
 
-// Initialize firebase listeners
-NotificationService.initialize();
+	PushNotification.createChannel({
+		channelId: 'session-start',
+		channelName: 'Session Start Notifications',
+		channelDescription: 'A channel for session start',
+	});
+}
 
 // Configure fonts
 const customTheme = {
