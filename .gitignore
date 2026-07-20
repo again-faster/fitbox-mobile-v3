@@ -68,6 +68,11 @@ yarn-error.log
 
 out/tsconfig.tsbuildinfo
 
+# Local environment
+.env
+.env.local
+.env.*.local
+
 # Yarn
 .yarn/*
 !.yarn/patches
