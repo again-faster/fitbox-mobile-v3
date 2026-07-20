@@ -113,6 +113,29 @@ jobs:
                   pod repo update
                   RCT_NEW_ARCH_ENABLED=1 bundle exec pod install --verbose
 
+            - name: Configure preview app target
+              run: |
+                  cd ios
+                  bundle exec ruby <<'RUBY'
+                  require 'xcodeproj'
+
+                  project = Xcodeproj::Project.open('fitbox.xcodeproj')
+                  target = project.targets.find { |candidate| candidate.name == 'fitbox' }
+                  abort 'fitbox app target was not found' unless target
+
+                  configuration = target.build_configurations.find { |candidate| candidate.name == 'Release' }
+                  abort 'fitbox Release configuration was not found' unless configuration
+
+                  configuration.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.againfaster.fitbox.preview'
+                  configuration.build_settings['INFOPLIST_KEY_CFBundleDisplayName'] = 'Fitbox Preview'
+                  configuration.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'fitbox/fitbox.preview.entitlements'
+                  configuration.build_settings['CODE_SIGN_STYLE'] = 'Manual'
+                  configuration.build_settings['CODE_SIGN_IDENTITY'] = 'Apple Distribution'
+                  configuration.build_settings['PROVISIONING_PROFILE_SPECIFIER'] = 'fitbox preview appstore 2026'
+                  configuration.build_settings['DEVELOPMENT_TEAM'] = '72JFN8S92U'
+                  project.save
+                  RUBY
+
             - name: build archive
               run: |
                   cd ios
@@ -122,12 +145,6 @@ jobs:
                   -configuration Release \
                   -destination generic/platform=iOS \
                   -archivePath $RUNNER_TEMP/fitbox.xcarchive \
-                  DEVELOPMENT_TEAM=72JFN8S92U \
-                  PRODUCT_BUNDLE_IDENTIFIER=com.againfaster.fitbox.preview \
-                  INFOPLIST_KEY_CFBundleDisplayName="Fitbox Preview" \
-                  CODE_SIGN_ENTITLEMENTS=fitbox/fitbox.preview.entitlements \
-                  CODE_SIGN_IDENTITY="Apple Distribution" \
-                  PROVISIONING_PROFILE_SPECIFIER="fitbox preview appstore 2026" \
                   archive
 
             - name: export ipa
