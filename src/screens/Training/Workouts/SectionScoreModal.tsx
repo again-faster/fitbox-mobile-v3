@@ -1,14 +1,21 @@
 import {
 	createSubmissionId,
 	logSectionResultAtomic,
-	type SectionScoreEntryPayload,
+	scoreEntryDescriptors,
+	scoreKindForSection,
 	type SectionScorePayload,
 } from '@/services/workoutStudio/scoreable';
+import { getStoredWSSession } from '@/services/workoutStudio/auth';
+import {
+	isRetryableSectionResultError,
+	queueSectionResult,
+} from '@/services/workoutStudio/sectionResultQueue';
 import type {
 	ScalingLevel,
 	WorkoutSection,
 } from '@/services/workoutStudio/types';
 import { trainingTheme } from '@/theme/training';
+import { useTrainingConnectivity } from '@/screens/Training/hooks/useTrainingConnectivity';
 import { useEffect, useState } from 'react';
 import {
 	ActivityIndicator,
@@ -42,25 +49,6 @@ const numberOrUndefined = (value: string): number | undefined => {
 	return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
 };
 
-const scoreTypeFor = (section: WorkoutSection) => {
-	if (['for_time', 'chipper', 'emom'].includes(section.scoring_type))
-		return 'time';
-	if (section.scoring_type === 'amrap') return 'rounds_reps';
-	if (section.scoring_type === 'strength') return 'load';
-	return section.leaderboard_score_type ?? 'custom_numeric';
-};
-
-const entryCountFor = (section: WorkoutSection) => {
-	if (section.rounds && section.rounds > 0) return section.rounds;
-	if (section.score_collection_mode === 'per_set') {
-		const sets = section.section_blocks.flatMap(block =>
-			block.block_movements.map(item => item.sets ?? 0),
-		);
-		return Math.max(1, ...sets);
-	}
-	return 1;
-};
-
 const SectionScoreModal = ({
 	section,
 	visible,
@@ -73,11 +61,15 @@ const SectionScoreModal = ({
 	section: WorkoutSection | null;
 	visible: boolean;
 	onClose: () => void;
-	onLogged: () => void;
+	onLogged: (status: 'synced' | 'queued') => void;
 	sessionSubmissionId: string;
 	assignmentId?: string;
 	scalingLevel: ScalingLevel;
 }) => {
+	const session = getStoredWSSession();
+	const userId = session?.user.id;
+	const tenantId = session?.user.active_tenant_id;
+	const { isOffline } = useTrainingConnectivity();
 	const [primary, setPrimary] = useState('');
 	const [secondary, setSecondary] = useState('');
 	const [notes, setNotes] = useState('');
@@ -86,11 +78,13 @@ const SectionScoreModal = ({
 	const [entries, setEntries] = useState<EntryState[]>([
 		{ primary: '', secondary: '' },
 	]);
-	const isMulti = section?.score_collection_mode !== 'section';
-	const kind = section ? scoreTypeFor(section) : 'custom_numeric';
-	const count = section ? entryCountFor(section) : 1;
+	const descriptors = section ? scoreEntryDescriptors(section) : [];
+	const isMulti = descriptors.length > 0;
+	const kind = section ? scoreKindForSection(section) : 'custom_numeric';
+	const count = Math.max(1, descriptors.length);
 
 	useEffect(() => {
+		if (!visible) return;
 		setEntries(
 			Array.from({ length: count }, () => ({
 				primary: '',
@@ -101,7 +95,7 @@ const SectionScoreModal = ({
 		setSecondary('');
 		setNotes('');
 		setSubmissionId(createSubmissionId());
-	}, [section?.id, count]);
+	}, [section?.id, count, visible]);
 
 	if (!section) return null;
 
@@ -109,6 +103,9 @@ const SectionScoreModal = ({
 	if (kind === 'time') labels = ['Time (MM:SS)', ''];
 	if (kind === 'rounds_reps') labels = ['Rounds', 'Partial reps'];
 	if (kind === 'load') labels = ['Weight (kg)', 'Reps'];
+	if (kind === 'reps') labels = ['Reps', ''];
+	if (kind === 'distance') labels = ['Distance (m)', ''];
+	if (kind === 'calories') labels = ['Calories', ''];
 
 	const buildScore = (state: EntryState): SectionScorePayload => {
 		if (kind === 'time')
@@ -125,12 +122,26 @@ const SectionScoreModal = ({
 				reps: numberOrUndefined(state.secondary),
 				score_type: kind,
 			};
+		if (kind === 'reps')
+			return { reps: numberOrUndefined(state.primary), score_type: kind };
+		if (kind === 'distance')
+			return {
+				distance_meters: numberOrUndefined(state.primary),
+				score_type: kind,
+			};
+		if (kind === 'calories')
+			return {
+				calories: numberOrUndefined(state.primary),
+				score_type: kind,
+			};
+		if (kind === 'completed') return { completed: true, score_type: kind };
 		return { points: numberOrUndefined(state.primary), score_type: kind };
 	};
 
 	const submit = async () => {
 		const states = isMulti ? entries : [{ primary, secondary }];
 		const hasInvalidScore = states.some(state => {
+			if (kind === 'completed') return false;
 			if (!state.primary.trim()) return true;
 			if (kind === 'time') return parseTime(state.primary) === undefined;
 			if (numberOrUndefined(state.primary) === undefined) return true;
@@ -152,30 +163,48 @@ const SectionScoreModal = ({
 			return;
 		}
 		setSubmitting(true);
-		try {
-			const score = isMulti
+		const input = {
+			sectionId: section.id,
+			sessionSubmissionId,
+			sectionSubmissionId: submissionId,
+			completedAt: new Date().toISOString().slice(0, 10),
+			scalingLevel,
+			score: isMulti
 				? { score_type: kind }
-				: buildScore({ primary, secondary });
-			const scoreEntries: SectionScoreEntryPayload[] = isMulti
+				: buildScore({ primary, secondary }),
+			entries: isMulti
 				? entries.map((entry, index) => ({
 						...buildScore(entry),
 						segment_index: index,
-						segment_label: `${section.score_collection_mode.replace('per_', '')} ${index + 1}`,
+						segment_label:
+							descriptors[index]?.label ?? `Entry ${index + 1}`,
+						block_id: descriptors[index]?.blockId,
 					}))
-				: [];
-			await logSectionResultAtomic({
-				sectionId: section.id,
-				sessionSubmissionId,
-				sectionSubmissionId: submissionId,
-				scalingLevel,
-				score,
-				entries: scoreEntries,
-				notes: notes.trim() || undefined,
-				assignmentId,
+				: [],
+			notes: notes.trim() || undefined,
+			assignmentId,
+		};
+		const saveForRetry = async () => {
+			if (!userId || !tenantId) return false;
+			await queueSectionResult({
+				id: submissionId,
+				userId,
+				tenantId,
+				input,
+				queuedAt: new Date().toISOString(),
 			});
-			onLogged();
+			onLogged('queued');
+			onClose();
+			return true;
+		};
+		try {
+			if (isOffline && (await saveForRetry())) return;
+			await logSectionResultAtomic(input);
+			onLogged('synced');
 			onClose();
 		} catch (error) {
+			if (isRetryableSectionResultError(error) && (await saveForRetry()))
+				return;
 			Alert.alert(
 				'Could not save score',
 				error instanceof Error
@@ -187,41 +216,45 @@ const SectionScoreModal = ({
 		}
 	};
 
-	const fields = (
-		state: EntryState,
-		onChange: (next: EntryState) => void,
-	) => (
-		<View style={styles.fieldRow}>
-			<View style={styles.field}>
-				<Text style={styles.label}>{labels[0]}</Text>
-				<TextInput
-					style={styles.input}
-					value={state.primary}
-					onChangeText={value =>
-						onChange({ ...state, primary: value })
-					}
-					keyboardType={
-						kind === 'time'
-							? 'numbers-and-punctuation'
-							: 'decimal-pad'
-					}
-				/>
+	const fields = (state: EntryState, onChange: (next: EntryState) => void) =>
+		kind === 'completed' ? (
+			<View style={styles.completedRow}>
+				<Text style={styles.completedText}>
+					Completion will be recorded for this entry.
+				</Text>
 			</View>
-			{labels[1] ? (
+		) : (
+			<View style={styles.fieldRow}>
 				<View style={styles.field}>
-					<Text style={styles.label}>{labels[1]}</Text>
+					<Text style={styles.label}>{labels[0]}</Text>
 					<TextInput
 						style={styles.input}
-						value={state.secondary}
+						value={state.primary}
 						onChangeText={value =>
-							onChange({ ...state, secondary: value })
+							onChange({ ...state, primary: value })
 						}
-						keyboardType="number-pad"
+						keyboardType={
+							kind === 'time'
+								? 'numbers-and-punctuation'
+								: 'decimal-pad'
+						}
 					/>
 				</View>
-			) : null}
-		</View>
-	);
+				{labels[1] ? (
+					<View style={styles.field}>
+						<Text style={styles.label}>{labels[1]}</Text>
+						<TextInput
+							style={styles.input}
+							value={state.secondary}
+							onChangeText={value =>
+								onChange({ ...state, secondary: value })
+							}
+							keyboardType="number-pad"
+						/>
+					</View>
+				) : null}
+			</View>
+		);
 
 	return (
 		<Modal
@@ -343,6 +376,17 @@ const styles = StyleSheet.create({
 		color: trainingTheme.colors.text,
 		fontWeight: '700',
 		marginBottom: 8,
+	},
+	completedRow: {
+		minHeight: 48,
+		justifyContent: 'center',
+		borderRadius: 10,
+		backgroundColor: trainingTheme.colors.surfaceMuted,
+		paddingHorizontal: 12,
+	},
+	completedText: {
+		color: trainingTheme.colors.textMuted,
+		fontSize: 13,
 	},
 	fieldRow: { flexDirection: 'row', gap: 10 },
 	field: { flex: 1 },

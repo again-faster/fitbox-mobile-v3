@@ -275,6 +275,7 @@ export type TrainingStackParamList = {
 		workoutId: string;
 		assignmentId?: string;
 		workoutName: string;
+		scalingLevel?: 'rx' | 'scaled' | 'foundations';
 	};
 	TrainingWorkoutComplete: {
 		workoutResultId: string;

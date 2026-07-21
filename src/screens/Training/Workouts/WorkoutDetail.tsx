@@ -26,6 +26,7 @@ import WorkoutLeaderboard from '@/screens/Training/Workouts/WorkoutLeaderboard';
 import PrimaryButton from '@/screens/Training/components/PrimaryButton';
 import { trainingTheme } from '@/theme/training';
 import { useScalingPreference } from '@/screens/Training/hooks/useScalingPreference';
+import { useSectionResultQueue } from '@/screens/Training/hooks/useSectionResultQueue';
 import { mmkvStorage } from '@/storage';
 import { useTheme } from '@/theme';
 import type { TrainingStackParamList } from '@/types/navigation';
@@ -112,6 +113,7 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	const uid = session?.user.id;
 	const tenantId = session?.user.active_tenant_id;
 	const scalingPreference = useScalingPreference(uid, tenantId);
+	const sectionResultQueue = useSectionResultQueue();
 	const serverScalingApplied = useRef(false);
 
 	const [selectedMovement, setSelectedMovement] = useState<{
@@ -148,6 +150,9 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	const [leaderboardOpened, setLeaderboardOpened] = useState(false);
 	const [isPR, setIsPR] = useState(false);
 	const [toastVisible, setToastVisible] = useState(false);
+	const [toastMessage, setToastMessage] = useState(
+		'Logged! See how you rank →',
+	);
 	const [secError, setSecError] = useState<string | null>(null);
 	const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -309,13 +314,22 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 		[],
 	);
 
-	const showLoggedToast = () => {
+	const showLoggedToast = (message = 'Logged! See how you rank →') => {
+		setToastMessage(message);
 		setToastVisible(true);
 		if (toastTimer.current) clearTimeout(toastTimer.current);
 		toastTimer.current = setTimeout(() => setToastVisible(false), 2500);
 	};
+	const handleSectionLogged = (status: 'synced' | 'queued') => {
+		if (status === 'queued') {
+			showLoggedToast('Saved offline · Will sync automatically');
+			void sectionResultQueue.refresh();
+			return;
+		}
+		showLoggedToast();
+	};
 	const onToastPress = () => {
-		openLeaderboardTab();
+		if (toastMessage.startsWith('Logged!')) openLeaderboardTab();
 		setToastVisible(false);
 	};
 	const handleSecChange = (v: string) => {
@@ -444,6 +458,20 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 				>
 					{workout.name}
 				</Text>
+				{sectionResultQueue.pendingCount > 0 ? (
+					<View
+						style={styles.pendingResultBanner}
+						accessibilityRole="alert"
+					>
+						<Text style={styles.pendingResultText}>
+							{sectionResultQueue.pendingCount} section score
+							{sectionResultQueue.pendingCount === 1
+								? ''
+								: 's'}{' '}
+							waiting to sync
+						</Text>
+					</View>
+				) : null}
 				{workout.estimated_duration_minutes && (
 					<Text
 						style={[
@@ -508,6 +536,7 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 								workoutId,
 								assignmentId,
 								workoutName: workout.name,
+								scalingLevel,
 							})
 						}
 					/>
@@ -1116,7 +1145,7 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 				section={selectedScoreSection}
 				visible={selectedScoreSection !== null}
 				onClose={() => setSelectedScoreSection(null)}
-				onLogged={() => showLoggedToast()}
+				onLogged={handleSectionLogged}
 				sessionSubmissionId={sessionSubmissionId}
 				assignmentId={assignmentId}
 				scalingLevel={scalingLevel}
@@ -1127,9 +1156,7 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 					onPress={onToastPress}
 					activeOpacity={0.85}
 				>
-					<Text style={styles.toastText}>
-						Logged! See how you rank →
-					</Text>
+					<Text style={styles.toastText}>{toastMessage}</Text>
 				</TouchableOpacity>
 			) : null}
 			{isPR ? <Confetti /> : null}
@@ -1142,6 +1169,22 @@ const styles = StyleSheet.create({
 	container: { padding: 16, paddingBottom: 100 },
 	title: { fontSize: 22, fontWeight: '700' },
 	meta: { fontSize: 13, marginTop: 4, marginBottom: 8 },
+	pendingResultBanner: {
+		minHeight: 44,
+		marginTop: trainingTheme.spacing.sm,
+		paddingHorizontal: trainingTheme.spacing.md,
+		borderRadius: trainingTheme.radius.sm,
+		backgroundColor: trainingTheme.colors.warningSoft,
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: trainingTheme.spacing.sm,
+	},
+	pendingResultText: {
+		flex: 1,
+		color: trainingTheme.colors.warning,
+		fontSize: 13,
+		fontWeight: '600',
+	},
 	programStrip: { marginBottom: 12 },
 	programStripText: { fontSize: 12, marginBottom: 6 },
 	progressTrack: { height: 4, borderRadius: 2, overflow: 'hidden' },

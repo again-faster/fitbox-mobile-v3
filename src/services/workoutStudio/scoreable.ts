@@ -35,14 +35,7 @@ export type AtomicSectionResult = {
 	duplicate: boolean;
 };
 
-export const createSubmissionId = (): string =>
-	'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, character => {
-		if (character === 'y')
-			return ['8', '9', 'a', 'b'][Math.floor(Math.random() * 4)]!;
-		return Math.floor(Math.random() * 16).toString(16);
-	});
-
-export const logSectionResultAtomic = async (input: {
+export type AtomicSectionResultInput = {
 	sectionId: string;
 	sessionSubmissionId: string;
 	sectionSubmissionId: string;
@@ -52,7 +45,34 @@ export const logSectionResultAtomic = async (input: {
 	entries?: SectionScoreEntryPayload[];
 	notes?: string;
 	assignmentId?: string;
-}): Promise<AtomicSectionResult> => {
+};
+
+export type SectionScoreKind =
+	| 'time'
+	| 'rounds_reps'
+	| 'load'
+	| 'reps'
+	| 'distance'
+	| 'calories'
+	| 'points'
+	| 'completed'
+	| 'custom_numeric';
+
+export type SectionScoreEntryDescriptor = {
+	label: string;
+	blockId?: string;
+};
+
+export const createSubmissionId = (): string =>
+	'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, character => {
+		if (character === 'y')
+			return ['8', '9', 'a', 'b'][Math.floor(Math.random() * 4)]!;
+		return Math.floor(Math.random() * 16).toString(16);
+	});
+
+export const logSectionResultAtomic = async (
+	input: AtomicSectionResultInput,
+): Promise<AtomicSectionResult> => {
 	const rows = await wsRpc<AtomicSectionResult[]>(
 		'log_section_result_atomic',
 		{
@@ -71,6 +91,81 @@ export const logSectionResultAtomic = async (input: {
 	if (!result?.captured)
 		throw new Error('Your section result was not saved.');
 	return result;
+};
+
+const SUPPORTED_SCORE_KINDS = new Set<SectionScoreKind>([
+	'time',
+	'rounds_reps',
+	'load',
+	'reps',
+	'distance',
+	'calories',
+	'points',
+	'completed',
+	'custom_numeric',
+]);
+
+export const scoreKindForSection = (
+	section: WorkoutSection,
+): SectionScoreKind => {
+	const configured =
+		section.leaderboard_score_type as SectionScoreKind | null;
+	if (configured && SUPPORTED_SCORE_KINDS.has(configured)) return configured;
+	if (['for_time', 'chipper'].includes(section.scoring_type)) return 'time';
+	if (section.scoring_type === 'amrap') return 'rounds_reps';
+	if (section.scoring_type === 'strength') return 'load';
+	return 'custom_numeric';
+};
+
+const prescribedSetCount = (section: WorkoutSection) => {
+	const counts = section.section_blocks.flatMap(block =>
+		block.block_movements.map(movement =>
+			Math.max(movement.sets ?? 0, movement.set_scheme?.length ?? 0),
+		),
+	);
+	return Math.max(1, ...counts);
+};
+
+export const scoreEntryDescriptors = (
+	section: WorkoutSection,
+): SectionScoreEntryDescriptor[] => {
+	switch (section.score_collection_mode) {
+		case 'section':
+			return [];
+		case 'per_set':
+			return Array.from(
+				{ length: prescribedSetCount(section) },
+				(_, index) => ({
+					label: `Set ${index + 1}`,
+				}),
+			);
+		case 'per_round':
+			return Array.from(
+				{ length: Math.max(1, section.rounds ?? 1) },
+				(_, index) => ({ label: `Round ${index + 1}` }),
+			);
+		case 'per_interval':
+			return Array.from(
+				{
+					length: Math.max(
+						1,
+						section.rounds ?? section.section_blocks.length,
+					),
+				},
+				(_, index) => ({ label: `Interval ${index + 1}` }),
+			);
+		case 'per_phase':
+			return section.section_blocks.length > 0
+				? section.section_blocks.map((block, index) => ({
+						label: block.label?.trim() || `Phase ${index + 1}`,
+						blockId: block.id,
+					}))
+				: [{ label: 'Phase 1' }];
+		case 'aggregate':
+			return [{ label: 'Combined score' }];
+		default:
+			return [];
+	}
 };
 
 const COLLECTION_LABELS: Record<ScoreCollectionMode, string> = {
