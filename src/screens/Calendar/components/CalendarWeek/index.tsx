@@ -72,20 +72,25 @@ const CalendarWeek = forwardRef<CalendarWeekRef, CalendarWeekProps>(
 			return weeksArray;
 		}, [currentDate]);
 
-		const scrollToCurrentDate = () => {
+		const WEEK_STRIP_HEIGHT = 60;
+
+		const currentWeekIndex = useMemo(
+			() => weeks.findIndex(w => w.some(day => day.date === currentDate)),
+			[weeks, currentDate],
+		);
+
+		const scrollToCurrentDate = useCallback(() => {
 			const index = weeks.findIndex(w =>
 				w.some(day => day.date === currentDate),
 			);
-
 			if (index !== -1) {
-				swiper.current?.scrollToIndex({
-					index,
+				swiper.current?.scrollToOffset({
+					offset: index * Constant.DEVICEWIDTH,
 					animated: false,
 				});
 			}
-
 			setActiveMonth(moment(currentDate).format('MMMM'));
-		};
+		}, [weeks, currentDate]);
 
 		useEffect(() => {
 			// scrollToCurrentDate();
@@ -97,11 +102,11 @@ const CalendarWeek = forwardRef<CalendarWeekRef, CalendarWeekProps>(
 		const isFocused = useIsFocused();
 		useEffect(() => {
 			if (isFocused) {
-				setTimeout(() => {
+				requestAnimationFrame(() => {
 					scrollToCurrentDate();
-				}, 1800);
+				});
 			}
-		}, [isFocused]);
+		}, [isFocused, currentDate]);
 
 		const renderItem = useCallback(
 			// eslint-disable-next-line react/no-unused-prop-types
@@ -129,24 +134,35 @@ const CalendarWeek = forwardRef<CalendarWeekRef, CalendarWeekProps>(
 
 		return (
 			<View style={layout.shadowLight}>
-				<FlashList
-					ref={swiper}
-					horizontal
-					showsHorizontalScrollIndicator={false}
-					onMomentumScrollBegin={onMomentumScrollBegin}
-					onMomentumScrollEnd={onMomentumScrollEnd}
-					decelerationRate="fast"
-					data={weeks}
-					keyExtractor={(_, index) => index.toString()}
-					snapToAlignment="center"
-					snapToInterval={Constant.DEVICEWIDTH}
-					renderItem={renderItem}
-					estimatedItemSize={Constant.DEVICEWIDTH}
-					overrideItemLayout={l => {
-						// eslint-disable-next-line no-param-reassign
-						l.size = Constant.DEVICEWIDTH; // Set a fixed height for each item
-					}}
-				/>
+				{isFocused ? (
+					<FlashList
+						ref={swiper}
+						horizontal
+						showsHorizontalScrollIndicator={false}
+						onMomentumScrollBegin={onMomentumScrollBegin}
+						onMomentumScrollEnd={onMomentumScrollEnd}
+						onLoad={scrollToCurrentDate}
+						decelerationRate="fast"
+						data={weeks}
+						initialScrollIndex={
+							currentWeekIndex >= 0 ? currentWeekIndex : 0
+						}
+						keyExtractor={(_, index) => index.toString()}
+						snapToAlignment="center"
+						snapToInterval={Constant.DEVICEWIDTH}
+						renderItem={renderItem}
+						estimatedItemSize={Constant.DEVICEWIDTH}
+						overrideItemLayout={l => {
+							// eslint-disable-next-line no-param-reassign
+							l.size = Constant.DEVICEWIDTH; // Set a fixed height for each item
+						}}
+						estimatedListSize={{
+							width: Constant.DEVICEWIDTH,
+							height: WEEK_STRIP_HEIGHT,
+						}}
+						style={{ height: WEEK_STRIP_HEIGHT }}
+					/>
+				) : null}
 
 				<View style={styles.currentDay}>
 					<Text bold color="gray200">

@@ -241,6 +241,7 @@ const MainTabNavigator = () => {
 				name="Calendar"
 				component={Calendar}
 				options={{
+					lazy: false,
 					headerLeft: CalendarHeaderLeftComponent,
 					headerRight: CalendarHeaderRightComponent,
 					title: headerTitle || activeMonth || 'Calendar',
