@@ -129,7 +129,7 @@ jobs:
                   abort 'fitbox Release configuration was not found' unless configuration
 
                   configuration.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.againfaster.fitbox.preview'
-                  configuration.build_settings['INFOPLIST_KEY_CFBundleDisplayName'] = 'Fitbox Preview'
+                  configuration.build_settings['INFOPLIST_KEY_CFBundleDisplayName'] = 'fitbox Preview'
                   configuration.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'fitbox/fitbox.preview.entitlements'
                   configuration.build_settings['CODE_SIGN_STYLE'] = 'Manual'
                   configuration.build_settings['CODE_SIGN_IDENTITY'] = 'Apple Distribution'
