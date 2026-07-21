@@ -118,6 +118,7 @@ jobs:
             - name: Configure preview app target
               run: |
                   cd ios
+                  /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName fitbox Preview" fitbox/Info.plist
                   bundle exec ruby <<'RUBY'
                   require 'xcodeproj'
 
