@@ -1,126 +1,58 @@
-name: Build Android preview
+name: Build APK
 
 on:
   workflow_dispatch:
-    inputs:
-      upload_to_play:
-        description: Upload the signed AAB to the Google Play internal track
-        required: true
-        type: boolean
-        default: false
-
-concurrency:
-  group: android-preview-release
-  cancel-in-progress: false
-
-permissions:
-  contents: read
+  repository_dispatch:
+    types: [builddev]
 
 jobs:
-  build-android-preview:
-    if: github.ref == 'refs/heads/android-preview-ci'
+  build-android:
     runs-on: ubuntu-latest
-    environment: testflight-preview
-    env:
-      PREVIEW_PACKAGE_NAME: com.againfaster.fitbox.preview
-      PREVIEW_APP_NAME: fitbox Preview
-      PREVIEW_VERSION_NAME: 4.6.1
-      PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-
-    steps:
-      - name: Check out preview branch
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+    steps: 
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: yarn
+          cache: 'npm'
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
+      - name: Use Java 17 temurin
+        uses: actions/setup-java@v3
         with:
-          distribution: temurin
+          distribution: 'temurin'
           java-version: 17
-          cache: gradle
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: Validate JavaScript
         run: |
-          yarn lint
-          yarn tsc --noEmit
-          yarn test --runInBand
+          yarn install --frozen-lockfile
 
-      - name: Restore preview environment
-        env:
-          PREVIEW_APP_ENV_BASE64: ${{ secrets.PREVIEW_APP_ENV_BASE64 }}
+      - name: Build Android Release
         run: |
-          test -n "$PREVIEW_APP_ENV_BASE64"
-          printf '%s' "$PREVIEW_APP_ENV_BASE64" | base64 --decode > .env
+          cd android && chmod +x ./gradlew && ./gradlew assembleRelease
 
-      - name: Restore preview upload key
-        env:
-          ANDROID_PREVIEW_KEYSTORE_BASE64: ${{ secrets.ANDROID_PREVIEW_KEYSTORE_BASE64 }}
-        run: |
-          test -n "$ANDROID_PREVIEW_KEYSTORE_BASE64"
-          printf '%s' "$ANDROID_PREVIEW_KEYSTORE_BASE64" | base64 --decode > android/app/fitbox-preview-upload.keystore
-
-      - name: Set preview version code
-        run: echo "PREVIEW_VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
-
-      - name: Build signed preview app bundle
-        env:
-          ANDROID_PREVIEW_KEY_ALIAS: ${{ secrets.ANDROID_PREVIEW_KEY_ALIAS }}
-          ANDROID_PREVIEW_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_PREVIEW_KEYSTORE_PASSWORD }}
-          ANDROID_PREVIEW_KEY_PASSWORD: ${{ secrets.ANDROID_PREVIEW_KEY_PASSWORD }}
-        run: |
-          test -n "$ANDROID_PREVIEW_KEY_ALIAS"
-          test -n "$ANDROID_PREVIEW_KEYSTORE_PASSWORD"
-          test -n "$ANDROID_PREVIEW_KEY_PASSWORD"
-          cd android
-          chmod +x ./gradlew
-          ./gradlew bundleRelease \
-            -PFITBOX_APPLICATION_ID="$PREVIEW_PACKAGE_NAME" \
-            -PFITBOX_VERSION_CODE="$PREVIEW_VERSION_CODE" \
-            -PFITBOX_VERSION_NAME="$PREVIEW_VERSION_NAME" \
-            -PFITBOX_APP_NAME="$PREVIEW_APP_NAME" \
-            -PFITBOX_ENABLE_GOOGLE_SERVICES=false \
-            -PMYAPP_UPLOAD_STORE_FILE=fitbox-preview-upload.keystore \
-            -PMYAPP_UPLOAD_KEY_ALIAS="$ANDROID_PREVIEW_KEY_ALIAS" \
-            -PMYAPP_UPLOAD_STORE_PASSWORD="$ANDROID_PREVIEW_KEYSTORE_PASSWORD" \
-            -PMYAPP_UPLOAD_KEY_PASSWORD="$ANDROID_PREVIEW_KEY_PASSWORD"
-
-      - name: Upload signed AAB artifact
-        uses: actions/upload-artifact@v4
+      - name: Set dynamic output folder
+        id: vars
+        run: echo "output_folder=$(date +'%m%d%Y%H%M%S')" >> $GITHUB_ENV
+        
+      - uses: azure/login@v1
         with:
-          name: fitbox-preview-${{ env.PREVIEW_VERSION_CODE }}
-          path: android/app/build/outputs/bundle/release/app-release.aab
-          if-no-files-found: error
-          retention-days: 14
+            creds: ${{ secrets.AZURE_CREDENTIALS_STG }}
 
-      - name: Require Play API credential
-        if: inputs.upload_to_play && env.PLAY_SERVICE_ACCOUNT_JSON == ''
-        run: |
-          echo 'GOOGLE_PLAY_SERVICE_ACCOUNT_JSON is required for Play upload.' >&2
-          exit 1
-
-      - name: Upload to Google Play internal testing
-        if: inputs.upload_to_play && env.PLAY_SERVICE_ACCOUNT_JSON != ''
-        uses: r0adkll/upload-google-play@v1
+      - name: Upload to blob storage
+        uses: azure/CLI@v1
         with:
-          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: com.againfaster.fitbox.preview
-          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
-          tracks: internal
-          status: completed
+          inlineScript: |
+              az storage blob upload-batch --account-name fitboxprodbuilds --auth-mode key -d "dev/${{ env.output_folder }}" -s android/app/build/outputs/apk/release/ --overwrite
 
-      - name: Release summary
+      - name: Send message to Teams
         run: |
-          {
-            echo '### Android preview'
-            echo "- Package: $PREVIEW_PACKAGE_NAME"
-            echo "- Version: $PREVIEW_VERSION_NAME ($PREVIEW_VERSION_CODE)"
-            echo "- Play upload requested: ${{ inputs.upload_to_play }}"
-          } >> "$GITHUB_STEP_SUMMARY"
+              APK_URL="https://fitboxprodbuilds.blob.core.windows.net/dev/${{ env.output_folder }}/app-release.apk"
+              MESSAGE="A new APK has been built and uploaded. You can download it from the following URL: $APK_URL"
+              curl -H 'Content-Type: application/json' -d "{\"text\": \"${MESSAGE}\"}" ${{ secrets.TEAMS_WEBHOOK_URL }}
+
+
+      # - name: Upload Artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: app-release.apk
+      #     path: android/app/build/outputs/apk/release/
+          

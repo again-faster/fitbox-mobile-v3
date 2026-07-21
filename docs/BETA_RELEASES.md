@@ -25,6 +25,6 @@ The preview Android build intentionally disables Google/Firebase services until 
 
 ## Routine release
 
-Run **Build Android preview** from `android-preview-ci`. Leave **Upload to Play** off to produce and inspect an AAB artifact. Turn it on after the first manual Play upload and service-account setup.
+Run the registered `build-ios-app.yml` workflow from `android-preview-ci`. On this isolated branch it is named **Build Android preview** and contains only the Android preview job; the default branch keeps its existing iOS workflow. Leave **Upload to Play** off to produce and inspect an AAB artifact. Turn it on after the first manual Play upload and service-account setup.
 
 The workflow builds only `com.againfaster.fitbox.preview`, uploads only to the `internal` track, and cannot run from another branch.
