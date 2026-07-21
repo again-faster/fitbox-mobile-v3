@@ -215,21 +215,19 @@ const Dashboard = () => {
 		return `attendanceGoal:v1:${teamId}:${memberId}`;
 	}, [loggedInUser?.user_data.user_id, teamId]);
 
-	useFocusEffect(
-		useCallback(() => {
-			if (!attendanceGoalKey) {
-				setMonthlyAttendanceGoal(null);
-				return;
-			}
+	useEffect(() => {
+		if (!isFocused) return;
 
-			const savedGoal = mmkvStorage.getNumber(attendanceGoalKey);
-			setMonthlyAttendanceGoal(
-				savedGoal && savedGoal >= 1 && savedGoal <= 31
-					? savedGoal
-					: null,
-			);
-		}, [attendanceGoalKey]),
-	);
+		if (!attendanceGoalKey) {
+			setMonthlyAttendanceGoal(null);
+			return;
+		}
+
+		const savedGoal = mmkvStorage.getNumber(attendanceGoalKey);
+		setMonthlyAttendanceGoal(
+			savedGoal && savedGoal >= 1 && savedGoal <= 31 ? savedGoal : null,
+		);
+	}, [attendanceGoalKey, isFocused]);
 
 	const [currentNotificationIndex, setCurrentNotificationIndex] =
 		useState<number>(0);
