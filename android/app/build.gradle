@@ -72,6 +72,12 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'org.webkit:android-jsc:+'
 
+def fitboxApplicationId = project.findProperty('FITBOX_APPLICATION_ID') ?: 'com.wa.fitbox.dev'
+def fitboxVersionCode = (project.findProperty('FITBOX_VERSION_CODE') ?: '139').toInteger()
+def fitboxVersionName = project.findProperty('FITBOX_VERSION_NAME') ?: '4.6.1'
+def fitboxAppName = project.findProperty('FITBOX_APP_NAME') ?: 'fitbox'
+def enableGoogleServices = (project.findProperty('FITBOX_ENABLE_GOOGLE_SERVICES') ?: 'true').toBoolean()
+
 apply from: new File(["node", "--print", "require.resolve('@sentry/react-native/package.json')"].execute().text.trim(), "../sentry.gradle")
 android {
     ndkVersion rootProject.ext.ndkVersion
@@ -93,11 +99,12 @@ android {
 
     namespace "com.wa.fitbox"
     defaultConfig {
-        applicationId "com.wa.fitbox.dev"
+        applicationId fitboxApplicationId
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 139
-        versionName "4.6.1"
+        versionCode fitboxVersionCode
+        versionName fitboxVersionName
+        manifestPlaceholders = [fitboxAppName: fitboxAppName]
         vectorDrawables.useSupportLibrary = true
         // manifestPlaceholders = [
         //     appAuthRedirectScheme: 'com.wa.fitbox.auth'
@@ -169,4 +176,6 @@ dependencies {
 }
 
 apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
-apply plugin: 'com.google.gms.google-services'
+if (enableGoogleServices) {
+    apply plugin: 'com.google.gms.google-services'
+}

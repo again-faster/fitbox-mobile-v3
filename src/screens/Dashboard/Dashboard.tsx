@@ -101,6 +101,9 @@ const actionButtons = [
 	},
 ];
 
+const isPreviewBuild =
+	DeviceInfo.getBundleId() === 'com.againfaster.fitbox.preview';
+
 const { height } = Dimensions.get('window');
 const { metrics } = config;
 
@@ -607,6 +610,8 @@ const Dashboard = () => {
 		});
 
 	const savePushNotificationToken = async () => {
+		if (isPreviewBuild) return;
+
 		const authStatus = await messaging().requestPermission();
 
 		const enabled =
@@ -671,11 +676,13 @@ const Dashboard = () => {
 
 	const onMountTasks = async () => {
 		setAppState('showConfetti', false);
-		await savePushNotificationToken();
-		await initializeNotificationSettings();
-		AppState.addEventListener('change', () => {
-			void checkNotificationStatus();
-		});
+		if (!isPreviewBuild) {
+			await savePushNotificationToken();
+			await initializeNotificationSettings();
+			AppState.addEventListener('change', () => {
+				void checkNotificationStatus();
+			});
+		}
 	};
 
 	// get filter options every gym switch

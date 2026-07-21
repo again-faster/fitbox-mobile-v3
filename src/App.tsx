@@ -42,8 +42,7 @@ Sentry.init({
 });
 
 const queryClient = new QueryClient();
-const isPreviewIosBuild =
-	Platform.OS === 'ios' &&
+const isPreviewBuild =
 	DeviceInfo.getBundleId() === 'com.againfaster.fitbox.preview';
 
 /**
@@ -52,7 +51,7 @@ const isPreviewIosBuild =
  * DO NOT USE .configure() INSIDE A COMPONENT, EVEN App
  * If you do, notification handlers will not fire, because they are not loaded
  */
-if (!isPreviewIosBuild) {
+if (!isPreviewBuild) {
 	PushNotification.configure({
 		onNotification: (notification: NotificationsType) => {
 			if (notification.userInteraction) {
