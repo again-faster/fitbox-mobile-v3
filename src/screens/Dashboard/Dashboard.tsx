@@ -1015,7 +1015,12 @@ const Dashboard = () => {
 
 								<Row
 									spacing="space-evenly"
-									style={styles.attendanceStats}
+									style={[
+										styles.attendanceStats,
+										!showAttendanceReportLabel
+											? styles.attendanceStatsCompact
+											: null,
+									]}
 								>
 									{attendanceFilter.includes('month') && (
 										<View
@@ -1178,7 +1183,7 @@ const Dashboard = () => {
 					upcomingSessionsState.length > 0 && (
 						<>
 							<View style={styles.sectionHeadingRow}>
-								<Text bold size="lg">
+								<Text bold style={styles.sectionHeadingText}>
 									Coming up
 								</Text>
 							</View>
@@ -1190,7 +1195,7 @@ const Dashboard = () => {
 									))}
 							</View>
 
-							{upcomingSessionsState.length > 1 ? (
+							{upcomingSessionsState.length > 1 && (
 								<TouchableOpacity
 									style={styles.viewMoreButton}
 									onPress={() => navigate('Bookings')}
@@ -1199,13 +1204,6 @@ const Dashboard = () => {
 										{t('dashboard:sessions.member.viewAll')}
 									</Text>
 								</TouchableOpacity>
-							) : (
-								<View
-									style={[
-										styles.viewMoreButton,
-										styles.viewMorePlaceholder,
-									]}
-								/>
 							)}
 						</>
 					)
@@ -1220,7 +1218,7 @@ const Dashboard = () => {
 				) : (
 					<>
 						<View style={styles.sectionHeadingRow}>
-							<Text bold size="lg">
+							<Text bold style={styles.sectionHeadingText}>
 								Explore
 							</Text>
 						</View>
@@ -1248,7 +1246,7 @@ const Dashboard = () => {
 			{/* TODO: If banner doesn't update include versioning of image to apply changes */}
 			<DashboardHeader banner={gymBanner} logo={gymLogo} />
 
-			<Spacer />
+			<Spacer size={memberTheme.spacing.xs} />
 
 			<ScrollView
 				refreshing={refreshing}
@@ -1329,8 +1327,9 @@ const styles = StyleSheet.create({
 	},
 	attendanceCard: {
 		marginTop: memberTheme.spacing.sm,
-		marginBottom: memberTheme.spacing.lg,
-		padding: memberTheme.spacing.lg,
+		marginBottom: memberTheme.spacing.sm,
+		paddingHorizontal: memberTheme.spacing.lg,
+		paddingVertical: memberTheme.spacing.md,
 		backgroundColor: memberTheme.colors.surface,
 		borderRadius: memberTheme.radius.lg,
 		borderWidth: 1,
@@ -1340,9 +1339,15 @@ const styles = StyleSheet.create({
 	attendanceStats: {
 		paddingTop: memberTheme.spacing.sm,
 	},
+	attendanceStatsCompact: {
+		paddingTop: 0,
+	},
 	sectionHeadingRow: {
-		marginTop: memberTheme.spacing.lg,
+		marginTop: memberTheme.spacing.md,
 		marginBottom: memberTheme.spacing.sm,
+	},
+	sectionHeadingText: {
+		fontSize: height < 750 ? 18 : config.fonts.metrics.lg,
 	},
 	bookedSessionsContainer: {
 		overflow: 'hidden',
@@ -1422,9 +1427,6 @@ const styles = StyleSheet.create({
 		backgroundColor: 'transparent',
 		paddingTop: memberTheme.spacing.sm,
 		paddingHorizontal: memberTheme.spacing.sm,
-	},
-	viewMorePlaceholder: {
-		height: 27,
 	},
 	presetFilters: {
 		flexWrap: 'wrap',
