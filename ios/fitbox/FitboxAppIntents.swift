@@ -113,3 +113,11 @@ struct FitboxAppShortcuts: AppShortcutsProvider {
     )
   }
 }
+
+@available(iOS 18.0, *)
+@objc(FitboxAppShortcutsRegistrar)
+final class FitboxAppShortcutsRegistrar: NSObject {
+  @objc static func refresh() {
+    FitboxAppShortcuts.updateAppShortcutParameters()
+  }
+}
