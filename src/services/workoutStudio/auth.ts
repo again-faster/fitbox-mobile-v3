@@ -1,5 +1,10 @@
 import { mmkvStorage } from '@/storage';
 import { Constant } from '@/utils';
+import {
+	clearAppIntentCredentials,
+	readAppIntentSession,
+	syncAppIntentCredentials,
+} from '@/services/appIntents/credentials';
 import ky, { HTTPError } from 'ky';
 
 const KEYS = {
@@ -55,13 +60,51 @@ export const saveWSSession = (session: WSSession) => {
 	mmkvStorage.set(KEYS.REFRESH_TOKEN, session.refresh_token);
 	mmkvStorage.set(KEYS.EXPIRES_AT, session.expires_at);
 	mmkvStorage.set(KEYS.USER, JSON.stringify(session.user));
+	void syncAppIntentCredentials(session).catch(() => undefined);
 };
 
 export const clearWSSession = () => {
 	Object.values(KEYS).forEach(k => mmkvStorage.delete(k));
+	void clearAppIntentCredentials().catch(() => undefined);
 };
 
 const isExpired = (expiresAt: number) => Date.now() / 1000 > expiresAt - 60;
+let lastAppIntentReconcileAt = 0;
+
+export const reconcileAppIntentSession = async (
+	force = false,
+): Promise<WSSession | null> => {
+	const stored = getStoredWSSession();
+	const now = Date.now();
+	if (
+		!force &&
+		stored &&
+		!isExpired(stored.expires_at) &&
+		now - lastAppIntentReconcileAt < 60_000
+	) {
+		return stored;
+	}
+	lastAppIntentReconcileAt = now;
+	const appIntentSession = await readAppIntentSession();
+	if (!appIntentSession || !stored) {
+		if (stored && !appIntentSession) {
+			void syncAppIntentCredentials(stored).catch(() => undefined);
+		}
+		return stored;
+	}
+
+	if (appIntentSession.expires_at <= stored.expires_at) return stored;
+	const reconciled: WSSession = {
+		...stored,
+		access_token: appIntentSession.access_token,
+		refresh_token: appIntentSession.refresh_token,
+		expires_at: appIntentSession.expires_at,
+	};
+	mmkvStorage.set(KEYS.ACCESS_TOKEN, reconciled.access_token);
+	mmkvStorage.set(KEYS.REFRESH_TOKEN, reconciled.refresh_token);
+	mmkvStorage.set(KEYS.EXPIRES_AT, reconciled.expires_at);
+	return reconciled;
+};
 
 type ExchangeParams = {
 	email: string;
@@ -156,7 +199,7 @@ const refreshWSToken = async (refreshToken: string): Promise<WSSession> => {
 };
 
 export const getValidWSToken = async (): Promise<string | null> => {
-	const session = getStoredWSSession();
+	const session = await reconcileAppIntentSession();
 	if (!session) return null;
 	if (!isExpired(session.expires_at)) return session.access_token;
 	try {
