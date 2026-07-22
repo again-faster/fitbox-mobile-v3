@@ -374,7 +374,7 @@ const BookButton = ({
 		return null;
 	}
 
-	if (isBookingLocked && isPreviewMode) {
+	if (isBookingLocked && isPreviewMode && !isAttending) {
 		return <Button sm mode="outlined" title="Booking Locked" disabled />;
 	}
 

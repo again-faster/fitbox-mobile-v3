@@ -127,6 +127,7 @@ export type WebViewParams = {
 export type ScoringParams = {
 	section: SessionSectionSchemaType;
 	sessionId: number;
+	isEdit?: boolean;
 };
 
 export type SubscriptionDetailsParams = {

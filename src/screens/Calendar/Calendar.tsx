@@ -508,9 +508,9 @@ const Calendar = () => {
 
 	const handleDateChange = useCallback((date: SetStateAction<string>) => {
 		setCurrentDate(date);
-		setTimeout(() => {
+		requestAnimationFrame(() => {
 			calendarWeekRef.current?.scrollToCurrentDate();
-		}, 500);
+		});
 	}, []);
 
 	const isLoadingCurrentDate =
