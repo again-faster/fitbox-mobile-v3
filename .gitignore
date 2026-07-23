@@ -35,6 +35,10 @@ local.properties
 !debug.keystore
 !release.keystore
 
+# This is app source, not a generated build output.
+!src/screens/Training/Build/
+!src/screens/Training/Build/**
+
 # node.js
 #
 node_modules/
@@ -67,6 +71,11 @@ yarn-error.log
 /coverage
 
 out/tsconfig.tsbuildinfo
+
+# Local environment
+.env
+.env.local
+.env.*.local
 
 # Yarn
 .yarn/*

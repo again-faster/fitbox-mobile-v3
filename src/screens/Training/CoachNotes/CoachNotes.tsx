@@ -1,7 +1,7 @@
 ﻿import { wsApi, wsRpc } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import type { CoachNote } from '@/services/workoutStudio/types';
-import { useTheme } from '@/theme';
+import { trainingTheme } from '@/theme/training';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import moment from 'moment';
 import {
@@ -15,7 +15,6 @@ import {
 import SkeletonCard from '../components/SkeletonCard';
 
 const CoachNotes = () => {
-	const { colors } = useTheme();
 	const qc = useQueryClient();
 	const session = getStoredWSSession();
 	const uid = session?.user.id;
@@ -61,7 +60,7 @@ const CoachNotes = () => {
 
 	return (
 		<FlatList
-			style={{ backgroundColor: '#F9FAFB' }}
+			style={styles.screen}
 			contentContainerStyle={styles.container}
 			data={data}
 			keyExtractor={item => item.id}
@@ -71,21 +70,16 @@ const CoachNotes = () => {
 					onRefresh={() => {
 						void refetch();
 					}}
-					tintColor={colors.brand}
+					tintColor={trainingTheme.colors.primary}
 				/>
 			}
 			ListHeaderComponent={
 				unread > 0 ? (
 					<TouchableOpacity
-						style={[
-							styles.markAllBtn,
-							{ backgroundColor: '#FFFFFF' },
-						]}
+						style={styles.markAllBtn}
 						onPress={() => markAllRead.mutate()}
 					>
-						<Text
-							style={[styles.markAllText, { color: '#3B82F6' }]}
-						>
+						<Text style={styles.markAllText}>
 							Mark all {unread} read
 						</Text>
 					</TouchableOpacity>
@@ -99,9 +93,7 @@ const CoachNotes = () => {
 					</View>
 				) : (
 					<View style={styles.empty}>
-						<Text style={[styles.emptyText, { color: '#6B7280' }]}>
-							No coach notes yet
-						</Text>
+						<Text style={styles.emptyText}>No coach notes yet</Text>
 					</View>
 				)
 			}
@@ -109,18 +101,16 @@ const CoachNotes = () => {
 				<TouchableOpacity
 					style={[
 						styles.card,
-						{ backgroundColor: '#FFFFFF' },
+						styles.cardSurface,
 						!item.read_at && {
 							borderLeftWidth: 3,
-							borderLeftColor: '#3B82F6',
+							borderLeftColor: trainingTheme.colors.primary,
 						},
 					]}
 					onPress={() => !item.read_at && markRead.mutate(item.id)}
 				>
-					<Text style={[styles.content, { color: '#111827' }]}>
-						{item.content}
-					</Text>
-					<Text style={[styles.date, { color: '#6B7280' }]}>
+					<Text style={styles.content}>{item.content}</Text>
+					<Text style={styles.date}>
 						{moment(item.created_at).format(
 							'MMM D, YYYY [·] h:mm A',
 						)}
@@ -129,7 +119,10 @@ const CoachNotes = () => {
 						<View
 							style={[
 								styles.unreadDot,
-								{ backgroundColor: '#3B82F6' },
+								{
+									backgroundColor:
+										trainingTheme.colors.primary,
+								},
 							]}
 						/>
 					)}
@@ -140,22 +133,33 @@ const CoachNotes = () => {
 };
 
 const styles = StyleSheet.create({
+	screen: { backgroundColor: trainingTheme.colors.background },
 	container: { padding: 16, paddingBottom: 40 },
 	markAllBtn: {
-		borderRadius: 10,
+		backgroundColor: trainingTheme.colors.primarySoft,
+		borderRadius: 14,
 		padding: 12,
 		alignItems: 'center',
 		marginBottom: 12,
 	},
-	markAllText: { fontWeight: '600', fontSize: 14 },
+	markAllText: {
+		color: trainingTheme.colors.primary,
+		fontWeight: '700',
+		fontSize: 14,
+	},
 	card: {
-		borderRadius: 12,
+		borderRadius: 18,
 		padding: 14,
 		marginBottom: 10,
 		position: 'relative',
 	},
-	content: { fontSize: 15, lineHeight: 22 },
-	date: { fontSize: 12, marginTop: 6 },
+	cardSurface: {
+		backgroundColor: trainingTheme.colors.surface,
+		borderColor: trainingTheme.colors.border,
+		borderWidth: 1,
+	},
+	content: { color: trainingTheme.colors.text, fontSize: 15, lineHeight: 22 },
+	date: { color: trainingTheme.colors.textMuted, fontSize: 12, marginTop: 6 },
 	unreadDot: {
 		position: 'absolute',
 		top: 14,
@@ -165,7 +169,7 @@ const styles = StyleSheet.create({
 		borderRadius: 4,
 	},
 	empty: { alignItems: 'center', padding: 40 },
-	emptyText: { fontSize: 15 },
+	emptyText: { color: trainingTheme.colors.textMuted, fontSize: 15 },
 });
 
 export default CoachNotes;

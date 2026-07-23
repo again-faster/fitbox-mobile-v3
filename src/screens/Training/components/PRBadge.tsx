@@ -6,6 +6,8 @@ import {
 	Text,
 	View,
 } from 'react-native';
+import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { trainingTheme } from '@/theme/training';
 
 export const PRBadge = ({
 	visible,
@@ -39,8 +41,17 @@ export const PRBadge = ({
 	}
 
 	return (
-		<Animated.View style={[styles.badge, { transform: [{ scale }] }]}>
-			<Text style={styles.text}>🏆 New PR</Text>
+		<Animated.View
+			style={[styles.badge, { transform: [{ scale }] }]}
+			accessibilityRole="text"
+			accessibilityLabel="New personal record"
+		>
+			<Ionicons
+				name="trophy"
+				size={20}
+				color={trainingTheme.colors.surface}
+			/>
+			<Text style={styles.text}>New PR</Text>
 		</Animated.View>
 	);
 };
@@ -48,15 +59,18 @@ export const PRBadge = ({
 const styles = StyleSheet.create({
 	hidden: { height: 0, overflow: 'hidden' },
 	badge: {
-		backgroundColor: '#3B82F6',
-		borderRadius: 12,
-		paddingVertical: 14,
-		paddingHorizontal: 20,
+		backgroundColor: trainingTheme.colors.primary,
+		borderRadius: trainingTheme.radius.md,
+		paddingVertical: trainingTheme.spacing.md,
+		paddingHorizontal: trainingTheme.spacing.lg,
 		alignItems: 'center',
-		marginTop: 8,
+		justifyContent: 'center',
+		flexDirection: 'row',
+		gap: trainingTheme.spacing.sm,
+		marginTop: trainingTheme.spacing.sm,
 	},
 	text: {
-		color: '#FFFFFF',
+		color: trainingTheme.colors.surface,
 		fontSize: 17,
 		fontWeight: '700',
 	},

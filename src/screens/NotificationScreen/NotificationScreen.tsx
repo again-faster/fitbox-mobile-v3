@@ -1,6 +1,7 @@
 import { Button, Row, Spacer, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { Constant, Say } from '@/utils';
 import useStore from '@/zustand/Store';
 import { isEqual } from 'lodash';
@@ -9,6 +10,7 @@ import { StyleSheet, View } from 'react-native';
 import { Switch } from 'react-native-paper';
 import { openSettings } from 'react-native-permissions';
 import SimpleToast from 'react-native-simple-toast';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type State = {
 	enabled: boolean;
@@ -99,7 +101,7 @@ const NotificationScreen = () => {
 					key={key}
 					spacing="space-between"
 					onPress={onPress}
-					style={{ marginBottom: config.metrics.md }}
+					style={styles.optionCard}
 				>
 					<View style={styles.optionsTextContainer}>
 						<Text
@@ -131,16 +133,27 @@ const NotificationScreen = () => {
 
 	return (
 		<View style={styles.container}>
-			<Row spacing="space-between">
+			<View style={styles.headerCard}>
+				<View style={styles.headerIcon}>
+					<Icon
+						name="bell-outline"
+						size={26}
+						color={memberTheme.colors.primaryDeep}
+					/>
+				</View>
 				<View style={layout.flex_1}>
-					<Text size="md" bold>
-						Configure Notifications
+					<Text bold style={styles.headerTitle}>
+						Stay in the loop
 					</Text>
 					{!state?.enabled && (
-						<Text size="sm" color="darkgray">
+						<Text size="sm" style={styles.headerText}>
 							Notifications are currently turned off. Please
-							enable your settings to start receiving important
-							updates
+							enable them to receive important gym updates.
+						</Text>
+					)}
+					{state?.enabled && (
+						<Text size="sm" style={styles.headerText}>
+							Choose which updates you want to receive.
 						</Text>
 					)}
 				</View>
@@ -154,7 +167,7 @@ const NotificationScreen = () => {
 						/>
 					</View>
 				)}
-			</Row>
+			</View>
 			<Spacer size="lg" />
 
 			{state?.enabled && renderOptions()}
@@ -165,19 +178,53 @@ const NotificationScreen = () => {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		padding: config.metrics.md,
+		backgroundColor: memberTheme.colors.background,
+		padding: memberTheme.spacing.lg,
+	},
+	headerCard: {
+		alignItems: 'center',
+		backgroundColor: memberTheme.colors.surfaceSoft,
+		borderRadius: memberTheme.radius.lg,
+		flexDirection: 'row',
+		padding: memberTheme.spacing.lg,
+	},
+	headerIcon: {
+		alignItems: 'center',
+		backgroundColor: memberTheme.colors.surface,
+		borderRadius: memberTheme.radius.md,
+		height: 50,
+		justifyContent: 'center',
+		marginRight: memberTheme.spacing.md,
+		width: 50,
+	},
+	headerTitle: { color: memberTheme.colors.ink, fontSize: 18 },
+	headerText: {
+		color: memberTheme.colors.textMuted,
+		lineHeight: 18,
+		marginTop: 4,
 	},
 	enableButtonContainer: {
 		marginLeft: config.metrics.xl,
 	},
 	enableButton: {
 		alignSelf: 'flex-end',
+		backgroundColor: memberTheme.colors.primaryDeep,
+		borderRadius: memberTheme.radius.pill,
 	},
 	optionSwitch: {
 		marginLeft: config.metrics.xl,
 	},
 	optionsTextContainer: {
 		flex: 4,
+	},
+	optionCard: {
+		alignItems: 'center',
+		backgroundColor: memberTheme.colors.surface,
+		borderColor: memberTheme.colors.border,
+		borderRadius: memberTheme.radius.md,
+		borderWidth: 1,
+		marginBottom: memberTheme.spacing.sm,
+		padding: memberTheme.spacing.md,
 	},
 });
 

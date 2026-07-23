@@ -1,7 +1,7 @@
 import { ScrollView, Text } from '@/components/atoms';
 import { goBack } from '@/navigators/NavigationRef';
 import { getScheduleDetail } from '@/services/session';
-import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { ApplicationScreenProps, SessionParams } from '@/types/navigation';
 import {
 	SessionDetailSchemaType,
@@ -13,7 +13,13 @@ import useStore from '@/zustand/Store';
 import { useQuery } from '@tanstack/react-query';
 import { isArray } from 'lodash';
 import moment from 'moment';
-import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useState,
+} from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import ClassResultsScreen from '../ClassResultsScreen/ClassResultsScreen';
@@ -60,10 +66,10 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 		enabled: !!eventId,
 	});
 
-	const setToLeaderboardsTab = () => {
+	const setToLeaderboardsTab = useCallback(() => {
 		setIsFromLeaderboards(true);
 		setActiveTab(SessionTabsEnum.RESULTS);
-	};
+	}, []);
 
 	const handleBackButton = () => {
 		if (isFromLeaderboards) {
@@ -85,9 +91,12 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 		});
 	}, [isFromLeaderboards]);
 
-	setToLeaderboardsCallback(setToLeaderboardsTab);
+	useEffect(() => {
+		setToLeaderboardsCallback(setToLeaderboardsTab);
+	}, [setToLeaderboardsCallback, setToLeaderboardsTab]);
 
 	const session = data;
+	const sessionTitle = session?.fb_class?.name ?? 'Class session';
 	const bookedMembers = session?.member_attendance ?? [];
 	const startTime = session?.start_datetime as string;
 
@@ -220,8 +229,17 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 
 	if (error) {
 		return (
-			<ScrollView>
-				<Text>Error: {error.message}</Text>
+			<ScrollView style={styles.errorScreen}>
+				<View style={styles.errorCard}>
+					<Icon
+						name="alert-circle-outline"
+						size={28}
+						color={memberTheme.colors.danger}
+					/>
+					<Text style={styles.errorText}>
+						Could not load this session. Please try again.
+					</Text>
+				</View>
 			</ScrollView>
 		);
 	}
@@ -232,6 +250,44 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 
 	return (
 		<View style={styles.container}>
+			<View style={styles.heroCard}>
+				<View style={styles.heroHeader}>
+					<View style={styles.heroCopy}>
+						<Text style={styles.eyebrow}>CLASS</Text>
+						<Text style={styles.heroTitle}>{sessionTitle}</Text>
+					</View>
+					{isAttending || isWaitlist ? (
+						<View style={styles.statusChip}>
+							<Text style={styles.statusText}>
+								{isAttending ? 'Booked' : 'Waitlisted'}
+							</Text>
+						</View>
+					) : null}
+				</View>
+				<View style={styles.metaRow}>
+					<Icon
+						name="calendar-blank-outline"
+						size={18}
+						color={memberTheme.colors.primary}
+					/>
+					<Text style={styles.metaText}>
+						{moment(startTime).format('ddd, D MMM · h:mm A')}
+					</Text>
+				</View>
+				{session?.venue_name ? (
+					<View style={styles.metaRow}>
+						<Icon
+							name="map-marker-outline"
+							size={18}
+							color={memberTheme.colors.primary}
+						/>
+						<Text style={styles.metaText}>
+							{session.venue_name}
+						</Text>
+					</View>
+				) : null}
+			</View>
+
 			<SessionActionButtons
 				classId={classId}
 				eventId={eventId}
@@ -299,15 +355,73 @@ export default Session;
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
+		backgroundColor: memberTheme.colors.background,
 	},
-	infoSectionContainer: {
-		marginHorizontal: 5,
-		marginBottom: '5%',
-		paddingVertical: 10,
-		paddingHorizontal: 7,
-		borderRadius: 5,
-		borderWidth: 1,
-		borderColor: '#f2f2f2',
-		...layout.shadowLight,
+	heroCard: {
+		margin: memberTheme.spacing.md,
+		marginBottom: memberTheme.spacing.sm,
+		padding: memberTheme.spacing.lg,
+		borderRadius: memberTheme.radius.lg,
+		backgroundColor: memberTheme.colors.surfaceSoft,
+		borderColor: memberTheme.colors.border,
+		borderWidth: StyleSheet.hairlineWidth,
+	},
+	heroHeader: {
+		flexDirection: 'row',
+		alignItems: 'flex-start',
+		justifyContent: 'space-between',
+		gap: memberTheme.spacing.md,
+		marginBottom: memberTheme.spacing.md,
+	},
+	heroCopy: { flex: 1 },
+	eyebrow: {
+		color: memberTheme.colors.primary,
+		fontSize: 11,
+		fontWeight: '800',
+		letterSpacing: 1.2,
+		marginBottom: memberTheme.spacing.xs,
+	},
+	heroTitle: {
+		color: memberTheme.colors.text,
+		fontSize: 24,
+		fontWeight: '800',
+	},
+	statusChip: {
+		paddingHorizontal: memberTheme.spacing.md,
+		paddingVertical: 6,
+		borderRadius: memberTheme.radius.pill,
+		backgroundColor: memberTheme.colors.surfaceSoft,
+	},
+	statusText: {
+		color: memberTheme.colors.success,
+		fontSize: 12,
+		fontWeight: '700',
+	},
+	metaRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: memberTheme.spacing.sm,
+		marginTop: memberTheme.spacing.xs,
+	},
+	metaText: {
+		flex: 1,
+		color: memberTheme.colors.textMuted,
+		fontSize: 14,
+	},
+	errorScreen: {
+		flex: 1,
+		backgroundColor: memberTheme.colors.background,
+	},
+	errorCard: {
+		margin: memberTheme.spacing.lg,
+		padding: memberTheme.spacing.lg,
+		gap: memberTheme.spacing.sm,
+		alignItems: 'center',
+		borderRadius: memberTheme.radius.md,
+		backgroundColor: memberTheme.colors.surface,
+	},
+	errorText: {
+		color: memberTheme.colors.textMuted,
+		textAlign: 'center',
 	},
 });

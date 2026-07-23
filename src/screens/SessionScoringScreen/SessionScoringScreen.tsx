@@ -6,6 +6,7 @@ import { goBack } from '@/navigators/NavigationRef';
 import { getPastPerformance } from '@/services/users';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { ApplicationScreenProps, ScoringParams } from '@/types/navigation';
 import { Func } from '@/utils';
 import useStore from '@/zustand/Store';
@@ -19,8 +20,6 @@ import { JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, Keyboard, Platform, StyleSheet, View } from 'react-native';
 import SimpleToast from 'react-native-simple-toast';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
-const { fonts } = config;
 
 const bottomSheetSpacing = Dimensions.get('window').height * 0.3;
 
@@ -108,7 +107,7 @@ const SessionScoringScreen = ({ route }: ApplicationScreenProps) => {
 
 	const renderScoreComponent = useMemo(
 		() => (
-			<View style={layout.flex_1}>
+			<View style={[layout.flex_1, styles.screen]}>
 				<View style={[styles.workoutScoreContainer]}>
 					<ScoreComponent
 						sessionId={sessionId}
@@ -141,7 +140,7 @@ const SessionScoringScreen = ({ route }: ApplicationScreenProps) => {
 				<Icon
 					name="arrow-down"
 					size={20}
-					color={config.backgrounds.brand}
+					color={memberTheme.colors.primary}
 					// eslint-disable-next-line react-native/no-inline-styles
 					style={{
 						marginLeft: config.metrics.xs,
@@ -196,7 +195,7 @@ const SessionScoringScreen = ({ route }: ApplicationScreenProps) => {
 	if (scoringBy === 'section' || scoringBy === 'movement') {
 		return (
 			<>
-				{renderScoreComponent}
+				<View style={styles.screen}>{renderScoreComponent}</View>
 				{renderBottomSheetButton}
 				{renderBottomSheet}
 			</>
@@ -204,14 +203,14 @@ const SessionScoringScreen = ({ route }: ApplicationScreenProps) => {
 	}
 
 	return (
-		<Text
-			color="darkgray"
-			size="lg"
-			center
-			style={{ marginTop: fonts.metrics.xl }}
-		>
-			Invalid workout
-		</Text>
+		<View style={[layout.flex_1, styles.screen, styles.invalidState]}>
+			<Text size="lg" center style={styles.invalidText}>
+				This workout cannot be scored yet.
+			</Text>
+			<Text center style={styles.invalidHint}>
+				Ask your coach to check the scoring setup for this section.
+			</Text>
+		</View>
 	);
 };
 
@@ -220,6 +219,9 @@ export default SessionScoringScreen;
 const styles = StyleSheet.create({
 	workoutScoreContainer: {
 		flex: 1,
+	},
+	screen: {
+		backgroundColor: memberTheme.colors.background,
 	},
 	workoutScoreContainerExpanded: {
 		marginBottom: bottomSheetSpacing,
@@ -231,12 +233,26 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 	},
 	pastPerformanceContainer: {
-		borderRadius: 0,
+		borderTopLeftRadius: memberTheme.radius.lg,
+		borderTopRightRadius: memberTheme.radius.lg,
 		borderTopWidth: 1,
-		borderColor: config.fonts.colors.gray200,
+		borderColor: memberTheme.colors.border,
+		backgroundColor: memberTheme.colors.surface,
 	},
 	bottomSheetButton: {
 		margin: config.metrics.rg,
 		marginTop: -config.metrics.sm,
+		borderRadius: memberTheme.radius.pill,
+	},
+	invalidState: {
+		justifyContent: 'center',
+		padding: memberTheme.spacing.xl,
+	},
+	invalidText: {
+		color: memberTheme.colors.text,
+		marginBottom: memberTheme.spacing.sm,
+	},
+	invalidHint: {
+		color: memberTheme.colors.textMuted,
 	},
 });

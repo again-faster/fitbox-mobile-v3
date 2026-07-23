@@ -20,6 +20,7 @@ import {
 } from '@/services/leaderboards';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { IScoringType, PrResultSchemaType } from '@/types/schemas/leaderboards';
 import { PrResultDataType } from '@/types/schemas/response';
 import { Constant, Func, Say } from '@/utils';
@@ -513,7 +514,7 @@ const ScoreMovementComponent = ({
 									<Icon
 										name="check"
 										size={25}
-										color={config.fonts.colors.info}
+										color={memberTheme.colors.primary}
 									/>
 								)}
 							</TouchableOpacity>
@@ -538,6 +539,10 @@ const ScoreMovementComponent = ({
 									placeholder={
 										field.with_unit && field.with_unit
 									}
+									placeholderTextColor={
+										memberTheme.colors.textMuted
+									}
+									selectionColor={memberTheme.colors.primary}
 									{...(fields[field.key] && {
 										defaultValue: `${fields[field.key]}`,
 									})}
@@ -554,9 +559,19 @@ const ScoreMovementComponent = ({
 	const renderFieldsContainer = () => {
 		if (!selectedScoringType && !editMode) {
 			return (
-				<Text size="md" color="mute" center>
-					Please select a type first..
-				</Text>
+				<View style={styles.emptyFieldsState}>
+					<MIcon
+						name="format-list-checks"
+						size={34}
+						color={memberTheme.colors.primary}
+					/>
+					<Text center bold style={styles.emptyFieldsTitle}>
+						Choose how to record this result
+					</Text>
+					<Text center style={styles.emptyFieldsHint}>
+						Select a scoring type above to show the fields you need.
+					</Text>
+				</View>
 			);
 		}
 
@@ -644,7 +659,7 @@ const ScoreMovementComponent = ({
 
 	const scoringTypeInfo = getScoringTypeInfo(selectedScoringType);
 	return (
-		<View style={[layout.flex_1, containerStyle]}>
+		<View style={[layout.flex_1, styles.screen, containerStyle]}>
 			<DateTimePicker
 				mode="date"
 				isVisible={datePicker}
@@ -670,7 +685,7 @@ const ScoreMovementComponent = ({
 					style={styles.headerContainer}
 				>
 					<View style={layout.flex_1}>
-						<Text size="md" bold>
+						<Text size="md" bold style={styles.headerTitle}>
 							{movementName}
 						</Text>
 					</View>
@@ -682,7 +697,7 @@ const ScoreMovementComponent = ({
 							spacing="flex-end"
 						>
 							<Spacer size="sm" horizontal />
-							<Text size="md" color="info">
+							<Text size="md" style={styles.dateText}>
 								{!moment(dateInput).isSame(moment(), 'day')
 									? moment(dateInput).format('MMMM DD, YYYY')
 									: 'Today'}
@@ -691,7 +706,7 @@ const ScoreMovementComponent = ({
 							<Icon
 								name="calendar"
 								size={config.fonts.metrics.md}
-								color={config.fonts.colors.info}
+								color={memberTheme.colors.primary}
 							/>
 						</Row>
 					</View>
@@ -704,14 +719,14 @@ const ScoreMovementComponent = ({
 						style={styles.searchContainerStyle}
 						onPress={() => (!editMode ? toggleSearchModal() : {})}
 					>
-						<Text style={layout.flex_1} color="darkgray">
-							{selectedScoringType != null
+						<Text style={[layout.flex_1, styles.selectorText]}>
+							{selectedScoringType
 								? scoringTypeInfo?.name
 								: 'Select Type..'}
 						</Text>
 						<Icon
 							name="search"
-							color={config.fonts.colors.darkgray}
+							color={memberTheme.colors.primaryInk}
 							size={18}
 							style={{ marginLeft: config.metrics.sm }}
 						/>
@@ -725,7 +740,6 @@ const ScoreMovementComponent = ({
 				<Button
 					loading={isLoading}
 					title={editMode ? 'Save' : 'Add Result'}
-					variant="info"
 					onPress={onSubmit}
 					style={{ ...styles.submitButton, ...bottomMargin }}
 				/>
@@ -741,13 +755,17 @@ const ScoreMovementComponent = ({
 						<View style={[styles.searchContainerStyle]}>
 							<FeatherIcon
 								name="arrow-left"
-								color={config.fonts.colors.darkgray}
+								color={memberTheme.colors.primaryInk}
 								size={18}
 								onPress={toggleSearchModal}
 							/>
 							<TextInput
 								style={styles.searchInput}
 								placeholder="Start typing.."
+								placeholderTextColor={
+									memberTheme.colors.textMuted
+								}
+								selectionColor={memberTheme.colors.primary}
 								onChangeText={sq => setSearchQuery(sq)}
 								value={searchQuery}
 								allowFontScaling={false}
@@ -755,7 +773,7 @@ const ScoreMovementComponent = ({
 							{searchQuery !== '' && (
 								<Icon
 									name="times"
-									color={config.fonts.colors.darkgray}
+									color={memberTheme.colors.primaryInk}
 									size={18}
 									style={{ marginRight: config.metrics.md }}
 									onPress={() => setSearchQuery('')}
@@ -763,7 +781,7 @@ const ScoreMovementComponent = ({
 							)}
 							<Icon
 								name="search"
-								color={config.fonts.colors.darkgray}
+								color={memberTheme.colors.primaryInk}
 								size={18}
 							/>
 						</View>
@@ -785,36 +803,52 @@ export default ScoreMovementComponent;
 
 const styles = StyleSheet.create({
 	headerContainer: {
-		paddingHorizontal: config.metrics.md,
-		paddingVertical: config.metrics.md,
-		borderBottomWidth: 0.5,
-		borderColor: '#eee',
+		margin: memberTheme.spacing.md,
+		padding: memberTheme.spacing.lg,
+		borderRadius: memberTheme.radius.md,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: memberTheme.colors.border,
+		backgroundColor: memberTheme.colors.surface,
+	},
+	headerTitle: {
+		color: memberTheme.colors.text,
+	},
+	dateText: {
+		color: memberTheme.colors.primary,
 	},
 	field: {
 		marginVertical: 25,
 	},
 	fieldsContaner: {
 		flex: 1,
-		padding: 23,
+		marginHorizontal: memberTheme.spacing.md,
+		padding: memberTheme.spacing.lg,
+		borderRadius: memberTheme.radius.md,
+		backgroundColor: memberTheme.colors.surface,
 	},
 	searchHeaderStyle: {
 		alignItems: 'center',
-		padding: 20,
-		borderColor: '#eee',
+		paddingHorizontal: memberTheme.spacing.md,
+		paddingBottom: memberTheme.spacing.md,
 	},
 	searchContainerStyle: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		paddingHorizontal: 15,
-		borderRadius: 4,
-		height: 40,
+		borderRadius: memberTheme.radius.sm,
+		minHeight: 48,
 		borderWidth: 1,
-		borderColor: '#eee',
+		borderColor: memberTheme.colors.border,
+		backgroundColor: memberTheme.colors.surfaceSoft,
+	},
+	selectorText: {
+		color: memberTheme.colors.text,
 	},
 	inputCheckboxStyle: {
-		borderRadius: 6,
+		borderRadius: memberTheme.radius.sm,
 		borderWidth: 1,
-		borderColor: config.fonts.colors.info,
+		borderColor: memberTheme.colors.primary,
+		backgroundColor: memberTheme.colors.surface,
 		width: 40,
 		height: 40,
 		padding: 0,
@@ -824,9 +858,11 @@ const styles = StyleSheet.create({
 	inputStyle: {
 		textAlign: 'center',
 		paddingHorizontal: 10,
-		borderRadius: 6,
+		borderRadius: memberTheme.radius.sm,
 		borderWidth: 1,
-		borderColor: config.fonts.colors.info,
+		borderColor: memberTheme.colors.primary,
+		backgroundColor: memberTheme.colors.surface,
+		color: memberTheme.colors.text,
 		flex: 1,
 		maxWidth: Constant.DEVICEWIDTH / 4,
 		width: '100%',
@@ -848,9 +884,13 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		top: '13%',
 		maxHeight: Constant.DEVICEHEIGHT / 1.5,
+		borderRadius: memberTheme.radius.lg,
+		backgroundColor: memberTheme.colors.surface,
+		...memberTheme.shadow,
 	},
 	searchInput: {
-		backgroundColor: 'white',
+		backgroundColor: memberTheme.colors.surfaceSoft,
+		color: memberTheme.colors.text,
 		flex: 1,
 		borderColor: '#F2F2F2',
 		padding: 0,
@@ -864,12 +904,35 @@ const styles = StyleSheet.create({
 		maxWidth: '70%',
 		justifyContent: 'center',
 		position: 'relative',
+		padding: memberTheme.spacing.md,
+		borderRadius: memberTheme.radius.sm,
+		backgroundColor: memberTheme.colors.surfaceSoft,
 	},
 	commentInputIcon: {
 		marginLeft: 15,
 	},
 	submitButton: {
-		borderRadius: 0,
+		borderRadius: memberTheme.radius.pill,
 		margin: config.metrics.lg,
+		backgroundColor: memberTheme.colors.primary,
+		borderColor: memberTheme.colors.primary,
+	},
+	screen: {
+		backgroundColor: memberTheme.colors.background,
+	},
+	emptyFieldsState: {
+		alignItems: 'center',
+		margin: memberTheme.spacing.lg,
+		padding: memberTheme.spacing.xl,
+		borderRadius: memberTheme.radius.lg,
+		backgroundColor: memberTheme.colors.surface,
+	},
+	emptyFieldsTitle: {
+		color: memberTheme.colors.text,
+		marginTop: memberTheme.spacing.md,
+	},
+	emptyFieldsHint: {
+		color: memberTheme.colors.textMuted,
+		marginTop: memberTheme.spacing.sm,
 	},
 });

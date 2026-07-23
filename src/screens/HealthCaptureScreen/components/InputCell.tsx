@@ -1,6 +1,7 @@
 import { Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import {
 	Dimensions,
 	Platform,
@@ -71,6 +72,8 @@ const InputCell = ({
 						handleChange(text, colIndex, qIndex, rowIndex)
 					}
 					placeholder={placeholder}
+					placeholderTextColor={memberTheme.colors.textMuted}
+					selectionColor={memberTheme.colors.primary}
 					textAlign="center"
 					style={[textInputStyle, layout.fontMontserratRegular]}
 					allowFontScaling={false}
@@ -88,7 +91,7 @@ const InputCell = ({
 						<Icon
 							name="check"
 							style={styles.checkIconStyle}
-							color={config.backgrounds.darkgray}
+							color={memberTheme.colors.primary}
 						/>
 					)}
 				</TouchableOpacity>
@@ -149,6 +152,8 @@ const styles = StyleSheet.create({
 		height: '100%',
 		alignItems: 'center',
 		justifyContent: 'center',
+		borderColor: memberTheme.colors.border,
+		backgroundColor: memberTheme.colors.surface,
 	},
 	cellStyleNoBorder: {
 		paddingHorizontal: 5,
@@ -159,16 +164,17 @@ const styles = StyleSheet.create({
 	},
 	inputTextStyle: {
 		width: '100%',
-		color: config.backgrounds.darkgray,
-		borderColor: config.backgrounds.lightgrey,
+		color: memberTheme.colors.text,
+		borderColor: memberTheme.colors.border,
 	},
 	textInputContainer: {
 		alignItems: 'center',
 	},
 	inputCheckboxStyle: {
-		borderRadius: 6,
+		borderRadius: memberTheme.radius.sm,
 		borderWidth: 1,
-		borderColor: config.backgrounds.darkgray,
+		borderColor: memberTheme.colors.primary,
+		backgroundColor: memberTheme.colors.surface,
 		width: 30,
 		height: 30,
 		padding: 0,
@@ -180,7 +186,9 @@ const styles = StyleSheet.create({
 		fontWeight: 'bold',
 	},
 	dropdownStyle: {
-		borderColor: config.borders.colors.lightgrey,
+		borderColor: memberTheme.colors.border,
+		backgroundColor: memberTheme.colors.surfaceSoft,
+		borderRadius: memberTheme.radius.sm,
 		zIndex: 2,
 	},
 	dropDownModalStyle: {

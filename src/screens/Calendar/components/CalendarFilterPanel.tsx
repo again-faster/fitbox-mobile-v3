@@ -2,6 +2,7 @@ import { Button, Row, Spacer, Text } from '@/components/atoms';
 import { BottomPanel } from '@/components/molecules';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { GymClassType } from '@/types/schemas/gym';
 import { FilterTypeEnum, ModalEnum } from '@/utils/Enum';
 import useStore from '@/zustand/Store';
@@ -10,7 +11,7 @@ import { capitalize } from 'lodash';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const { metrics, fonts } = config;
+const { fonts } = config;
 
 const CalendarFilterPanel = () => {
 	const {
@@ -72,7 +73,7 @@ const CalendarFilterPanel = () => {
 			<Icon
 				name="close"
 				size={fonts.metrics.xl}
-				color={fonts.colors.darkgray}
+				color={memberTheme.colors.textMuted}
 				onPress={() => clearFilter(filterType)}
 			/>
 		);
@@ -88,23 +89,27 @@ const CalendarFilterPanel = () => {
 					toggleModal(useModal);
 				}}
 			>
-				<Row align="center">
+				<Row align="center" style={styles.optionRow}>
 					<Icon
 						name={iconName}
 						size={fonts.metrics.xl}
-						color={fonts.colors.darkgray}
+						color={memberTheme.colors.primary}
 					/>
 					<Spacer horizontal size="rg" />
 					<View style={layout.flex_1}>
-						<Text size="md" transform="capitalize">
+						<Text
+							size="md"
+							transform="capitalize"
+							style={styles.optionTitle}
+						>
 							{optionTitle}
 						</Text>
 						<Text
 							size="sm"
 							style={{
 								color: filters.length
-									? fonts.colors.info
-									: fonts.colors.darkgray,
+									? memberTheme.colors.primary
+									: memberTheme.colors.textMuted,
 							}}
 						>
 							{renderFilters}
@@ -127,6 +132,7 @@ const CalendarFilterPanel = () => {
 		<BottomPanel
 			title="Class Filter"
 			visible={visible}
+			style={styles.panel}
 			onClose={() => {
 				onClose();
 				setClassFiltersToApply(classFilters);
@@ -134,7 +140,7 @@ const CalendarFilterPanel = () => {
 			}}
 			rightTitle={
 				<TouchableOpacity onPress={onReset}>
-					<Text size="md" color="darkgray">
+					<Text size="md" style={styles.resetText}>
 						Reset
 					</Text>
 				</TouchableOpacity>
@@ -152,8 +158,8 @@ const CalendarFilterPanel = () => {
 				<Button
 					onPress={applyFilter}
 					style={styles.buttonStyle}
+					labelStyle={styles.buttonLabel}
 					title="Apply Filter"
-					variant="info"
 				/>
 			</View>
 		</BottomPanel>
@@ -164,10 +170,39 @@ export { FilterTypeEnum };
 export default CalendarFilterPanel;
 
 const styles = StyleSheet.create({
+	panel: {
+		backgroundColor: memberTheme.colors.surface,
+		borderTopLeftRadius: memberTheme.radius.lg,
+		borderTopRightRadius: memberTheme.radius.lg,
+		overflow: 'hidden',
+	},
 	container: {
-		padding: metrics.md,
+		padding: memberTheme.spacing.lg,
+		paddingBottom: memberTheme.spacing.xl,
+	},
+	optionRow: {
+		minHeight: 68,
+		paddingHorizontal: memberTheme.spacing.md,
+		borderRadius: memberTheme.radius.md,
+		backgroundColor: memberTheme.colors.surfaceSoft,
+	},
+	optionTitle: {
+		color: memberTheme.colors.text,
+		fontWeight: '600',
+	},
+	resetText: {
+		color: memberTheme.colors.textMuted,
 	},
 	buttonStyle: {
-		marginTop: metrics.md,
+		minHeight: 52,
+		justifyContent: 'center',
+		marginTop: memberTheme.spacing.lg,
+		backgroundColor: memberTheme.colors.primary,
+		borderColor: memberTheme.colors.primary,
+		borderRadius: memberTheme.radius.sm,
+	},
+	buttonLabel: {
+		color: memberTheme.colors.surface,
+		fontWeight: '700',
 	},
 });

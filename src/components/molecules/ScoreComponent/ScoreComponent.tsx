@@ -4,6 +4,7 @@ import addScore, { AddScorePayload } from '@/services/leaderboards/addScore';
 import addWodScore from '@/services/leaderboards/addWodScore';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import {
 	PrResultSchemaType,
 	ScoreResultType,
@@ -1057,7 +1058,11 @@ const ScoreComponent = ({
 				/>
 
 				<View
-					style={[{ flex: scoringFlexValue }, layout.overflowHidden]}
+					style={[
+						{ flex: scoringFlexValue },
+						layout.overflowHidden,
+						styles.inputArea,
+					]}
 				>
 					{renderInputFields}
 
@@ -1101,7 +1106,7 @@ const ScoreComponent = ({
 									<Icon
 										name="checkmark"
 										size={config.fonts.metrics.sm}
-										color={config.fonts.colors.light}
+										color={memberTheme.colors.surface}
 									/>
 								) : null}
 							</View>
@@ -1121,7 +1126,7 @@ const ScoreComponent = ({
 						<Button
 							onPress={() => void submitScore()}
 							loading={submitting}
-							variant="info"
+							style={styles.submitButton}
 							title={submitting ? 'please wait..' : 'submit'}
 							uppercase
 						/>
@@ -1203,7 +1208,12 @@ export default ScoreComponent;
 const styles = StyleSheet.create({
 	scoreContainer: {
 		width: '100%',
-		marginBottom: config.metrics.xl * 2,
+		marginBottom: memberTheme.spacing.xl,
+		padding: memberTheme.spacing.lg,
+		borderRadius: memberTheme.radius.md,
+		backgroundColor: memberTheme.colors.surface,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: memberTheme.colors.border,
 	},
 	commentDisplay: {
 		alignSelf: 'center',
@@ -1215,15 +1225,21 @@ const styles = StyleSheet.create({
 	removeButton: {
 		marginTop: 8,
 	},
+	submitButton: {
+		backgroundColor: memberTheme.colors.primary,
+		borderColor: memberTheme.colors.primary,
+		borderRadius: memberTheme.radius.pill,
+	},
 	disableReplyButtonStyle: {
 		paddingVertical: config.metrics.rg,
 		borderTopWidth: StyleSheet.hairlineWidth,
-		borderColor: '#DDD',
+		borderColor: memberTheme.colors.border,
+		backgroundColor: memberTheme.colors.surface,
 	},
 	checkboxInput: {
-		borderRadius: 6,
+		borderRadius: memberTheme.radius.sm,
 		borderWidth: 1,
-		borderColor: config.fonts.colors.mute,
+		borderColor: memberTheme.colors.textMuted,
 		width: 20,
 		height: 20,
 		padding: 0,
@@ -1232,8 +1248,8 @@ const styles = StyleSheet.create({
 		marginRight: config.metrics.sm,
 	},
 	checkboxInputChecked: {
-		backgroundColor: config.fonts.colors.info,
-		borderColor: config.fonts.colors.info,
+		backgroundColor: memberTheme.colors.primary,
+		borderColor: memberTheme.colors.primary,
 	},
 	scrollIndicatorContainer: {
 		position: 'absolute',
@@ -1241,16 +1257,21 @@ const styles = StyleSheet.create({
 		top: 0,
 		bottom: 0,
 		width: 10,
-		backgroundColor: '#f0f0f0',
+		backgroundColor: memberTheme.colors.border,
 	},
 	scrollIndicator: {
 		width: '100%',
-		backgroundColor: config.fonts.colors.info,
+		backgroundColor: memberTheme.colors.primary,
 	},
 	scoreCommentHeight: {
 		height: '70%',
+		backgroundColor: memberTheme.colors.background,
+	},
+	inputArea: {
+		marginTop: memberTheme.spacing.md,
 	},
 	buttonContainer: {
 		height: 100,
+		backgroundColor: memberTheme.colors.surface,
 	},
 });

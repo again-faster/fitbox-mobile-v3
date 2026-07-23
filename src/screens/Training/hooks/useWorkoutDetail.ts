@@ -6,7 +6,10 @@ import type {
 } from '@/services/workoutStudio/types';
 import { useQuery } from '@tanstack/react-query';
 
-type RawSection = { id: string; name: string; position: number };
+type RawSection = Omit<
+	WorkoutDetail['workout_sections'][number],
+	'section_blocks'
+>;
 type RawBlock = {
 	id: string;
 	section_id: string;
@@ -24,6 +27,12 @@ type RawBM = {
 	sets: number | null;
 	reps_scheme: string | null;
 	weight_kg: number | null;
+	weight_scheme: string | null;
+	duration_seconds: number | null;
+	distance_meters: number | null;
+	calories: number | null;
+	set_scheme: Array<Record<string, unknown>> | null;
+	advanced: Record<string, unknown> | null;
 	notes: string | null;
 	movements: { id: string; name: string };
 };
@@ -49,7 +58,7 @@ const fetchWorkoutDetail = async (
 		wsApi()
 			.get('workout_sections', {
 				searchParams: {
-					select: 'id,name,position',
+					select: 'id,name,position,section_mode,coach_notes,scoring_type,is_scored,score_collection_mode,time_cap_seconds,rounds,leaderboard_enabled,leaderboard_calculation,leaderboard_sort_direction,leaderboard_score_type,aggregate_formula,aggregate_group_id',
 					workout_id: `eq.${workoutId}`,
 					order: 'position.asc',
 				},
@@ -92,7 +101,7 @@ const fetchWorkoutDetail = async (
 	const rawBMs = await wsApi()
 		.get('block_movements', {
 			searchParams: {
-				select: 'id,block_id,position,sets,reps_scheme,weight_kg,notes,movements(id,name)',
+				select: 'id,block_id,position,sets,reps_scheme,weight_kg,weight_scheme,duration_seconds,distance_meters,calories,set_scheme,advanced,notes,movements(id,name)',
 				block_id: `in.(${blockIds})`,
 				order: 'position.asc',
 			},

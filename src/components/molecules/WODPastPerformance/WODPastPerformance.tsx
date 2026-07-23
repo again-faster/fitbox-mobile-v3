@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Row, Spacer, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import {
 	GetPastPerformanceResultType,
 	PastPerformanceResultType,
@@ -26,12 +27,7 @@ const WODPastPerformance = ({
 	results,
 }: WODPastPerformanceProps) => {
 	const ErrorDisplayText = (
-		<Text
-			center
-			size="md"
-			color="darkgray"
-			style={{ marginTop: config.metrics.xl }}
-		>
+		<Text center size="md" style={styles.emptyText}>
 			History Unavailable
 		</Text>
 	);
@@ -48,23 +44,19 @@ const WODPastPerformance = ({
 					return (
 						<Row
 							spacing="space-between"
-							style={{ marginBottom: config.metrics.lg }}
+							style={styles.resultRow}
 							key={index}
 						>
 							<View style={layout.flex_1}>
 								<ScoreDisplayFormat data={values} />
 
 								{notes ? (
-									<Text
-										size="rg"
-										color="darkgray"
-										style={{ marginTop: config.metrics.sm }}
-									>
+									<Text size="rg" style={styles.notes}>
 										{notes}
 									</Text>
 								) : null}
 							</View>
-							<Text size="rg" color="darkgray">
+							<Text size="rg" style={styles.dateText}>
 								{values.date_input
 									? moment(values.date_input).format(
 											'DD MMM YYYY',
@@ -181,11 +173,28 @@ const WODPastPerformance = ({
 
 const styles = StyleSheet.create({
 	scoreContainerStyle: {
-		paddingHorizontal: config.metrics.sm,
-		marginBottom: config.metrics.xl,
+		padding: memberTheme.spacing.lg,
+		marginBottom: memberTheme.spacing.lg,
+		borderRadius: memberTheme.radius.md,
+		backgroundColor: memberTheme.colors.surfaceSoft,
 	},
 	movementHeaderStyle: {
 		textTransform: 'capitalize',
+		color: memberTheme.colors.text,
+	},
+	resultRow: {
+		marginBottom: memberTheme.spacing.lg,
+	},
+	notes: {
+		marginTop: memberTheme.spacing.sm,
+		color: memberTheme.colors.textMuted,
+	},
+	dateText: {
+		color: memberTheme.colors.textMuted,
+	},
+	emptyText: {
+		marginTop: memberTheme.spacing.xl,
+		color: memberTheme.colors.textMuted,
 	},
 });
 

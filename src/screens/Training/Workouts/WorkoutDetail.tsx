@@ -1,4 +1,9 @@
 import { wsApi } from '@/services/workoutStudio/api';
+import {
+	createSubmissionId,
+	movementPrescriptionParts,
+	sectionScoringSummary,
+} from '@/services/workoutStudio/scoreable';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import { HTTPError } from 'ky';
 import { useWorkoutDetail } from '@/screens/Training/hooks/useWorkoutDetail';
@@ -14,8 +19,13 @@ import { PRBadge } from '@/screens/Training/components/PRBadge';
 import type {
 	ProgramContext,
 	ScalingLevel,
+	WorkoutSection,
 } from '@/services/workoutStudio/types';
+import SectionScoreModal from '@/screens/Training/Workouts/SectionScoreModal';
 import WorkoutLeaderboard from '@/screens/Training/Workouts/WorkoutLeaderboard';
+import PrimaryButton from '@/screens/Training/components/PrimaryButton';
+import { trainingTheme } from '@/theme/training';
+import { useScalingPreference } from '@/screens/Training/hooks/useScalingPreference';
 import { mmkvStorage } from '@/storage';
 import { useTheme } from '@/theme';
 import type { TrainingStackParamList } from '@/types/navigation';
@@ -95,21 +105,37 @@ type WorkoutShell = {
 	estimated_duration_minutes: number | null;
 };
 
-const WorkoutDetailScreen = ({ route }: Props) => {
+const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	const { colors } = useTheme();
 	const { workoutId, assignmentId, programContext } = route.params;
 	const session = getStoredWSSession();
 	const uid = session?.user.id;
 	const tenantId = session?.user.active_tenant_id;
+	const scalingPreference = useScalingPreference(uid, tenantId);
+	const serverScalingApplied = useRef(false);
 
 	const [selectedMovement, setSelectedMovement] = useState<{
 		id: string;
 		name: string;
 	} | null>(null);
+	const [selectedScoreSection, setSelectedScoreSection] =
+		useState<WorkoutSection | null>(null);
+	const [selectedLeaderboardSectionId, setSelectedLeaderboardSectionId] =
+		useState<string | null>(null);
+	const sessionSubmissionId = useRef(createSubmissionId()).current;
 	const [scalingLevel, setScalingLevel] = useState<ScalingLevel>(() => {
 		const stored = mmkvStorage.getString(SCALING_LEVEL_KEY);
 		return stored === 'scaled' || stored === 'foundations' ? stored : 'rx';
 	});
+
+	useEffect(() => {
+		if (serverScalingApplied.current || !scalingPreference.preferredLevel) {
+			return;
+		}
+		serverScalingApplied.current = true;
+		setScalingLevel(scalingPreference.preferredLevel);
+		mmkvStorage.set(SCALING_LEVEL_KEY, scalingPreference.preferredLevel);
+	}, [scalingPreference.preferredLevel]);
 	const [notes, setNotes] = useState('');
 	const [timeMin, setTimeMin] = useState('');
 	const [timeSec, setTimeSec] = useState('');
@@ -169,6 +195,32 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 	});
 
 	const { data: detail } = useWorkoutDetail(workoutId);
+	const usesSectionScoring =
+		detail?.workout_sections.some(
+			section => section.section_mode === 'workout' && section.is_scored,
+		) ?? false;
+	const leaderboardSections =
+		detail?.workout_sections.filter(
+			section =>
+				section.section_mode === 'workout' &&
+				section.is_scored &&
+				section.leaderboard_enabled,
+		) ?? [];
+	const selectedLeaderboardSection =
+		leaderboardSections.find(
+			section => section.id === selectedLeaderboardSectionId,
+		) ?? leaderboardSections[0];
+
+	useEffect(() => {
+		if (
+			leaderboardSections.length > 0 &&
+			!leaderboardSections.some(
+				section => section.id === selectedLeaderboardSectionId,
+			)
+		) {
+			setSelectedLeaderboardSectionId(leaderboardSections[0]!.id);
+		}
+	}, [leaderboardSections, selectedLeaderboardSectionId]);
 
 	const { data: fallbackRow } = useQuery({
 		queryKey: ['ws-program-ctx', workoutId],
@@ -184,17 +236,21 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 					},
 				})
 				.json<ProgramCtxRow[]>()
-				.then(r => r[0]),
+				.then(r => r[0] ?? null),
 	});
 
 	const effectiveContext = useMemo(
-		() => deriveEffectiveContext(programContext, fallbackRow),
+		() => deriveEffectiveContext(programContext, fallbackRow ?? undefined),
 		[programContext, fallbackRow],
 	);
 
 	const selectScalingLevel = (level: ScalingLevel) => {
 		setScalingLevel(level);
 		mmkvStorage.set(SCALING_LEVEL_KEY, level);
+		void scalingPreference.savePreference(level).catch(() => {
+			// The local value remains available as an offline fallback. The server
+			// preference can be retried the next time the member changes it.
+		});
 	};
 
 	const scalingNotes = useMemo(() => {
@@ -226,8 +282,18 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 		wType,
 	);
 
-	const { data: leaderboard, isLoading: leaderboardLoading } =
-		useWorkoutLeaderboard(workoutId, wType, leaderboardOpened);
+	const {
+		data: leaderboard,
+		isLoading: leaderboardLoading,
+		isError: leaderboardError,
+		refetch: refetchLeaderboard,
+	} = useWorkoutLeaderboard(
+		workoutId,
+		selectedLeaderboardSection?.scoring_type ?? wType,
+		leaderboardOpened,
+		usesSectionScoring ? selectedLeaderboardSection?.id : undefined,
+		selectedLeaderboardSection?.leaderboard_sort_direction,
+	);
 
 	const openOverviewTab = () => setTab('overview');
 
@@ -334,7 +400,12 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 
 	if (isLoading) {
 		return (
-			<View style={[styles.center, { backgroundColor: '#F9FAFB' }]}>
+			<View
+				style={[
+					styles.center,
+					{ backgroundColor: trainingTheme.colors.background },
+				]}
+			>
 				<ActivityIndicator color={colors.brand} />
 			</View>
 		);
@@ -342,8 +413,13 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 
 	if (isWorkoutError || !workout) {
 		return (
-			<View style={[styles.center, { backgroundColor: '#F9FAFB' }]}>
-				<Text style={{ color: '#6B7280' }}>
+			<View
+				style={[
+					styles.center,
+					{ backgroundColor: trainingTheme.colors.background },
+				]}
+			>
+				<Text style={{ color: trainingTheme.colors.textMuted }}>
 					{isWorkoutError
 						? 'Could not load workout — check connection'
 						: 'Workout not found'}
@@ -353,16 +429,28 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 	}
 
 	return (
-		<View style={{ flex: 1, backgroundColor: '#F9FAFB' }}>
+		<View
+			style={{
+				flex: 1,
+				backgroundColor: trainingTheme.colors.background,
+			}}
+		>
 			<ScrollView
 				contentContainerStyle={styles.container}
 				keyboardShouldPersistTaps="handled"
 			>
-				<Text style={[styles.title, { color: '#111827' }]}>
+				<Text
+					style={[styles.title, { color: trainingTheme.colors.text }]}
+				>
 					{workout.name}
 				</Text>
 				{workout.estimated_duration_minutes && (
-					<Text style={[styles.meta, { color: '#6B7280' }]}>
+					<Text
+						style={[
+							styles.meta,
+							{ color: trainingTheme.colors.textMuted },
+						]}
+					>
 						~{workout.estimated_duration_minutes} min
 					</Text>
 				)}
@@ -371,7 +459,7 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 						<Text
 							style={[
 								styles.programStripText,
-								{ color: '#6B7280' },
+								{ color: trainingTheme.colors.textMuted },
 							]}
 						>
 							{effectiveContext.programName} · Week{' '}
@@ -385,14 +473,18 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 							<View
 								style={[
 									styles.progressTrack,
-									{ backgroundColor: '#E5E7EB' },
+									{
+										backgroundColor:
+											trainingTheme.colors.border,
+									},
 								]}
 							>
 								<View
 									style={[
 										styles.progressFill,
 										{
-											backgroundColor: '#3B82F6',
+											backgroundColor:
+												trainingTheme.colors.primary,
 											width: `${Math.min((effectiveContext.weekNumber / effectiveContext.totalWeeks) * 100, 100)}%`,
 										},
 									]}
@@ -401,6 +493,25 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 						) : null}
 					</View>
 				) : null}
+
+				<View style={styles.startCard}>
+					<View style={styles.startCopy}>
+						<Text style={styles.startTitle}>Ready to train?</Text>
+						<Text style={styles.startDescription}>
+							Track sets, rest periods and elapsed time as you go.
+						</Text>
+					</View>
+					<PrimaryButton
+						label="Start workout"
+						onPress={() =>
+							navigation.navigate('TrainingRunWorkout', {
+								workoutId,
+								assignmentId,
+								workoutName: workout.name,
+							})
+						}
+					/>
+				</View>
 
 				<View style={styles.tabRow}>
 					<TouchableOpacity
@@ -447,328 +558,466 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 							<View style={styles.sectionsCard}>
 								{detail.workout_sections.map(s => (
 									<View key={s.id} style={styles.sectionRow}>
-										<Text
-											style={[
-												styles.sectionName,
-												{ color: '#374151' },
-											]}
-										>
-											{s.name}
-										</Text>
-										{s.section_blocks?.map(b => (
-											<View
-												key={b.id}
-												style={styles.blockRow}
+										<View style={styles.sectionHeaderRow}>
+											<Text
+												style={[
+													styles.sectionName,
+													{
+														color: trainingTheme
+															.colors.text,
+													},
+												]}
 											>
-												{b.label ? (
+												{s.name}
+											</Text>
+											{sectionScoringSummary(s) ? (
+												<View
+													style={styles.sectionBadge}
+												>
 													<Text
-														style={[
-															styles.blockLabel,
-															{
-																color: '#6B7280',
-															},
-														]}
+														style={
+															styles.sectionBadgeText
+														}
 													>
-														{b.label}
+														{sectionScoringSummary(
+															s,
+														)}
 													</Text>
-												) : null}
-												{b.block_movements?.map(bm => {
-													const parts: string[] = [];
-													if (bm.sets)
-														parts.push(
-															`${bm.sets} sets`,
-														);
-													if (bm.reps_scheme)
-														parts.push(
-															bm.reps_scheme,
-														);
-													if (bm.weight_kg)
-														parts.push(
-															`@ ${bm.weight_kg}kg`,
-														);
-													return (
-														<TouchableOpacity
-															key={bm.id}
-															activeOpacity={0.7}
-															onPress={() =>
-																setSelectedMovement(
-																	{
-																		id: bm
-																			.movements
-																			.id,
-																		name: bm
-																			.movements
-																			.name,
-																	},
-																)
-															}
-														>
-															<Text
-																style={[
-																	styles.movementText,
-																	{
-																		color: '#111827',
-																		textDecorationLine:
-																			'underline',
-																	},
-																]}
-															>
+												</View>
+											) : null}
+										</View>
+										{s.coach_notes ? (
+											<Text style={styles.sectionNotes}>
+												{s.coach_notes}
+											</Text>
+										) : null}
+										{s.section_mode === 'workout' &&
+											s.section_blocks?.map(b => (
+												<View
+													key={b.id}
+													style={styles.blockRow}
+												>
+													{b.label ? (
+														<Text
+															style={[
+																styles.blockLabel,
 																{
-																	bm.movements
-																		.name
-																}
-																{parts.length >
-																0
-																	? `  ${parts.join(' · ')}`
-																	: ''}
-															</Text>
-														</TouchableOpacity>
-													);
-												})}
-											</View>
-										))}
+																	color: trainingTheme
+																		.colors
+																		.textMuted,
+																},
+															]}
+														>
+															{b.label}
+														</Text>
+													) : null}
+													{b.block_movements?.map(
+														bm => {
+															const parts =
+																movementPrescriptionParts(
+																	bm,
+																);
+															return (
+																<TouchableOpacity
+																	key={bm.id}
+																	activeOpacity={
+																		0.7
+																	}
+																	onPress={() =>
+																		setSelectedMovement(
+																			{
+																				id: bm
+																					.movements
+																					.id,
+																				name: bm
+																					.movements
+																					.name,
+																			},
+																		)
+																	}
+																>
+																	<Text
+																		style={[
+																			styles.movementText,
+																			{
+																				color: trainingTheme
+																					.colors
+																					.text,
+																				textDecorationLine:
+																					'underline',
+																			},
+																		]}
+																	>
+																		{
+																			bm
+																				.movements
+																				.name
+																		}
+																		{parts.length >
+																		0
+																			? `  ${parts.join(' · ')}`
+																			: ''}
+																	</Text>
+																</TouchableOpacity>
+															);
+														},
+													)}
+												</View>
+											))}
+										{s.section_mode === 'workout' &&
+										s.is_scored ? (
+											<TouchableOpacity
+												style={
+													styles.sectionScoreButton
+												}
+												onPress={() =>
+													setSelectedScoreSection(s)
+												}
+											>
+												<Text
+													style={
+														styles.sectionScoreButtonText
+													}
+												>
+													Log score
+												</Text>
+											</TouchableOpacity>
+										) : null}
 									</View>
 								))}
 							</View>
 						)}
 
-					<View
-						style={[
-							styles.formCard,
-							{ backgroundColor: '#FFFFFF' },
-						]}
-					>
-						<Text style={[styles.formTitle, { color: '#111827' }]}>
-							How&apos;d it go?
-						</Text>
+					{!usesSectionScoring ? (
+						<View
+							style={[
+								styles.formCard,
+								{
+									backgroundColor:
+										trainingTheme.colors.surface,
+								},
+							]}
+						>
+							<Text
+								style={[
+									styles.formTitle,
+									{ color: trainingTheme.colors.text },
+								]}
+							>
+								How&apos;d it go?
+							</Text>
 
-						{(isForTime || isCustom) && (
-							<View style={styles.fieldGroup}>
-								<Text
-									style={[styles.label, { color: '#6B7280' }]}
-								>
-									Time
-								</Text>
-								<View style={styles.timeRow}>
+							{(isForTime || isCustom) && (
+								<View style={styles.fieldGroup}>
+									<Text
+										style={[
+											styles.label,
+											{
+												color: trainingTheme.colors
+													.textMuted,
+											},
+										]}
+									>
+										Time
+									</Text>
+									<View style={styles.timeRow}>
+										<TextInput
+											style={[
+												styles.timeInput,
+												{
+													borderColor:
+														trainingTheme.colors
+															.border,
+													color: trainingTheme.colors
+														.text,
+												},
+											]}
+											keyboardType="number-pad"
+											placeholder="mm"
+											placeholderTextColor={
+												trainingTheme.colors.textMuted
+											}
+											value={timeMin}
+											onChangeText={setTimeMin}
+											maxLength={2}
+										/>
+										<Text
+											style={[
+												styles.timeSep,
+												{
+													color: trainingTheme.colors
+														.textMuted,
+												},
+											]}
+										>
+											:
+										</Text>
+										<TextInput
+											style={[
+												styles.timeInput,
+												{
+													borderColor:
+														trainingTheme.colors
+															.border,
+													color: trainingTheme.colors
+														.text,
+												},
+											]}
+											keyboardType="number-pad"
+											placeholder="ss"
+											placeholderTextColor={
+												trainingTheme.colors.textMuted
+											}
+											value={timeSec}
+											onChangeText={handleSecChange}
+											onBlur={validateSec}
+											maxLength={2}
+										/>
+									</View>
+									{secError ? (
+										<Text style={styles.errorText}>
+											{secError}
+										</Text>
+									) : null}
+								</View>
+							)}
+
+							{(isAmrap || isCustom) && (
+								<View style={styles.fieldGroup}>
+									<Text
+										style={[
+											styles.label,
+											{
+												color: trainingTheme.colors
+													.textMuted,
+											},
+										]}
+									>
+										Rounds
+									</Text>
 									<TextInput
 										style={[
-											styles.timeInput,
+											styles.input,
 											{
-												borderColor: '#D1D5DB',
-												color: '#111827',
+												borderColor:
+													trainingTheme.colors.border,
+												color: trainingTheme.colors
+													.text,
 											},
 										]}
 										keyboardType="number-pad"
-										placeholder="mm"
-										placeholderTextColor="#9CA3AF"
-										value={timeMin}
-										onChangeText={setTimeMin}
-										maxLength={2}
+										placeholder="0"
+										placeholderTextColor={
+											trainingTheme.colors.textMuted
+										}
+										value={rounds}
+										onChangeText={setRounds}
 									/>
 									<Text
 										style={[
-											styles.timeSep,
-											{ color: '#6B7280' },
+											styles.label,
+											{
+												color: trainingTheme.colors
+													.textMuted,
+												marginTop: 12,
+											},
 										]}
 									>
-										:
+										Partial reps
 									</Text>
 									<TextInput
 										style={[
-											styles.timeInput,
+											styles.input,
 											{
-												borderColor: '#D1D5DB',
-												color: '#111827',
+												borderColor:
+													trainingTheme.colors.border,
+												color: trainingTheme.colors
+													.text,
 											},
 										]}
 										keyboardType="number-pad"
-										placeholder="ss"
-										placeholderTextColor="#9CA3AF"
-										value={timeSec}
-										onChangeText={handleSecChange}
-										onBlur={validateSec}
-										maxLength={2}
+										placeholder="0"
+										placeholderTextColor={
+											trainingTheme.colors.textMuted
+										}
+										value={partialReps}
+										onChangeText={setPartialReps}
 									/>
 								</View>
-								{secError ? (
-									<Text style={styles.errorText}>
-										{secError}
-									</Text>
-								) : null}
-							</View>
-						)}
+							)}
 
-						{(isAmrap || isCustom) && (
-							<View style={styles.fieldGroup}>
-								<Text
-									style={[styles.label, { color: '#6B7280' }]}
-								>
-									Rounds
-								</Text>
-								<TextInput
-									style={[
-										styles.input,
-										{
-											borderColor: '#D1D5DB',
-											color: '#111827',
-										},
-									]}
-									keyboardType="number-pad"
-									placeholder="0"
-									placeholderTextColor="#9CA3AF"
-									value={rounds}
-									onChangeText={setRounds}
-								/>
-								<Text
-									style={[
-										styles.label,
-										{ color: '#6B7280', marginTop: 12 },
-									]}
-								>
-									Partial reps
-								</Text>
-								<TextInput
-									style={[
-										styles.input,
-										{
-											borderColor: '#D1D5DB',
-											color: '#111827',
-										},
-									]}
-									keyboardType="number-pad"
-									placeholder="0"
-									placeholderTextColor="#9CA3AF"
-									value={partialReps}
-									onChangeText={setPartialReps}
-								/>
-							</View>
-						)}
-
-						{(isStrength || isCustom) && (
-							<View style={styles.fieldGroup}>
-								<Text
-									style={[styles.label, { color: '#6B7280' }]}
-								>
-									Weight (kg)
-								</Text>
-								<TextInput
-									style={[
-										styles.input,
-										{
-											borderColor: '#D1D5DB',
-											color: '#111827',
-										},
-									]}
-									keyboardType="decimal-pad"
-									placeholder="0"
-									placeholderTextColor="#9CA3AF"
-									value={weightKg}
-									onChangeText={setWeightKg}
-								/>
-								<Text
-									style={[
-										styles.label,
-										{ color: '#6B7280', marginTop: 12 },
-									]}
-								>
-									Reps
-								</Text>
-								<TextInput
-									style={[
-										styles.input,
-										{
-											borderColor: '#D1D5DB',
-											color: '#111827',
-										},
-									]}
-									keyboardType="number-pad"
-									placeholder="0"
-									placeholderTextColor="#9CA3AF"
-									value={reps}
-									onChangeText={setReps}
-								/>
-							</View>
-						)}
-
-						<View style={styles.fieldGroup}>
-							<Text style={[styles.label, { color: '#6B7280' }]}>
-								Scaling
-							</Text>
-							<View style={styles.segmentRow}>
-								{LEVELS.map(({ key, label }) => (
-									<TouchableOpacity
-										key={key}
+							{(isStrength || isCustom) && (
+								<View style={styles.fieldGroup}>
+									<Text
 										style={[
-											styles.segmentBtn,
-											scalingLevel === key &&
-												styles.segmentBtnActive,
+											styles.label,
+											{
+												color: trainingTheme.colors
+													.textMuted,
+											},
 										]}
-										onPress={() => selectScalingLevel(key)}
 									>
-										<Text
-											style={[
-												styles.segmentText,
-												scalingLevel === key &&
-													styles.segmentTextActive,
-											]}
-										>
-											{label}
-										</Text>
-									</TouchableOpacity>
-								))}
-							</View>
-						</View>
-						{scalingNotes.length > 0 && (
+										Weight (kg)
+									</Text>
+									<TextInput
+										style={[
+											styles.input,
+											{
+												borderColor:
+													trainingTheme.colors.border,
+												color: trainingTheme.colors
+													.text,
+											},
+										]}
+										keyboardType="decimal-pad"
+										placeholder="0"
+										placeholderTextColor={
+											trainingTheme.colors.textMuted
+										}
+										value={weightKg}
+										onChangeText={setWeightKg}
+									/>
+									<Text
+										style={[
+											styles.label,
+											{
+												color: trainingTheme.colors
+													.textMuted,
+												marginTop: 12,
+											},
+										]}
+									>
+										Reps
+									</Text>
+									<TextInput
+										style={[
+											styles.input,
+											{
+												borderColor:
+													trainingTheme.colors.border,
+												color: trainingTheme.colors
+													.text,
+											},
+										]}
+										keyboardType="number-pad"
+										placeholder="0"
+										placeholderTextColor={
+											trainingTheme.colors.textMuted
+										}
+										value={reps}
+										onChangeText={setReps}
+									/>
+								</View>
+							)}
+
 							<View style={styles.fieldGroup}>
-								{scalingNotes.map(({ id, label, note }) => (
-									<View
-										key={id}
-										style={styles.scalingNoteCard}
-									>
-										{label ? (
+								<Text
+									style={[
+										styles.label,
+										{
+											color: trainingTheme.colors
+												.textMuted,
+										},
+									]}
+								>
+									Scaling
+								</Text>
+								<View style={styles.segmentRow}>
+									{LEVELS.map(({ key, label }) => (
+										<TouchableOpacity
+											key={key}
+											style={[
+												styles.segmentBtn,
+												scalingLevel === key &&
+													styles.segmentBtnActive,
+											]}
+											onPress={() =>
+												selectScalingLevel(key)
+											}
+										>
 											<Text
 												style={[
-													styles.blockLabel,
-													{ color: '#6B7280' },
+													styles.segmentText,
+													scalingLevel === key &&
+														styles.segmentTextActive,
 												]}
 											>
 												{label}
 											</Text>
-										) : null}
-										<Text
-											style={[
-												styles.scalingNoteText,
-												{ color: '#374151' },
-											]}
-										>
-											{note}
-										</Text>
-									</View>
-								))}
+										</TouchableOpacity>
+									))}
+								</View>
 							</View>
-						)}
+							{scalingNotes.length > 0 && (
+								<View style={styles.fieldGroup}>
+									{scalingNotes.map(({ id, label, note }) => (
+										<View
+											key={id}
+											style={styles.scalingNoteCard}
+										>
+											{label ? (
+												<Text
+													style={[
+														styles.blockLabel,
+														{
+															color: trainingTheme
+																.colors
+																.textMuted,
+														},
+													]}
+												>
+													{label}
+												</Text>
+											) : null}
+											<Text
+												style={[
+													styles.scalingNoteText,
+													{
+														color: trainingTheme
+															.colors.text,
+													},
+												]}
+											>
+												{note}
+											</Text>
+										</View>
+									))}
+								</View>
+							)}
 
-						<View style={styles.fieldGroup}>
-							<Text style={[styles.label, { color: '#6B7280' }]}>
-								Notes
-							</Text>
-							<TextInput
-								style={[
-									styles.notesInput,
-									{
-										borderColor: '#D1D5DB',
-										color: '#111827',
-									},
-								]}
-								placeholder="How did it feel?"
-								placeholderTextColor="#9CA3AF"
-								multiline
-								numberOfLines={3}
-								value={notes}
-								onChangeText={setNotes}
-							/>
+							<View style={styles.fieldGroup}>
+								<Text
+									style={[
+										styles.label,
+										{
+											color: trainingTheme.colors
+												.textMuted,
+										},
+									]}
+								>
+									Notes
+								</Text>
+								<TextInput
+									style={[
+										styles.notesInput,
+										{
+											borderColor:
+												trainingTheme.colors.border,
+											color: trainingTheme.colors.text,
+										},
+									]}
+									placeholder="How did it feel?"
+									placeholderTextColor={
+										trainingTheme.colors.textMuted
+									}
+									multiline
+									numberOfLines={3}
+									value={notes}
+									onChangeText={setNotes}
+								/>
+							</View>
 						</View>
-					</View>
+					) : null}
 				</View>
 
 				<View
@@ -776,9 +1025,48 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 						display: tab === 'leaderboard' ? 'flex' : 'none',
 					}}
 				>
+					{usesSectionScoring && leaderboardSections.length > 0 ? (
+						<ScrollView
+							horizontal
+							showsHorizontalScrollIndicator={false}
+							contentContainerStyle={
+								styles.leaderboardSectionTabs
+							}
+						>
+							{leaderboardSections.map(section => (
+								<TouchableOpacity
+									key={section.id}
+									onPress={() =>
+										setSelectedLeaderboardSectionId(
+											section.id,
+										)
+									}
+									style={[
+										styles.leaderboardSectionTab,
+										selectedLeaderboardSection?.id ===
+											section.id &&
+											styles.leaderboardSectionTabActive,
+									]}
+								>
+									<Text
+										style={[
+											styles.leaderboardSectionTabText,
+											selectedLeaderboardSection?.id ===
+												section.id &&
+												styles.leaderboardSectionTabTextActive,
+										]}
+									>
+										{section.name}
+									</Text>
+								</TouchableOpacity>
+							))}
+						</ScrollView>
+					) : null}
 					<WorkoutLeaderboard
 						entries={leaderboard ?? []}
 						isLoading={leaderboardLoading}
+						isError={leaderboardError}
+						onRetry={() => void refetchLeaderboard()}
 						currentAthleteId={uid}
 					/>
 				</View>
@@ -788,22 +1076,27 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 				style={[
 					styles.footer,
 					{
-						backgroundColor: '#F9FAFB',
-						display: tab === 'leaderboard' ? 'none' : 'flex',
+						backgroundColor: trainingTheme.colors.background,
+						display:
+							tab === 'leaderboard' || usesSectionScoring
+								? 'none'
+								: 'flex',
 					},
 				]}
 			>
 				<TouchableOpacity
 					style={[
 						styles.submitBtn,
-						{ backgroundColor: '#3B82F6' },
+						{ backgroundColor: trainingTheme.colors.primary },
 						submitting && { opacity: 0.6 },
 					]}
 					onPress={() => void submit()}
 					disabled={submitting}
 				>
 					{submitting ? (
-						<ActivityIndicator color="#fff" />
+						<ActivityIndicator
+							color={trainingTheme.colors.onPrimary}
+						/>
 					) : (
 						<Text style={styles.submitBtnText}>Log result</Text>
 					)}
@@ -819,6 +1112,15 @@ const WorkoutDetailScreen = ({ route }: Props) => {
 					Your score is visible to your coach and the gym leaderboard.
 				</Text>
 			</View>
+			<SectionScoreModal
+				section={selectedScoreSection}
+				visible={selectedScoreSection !== null}
+				onClose={() => setSelectedScoreSection(null)}
+				onLogged={() => showLoggedToast()}
+				sessionSubmissionId={sessionSubmissionId}
+				assignmentId={assignmentId}
+				scalingLevel={scalingLevel}
+			/>
 			{toastVisible ? (
 				<TouchableOpacity
 					style={styles.toast}
@@ -844,14 +1146,76 @@ const styles = StyleSheet.create({
 	programStripText: { fontSize: 12, marginBottom: 6 },
 	progressTrack: { height: 4, borderRadius: 2, overflow: 'hidden' },
 	progressFill: { height: 4, borderRadius: 2 },
+	startCard: {
+		backgroundColor: trainingTheme.colors.primarySoft,
+		borderColor: trainingTheme.colors.border,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderRadius: trainingTheme.radius.md,
+		padding: trainingTheme.spacing.lg,
+		gap: trainingTheme.spacing.md,
+		marginBottom: trainingTheme.spacing.lg,
+	},
+	startCopy: { gap: trainingTheme.spacing.xs },
+	startTitle: {
+		color: trainingTheme.colors.text,
+		fontFamily: 'Inter-Variable',
+		fontSize: 17,
+		fontWeight: '700',
+	},
+	startDescription: {
+		color: trainingTheme.colors.textMuted,
+		fontFamily: 'Inter-Variable',
+		fontSize: 13,
+		lineHeight: 19,
+	},
 	sectionsCard: {
-		backgroundColor: '#FFFFFF',
+		backgroundColor: trainingTheme.colors.surface,
+		borderColor: trainingTheme.colors.border,
+		borderWidth: StyleSheet.hairlineWidth,
 		borderRadius: 12,
 		padding: 14,
 		marginBottom: 16,
 	},
 	sectionRow: { marginBottom: 12 },
-	sectionName: { fontSize: 14, fontWeight: '700', marginBottom: 4 },
+	sectionHeaderRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		gap: 8,
+		marginBottom: 4,
+	},
+	sectionName: { flex: 1, fontSize: 14, fontWeight: '700' },
+	sectionBadge: {
+		borderRadius: 999,
+		backgroundColor: trainingTheme.colors.primarySoft,
+		paddingHorizontal: 8,
+		paddingVertical: 3,
+	},
+	sectionBadgeText: {
+		color: trainingTheme.colors.primary,
+		fontSize: 10,
+		fontWeight: '700',
+	},
+	sectionNotes: {
+		color: trainingTheme.colors.textMuted,
+		fontSize: 13,
+		lineHeight: 19,
+		marginBottom: 6,
+	},
+	sectionScoreButton: {
+		alignSelf: 'flex-start',
+		minHeight: 40,
+		justifyContent: 'center',
+		borderRadius: 10,
+		backgroundColor: trainingTheme.colors.primary,
+		paddingHorizontal: 14,
+		marginTop: 8,
+	},
+	sectionScoreButtonText: {
+		color: trainingTheme.colors.onPrimary,
+		fontSize: 13,
+		fontWeight: '700',
+	},
 	sectionMeta: { fontSize: 12, marginTop: 2 },
 	blockRow: { marginTop: 4, paddingLeft: 8 },
 	blockLabel: { fontSize: 12, fontWeight: '600', marginBottom: 2 },
@@ -889,25 +1253,25 @@ const styles = StyleSheet.create({
 	segmentBtn: {
 		flex: 1,
 		borderWidth: 1,
-		borderColor: '#D1D5DB',
+		borderColor: trainingTheme.colors.border,
 		borderRadius: 8,
 		paddingVertical: 10,
 		alignItems: 'center',
 	},
 	segmentBtnActive: {
-		backgroundColor: '#3B82F6',
-		borderColor: '#3B82F6',
+		backgroundColor: trainingTheme.colors.primary,
+		borderColor: trainingTheme.colors.primary,
 	},
 	segmentText: {
 		fontSize: 14,
 		fontWeight: '500',
-		color: '#374151',
+		color: trainingTheme.colors.text,
 	},
 	segmentTextActive: {
-		color: '#FFFFFF',
+		color: trainingTheme.colors.onPrimary,
 	},
 	scalingNoteCard: {
-		backgroundColor: '#F3F4F6',
+		backgroundColor: trainingTheme.colors.surfaceMuted,
 		borderRadius: 8,
 		padding: 10,
 		marginBottom: 6,
@@ -932,27 +1296,55 @@ const styles = StyleSheet.create({
 	tabBtn: {
 		flex: 1,
 		borderWidth: 1,
-		borderColor: '#D1D5DB',
+		borderColor: trainingTheme.colors.border,
 		borderRadius: 8,
 		paddingVertical: 10,
 		alignItems: 'center',
 	},
 	tabBtnActive: {
-		backgroundColor: '#3B82F6',
-		borderColor: '#3B82F6',
+		backgroundColor: trainingTheme.colors.primary,
+		borderColor: trainingTheme.colors.primary,
 	},
 	tabText: {
 		fontSize: 14,
 		fontWeight: '500',
-		color: '#374151',
+		color: trainingTheme.colors.text,
 	},
 	tabTextActive: {
-		color: '#FFFFFF',
+		color: trainingTheme.colors.onPrimary,
 	},
-	errorText: { color: '#DC2626', fontSize: 12, marginTop: 4 },
+	leaderboardSectionTabs: {
+		gap: 8,
+		paddingBottom: 12,
+	},
+	leaderboardSectionTab: {
+		borderWidth: 1,
+		borderColor: trainingTheme.colors.border,
+		borderRadius: 999,
+		paddingHorizontal: 14,
+		paddingVertical: 8,
+		backgroundColor: trainingTheme.colors.surface,
+	},
+	leaderboardSectionTabActive: {
+		borderColor: trainingTheme.colors.primary,
+		backgroundColor: trainingTheme.colors.primarySoft,
+	},
+	leaderboardSectionTabText: {
+		color: trainingTheme.colors.textMuted,
+		fontSize: 13,
+		fontWeight: '600',
+	},
+	leaderboardSectionTabTextActive: {
+		color: trainingTheme.colors.primary,
+	},
+	errorText: {
+		color: trainingTheme.colors.danger,
+		fontSize: 12,
+		marginTop: 4,
+	},
 	coachNote: {
 		fontSize: 12,
-		color: '#9CA3AF',
+		color: trainingTheme.colors.textMuted,
 		textAlign: 'center',
 		marginTop: 8,
 		paddingHorizontal: 16,
@@ -962,26 +1354,30 @@ const styles = StyleSheet.create({
 		left: 16,
 		right: 16,
 		bottom: 24,
-		backgroundColor: '#FFFFFF',
+		backgroundColor: trainingTheme.colors.surface,
 		borderRadius: 6,
 		padding: 16,
 		borderLeftWidth: 4,
-		borderLeftColor: '#3B82F6',
+		borderLeftColor: trainingTheme.colors.primary,
 		zIndex: 200,
-		shadowColor: '#000',
-		shadowOpacity: 0.15,
-		shadowRadius: 8,
-		shadowOffset: { width: 0, height: 2 },
-		elevation: 4,
+		...trainingTheme.shadow,
 	},
-	toastText: { fontSize: 14, fontWeight: '600', color: '#111827' },
+	toastText: {
+		fontSize: 14,
+		fontWeight: '600',
+		color: trainingTheme.colors.text,
+	},
 	footer: { padding: 16, paddingBottom: 32 },
 	submitBtn: {
 		padding: 16,
 		borderRadius: 12,
 		alignItems: 'center',
 	},
-	submitBtnText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+	submitBtnText: {
+		color: trainingTheme.colors.onPrimary,
+		fontSize: 17,
+		fontWeight: '700',
+	},
 });
 
 export default WorkoutDetailScreen;

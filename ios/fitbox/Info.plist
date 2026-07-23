@@ -119,6 +119,8 @@
     <string>Light</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>fitbox reads your workouts, heart rate, and sleep to personalize your training.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>fitbox saves completed workouts and related fitness data to Apple Health when you choose to sync them.</string>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.wa.fitbox.dev.healthsync</string>

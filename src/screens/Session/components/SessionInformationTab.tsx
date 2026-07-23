@@ -1,6 +1,6 @@
 import { Row, ScrollView, Spacer, Text } from '@/components/atoms';
-import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { SessionDetailSchemaType } from '@/types/schemas/session';
 import { Func } from '@/utils';
 import useStore from '@/zustand/Store';
@@ -8,8 +8,6 @@ import { useNavigation } from '@react-navigation/native';
 import moment from 'moment';
 import { useLayoutEffect, useMemo } from 'react';
 import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
-
-const { metrics } = config;
 
 interface SessionInformationTabProps {
 	session: SessionDetailSchemaType;
@@ -97,14 +95,14 @@ const SessionInformationTab = ({ session }: SessionInformationTabProps) => {
 	}, [session]);
 
 	return (
-		<View style={{ paddingHorizontal: metrics.sm }}>
-			<ScrollView>
+		<View style={styles.screen}>
+			<ScrollView contentContainerStyle={styles.scrollContent}>
 				<View style={styles.infoSectionContainer}>
-					<Text size="md" bold color="brand">
+					<Text size="md" bold style={styles.sectionTitle}>
 						Session Details
 					</Text>
 					<Spacer size="sm" />
-					<Text size="rg">
+					<Text size="rg" style={styles.primaryDetail}>
 						{`${startTime.format('ddd')}, ${startTime.format(
 							'DD MMM',
 						)}: ${startTime.format('h:mmA')} - ${endTime.format(
@@ -112,16 +110,20 @@ const SessionInformationTab = ({ session }: SessionInformationTabProps) => {
 						)}`}
 					</Text>
 					{hasAttendanceLock && (
-						<Text size="rg">
+						<Text size="rg" style={styles.ruleText}>
 							{`No Cancellations After: ${cancelDate}`}
 						</Text>
 					)}
 					{hasBookingLock && (
-						<Text size="rg">{`No Booking After: ${blockDate}`}</Text>
+						<Text size="rg" style={styles.ruleText}>
+							{`No Booking After: ${blockDate}`}
+						</Text>
 					)}
 
 					<Row style={layout.wrap}>
-						<Text size="rg">Coach: </Text>
+						<Text size="rg" style={styles.detailLabel}>
+							Coach:{' '}
+						</Text>
 						{coachList.map((e, i) => {
 							const comma = i !== coachList.length - 1 ? ',' : '';
 							const youAppend = e.isMe ? ' (You)' : '';
@@ -130,8 +132,10 @@ const SessionInformationTab = ({ session }: SessionInformationTabProps) => {
 								<Text
 									key={e.name + String(i)}
 									size="rg"
-									color={e.isMe ? 'info' : 'darkgray'}
-									style={styles.coachName}
+									style={[
+										styles.coachName,
+										e.isMe && styles.highlightText,
+									]}
 								>
 									{e.name + youAppend + comma}
 								</Text>
@@ -142,8 +146,10 @@ const SessionInformationTab = ({ session }: SessionInformationTabProps) => {
 					{session?.venue_id && (
 						<>
 							<Spacer size="sm" />
-							<Text size="rg">Location:</Text>
-							<Text size="md" color="info">
+							<Text size="rg" style={styles.detailLabel}>
+								Location
+							</Text>
+							<Text size="md" style={styles.highlightText}>
 								{session?.venue_name}
 
 								{session?.venue_location
@@ -156,14 +162,15 @@ const SessionInformationTab = ({ session }: SessionInformationTabProps) => {
 
 				{videoLink ? (
 					<View style={styles.infoSectionContainer}>
-						<Text size="md" bold color="brand">
+						<Text size="md" bold style={styles.sectionTitle}>
 							Online Session Link
 						</Text>
 						<Spacer size="sm" />
 						<TouchableOpacity
 							onPress={() => void Linking.openURL(videoLink)}
+							accessibilityRole="link"
 						>
-							<Text size="md" color="info">
+							<Text size="md" style={styles.linkText}>
 								{videoLink}
 							</Text>
 						</TouchableOpacity>
@@ -171,14 +178,16 @@ const SessionInformationTab = ({ session }: SessionInformationTabProps) => {
 				) : null}
 
 				<View style={styles.infoSectionContainer}>
-					<Text size="md" bold color="brand">
+					<Text size="md" bold style={styles.sectionTitle}>
 						Class Description
 					</Text>
 					<Spacer size="sm" />
 					{description ? (
-						<Text size="rg">{description}</Text>
+						<Text size="rg" style={styles.descriptionText}>
+							{description}
+						</Text>
 					) : (
-						<Text size="rg" color="darkgray">
+						<Text size="rg" style={styles.emptyText}>
 							No description found
 						</Text>
 					)}
@@ -191,15 +200,57 @@ const SessionInformationTab = ({ session }: SessionInformationTabProps) => {
 export default SessionInformationTab;
 
 const styles = StyleSheet.create({
-	coachName: { marginRight: 5 },
+	screen: {
+		flex: 1,
+		backgroundColor: memberTheme.colors.background,
+	},
+	scrollContent: {
+		paddingHorizontal: memberTheme.spacing.md,
+		paddingBottom: memberTheme.spacing.xxl,
+	},
+	coachName: {
+		marginRight: 5,
+		color: memberTheme.colors.textMuted,
+	},
 	infoSectionContainer: {
-		marginHorizontal: 5,
-		marginBottom: '5%',
-		paddingVertical: 10,
-		paddingHorizontal: 7,
-		borderRadius: 5,
-		borderWidth: 1,
-		borderColor: '#f2f2f2',
-		...layout.shadowLight,
+		marginBottom: memberTheme.spacing.md,
+		padding: memberTheme.spacing.lg,
+		borderRadius: memberTheme.radius.md,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: memberTheme.colors.border,
+		backgroundColor: memberTheme.colors.surface,
+		...memberTheme.shadow,
+	},
+	sectionTitle: {
+		color: memberTheme.colors.primary,
+		fontSize: 15,
+	},
+	primaryDetail: {
+		color: memberTheme.colors.text,
+		fontWeight: '600',
+		marginBottom: memberTheme.spacing.xs,
+	},
+	detailLabel: {
+		color: memberTheme.colors.text,
+		fontWeight: '600',
+	},
+	ruleText: {
+		color: memberTheme.colors.textMuted,
+		fontSize: 13,
+		lineHeight: 19,
+	},
+	highlightText: {
+		color: memberTheme.colors.primary,
+	},
+	linkText: {
+		color: memberTheme.colors.primary,
+		textDecorationLine: 'underline',
+	},
+	descriptionText: {
+		color: memberTheme.colors.text,
+		lineHeight: 21,
+	},
+	emptyText: {
+		color: memberTheme.colors.textMuted,
 	},
 });

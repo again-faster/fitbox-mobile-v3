@@ -9,6 +9,7 @@ import {
 	Spacer,
 	Text,
 } from '@/components/atoms';
+import { MemberProgressRing } from '@/components/member';
 import useSwitchableUsers from '@/hooks/useSwitchableUsers';
 import { navigate } from '@/navigators/NavigationRef';
 import { betaActive, savePushToken } from '@/services/auth';
@@ -26,6 +27,7 @@ import { mmkvStorage } from '@/storage';
 import { useTheme } from '@/theme';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import resources from '@/theme/resources';
 import { ApplicationStackParamList } from '@/types/navigation';
 import { GymVenueType } from '@/types/schemas/gym';
@@ -100,7 +102,7 @@ const actionButtons = [
 ];
 
 const { height } = Dimensions.get('window');
-const { metrics, fonts } = config;
+const { metrics } = config;
 
 // const isAndroid = Platform.OS === 'ios';
 
@@ -116,7 +118,7 @@ const Dashboard = () => {
 		AnnouncementsItemType[]
 	>([]);
 	// const headerHeight = useHeaderHeight();
-	const { variant, navigationTheme } = useTheme();
+	const { variant } = useTheme();
 
 	const headerMarginTop = Platform.OS === 'ios' && Platform.isPad ? 50 : 0;
 
@@ -145,6 +147,7 @@ const Dashboard = () => {
 		emptyRequiredFieldsState,
 		loggedInUser,
 		setLoggedInUser,
+		teamId,
 	} = useStore(state => ({
 		setAppState: state.setAppState,
 		classFilters: state.classFilters,
@@ -165,6 +168,7 @@ const Dashboard = () => {
 		emptyRequiredFieldsState: state.emptyRequiredFields,
 		loggedInUser: state.loggedInUser,
 		setLoggedInUser: state.setLoggedInUser,
+		teamId: state.teamId,
 	}));
 
 	const userState = loggedInUser as LoginResponseSchemaType;
@@ -176,6 +180,9 @@ const Dashboard = () => {
 	const [gymLogo, setGymLogo] = useState<string>('');
 	const [showAttendanceReport, setShowAttendanceReport] =
 		useState<boolean>(false);
+	const [monthlyAttendanceGoal, setMonthlyAttendanceGoal] = useState<
+		number | null
+	>(null);
 
 	const [hasPrevSubscriptions, setHasPrevSubscriptions] =
 		useState<boolean>(false);
@@ -200,6 +207,29 @@ const Dashboard = () => {
 		useState<boolean>(false);
 
 	const { hasSwitchableUsers } = useSwitchableUsers();
+
+	const attendanceGoalKey = useMemo(() => {
+		const memberId = loggedInUser?.user_data.user_id;
+		if (!teamId || !memberId) return null;
+
+		return `attendanceGoal:v1:${teamId}:${memberId}`;
+	}, [loggedInUser?.user_data.user_id, teamId]);
+
+	useFocusEffect(
+		useCallback(() => {
+			if (!attendanceGoalKey) {
+				setMonthlyAttendanceGoal(null);
+				return;
+			}
+
+			const savedGoal = mmkvStorage.getNumber(attendanceGoalKey);
+			setMonthlyAttendanceGoal(
+				savedGoal && savedGoal >= 1 && savedGoal <= 31
+					? savedGoal
+					: null,
+			);
+		}, [attendanceGoalKey]),
+	);
 
 	const [currentNotificationIndex, setCurrentNotificationIndex] =
 		useState<number>(0);
@@ -891,6 +921,24 @@ const Dashboard = () => {
 	};
 	const yearLeftPadding: number =
 		attendanceReportState.yearToDate?.toString().length === 1 ? 20 : 0;
+	const monthAttendance = attendanceReportState.monthToDate ?? 0;
+	const monthlyGoalProgress = monthlyAttendanceGoal
+		? Math.min(monthAttendance / monthlyAttendanceGoal, 1)
+		: 0;
+	const getMonthAttendanceStatStyle = () => {
+		if (monthlyAttendanceGoal && attendanceFilter.length === 3) {
+			return styles.monthlyGoalStat;
+		}
+
+		if (
+			attendanceFilter.length <= 2 ||
+			attendanceReportState.monthToDate.toString().length === 1
+		) {
+			return layout.flex_1;
+		}
+
+		return styles.monthToDate;
+	};
 
 	const renderDashboardComponents = () => {
 		return (
@@ -898,13 +946,16 @@ const Dashboard = () => {
 				<Row
 					align="center"
 					spacing="space-between"
-					style={{ marginBottom: config.metrics.lg }}
+					style={styles.greetingRow}
 				>
 					<View>
 						<Text bold size="xxl">
 							{t('dashboard:sessions.member.greeting', {
 								name: user?.user_data.first_name ?? '',
 							})}
+						</Text>
+						<Text style={styles.greetingSubtitle}>
+							Here is your training at a glance
 						</Text>
 					</View>
 
@@ -937,10 +988,7 @@ const Dashboard = () => {
 					) : (
 						!isEmpty(attendanceReportState) && (
 							<TouchableOpacity
-								style={{
-									marginTop: config.metrics.lg,
-									marginBottom: config.metrics.xl,
-								}}
+								style={styles.attendanceCard}
 								onPress={handleAttendancePress}
 							>
 								{showAttendanceReportLabel && (
@@ -965,37 +1013,67 @@ const Dashboard = () => {
 									</Row>
 								)}
 
-								<Row spacing="space-evenly">
+								<Row
+									spacing="space-evenly"
+									style={[
+										styles.attendanceStats,
+										!showAttendanceReportLabel
+											? styles.attendanceStatsCompact
+											: null,
+									]}
+								>
 									{attendanceFilter.includes('month') && (
 										<View
-											style={
-												attendanceFilter.length <= 2 ||
-												attendanceReportState.monthToDate.toString()
-													.length === 1
-													? layout.flex_1
-													: styles.monthToDate
-											}
+											style={getMonthAttendanceStatStyle()}
 										>
-											<Row align="flex-end">
-												<Image
-													source={
-														resources.icon
-															.monthToDate
-													}
-													style={
-														styles.attendanceIcon
-													}
-												/>
+											<Row align="center">
+												{monthlyAttendanceGoal ? (
+													<MemberProgressRing
+														progress={
+															monthlyGoalProgress
+														}
+														size={38}
+														strokeWidth={3}
+														trackColor={
+															memberTheme.colors
+																.surfaceSoft
+														}
+													>
+														<Text
+															style={
+																styles.goalAttendanceIcon
+															}
+															allowFontScaling={
+																false
+															}
+														>
+															🎯
+														</Text>
+													</MemberProgressRing>
+												) : (
+													<Image
+														source={
+															resources.icon
+																.monthToDate
+														}
+														style={
+															styles.attendanceIcon
+														}
+													/>
+												)}
 												<Text
-													style={
-														styles.attendanceValue
-													}
+													style={[
+														styles.attendanceValue,
+														monthlyAttendanceGoal
+															? styles.monthlyGoalValue
+															: null,
+													]}
 													bold
 													allowFontScaling={false}
 												>
-													{
-														attendanceReportState.monthToDate
-													}
+													{monthlyAttendanceGoal
+														? `${monthAttendance} / ${monthlyAttendanceGoal}`
+														: monthAttendance}
 												</Text>
 											</Row>
 											<Text
@@ -1003,7 +1081,9 @@ const Dashboard = () => {
 												style={styles.attendanceText}
 												allowFontScaling={false}
 											>
-												this month
+												{monthlyAttendanceGoal
+													? 'monthly goal'
+													: 'this month'}
 											</Text>
 										</View>
 									)}
@@ -1102,7 +1182,11 @@ const Dashboard = () => {
 				) : (
 					upcomingSessionsState.length > 0 && (
 						<>
-							<Spacer size="md" />
+							<View style={styles.sectionHeadingRow}>
+								<Text bold style={styles.sectionHeadingText}>
+									Coming up
+								</Text>
+							</View>
 							<View style={styles.bookedSessionsContainer}>
 								{upcomingSessionsState // show only 1
 									.slice(0, 1)
@@ -1111,7 +1195,7 @@ const Dashboard = () => {
 									))}
 							</View>
 
-							{upcomingSessionsState.length > 1 ? (
+							{upcomingSessionsState.length > 1 && (
 								<TouchableOpacity
 									style={styles.viewMoreButton}
 									onPress={() => navigate('Bookings')}
@@ -1120,13 +1204,6 @@ const Dashboard = () => {
 										{t('dashboard:sessions.member.viewAll')}
 									</Text>
 								</TouchableOpacity>
-							) : (
-								<View
-									style={[
-										styles.viewMoreButton,
-										styles.viewMorePlaceholder,
-									]}
-								/>
 							)}
 						</>
 					)
@@ -1140,7 +1217,11 @@ const Dashboard = () => {
 					</>
 				) : (
 					<>
-						<Spacer size="xl" />
+						<View style={styles.sectionHeadingRow}>
+							<Text bold style={styles.sectionHeadingText}>
+								Explore
+							</Text>
+						</View>
 						<Row
 							spacing="space-between"
 							style={styles.presetFilters}
@@ -1158,24 +1239,19 @@ const Dashboard = () => {
 	};
 
 	return (
-		<SafeAreaView
-			style={[
-				layout.flex_1,
-				{ backgroundColor: navigationTheme.colors.background },
-			]}
-		>
+		<SafeAreaView style={[layout.flex_1, styles.screen]}>
 			<StatusBar
 				barStyle={variant === 'dark' ? 'light-content' : 'dark-content'}
 			/>
 			{/* TODO: If banner doesn't update include versioning of image to apply changes */}
 			<DashboardHeader banner={gymBanner} logo={gymLogo} />
 
-			<Spacer />
+			<Spacer size={memberTheme.spacing.xs} />
 
 			<ScrollView
 				refreshing={refreshing}
 				onRefresh={onRefresh}
-				style={{ marginTop: headerMarginTop }}
+				style={[styles.scrollView, { marginTop: headerMarginTop }]}
 			>
 				<View style={styles.section}>
 					<View>
@@ -1230,15 +1306,53 @@ const Dashboard = () => {
 };
 
 const styles = StyleSheet.create({
+	screen: {
+		backgroundColor: memberTheme.colors.background,
+	},
+	scrollView: {
+		backgroundColor: memberTheme.colors.background,
+	},
 	section: {
-		paddingHorizontal: metrics.lg,
-		paddingVertical: metrics.xl,
+		paddingHorizontal: memberTheme.spacing.lg,
+		paddingTop: memberTheme.spacing.lg,
+		paddingBottom: metrics.xl,
 		justifyContent: 'space-between',
+	},
+	greetingRow: {
+		marginBottom: memberTheme.spacing.md,
+	},
+	greetingSubtitle: {
+		color: memberTheme.colors.textMuted,
+		marginTop: memberTheme.spacing.xs,
+	},
+	attendanceCard: {
+		marginTop: memberTheme.spacing.sm,
+		marginBottom: memberTheme.spacing.sm,
+		paddingHorizontal: memberTheme.spacing.lg,
+		paddingVertical: memberTheme.spacing.md,
+		backgroundColor: memberTheme.colors.surface,
+		borderRadius: memberTheme.radius.lg,
+		borderWidth: 1,
+		borderColor: memberTheme.colors.border,
+		...memberTheme.shadow,
+	},
+	attendanceStats: {
+		paddingTop: memberTheme.spacing.sm,
+	},
+	attendanceStatsCompact: {
+		paddingTop: 0,
+	},
+	sectionHeadingRow: {
+		marginTop: memberTheme.spacing.md,
+		marginBottom: memberTheme.spacing.sm,
+	},
+	sectionHeadingText: {
+		fontSize: height < 750 ? 18 : config.fonts.metrics.lg,
 	},
 	bookedSessionsContainer: {
 		overflow: 'hidden',
-		gap: 1,
-		backgroundColor: fonts.colors.light,
+		borderRadius: memberTheme.radius.lg,
+		backgroundColor: memberTheme.colors.surface,
 	},
 	rowButton: {
 		flexDirection: 'row',
@@ -1310,15 +1424,12 @@ const styles = StyleSheet.create({
 	},
 	viewMoreButton: {
 		alignItems: 'flex-end',
-		backgroundColor: 'white',
-		padding: 5,
-	},
-	viewMorePlaceholder: {
-		height: 27,
+		backgroundColor: 'transparent',
+		paddingTop: memberTheme.spacing.sm,
+		paddingHorizontal: memberTheme.spacing.sm,
 	},
 	presetFilters: {
 		flexWrap: 'wrap',
-		marginTop: config.metrics.xl,
 	},
 	attendanceIcon: {
 		width: 25,
@@ -1326,11 +1437,19 @@ const styles = StyleSheet.create({
 		marginBottom: 5,
 		marginRight: 8,
 	},
+	goalAttendanceIcon: {
+		fontSize: 20,
+		lineHeight: 24,
+	},
 	attendanceText: {
 		paddingBottom: 5,
 		marginLeft: config.metrics.sm,
 	},
 	attendanceValue: { fontSize: 28 },
+	monthlyGoalValue: {
+		fontSize: 23,
+		marginLeft: memberTheme.spacing.xs,
+	},
 	switchIcon: {
 		position: 'absolute',
 		right: 0,
@@ -1343,10 +1462,13 @@ const styles = StyleSheet.create({
 	monthToDate: {
 		flex: 0.9,
 	},
+	monthlyGoalStat: {
+		flex: 1.35,
+		alignItems: 'center',
+	},
 	viewAttendance: {
 		marginBottom: config.metrics.sm,
-		color: config.colors.info,
-		textDecorationLine: 'underline',
+		color: memberTheme.colors.primary,
 	},
 });
 

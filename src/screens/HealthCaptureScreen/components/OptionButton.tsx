@@ -1,5 +1,5 @@
 import { Text } from '@/components/atoms';
-import { config } from '@/theme/_config';
+import { memberTheme } from '@/theme/member';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 
 const OptionButton = ({
@@ -11,12 +11,18 @@ const OptionButton = ({
 	pressed: boolean;
 	onPress: () => void;
 }) => {
-	const color = pressed ? 'white' : config.backgrounds.darkgray;
-	const background = pressed ? config.colors.brand : 'transparent';
+	const color = pressed
+		? memberTheme.colors.surface
+		: memberTheme.colors.primaryInk;
+	const background = pressed
+		? memberTheme.colors.primary
+		: memberTheme.colors.surface;
 
 	const buttonStyle = {
 		...styles.optionButtonStyles,
-		borderColor: color,
+		borderColor: pressed
+			? memberTheme.colors.primary
+			: memberTheme.colors.border,
 		backgroundColor: background,
 	};
 
@@ -29,14 +35,14 @@ const OptionButton = ({
 
 const styles = StyleSheet.create({
 	optionButtonStyles: {
-		paddingHorizontal: 8,
-		paddingVertical: 4,
+		paddingHorizontal: memberTheme.spacing.lg,
+		paddingVertical: memberTheme.spacing.sm,
 		borderWidth: 1,
-		borderRadius: 4,
+		borderRadius: memberTheme.radius.pill,
 		alignItems: 'center',
 		justifyContent: 'center',
-		width: '20%',
-		height: 30,
+		minWidth: 96,
+		minHeight: 42,
 	},
 });
 

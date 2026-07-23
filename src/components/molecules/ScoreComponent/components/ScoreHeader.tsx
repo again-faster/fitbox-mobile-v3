@@ -1,6 +1,6 @@
 import { Row, Text } from '@/components/atoms';
-import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { memo } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import { Switch } from 'react-native-paper';
@@ -28,7 +28,7 @@ const ScoreHeader = ({
 			<Text
 				size={titleFontSize}
 				bold
-				style={layout.flex_1}
+				style={[layout.flex_1, styles.title]}
 				numberOfLines={numberOfLines}
 			>
 				{title}
@@ -37,14 +37,18 @@ const ScoreHeader = ({
 			{!hideRxSwitch && (
 				<Row style={[layout.itemsCenter]}>
 					<Switch
-						color={config.fonts.colors.brand}
+						color={memberTheme.colors.primary}
+						trackColor={{
+							false: memberTheme.colors.border,
+							true: memberTheme.colors.surfaceSoft,
+						}}
 						value={isRx}
 						onValueChange={val => {
 							onRxChange(val);
 						}}
 						style={styles.switch}
 					/>
-					<Text size="xl" bold color="darkgray">
+					<Text size="md" bold style={styles.rxLabel}>
 						Rx
 					</Text>
 				</Row>
@@ -59,7 +63,21 @@ const styles = StyleSheet.create({
 	titleContainer: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
-		padding: config.metrics.rg,
+		alignItems: 'center',
+		marginHorizontal: memberTheme.spacing.lg,
+		marginTop: memberTheme.spacing.md,
+		padding: memberTheme.spacing.lg,
+		borderRadius: memberTheme.radius.md,
+		backgroundColor: memberTheme.colors.surface,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: memberTheme.colors.border,
+		...memberTheme.shadow,
+	},
+	title: {
+		color: memberTheme.colors.text,
+	},
+	rxLabel: {
+		color: memberTheme.colors.primaryInk,
 	},
 	switch: {
 		transform: [{ scaleX: 0.7 }, { scaleY: 0.7 }],

@@ -20,6 +20,7 @@ import {
 } from '@/services/users';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { MenuStackNavigatorProps, MyDetailsParams } from '@/types/navigation';
 import { GenderType } from '@/types/schemas/common';
 import { UserProfileType, UserSchemaType } from '@/types/schemas/user';
@@ -108,8 +109,9 @@ const MyDetails = ({ navigation, route }: MenuStackNavigatorProps) => {
 	const MINIMUM_DATE = '1900-01-01';
 
 	const scrollViewStyle: StyleProp<ViewStyle> = {
-		padding: 20,
+		padding: memberTheme.spacing.lg,
 		marginBottom: isEmpty(emptyRequiredFields) ? 0 : 50,
+		backgroundColor: memberTheme.colors.background,
 	};
 	const GENDER_OPTION_LIST = [
 		{ value: 'Male', displayText: 'Male', icon: 'mars' },
@@ -494,10 +496,13 @@ const MyDetails = ({ navigation, route }: MenuStackNavigatorProps) => {
 
 	return isLoading ? (
 		<View style={styles.loaderContainer}>
-			<ActivityIndicator size="large" color={config.colors.brand} />
+			<ActivityIndicator
+				size="large"
+				color={memberTheme.colors.primary}
+			/>
 		</View>
 	) : (
-		<View>
+		<View style={styles.screen}>
 			{!isEmpty(emptyRequiredFields) && (
 				<View style={styles.bannerStyle}>
 					<Text size="xs" color="danger" center>
@@ -528,7 +533,7 @@ const MyDetails = ({ navigation, route }: MenuStackNavigatorProps) => {
 								{isUploading ? (
 									<ActivityIndicator
 										size={config.metrics.md}
-										color={config.colors.brand}
+										color={memberTheme.colors.primary}
 									/>
 								) : (
 									<Avatar
@@ -826,24 +831,26 @@ const MyDetails = ({ navigation, route }: MenuStackNavigatorProps) => {
 
 const styles = StyleSheet.create({
 	avatarStyle: {
-		borderWidth: 2,
-		borderColor: '#ABEDFF',
+		borderWidth: 3,
+		borderColor: memberTheme.colors.surfaceSoft,
+		...memberTheme.shadow,
 	},
 	inputStyle: {
-		borderColor: '#ABEDFF',
+		borderColor: memberTheme.colors.border,
 		borderWidth: 1,
 		fontSize: 16,
-		padding: config.metrics.rg,
-		paddingLeft: 10,
+		padding: memberTheme.spacing.md,
 		width: '100%',
-		marginBottom: 10,
-		borderRadius: 6,
+		marginBottom: memberTheme.spacing.md,
+		borderRadius: memberTheme.radius.sm,
 		flexDirection: 'row',
+		backgroundColor: memberTheme.colors.surface,
+		color: memberTheme.colors.text,
 	},
 	textLabelStyle: {
-		fontSize: 17,
-		color: config.fonts.colors.darkgray,
-		marginBottom: 2,
+		fontSize: config.fonts.metrics.md,
+		color: memberTheme.colors.textMuted,
+		marginBottom: memberTheme.spacing.xs,
 	},
 	profile: {
 		justifyContent: 'center',
@@ -851,7 +858,12 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	row: {
-		marginBottom: config.metrics.md,
+		marginBottom: memberTheme.spacing.lg,
+		padding: memberTheme.spacing.lg,
+		borderRadius: memberTheme.radius.lg,
+		backgroundColor: memberTheme.colors.surface,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: memberTheme.colors.border,
 	},
 	nameContainer: {
 		flex: 1.5,
@@ -864,14 +876,14 @@ const styles = StyleSheet.create({
 	textHeader: {
 		fontSize: config.fonts.metrics.lg,
 		fontWeight: 'bold',
-		color: config.fonts.colors.darkgray,
-		marginBottom: config.metrics.lg,
-		marginTop: 6,
+		color: memberTheme.colors.text,
+		marginBottom: memberTheme.spacing.lg,
+		marginTop: memberTheme.spacing.md,
 	},
 	textContact: {
-		fontSize: 17,
-		marginBottom: 3,
-		color: config.fonts.colors.darkgray,
+		fontSize: config.fonts.metrics.md,
+		marginBottom: memberTheme.spacing.xs,
+		color: memberTheme.colors.textMuted,
 	},
 	modalContainer: {
 		backgroundColor: 'rgba(0,0,0,0.3)',
@@ -893,7 +905,10 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 	},
 	card: {
-		marginHorizontal: 20,
+		marginHorizontal: memberTheme.spacing.lg,
+		marginBottom: memberTheme.spacing.sm,
+		borderRadius: memberTheme.radius.md,
+		backgroundColor: memberTheme.colors.surface,
 	},
 	genderCardText: {
 		fontFamily: 'Alata-Regular',
@@ -901,11 +916,12 @@ const styles = StyleSheet.create({
 	loaderContainer: {
 		flex: 1,
 		justifyContent: 'center',
+		backgroundColor: memberTheme.colors.background,
 	},
 	bannerStyle: {
-		backgroundColor: 'white',
+		backgroundColor: memberTheme.colors.surface,
 		paddingVertical: config.metrics.md,
-		borderColor: config.backgrounds.gray,
+		borderColor: memberTheme.colors.danger,
 		shadowColor: '#000',
 		shadowOffset: { width: 0, height: 1 },
 		shadowOpacity: 0.2,
@@ -913,6 +929,10 @@ const styles = StyleSheet.create({
 		elevation: 2,
 		alignContent: 'center',
 		borderWidth: 1,
+	},
+	screen: {
+		flex: 1,
+		backgroundColor: memberTheme.colors.background,
 	},
 });
 export default MyDetails;

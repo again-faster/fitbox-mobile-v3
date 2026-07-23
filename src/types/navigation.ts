@@ -1,3 +1,4 @@
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { ProgramContext } from '@/services/workoutStudio/types';
 import { ContactMembersType, MessageItemType } from './schemas/message';
@@ -43,7 +44,7 @@ export type ShopParams = {
 
 export type ApplicationStackParamList = {
 	Example: undefined;
-	Main: undefined;
+	Main: NavigatorScreenParams<MainTabParamList> | undefined;
 	Startup: undefined;
 	Auth: undefined;
 	Landing: undefined;
@@ -245,7 +246,7 @@ export type MainTabParamList = {
 	InboxStack: undefined;
 	Shop: undefined;
 	MenuTab: undefined;
-	TrainingStack: undefined;
+	TrainingStack: NavigatorScreenParams<TrainingStackParamList> | undefined;
 };
 export type MainTabScreenProps = StackScreenProps<
 	MainTabParamList & ApplicationStackParamList & MenuStackParamList
@@ -262,7 +263,9 @@ export type TrainingStackParamList = {
 			| 'PROVISION_FAILED';
 	};
 	TrainingToday: undefined;
+	TrainingDay: { date: string };
 	TrainingWorkouts: undefined;
+	TrainingBenchmarks: undefined;
 	TrainingWorkoutDetail: {
 		workoutId: string;
 		assignmentId?: string;
@@ -273,15 +276,28 @@ export type TrainingStackParamList = {
 		assignmentId?: string;
 		workoutName: string;
 	};
+	TrainingWorkoutComplete: {
+		workoutResultId: string;
+		workoutName: string;
+		durationSeconds: number;
+		completedSets: number;
+	};
 	TrainingResults: undefined;
+	TrainingResultDetail: { workoutResultId: string };
 	TrainingGymFeed: undefined;
 	TrainingWellness: undefined;
 	TrainingMaxes: undefined;
 	TrainingPRs: undefined;
+	TrainingProgress: undefined;
+	TrainingWeeklyRecap: undefined;
+	TrainingMore: undefined;
+	TrainingPT: { initialTab?: 'book' | 'mine' } | undefined;
 	TrainingCoachNotes: undefined;
 	TrainingNotifications: undefined;
 	TrainingSettings: undefined;
+	TrainingProfile: undefined;
 	TrainingAppleHealth: undefined;
+	TrainingWearables: undefined;
 	TrainingBuildList: undefined;
 	TrainingBuildEditor: { workoutId?: string };
 	TrainingBuildSchedule: { workoutId: string; workoutName: string };

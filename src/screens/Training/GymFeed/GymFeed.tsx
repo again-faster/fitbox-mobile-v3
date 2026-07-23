@@ -1,7 +1,7 @@
 ﻿import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import type { FeedItem } from '@/services/workoutStudio/types';
-import { useTheme } from '@/theme';
+import { trainingTheme } from '@/theme/training';
 import { useQuery } from '@tanstack/react-query';
 import moment from 'moment';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
@@ -10,7 +10,6 @@ import SkeletonCard from '../components/SkeletonCard';
 const REACTIONS = ['💪', '🔥', '🎉', '👏', '❤️'];
 
 const GymFeed = () => {
-	const { colors } = useTheme();
 	const session = getStoredWSSession();
 	const tenantId = session?.user.active_tenant_id;
 
@@ -35,7 +34,7 @@ const GymFeed = () => {
 
 	return (
 		<FlatList
-			style={{ backgroundColor: '#F9FAFB' }}
+			style={styles.screen}
 			contentContainerStyle={styles.container}
 			data={data}
 			keyExtractor={item => item.id}
@@ -45,7 +44,7 @@ const GymFeed = () => {
 					onRefresh={() => {
 						void refetch();
 					}}
-					tintColor={colors.brand}
+					tintColor={trainingTheme.colors.primary}
 				/>
 			}
 			ListEmptyComponent={
@@ -56,19 +55,22 @@ const GymFeed = () => {
 					</View>
 				) : (
 					<View style={styles.empty}>
-						<Text style={[styles.emptyText, { color: '#6B7280' }]}>
+						<Text style={styles.emptyText}>
 							No activity in the last 14 days
 						</Text>
 					</View>
 				)
 			}
 			renderItem={({ item }) => (
-				<View style={[styles.card, { backgroundColor: '#FFFFFF' }]}>
+				<View style={styles.card}>
 					<View style={styles.header}>
 						<View
 							style={[
 								styles.avatar,
-								{ backgroundColor: colors.brand },
+								{
+									backgroundColor:
+										trainingTheme.colors.primary,
+								},
 							]}
 						>
 							<Text style={styles.avatarText}>
@@ -78,17 +80,17 @@ const GymFeed = () => {
 							</Text>
 						</View>
 						<View>
-							<Text style={[styles.name, { color: '#111827' }]}>
+							<Text style={styles.name}>
 								{item.profile?.full_name ?? 'Athlete'}
 							</Text>
-							<Text style={[styles.time, { color: '#6B7280' }]}>
+							<Text style={styles.time}>
 								{moment(item.completed_at).format(
 									'MMM D [·] h:mm A',
 								)}
 							</Text>
 						</View>
 					</View>
-					<Text style={[styles.workoutName, { color: '#111827' }]}>
+					<Text style={styles.workoutName}>
 						Completed {item.workouts.name}
 					</Text>
 					<View style={styles.reactions}>
@@ -105,8 +107,17 @@ const GymFeed = () => {
 };
 
 const styles = StyleSheet.create({
+	screen: { backgroundColor: trainingTheme.colors.background },
 	container: { padding: 16, paddingBottom: 40 },
-	card: { borderRadius: 12, padding: 14, marginBottom: 10, gap: 10 },
+	card: {
+		backgroundColor: trainingTheme.colors.surface,
+		borderColor: trainingTheme.colors.border,
+		borderWidth: 1,
+		borderRadius: 18,
+		padding: 16,
+		marginBottom: 12,
+		gap: 12,
+	},
 	header: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 	avatar: {
 		width: 36,
@@ -116,13 +127,17 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	avatarText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-	name: { fontSize: 14, fontWeight: '600' },
-	time: { fontSize: 12 },
-	workoutName: { fontSize: 15, fontWeight: '500' },
+	name: { color: trainingTheme.colors.text, fontSize: 14, fontWeight: '700' },
+	time: { color: trainingTheme.colors.textMuted, fontSize: 12 },
+	workoutName: {
+		color: trainingTheme.colors.text,
+		fontSize: 15,
+		fontWeight: '600',
+	},
 	reactions: { flexDirection: 'row', gap: 8 },
 	reactionEmoji: { fontSize: 22 },
 	empty: { alignItems: 'center', padding: 40 },
-	emptyText: { fontSize: 15 },
+	emptyText: { color: trainingTheme.colors.textMuted, fontSize: 15 },
 });
 
 export default GymFeed;

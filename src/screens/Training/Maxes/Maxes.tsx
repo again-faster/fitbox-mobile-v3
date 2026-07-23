@@ -1,20 +1,22 @@
 ﻿import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import type { AthleteRM } from '@/services/workoutStudio/types';
-import { useTheme } from '@/theme';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
+	Alert,
 	RefreshControl,
 	SectionList,
 	StyleSheet,
 	Text,
+	TouchableOpacity,
 	View,
 } from 'react-native';
+import { trainingTheme } from '@/theme/training';
 import SkeletonCard from '../components/SkeletonCard';
 
 const Maxes = () => {
-	const { colors } = useTheme();
 	const session = getStoredWSSession();
 	const uid = session?.user.id;
 
@@ -49,9 +51,36 @@ const Maxes = () => {
 		}));
 	}, [data]);
 
+	const confirmDelete = (item: AthleteRM) => {
+		Alert.alert(
+			'Delete this max?',
+			`${item.rep_max}RM at ${item.weight_kg} kg will be permanently removed.`,
+			[
+				{ text: 'Cancel', style: 'cancel' },
+				{
+					text: 'Delete',
+					style: 'destructive',
+					onPress: () => {
+						void wsApi()
+							.delete('athlete_rms', {
+								searchParams: { id: `eq.${item.id}` },
+							})
+							.then(() => refetch())
+							.catch(() => {
+								Alert.alert(
+									"Max couldn't be deleted",
+									'Check your connection and try again.',
+								);
+							});
+					},
+				},
+			],
+		);
+	};
+
 	return (
 		<SectionList
-			style={{ backgroundColor: '#F9FAFB' }}
+			style={styles.screen}
 			contentContainerStyle={styles.container}
 			sections={sections}
 			keyExtractor={item => item.id}
@@ -61,7 +90,7 @@ const Maxes = () => {
 					onRefresh={() => {
 						void refetch();
 					}}
-					tintColor={colors.brand}
+					tintColor={trainingTheme.colors.primary}
 				/>
 			}
 			ListEmptyComponent={
@@ -72,29 +101,33 @@ const Maxes = () => {
 					</View>
 				) : (
 					<View style={styles.empty}>
-						<Text style={[styles.emptyText, { color: '#6B7280' }]}>
+						<Text style={styles.emptyText}>
 							No maxes recorded yet
 						</Text>
 					</View>
 				)
 			}
 			renderSectionHeader={({ section }) => (
-				<Text style={[styles.sectionHeader, { color: '#111827' }]}>
-					{section.title}
-				</Text>
+				<Text style={styles.sectionHeader}>{section.title}</Text>
 			)}
 			renderItem={({ item }) => (
-				<View style={[styles.card, { backgroundColor: '#FFFFFF' }]}>
+				<View style={styles.card}>
 					<View style={styles.row}>
-						<Text style={[styles.rmLabel, { color: '#6B7280' }]}>
-							{item.rep_max}RM
-						</Text>
-						<Text style={[styles.weight, { color: '#3B82F6' }]}>
-							{item.weight_kg} kg
-						</Text>
-						<Text style={[styles.date, { color: '#6B7280' }]}>
-							{item.achieved_on}
-						</Text>
+						<Text style={styles.rmLabel}>{item.rep_max}RM</Text>
+						<Text style={styles.weight}>{item.weight_kg} kg</Text>
+						<Text style={styles.date}>{item.achieved_on}</Text>
+						<TouchableOpacity
+							accessibilityRole="button"
+							accessibilityLabel={`Delete ${item.rep_max} rep max at ${item.weight_kg} kilograms`}
+							onPress={() => confirmDelete(item)}
+							style={styles.deleteButton}
+						>
+							<Ionicons
+								name="trash-can-outline"
+								size={20}
+								color={trainingTheme.colors.danger}
+							/>
+						</TouchableOpacity>
 					</View>
 				</View>
 			)}
@@ -103,20 +136,47 @@ const Maxes = () => {
 };
 
 const styles = StyleSheet.create({
+	screen: { backgroundColor: trainingTheme.colors.background },
 	container: { padding: 16, paddingBottom: 40 },
 	sectionHeader: {
 		fontSize: 16,
 		fontWeight: '700',
 		marginTop: 16,
 		marginBottom: 6,
+		color: trainingTheme.colors.text,
 	},
-	card: { borderRadius: 10, padding: 12, marginBottom: 8 },
+	card: {
+		backgroundColor: trainingTheme.colors.surface,
+		borderColor: trainingTheme.colors.border,
+		borderWidth: 1,
+		borderRadius: 16,
+		padding: 14,
+		marginBottom: 8,
+	},
 	row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-	rmLabel: { width: 36, fontSize: 14, fontWeight: '600' },
-	weight: { fontSize: 16, fontWeight: '700', flex: 1 },
-	date: { fontSize: 12 },
+	rmLabel: {
+		color: trainingTheme.colors.textMuted,
+		width: 36,
+		fontSize: 14,
+		fontWeight: '600',
+	},
+	weight: {
+		color: trainingTheme.colors.primary,
+		fontSize: 16,
+		fontWeight: '700',
+		flex: 1,
+	},
+	date: { color: trainingTheme.colors.textMuted, fontSize: 12 },
+	deleteButton: {
+		width: 44,
+		height: 44,
+		alignItems: 'center',
+		justifyContent: 'center',
+		marginVertical: -10,
+		marginRight: -8,
+	},
 	empty: { alignItems: 'center', padding: 40 },
-	emptyText: { fontSize: 15 },
+	emptyText: { color: trainingTheme.colors.textMuted, fontSize: 15 },
 });
 
 export default Maxes;

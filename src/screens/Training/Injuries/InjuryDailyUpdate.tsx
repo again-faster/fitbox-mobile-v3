@@ -1,6 +1,8 @@
 import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
+import { trainingTheme } from '@/theme/training';
 import type { TrainingStackScreenProps } from '@/types/navigation';
+import Slider from '@ptomasroos/react-native-multi-slider';
 import { useQueryClient } from '@tanstack/react-query';
 import { HTTPError } from 'ky';
 import moment from 'moment';
@@ -15,9 +17,18 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
-import Slider from '@ptomasroos/react-native-multi-slider';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type Props = TrainingStackScreenProps<'TrainingInjuryDailyUpdate'>;
+
+const getRecoveryLabel = (value: number) => {
+	if (value <= 25) return 'Early recovery';
+	if (value <= 50) return 'Making progress';
+	if (value <= 75) return 'Feeling stronger';
+	if (value < 100) return 'Nearly there';
+	return 'Fully recovered';
+};
 
 const InjuryDailyUpdate = ({ navigation, route }: Props) => {
 	const { injuryId, injuryBodyArea } = route.params;
@@ -32,7 +43,6 @@ const InjuryDailyUpdate = ({ navigation, route }: Props) => {
 	const [submitting, setSubmitting] = useState(false);
 	const [toastVisible, setToastVisible] = useState(false);
 	const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
 	const recordedFor = moment().format('YYYY-MM-DD');
 
 	const showToast = () => {
@@ -59,9 +69,9 @@ const InjuryDailyUpdate = ({ navigation, route }: Props) => {
 			void qc.invalidateQueries({ queryKey: ['ws-injuries'] });
 			showToast();
 			setTimeout(() => navigation.goBack(), 2500);
-		} catch (e) {
-			if (e instanceof HTTPError) {
-				const body = await e.response
+		} catch (error) {
+			if (error instanceof HTTPError) {
+				const body = await error.response
 					.json<{ code?: string; message?: string }>()
 					.catch(() => null);
 				// eslint-disable-next-line no-console
@@ -105,9 +115,9 @@ const InjuryDailyUpdate = ({ navigation, route }: Props) => {
 					onPress: () => void executePatch(existingId),
 				},
 			]);
-		} catch (e) {
-			if (e instanceof HTTPError) {
-				const body = await e.response
+		} catch (error) {
+			if (error instanceof HTTPError) {
+				const body = await error.response
 					.json<{ code?: string; message?: string }>()
 					.catch(() => null);
 				// eslint-disable-next-line no-console
@@ -138,11 +148,11 @@ const InjuryDailyUpdate = ({ navigation, route }: Props) => {
 			void qc.invalidateQueries({ queryKey: ['ws-injuries'] });
 			showToast();
 			setTimeout(() => navigation.goBack(), 2500);
-		} catch (e) {
+		} catch (error) {
 			let code: string | undefined;
 			let message: string | undefined;
-			if (e instanceof HTTPError) {
-				const body = await e.response
+			if (error instanceof HTTPError) {
+				const body = await error.response
 					.json<{ code?: string; message?: string }>()
 					.catch(() => null);
 				code = body?.code;
@@ -165,163 +175,420 @@ const InjuryDailyUpdate = ({ navigation, route }: Props) => {
 	};
 
 	return (
-		<View style={styles.outer}>
+		<SafeAreaView style={styles.screen} edges={['top']}>
+			<View style={styles.header}>
+				<TouchableOpacity
+					accessibilityRole="button"
+					accessibilityLabel="Go back"
+					style={styles.backButton}
+					onPress={() => navigation.goBack()}
+				>
+					<Ionicons
+						name="arrow-left"
+						size={24}
+						color={trainingTheme.colors.text}
+					/>
+				</TouchableOpacity>
+				<View style={styles.headerCopy}>
+					<Text style={styles.headerTitle}>Recovery update</Text>
+					<Text style={styles.headerSubtitle}>
+						{moment(recordedFor).format('dddd, D MMMM')}
+					</Text>
+				</View>
+			</View>
+
 			<ScrollView
 				style={styles.scroll}
-				contentContainerStyle={styles.container}
+				contentContainerStyle={styles.content}
 				keyboardShouldPersistTaps="handled"
+				showsVerticalScrollIndicator={false}
 			>
-				<Text style={styles.heading}>{injuryBodyArea}</Text>
-
-				<Text style={styles.label}>Recovery today</Text>
-				<View style={styles.sliderWrap}>
-					<Text style={styles.sliderValue}>{recoveryPct}%</Text>
-					<Slider
-						values={[recoveryPct]}
-						min={0}
-						max={100}
-						step={5}
-						sliderLength={240}
-						onValuesChange={([v]) =>
-							setRecoveryPct(v ?? recoveryPct)
-						}
-						selectedStyle={{ backgroundColor: '#3B82F6' }}
-						unselectedStyle={{ backgroundColor: '#D1D5DB' }}
-						markerStyle={{
-							backgroundColor: '#3B82F6',
-							borderColor: '#fff',
-							borderWidth: 2,
-						}}
-					/>
+				<View style={styles.injuryCard}>
+					<View style={styles.injuryIcon}>
+						<Ionicons
+							name="bandage"
+							size={27}
+							color={trainingTheme.colors.primary}
+						/>
+					</View>
+					<View style={styles.injuryCopy}>
+						<Text style={styles.injuryEyebrow}>
+							TODAY&apos;S CHECK-IN
+						</Text>
+						<Text style={styles.injuryTitle}>{injuryBodyArea}</Text>
+						<Text style={styles.injuryBody}>
+							A quick update helps keep your training appropriate.
+						</Text>
+					</View>
 				</View>
 
-				<Text style={styles.label}>Notes (optional)</Text>
-				<TextInput
-					style={[styles.input, styles.inputMultiline]}
-					value={note}
-					onChangeText={setNote}
-					placeholder="How does it feel today?"
-					placeholderTextColor="#9CA3AF"
-					multiline
-					numberOfLines={3}
-				/>
+				<View style={styles.recoveryCard}>
+					<View style={styles.recoveryHeading}>
+						<View>
+							<Text style={styles.fieldLabel}>
+								How recovered do you feel?
+							</Text>
+							<Text style={styles.recoveryStatus}>
+								{getRecoveryLabel(recoveryPct)}
+							</Text>
+						</View>
+						<View style={styles.percentBadge}>
+							<Text style={styles.percentValue}>
+								{recoveryPct}%
+							</Text>
+						</View>
+					</View>
+					<View
+						accessible
+						accessibilityRole="adjustable"
+						accessibilityLabel="Recovery percentage"
+						accessibilityValue={{
+							min: 0,
+							max: 100,
+							now: recoveryPct,
+							text: `${recoveryPct} percent`,
+						}}
+						style={styles.sliderWrap}
+					>
+						<Slider
+							values={[recoveryPct]}
+							min={0}
+							max={100}
+							step={5}
+							sliderLength={250}
+							onValuesChange={([value]) =>
+								setRecoveryPct(value ?? recoveryPct)
+							}
+							selectedStyle={styles.sliderSelected}
+							unselectedStyle={styles.sliderUnselected}
+							markerStyle={styles.sliderMarker}
+						/>
+					</View>
+					<View style={styles.sliderLabels}>
+						<Text style={styles.sliderLabel}>Needs rest</Text>
+						<Text style={styles.sliderLabel}>Fully recovered</Text>
+					</View>
+				</View>
 
-				<View style={styles.switchRow}>
-					<Text style={styles.switchLabel}>
-						Ask a coach to check in with me about this.
-					</Text>
+				<View style={styles.notesCard}>
+					<View style={styles.labelRow}>
+						<Text style={styles.fieldLabel}>
+							How does it feel today?
+						</Text>
+						<Text style={styles.optional}>Optional</Text>
+					</View>
+					<TextInput
+						accessibilityLabel="Recovery notes"
+						style={styles.notesInput}
+						value={note}
+						onChangeText={setNote}
+						placeholder="For example: less stiff, still sore overhead…"
+						placeholderTextColor={trainingTheme.colors.textMuted}
+						multiline
+						maxLength={500}
+						numberOfLines={4}
+					/>
+					<Text style={styles.characterCount}>{note.length}/500</Text>
+				</View>
+
+				<View style={styles.coachCard}>
+					<View style={styles.coachIcon}>
+						<Ionicons
+							name="account-voice"
+							size={24}
+							color={trainingTheme.colors.primary}
+						/>
+					</View>
+					<View style={styles.coachCopy}>
+						<Text style={styles.coachTitle}>
+							Ask a coach to check in
+						</Text>
+						<Text style={styles.coachBody}>
+							Flag that you would like support with this injury.
+						</Text>
+					</View>
 					<Switch
+						accessibilityLabel="Ask a coach to check in"
 						value={requestCoachContact}
 						onValueChange={setRequestCoachContact}
-						trackColor={{ true: '#3B82F6', false: '#D1D5DB' }}
+						trackColor={{
+							true: trainingTheme.colors.primary,
+							false: trainingTheme.colors.border,
+						}}
+						thumbColor={trainingTheme.colors.surface}
 					/>
 				</View>
 
 				<TouchableOpacity
+					accessibilityRole="button"
+					accessibilityState={{ disabled: submitting }}
 					style={[
-						styles.submitBtn,
-						submitting && styles.submitBtnDisabled,
+						styles.submitButton,
+						submitting && styles.submitButtonDisabled,
 					]}
 					onPress={() => void handleSubmit()}
 					disabled={submitting}
 				>
-					<Text style={styles.submitBtnText}>
-						{submitting ? 'Logging…' : 'Log update'}
+					<Ionicons name="check" size={21} color="#FFFFFF" />
+					<Text style={styles.submitText}>
+						{submitting ? 'Saving…' : 'Save today’s update'}
 					</Text>
 				</TouchableOpacity>
 			</ScrollView>
 
-			{toastVisible ? (
+			{toastVisible && (
 				<View style={styles.toast}>
+					<Ionicons
+						name="check-circle"
+						size={22}
+						color={trainingTheme.colors.success}
+					/>
 					<Text style={styles.toastText}>Update logged.</Text>
 				</View>
-			) : null}
-		</View>
+			)}
+		</SafeAreaView>
 	);
 };
 
 const styles = StyleSheet.create({
-	outer: { flex: 1, backgroundColor: '#F9FAFB' },
-	scroll: { flex: 1 },
-	container: { padding: 16, paddingBottom: 40, gap: 12 },
-	heading: {
-		fontSize: 20,
-		fontWeight: '700',
-		color: '#111827',
-		marginBottom: 4,
-	},
-	label: {
-		fontSize: 14,
-		fontWeight: '600',
-		color: '#374151',
-		marginTop: 4,
-	},
-	sliderWrap: {
+	screen: { flex: 1, backgroundColor: trainingTheme.colors.background },
+	header: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		gap: 16,
-		backgroundColor: '#FFFFFF',
-		borderRadius: 10,
-		padding: 14,
+		paddingHorizontal: trainingTheme.spacing.lg,
+		paddingTop: trainingTheme.spacing.md,
+		paddingBottom: trainingTheme.spacing.lg,
+		gap: trainingTheme.spacing.md,
 	},
-	sliderValue: {
-		fontSize: 22,
-		fontWeight: '700',
-		color: '#3B82F6',
-		width: 52,
-	},
-	input: {
-		backgroundColor: '#FFFFFF',
-		borderRadius: 10,
-		padding: 12,
-		fontSize: 15,
-		color: '#111827',
+	backButton: {
+		width: trainingTheme.touchTarget,
+		height: trainingTheme.touchTarget,
+		borderRadius: trainingTheme.radius.pill,
+		backgroundColor: trainingTheme.colors.surface,
 		borderWidth: 1,
-		borderColor: '#E5E7EB',
+		borderColor: trainingTheme.colors.border,
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
-	inputMultiline: { minHeight: 80, textAlignVertical: 'top' },
-	switchRow: {
+	headerCopy: { flex: 1 },
+	headerTitle: {
+		fontSize: 28,
+		lineHeight: 34,
+		fontWeight: '800',
+		color: trainingTheme.colors.text,
+	},
+	headerSubtitle: {
+		fontSize: 14,
+		lineHeight: 20,
+		color: trainingTheme.colors.textMuted,
+		marginTop: 2,
+	},
+	scroll: { flex: 1 },
+	content: {
+		paddingHorizontal: trainingTheme.spacing.lg,
+		paddingBottom: trainingTheme.spacing.xxl,
+		gap: trainingTheme.spacing.lg,
+	},
+	injuryCard: {
+		backgroundColor: trainingTheme.colors.primarySoft,
+		borderRadius: trainingTheme.radius.lg,
+		padding: trainingTheme.spacing.lg,
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: trainingTheme.spacing.md,
+	},
+	injuryIcon: {
+		width: 54,
+		height: 54,
+		borderRadius: trainingTheme.radius.md,
+		backgroundColor: trainingTheme.colors.surface,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	injuryCopy: { flex: 1 },
+	injuryEyebrow: {
+		fontSize: 11,
+		lineHeight: 15,
+		fontWeight: '800',
+		letterSpacing: 0.9,
+		color: trainingTheme.colors.primary,
+	},
+	injuryTitle: {
+		fontSize: 19,
+		lineHeight: 25,
+		fontWeight: '800',
+		color: trainingTheme.colors.text,
+		marginTop: 2,
+	},
+	injuryBody: {
+		fontSize: 12,
+		lineHeight: 17,
+		color: trainingTheme.colors.textMuted,
+		marginTop: 2,
+	},
+	recoveryCard: {
+		backgroundColor: trainingTheme.colors.surface,
+		borderRadius: trainingTheme.radius.lg,
+		padding: trainingTheme.spacing.lg,
+		...trainingTheme.shadow,
+	},
+	recoveryHeading: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'space-between',
-		backgroundColor: '#FFFFFF',
-		borderRadius: 10,
-		padding: 14,
-		gap: 12,
+		gap: trainingTheme.spacing.md,
 	},
-	switchLabel: {
-		flex: 1,
-		fontSize: 14,
-		color: '#374151',
+	fieldLabel: {
+		fontSize: 15,
 		lineHeight: 20,
+		fontWeight: '800',
+		color: trainingTheme.colors.text,
 	},
-	submitBtn: {
-		backgroundColor: '#3B82F6',
-		borderRadius: 12,
-		padding: 16,
+	recoveryStatus: {
+		fontSize: 13,
+		lineHeight: 18,
+		color: trainingTheme.colors.primary,
+		fontWeight: '700',
+		marginTop: 3,
+	},
+	percentBadge: {
+		minWidth: 70,
+		height: 48,
+		borderRadius: trainingTheme.radius.md,
+		backgroundColor: trainingTheme.colors.primarySoft,
 		alignItems: 'center',
-		marginTop: 8,
+		justifyContent: 'center',
+		paddingHorizontal: trainingTheme.spacing.sm,
 	},
-	submitBtnDisabled: { backgroundColor: '#9CA3AF' },
-	submitBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+	percentValue: {
+		fontSize: 21,
+		lineHeight: 27,
+		fontWeight: '800',
+		color: trainingTheme.colors.primary,
+	},
+	sliderWrap: {
+		alignItems: 'center',
+		marginTop: trainingTheme.spacing.xl,
+		minHeight: 48,
+		justifyContent: 'center',
+	},
+	sliderSelected: { backgroundColor: trainingTheme.colors.primary },
+	sliderUnselected: { backgroundColor: trainingTheme.colors.border },
+	sliderMarker: {
+		width: 28,
+		height: 28,
+		borderRadius: trainingTheme.radius.pill,
+		backgroundColor: trainingTheme.colors.primary,
+		borderColor: trainingTheme.colors.surface,
+		borderWidth: 4,
+		...trainingTheme.shadow,
+	},
+	sliderLabels: {
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		marginTop: trainingTheme.spacing.sm,
+	},
+	sliderLabel: {
+		fontSize: 11,
+		lineHeight: 15,
+		color: trainingTheme.colors.textMuted,
+	},
+	notesCard: {
+		backgroundColor: trainingTheme.colors.surface,
+		borderRadius: trainingTheme.radius.lg,
+		padding: trainingTheme.spacing.lg,
+		...trainingTheme.shadow,
+	},
+	labelRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		marginBottom: trainingTheme.spacing.md,
+	},
+	optional: {
+		fontSize: 12,
+		lineHeight: 17,
+		color: trainingTheme.colors.textMuted,
+	},
+	notesInput: {
+		minHeight: 104,
+		borderRadius: trainingTheme.radius.md,
+		borderWidth: 1,
+		borderColor: trainingTheme.colors.border,
+		backgroundColor: trainingTheme.colors.background,
+		padding: trainingTheme.spacing.md,
+		fontSize: 15,
+		lineHeight: 21,
+		color: trainingTheme.colors.text,
+		textAlignVertical: 'top',
+	},
+	characterCount: {
+		fontSize: 11,
+		color: trainingTheme.colors.textMuted,
+		textAlign: 'right',
+		marginTop: trainingTheme.spacing.sm,
+	},
+	coachCard: {
+		backgroundColor: trainingTheme.colors.surface,
+		borderRadius: trainingTheme.radius.lg,
+		padding: trainingTheme.spacing.lg,
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: trainingTheme.spacing.md,
+		...trainingTheme.shadow,
+	},
+	coachIcon: {
+		width: 46,
+		height: 46,
+		borderRadius: trainingTheme.radius.md,
+		backgroundColor: trainingTheme.colors.primarySoft,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	coachCopy: { flex: 1 },
+	coachTitle: {
+		fontSize: 15,
+		lineHeight: 20,
+		fontWeight: '800',
+		color: trainingTheme.colors.text,
+	},
+	coachBody: {
+		fontSize: 12,
+		lineHeight: 17,
+		color: trainingTheme.colors.textMuted,
+		marginTop: 2,
+	},
+	submitButton: {
+		minHeight: 56,
+		borderRadius: trainingTheme.radius.md,
+		backgroundColor: trainingTheme.colors.primary,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		gap: trainingTheme.spacing.sm,
+	},
+	submitButtonDisabled: { opacity: 0.55 },
+	submitText: { fontSize: 16, fontWeight: '800', color: '#FFFFFF' },
 	toast: {
 		position: 'absolute',
-		left: 16,
-		right: 16,
-		bottom: 24,
-		backgroundColor: '#FFFFFF',
-		borderRadius: 6,
-		padding: 16,
-		borderLeftWidth: 4,
-		borderLeftColor: '#3B82F6',
+		left: trainingTheme.spacing.lg,
+		right: trainingTheme.spacing.lg,
+		bottom: trainingTheme.spacing.xl,
+		minHeight: 58,
+		backgroundColor: trainingTheme.colors.surface,
+		borderRadius: trainingTheme.radius.md,
+		paddingHorizontal: trainingTheme.spacing.lg,
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: trainingTheme.spacing.sm,
 		zIndex: 200,
-		shadowColor: '#000',
-		shadowOpacity: 0.15,
-		shadowRadius: 8,
-		shadowOffset: { width: 0, height: 2 },
-		elevation: 4,
+		...trainingTheme.shadow,
 	},
-	toastText: { fontSize: 14, fontWeight: '600', color: '#111827' },
+	toastText: {
+		fontSize: 14,
+		fontWeight: '700',
+		color: trainingTheme.colors.text,
+	},
 });
 
 export default InjuryDailyUpdate;

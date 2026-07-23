@@ -1,5 +1,6 @@
 import { useMovementDetail } from '@/screens/Training/hooks/useMovementDetail';
 import { wsApi } from '@/services/workoutStudio/api';
+import { trainingTheme } from '@/theme/training';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import {
@@ -44,12 +45,12 @@ export const MovementSheet = ({
 		try {
 			await wsApi().post('athlete_rms', {
 				json: {
-					user_id: uid,
+					athlete_id: uid,
 					movement_id: movementId,
 					rep_max: selectedRep,
 					weight_kg: parseFloat(weightInput),
 					achieved_on: new Date().toISOString().slice(0, 10),
-					source: 'mobile',
+					source: 'manual',
 				},
 				headers: { Prefer: 'return=minimal' },
 			});
@@ -72,6 +73,7 @@ export const MovementSheet = ({
 			presentationStyle="pageSheet"
 			visible={!!movementId}
 			onRequestClose={onClose}
+			statusBarTranslucent={false}
 		>
 			<ScrollView
 				contentContainerStyle={styles.container}
@@ -82,13 +84,18 @@ export const MovementSheet = ({
 					<TouchableOpacity
 						onPress={onClose}
 						hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+						accessibilityRole="button"
+						accessibilityLabel="Close movement details"
 					>
 						<Text style={styles.closeBtn}>×</Text>
 					</TouchableOpacity>
 				</View>
 
 				{isLoading ? (
-					<ActivityIndicator color="#3B82F6" style={styles.loader} />
+					<ActivityIndicator
+						color={trainingTheme.colors.primary}
+						style={styles.loader}
+					/>
 				) : null}
 
 				{detail?.description ? (
@@ -136,6 +143,9 @@ export const MovementSheet = ({
 									isActive && styles.segmentBtnActive,
 								]}
 								onPress={() => setSelectedRep(n)}
+								accessibilityRole="button"
+								accessibilityState={{ selected: isActive }}
+								accessibilityLabel={`${n} rep max`}
 							>
 								<Text
 									style={[
@@ -154,7 +164,7 @@ export const MovementSheet = ({
 					style={styles.weightInput}
 					keyboardType="decimal-pad"
 					placeholder="kg"
-					placeholderTextColor="#9CA3AF"
+					placeholderTextColor={trainingTheme.colors.textMuted}
 					value={weightInput}
 					onChangeText={setWeightInput}
 				/>
@@ -184,7 +194,12 @@ export const MovementSheet = ({
 };
 
 const styles = StyleSheet.create({
-	container: { padding: 20, paddingBottom: 40 },
+	container: {
+		padding: trainingTheme.spacing.xl,
+		paddingBottom: 40,
+		backgroundColor: trainingTheme.colors.background,
+		flexGrow: 1,
+	},
 	header: {
 		flexDirection: 'row',
 		alignItems: 'center',
@@ -194,33 +209,33 @@ const styles = StyleSheet.create({
 		flex: 1,
 		fontSize: 18,
 		fontWeight: '700',
-		color: '#111827',
+		color: trainingTheme.colors.text,
 	},
 	closeBtn: {
 		fontSize: 24,
-		color: '#6B7280',
+		color: trainingTheme.colors.textMuted,
 		lineHeight: 28,
 	},
 	loader: { marginVertical: 16 },
 	description: {
 		fontSize: 14,
-		color: '#6B7280',
+		color: trainingTheme.colors.textMuted,
 		marginBottom: 12,
 		lineHeight: 20,
 	},
 	videoLink: {
 		fontSize: 14,
-		color: '#3B82F6',
+		color: trainingTheme.colors.primary,
 		marginBottom: 12,
 	},
 	divider: {
 		height: 1,
-		backgroundColor: '#E5E7EB',
+		backgroundColor: trainingTheme.colors.border,
 		marginVertical: 12,
 	},
 	sectionLabel: {
 		fontSize: 13,
-		color: '#6B7280',
+		color: trainingTheme.colors.textMuted,
 		fontWeight: '500',
 		marginBottom: 8,
 	},
@@ -233,15 +248,15 @@ const styles = StyleSheet.create({
 	rmWeight: {
 		fontSize: 22,
 		fontWeight: '700',
-		color: '#3B82F6',
+		color: trainingTheme.colors.primary,
 	},
 	rmDate: {
 		fontSize: 13,
-		color: '#6B7280',
+		color: trainingTheme.colors.textMuted,
 	},
 	noRecord: {
 		fontSize: 14,
-		color: '#6B7280',
+		color: trainingTheme.colors.textMuted,
 		marginBottom: 4,
 	},
 	segmentRow: {
@@ -252,36 +267,37 @@ const styles = StyleSheet.create({
 	segmentBtn: {
 		flex: 1,
 		borderWidth: 1,
-		borderColor: '#D1D5DB',
-		borderRadius: 8,
+		borderColor: trainingTheme.colors.border,
+		borderRadius: trainingTheme.radius.sm,
 		paddingVertical: 10,
 		alignItems: 'center',
 	},
 	segmentBtnActive: {
-		backgroundColor: '#3B82F6',
-		borderColor: '#3B82F6',
+		backgroundColor: trainingTheme.colors.primary,
+		borderColor: trainingTheme.colors.primary,
 	},
 	segmentText: {
 		fontSize: 14,
 		fontWeight: '500',
-		color: '#374151',
+		color: trainingTheme.colors.text,
 	},
 	segmentTextActive: {
-		color: '#FFFFFF',
+		color: trainingTheme.colors.surface,
 	},
 	weightInput: {
 		borderWidth: 1,
-		borderColor: '#D1D5DB',
-		borderRadius: 8,
+		borderColor: trainingTheme.colors.border,
+		borderRadius: trainingTheme.radius.sm,
 		paddingHorizontal: 12,
 		paddingVertical: 10,
 		fontSize: 16,
-		color: '#111827',
+		color: trainingTheme.colors.text,
+		backgroundColor: trainingTheme.colors.surface,
 		marginBottom: 12,
 	},
 	saveBtn: {
-		backgroundColor: '#3B82F6',
-		borderRadius: 8,
+		backgroundColor: trainingTheme.colors.primary,
+		borderRadius: trainingTheme.radius.sm,
 		paddingVertical: 12,
 		alignItems: 'center',
 		marginBottom: 8,
@@ -290,18 +306,18 @@ const styles = StyleSheet.create({
 		opacity: 0.5,
 	},
 	saveBtnText: {
-		color: '#FFFFFF',
+		color: trainingTheme.colors.surface,
 		fontSize: 15,
 		fontWeight: '600',
 	},
 	savedText: {
-		color: '#10B981',
+		color: trainingTheme.colors.success,
 		fontSize: 14,
 		textAlign: 'center',
 		marginTop: 4,
 	},
 	errorText: {
-		color: '#DC2626',
+		color: trainingTheme.colors.danger,
 		fontSize: 14,
 		textAlign: 'center',
 		marginTop: 4,

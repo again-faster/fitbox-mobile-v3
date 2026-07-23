@@ -12,6 +12,7 @@ import { getSubscriptionInfo } from '@/services/subscription';
 import { config } from '@/theme/_config';
 import stripeLogo from '@/theme/assets/images/stripe-logo.png';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import {
 	ApplicationScreenProps,
 	MenuStackNavigatorProps,
@@ -300,9 +301,9 @@ const PaymentInformation = ({
 		}
 
 		return state?.hasPaymentMethod ? (
-			<>
-				<Text size="md" bold center>
-					Your Current Payment Details:
+			<View style={styles.detailsCard}>
+				<Text size="md" bold style={styles.detailsTitle}>
+					Current payment method
 				</Text>
 				<Spacer size="lg" />
 				<Row spacing="space-between">
@@ -314,11 +315,16 @@ const PaymentInformation = ({
 					<Text size="md">Last 4 digits:</Text>
 					<Text size="md">{state.lastDigits}</Text>
 				</Row>
-			</>
+			</View>
 		) : (
-			<Text size="md" bold center color="darkgray">
-				You havent setup any payments yet
-			</Text>
+			<View style={styles.emptyCard}>
+				<Text size="md" bold center style={styles.detailsTitle}>
+					No payment method yet
+				</Text>
+				<Text center style={styles.emptyText}>
+					Add a secure payment method for memberships and bookings.
+				</Text>
+			</View>
 		);
 	}, [
 		state?.hasPaymentMethod,
@@ -340,7 +346,15 @@ const PaymentInformation = ({
 			<ActivityIndicator size="large" color={config.colors.brand} />
 		</View>
 	) : (
-		<View style={{ ...layout.flex_1, padding: config.metrics.xl }}>
+		<View style={styles.container}>
+			<View style={styles.headerCard}>
+				<Text bold style={styles.headerTitle}>
+					Payment details
+				</Text>
+				<Text style={styles.headerText}>
+					Your payment information is securely handled by Stripe.
+				</Text>
+			</View>
 			<Image
 				style={styles.logo}
 				source={stripeLogo as ImageSourcePropType}
@@ -374,14 +388,51 @@ const PaymentInformation = ({
 const styles = StyleSheet.create({
 	logo: {
 		width: '100%',
-		height: 50,
+		height: 42,
+		marginVertical: memberTheme.spacing.lg,
+	},
+	container: {
+		...layout.flex_1,
+		backgroundColor: memberTheme.colors.background,
+		padding: memberTheme.spacing.lg,
+	},
+	headerCard: {
+		backgroundColor: memberTheme.colors.surfaceSoft,
+		borderRadius: memberTheme.radius.lg,
+		padding: memberTheme.spacing.xl,
+	},
+	headerTitle: { color: memberTheme.colors.ink, fontSize: 21 },
+	headerText: {
+		color: memberTheme.colors.textMuted,
+		fontSize: 13,
+		lineHeight: 19,
+		marginTop: 6,
+	},
+	detailsCard: {
+		backgroundColor: memberTheme.colors.surface,
+		borderColor: memberTheme.colors.border,
+		borderRadius: memberTheme.radius.lg,
+		borderWidth: 1,
+		padding: memberTheme.spacing.lg,
+	},
+	detailsTitle: { color: memberTheme.colors.ink },
+	emptyCard: {
+		backgroundColor: memberTheme.colors.surface,
+		borderRadius: memberTheme.radius.lg,
+		padding: memberTheme.spacing.xl,
+	},
+	emptyText: {
+		color: memberTheme.colors.textMuted,
+		fontSize: 13,
+		marginTop: memberTheme.spacing.sm,
 	},
 	buttonTextStyle: {
 		fontSize: config.metrics.md,
 		color: config.backgrounds.light,
 	},
 	buttonColor: {
-		backgroundColor: config.colors.brand,
+		backgroundColor: memberTheme.colors.primaryDeep,
+		borderRadius: memberTheme.radius.md,
 	},
 	loaderStyle: {
 		flex: 1,

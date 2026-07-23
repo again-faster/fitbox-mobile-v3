@@ -2,6 +2,7 @@ import { Avatar, Row, Spacer, Text } from '@/components/atoms';
 import { navigate } from '@/navigators/NavigationRef';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import resources from '@/theme/resources';
 import { SectionType } from '@/types/schemas/leaderboards';
 import { Constant } from '@/utils';
@@ -119,7 +120,9 @@ const ResultRow = (props: Props) => {
 	const containerStyle = {
 		...styles.dataRow,
 		borderBottomWidth: !last ? 0.5 : 0,
-		backgroundColor: isPR ? '#FDDC5C' : 'white',
+		backgroundColor: isPR
+			? memberTheme.colors.surfaceSoft
+			: memberTheme.colors.surface,
 	};
 
 	const onClickReact = async (reaction: string) => {
@@ -174,7 +177,6 @@ const ResultRow = (props: Props) => {
 						<Row style={layout.flex_1}>
 							<Text
 								size="md"
-								color="darkgray"
 								bold
 								numberOfLines={1}
 								style={styles.titleStyle}
@@ -216,7 +218,7 @@ const ResultRow = (props: Props) => {
 							</View>
 						</Row>
 						<Row style={styles.bottomRowContainer}>
-							<Text numberOfLines={1}>
+							<Text numberOfLines={1} style={styles.scoreText}>
 								{hideRxSwitch &&
 									!isScoreByComplete &&
 									'Score: '}
@@ -321,9 +323,9 @@ const ResultRow = (props: Props) => {
 
 const styles = StyleSheet.create({
 	dataRow: {
-		paddingHorizontal: 15,
-		paddingVertical: 10,
-		borderColor: config.backgrounds.lightgrey,
+		paddingHorizontal: memberTheme.spacing.lg,
+		paddingVertical: memberTheme.spacing.md,
+		borderColor: memberTheme.colors.border,
 	},
 	alignCenter: {
 		alignItems: 'center',
@@ -347,15 +349,8 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		position: 'absolute',
 		minWidth: 100,
-		backgroundColor: 'white',
-		shadowColor: '#000',
-		shadowOffset: {
-			width: 0,
-			height: 2,
-		},
-		shadowOpacity: 0.23,
-		shadowRadius: 2.62,
-		elevation: 4,
+		backgroundColor: memberTheme.colors.surface,
+		...memberTheme.shadow,
 	},
 	closeToolTip: {
 		alignItems: 'center',
@@ -370,15 +365,8 @@ const styles = StyleSheet.create({
 		padding: 2,
 		borderRadius: 10,
 		alignItems: 'center',
-		backgroundColor: 'white',
-		shadowColor: '#000',
-		shadowOffset: {
-			width: 0,
-			height: 2,
-		},
-		shadowOpacity: 0.23,
-		shadowRadius: 2.62,
-		elevation: 4,
+		backgroundColor: memberTheme.colors.surface,
+		...memberTheme.shadow,
 		left: 20,
 		bottom: 20,
 	},
@@ -404,7 +392,14 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-end',
 		justifyContent: 'flex-end',
 	},
-	titleStyle: { maxWidth: '82%' },
+	titleStyle: {
+		maxWidth: '82%',
+		color: memberTheme.colors.text,
+	},
+	scoreText: {
+		color: memberTheme.colors.textMuted,
+		fontWeight: '600',
+	},
 });
 
 export default ResultRow;

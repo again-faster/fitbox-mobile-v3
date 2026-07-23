@@ -8,6 +8,7 @@ import {
 	updateUserProfile,
 } from '@/services/users';
 import { config } from '@/theme/_config';
+import { memberTheme } from '@/theme/member';
 import { ApplicationStackParamList } from '@/types/navigation';
 import { Gym } from '@/types/schemas/gym';
 import { LoginResponseSchemaType } from '@/types/schemas/response';
@@ -171,6 +172,23 @@ const SwitchGym = () => {
 
 	return (
 		<View style={styles.container}>
+			<View style={styles.introCard}>
+				<View style={styles.introIcon}>
+					<Icon
+						name="home-city-outline"
+						size={24}
+						color={memberTheme.colors.primaryDeep}
+					/>
+				</View>
+				<View style={styles.introCopy}>
+					<Text bold style={styles.introTitle}>
+						My gyms
+					</Text>
+					<Text style={styles.introText}>
+						Choose the gym you want to use right now.
+					</Text>
+				</View>
+			</View>
 			<FlatList
 				data={sortedData}
 				refreshing={isFetching}
@@ -190,12 +208,47 @@ export default SwitchGym;
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
+		backgroundColor: memberTheme.colors.background,
+		paddingTop: memberTheme.spacing.md,
+	},
+	introCard: {
+		alignItems: 'center',
+		backgroundColor: memberTheme.colors.surfaceSoft,
+		borderRadius: memberTheme.radius.lg,
+		flexDirection: 'row',
+		marginBottom: memberTheme.spacing.md,
+		marginHorizontal: memberTheme.spacing.lg,
+		padding: memberTheme.spacing.lg,
+	},
+	introIcon: {
+		alignItems: 'center',
+		backgroundColor: memberTheme.colors.surface,
+		borderRadius: memberTheme.radius.md,
+		height: 48,
+		justifyContent: 'center',
+		width: 48,
+	},
+	introCopy: {
+		flex: 1,
+		marginLeft: memberTheme.spacing.md,
+	},
+	introTitle: {
+		color: memberTheme.colors.ink,
+		fontSize: 18,
+	},
+	introText: {
+		color: memberTheme.colors.textMuted,
+		fontSize: 13,
+		marginTop: memberTheme.spacing.xs,
 	},
 	addGymCon: {
-		height: 50,
-		backgroundColor: config.colors.brand,
+		height: 52,
+		backgroundColor: memberTheme.colors.primaryDeep,
+		borderRadius: memberTheme.radius.md,
 		justifyContent: 'center',
 		alignItems: 'center',
+		margin: memberTheme.spacing.lg,
+		...memberTheme.shadow,
 	},
 	addGymText: {
 		fontSize: 15,

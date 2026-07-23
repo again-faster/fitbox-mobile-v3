@@ -1,16 +1,17 @@
 import { Row, ScrollView, Text } from '@/components/atoms';
 import { BottomPanel } from '@/components/molecules';
 import { config } from '@/theme/_config';
+import { memberTheme } from '@/theme/member';
 import { ModalEnum } from '@/utils/Enum';
 import useStore from '@/zustand/Store';
 import { ClassFilter, VenueFilter } from '@/zustand/interface/SessionInterface';
 import { produce } from 'immer';
 import { memo, useEffect } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { FilterTypeEnum } from './CalendarFilterPanel';
 
-const { fonts, metrics } = config;
+const { fonts } = config;
 
 interface CalendarFilterSelectProps {
 	type: FilterTypeEnum;
@@ -87,6 +88,7 @@ const CalendarFilterSelect = ({ type }: CalendarFilterSelectProps) => {
 		<BottomPanel
 			title={title}
 			visible={visible}
+			style={styles.panel}
 			onClose={() => {
 				toggleModal(modal, false);
 				setClassFiltersToApply(classFilters);
@@ -99,7 +101,7 @@ const CalendarFilterSelect = ({ type }: CalendarFilterSelectProps) => {
 						toggleModal(ModalEnum.CALENDAR_FILTER, true);
 					}}
 				>
-					<Text color="info" size="md">
+					<Text size="md" style={styles.acceptText}>
 						Accept
 					</Text>
 				</TouchableOpacity>
@@ -112,19 +114,20 @@ const CalendarFilterSelect = ({ type }: CalendarFilterSelectProps) => {
 						onPress={() => {
 							handleFilterPress(key);
 						}}
-						style={{
-							paddingVertical: metrics.md,
-							paddingHorizontal: metrics.lg,
-						}}
+						style={styles.filterRow}
+						accessibilityRole="checkbox"
+						accessibilityState={{ checked: !!data.is_selected }}
 					>
 						<Row spacing="space-between">
-							<Text size="md">{data.name}</Text>
+							<Text size="md" style={styles.filterText}>
+								{data.name}
+							</Text>
 
 							{data?.is_selected && (
 								<Icon
 									name="check"
 									size={fonts.metrics.md}
-									color={fonts.colors.info}
+									color={memberTheme.colors.primary}
 								/>
 							)}
 						</Row>
@@ -136,3 +139,27 @@ const CalendarFilterSelect = ({ type }: CalendarFilterSelectProps) => {
 };
 
 export default memo(CalendarFilterSelect);
+
+const styles = StyleSheet.create({
+	panel: {
+		backgroundColor: memberTheme.colors.surface,
+		borderTopLeftRadius: memberTheme.radius.lg,
+		borderTopRightRadius: memberTheme.radius.lg,
+		overflow: 'hidden',
+	},
+	acceptText: {
+		color: memberTheme.colors.primary,
+		fontWeight: '700',
+	},
+	filterRow: {
+		minHeight: 56,
+		justifyContent: 'center',
+		paddingVertical: memberTheme.spacing.md,
+		paddingHorizontal: memberTheme.spacing.lg,
+		borderBottomColor: memberTheme.colors.border,
+		borderBottomWidth: StyleSheet.hairlineWidth,
+	},
+	filterText: {
+		color: memberTheme.colors.text,
+	},
+});

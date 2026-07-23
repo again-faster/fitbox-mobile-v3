@@ -1,6 +1,6 @@
 import { Text } from '@/components/atoms';
-import { useTheme } from '@/theme';
 import { config } from '@/theme/_config';
+import { memberTheme } from '@/theme/member';
 import { StyleSheet, View } from 'react-native';
 import { TouchableRipple } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/FontAwesome5';
@@ -18,20 +18,21 @@ const DashboardActionButton = ({
 	text,
 	icon,
 }: DashboardActionButtonProps) => {
-	const { colors } = useTheme();
-
 	const stringHasOneWord = text.split(' ').length === 1;
 	return (
 		<TouchableRipple onPress={onPress} style={styles.container}>
 			<View style={styles.tileContainer}>
 				<View style={styles.tileIconContainer}>
-					<Icon name={icon} size={metrics.lg} color={colors.brand} />
+					<Icon
+						name={icon}
+						size={metrics.lg}
+						color={memberTheme.colors.primary}
+					/>
 				</View>
 
 				<View style={styles.tileTextContainer}>
 					<Text
 						size="md"
-						color="brand"
 						bold
 						numberOfLines={stringHasOneWord ? 1 : 2}
 						style={styles.tileText}
@@ -50,15 +51,15 @@ const styles = StyleSheet.create({
 	container: {
 		width: '48%',
 		borderWidth: 1,
-		borderColor: config.colors.brand,
+		borderColor: memberTheme.colors.border,
+		backgroundColor: memberTheme.colors.surface,
 		flexWrap: 'wrap',
-		paddingVertical: config.metrics.sm,
-		paddingLeft: 10,
-		paddingRight: config.metrics.sm,
-		borderRadius: 4,
+		padding: memberTheme.spacing.sm,
+		borderRadius: memberTheme.radius.md,
 		justifyContent: 'center',
-		minHeight: 55,
-		marginBottom: metrics.md,
+		minHeight: 72,
+		marginBottom: memberTheme.spacing.md,
+		...memberTheme.shadow,
 	},
 	tileTextContainer: {
 		flex: 1,
@@ -67,13 +68,19 @@ const styles = StyleSheet.create({
 	},
 	tileIconContainer: {
 		justifyContent: 'center',
-		marginRight: metrics.sm,
+		alignItems: 'center',
+		marginRight: memberTheme.spacing.sm,
+		width: 40,
+		height: 40,
+		borderRadius: memberTheme.radius.sm,
+		backgroundColor: memberTheme.colors.surfaceSoft,
 	},
 	tileContainer: {
 		flexDirection: 'row',
 	},
 	tileText: {
 		flex: 1,
-		textAlign: 'center',
+		textAlign: 'left',
+		color: memberTheme.colors.primaryInk,
 	},
 });

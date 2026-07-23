@@ -6,6 +6,7 @@ import { getContacts } from '@/services/message';
 import { attendSession } from '@/services/session';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { ApplicationStackParamList } from '@/types/navigation';
 import {
 	ContactGroupMembersType,
@@ -574,10 +575,10 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 		sections.length === 0;
 
 	const StickyHeaderComponent = (
-		<View>
+		<View style={styles.membersHeader}>
 			{attendanceLimit !== null && (
 				<Text style={styles.slots}>
-					{`${bookedMembersRef.current.length} / ${attendanceLimit}`}
+					{`${bookedMembersRef.current.length} of ${attendanceLimit} booked`}
 				</Text>
 			)}
 			<Row style={{ marginHorizontal: metrics.md }}>
@@ -585,7 +586,6 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 					!hidePastPerformanceButton &&
 					isStaff && (
 						<Button
-							variant="darkgray"
 							mode="outlined"
 							title="Past Performance"
 							onPress={() =>
@@ -597,25 +597,26 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 								)
 							}
 							style={{
+								...styles.headerAction,
 								marginBottom: metrics.md,
 								...layout.flex_1,
-								// marginHorizontal: metrics.lg,
 							}}
+							labelStyle={styles.headerActionLabel}
 							sm
 						/>
 					)}
 				{showAddButton && (
 					<Button
-						variant="darkgray"
 						mode="outlined"
 						title="+ Add Attendance"
 						onPress={toggleAttendanceModal}
 						style={{
+							...styles.headerAction,
 							marginBottom: metrics.md,
 							...layout.flex_1,
 							marginLeft: metrics.sm,
-							// marginHorizontal: metrics.lg,
 						}}
+						labelStyle={styles.headerActionLabel}
 						sm
 					/>
 				)}
@@ -699,6 +700,8 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 
 	return (
 		<FlatList
+			style={styles.list}
+			contentContainerStyle={styles.listContent}
 			data={sortBy(bookedMembersRef.current, item =>
 				item.user.firstname.toLowerCase(),
 			)}
@@ -710,15 +713,56 @@ const SessionAttendanceTab = ({ session }: SessionAttendanceTabProps) => {
 				styles.footer,
 				{ marginTop: footerMarginTop },
 			]}
+			placeholder={
+				<View style={styles.emptyCard}>
+					<IonicIcon
+						name="people-outline"
+						size={28}
+						color={memberTheme.colors.primary}
+					/>
+					<Text style={styles.emptyTitle}>No members yet</Text>
+					<Text style={styles.emptyText}>
+						Booked members will appear here.
+					</Text>
+				</View>
+			}
 		/>
 	);
 };
 
 const styles = StyleSheet.create({
+	list: {
+		flex: 1,
+		backgroundColor: memberTheme.colors.background,
+	},
+	listContent: {
+		paddingBottom: memberTheme.spacing.xxl,
+	},
+	membersHeader: {
+		paddingTop: memberTheme.spacing.xs,
+	},
+	headerAction: {
+		minHeight: 48,
+		justifyContent: 'center',
+		borderColor: memberTheme.colors.primary,
+		borderRadius: memberTheme.radius.sm,
+		backgroundColor: memberTheme.colors.surface,
+	},
+	headerActionLabel: {
+		color: memberTheme.colors.primary,
+		fontWeight: '700',
+	},
 	slots: {
-		textAlign: 'right',
-		marginRight: config.metrics.lg,
-		marginBottom: config.metrics.md,
+		alignSelf: 'flex-end',
+		marginRight: memberTheme.spacing.md,
+		marginBottom: memberTheme.spacing.sm,
+		paddingHorizontal: memberTheme.spacing.md,
+		paddingVertical: 6,
+		borderRadius: memberTheme.radius.pill,
+		backgroundColor: memberTheme.colors.surfaceSoft,
+		color: memberTheme.colors.primary,
+		fontSize: 12,
+		fontWeight: '700',
 	},
 	messageButton: {
 		borderColor: config.borders.colors.darkgray,
@@ -740,6 +784,26 @@ const styles = StyleSheet.create({
 		paddingHorizontal: metrics.sm,
 		paddingVertical: metrics.sm,
 		alignItems: 'center',
+	},
+	emptyCard: {
+		margin: memberTheme.spacing.md,
+		padding: memberTheme.spacing.xl,
+		alignItems: 'center',
+		gap: memberTheme.spacing.sm,
+		borderRadius: memberTheme.radius.md,
+		borderColor: memberTheme.colors.border,
+		borderWidth: StyleSheet.hairlineWidth,
+		backgroundColor: memberTheme.colors.surface,
+	},
+	emptyTitle: {
+		color: memberTheme.colors.text,
+		fontSize: 16,
+		fontWeight: '700',
+	},
+	emptyText: {
+		color: memberTheme.colors.textMuted,
+		fontSize: 13,
+		textAlign: 'center',
 	},
 	avatarCon: {
 		width: 36,

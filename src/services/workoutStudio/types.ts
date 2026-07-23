@@ -14,6 +14,13 @@ export type WorkoutAssignment = {
 		name: string;
 		estimated_duration_minutes: number | null;
 	};
+	source?: {
+		type: 'member' | 'class';
+		class_id?: string;
+		class_name?: string;
+		event_ids?: string[];
+		is_attending?: boolean;
+	};
 };
 
 export type WorkoutDetail = {
@@ -23,10 +30,32 @@ export type WorkoutDetail = {
 	workout_sections: WorkoutSection[];
 };
 
+export type SectionMode = 'workout' | 'notes';
+export type ScoreCollectionMode =
+	| 'section'
+	| 'per_set'
+	| 'per_interval'
+	| 'per_round'
+	| 'per_phase'
+	| 'aggregate';
+
 export type WorkoutSection = {
 	id: string;
 	name: string;
 	position: number;
+	section_mode: SectionMode;
+	coach_notes: string | null;
+	scoring_type: string;
+	is_scored: boolean;
+	score_collection_mode: ScoreCollectionMode;
+	time_cap_seconds: number | null;
+	rounds: number | null;
+	leaderboard_enabled: boolean;
+	leaderboard_calculation: string | null;
+	leaderboard_sort_direction: 'asc' | 'desc' | null;
+	leaderboard_score_type: string | null;
+	aggregate_formula: Record<string, unknown> | null;
+	aggregate_group_id: string | null;
 	section_blocks: SectionBlock[];
 };
 
@@ -58,6 +87,12 @@ export type BlockMovement = {
 	sets: number | null;
 	reps_scheme: string | null;
 	weight_kg: number | null;
+	weight_scheme: string | null;
+	duration_seconds: number | null;
+	distance_meters: number | null;
+	calories: number | null;
+	set_scheme: Array<Record<string, unknown>> | null;
+	advanced: Record<string, unknown> | null;
 	notes: string | null;
 	movements: {
 		id: string;
@@ -100,6 +135,13 @@ export type WorkoutResult = {
 	total_volume_kg: number | null;
 	duration_seconds: number | null;
 	subjective_rating: string | null;
+	notes?: string | null;
+	scaling_level?: ScalingLevel | null;
+	score_time_seconds?: number | null;
+	score_rounds?: number | null;
+	score_partial_reps?: number | null;
+	score_weight_kg?: number | null;
+	score_reps?: number | null;
 	workouts: {
 		name: string;
 	};

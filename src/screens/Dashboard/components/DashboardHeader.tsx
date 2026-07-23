@@ -4,10 +4,9 @@ import layout from '@/theme/layout';
 import { ApplicationStackParamList } from '@/types/navigation';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { memo } from 'react';
-import { Dimensions, ImageBackground, StyleSheet, View } from 'react-native';
+import { ImageBackground, StyleSheet, View } from 'react-native';
 
-const { width } = Dimensions.get('window');
-const headerRatio = 380 / 1440;
+const bannerAspectRatio = 1440 / 380;
 const { fonts, colors } = config;
 
 interface DashboardHeaderProps {
@@ -32,7 +31,7 @@ const DashboardHeader = ({ banner = '', logo = '' }: DashboardHeaderProps) => {
 		<ImageBackground
 			source={{ uri: banner }}
 			style={styles.container}
-			resizeMode="stretch"
+			resizeMode="cover"
 		>
 			{children}
 		</ImageBackground>
@@ -47,7 +46,8 @@ export default memo(DashboardHeader);
 
 const styles = StyleSheet.create({
 	container: {
-		height: headerRatio * width,
+		width: '100%',
+		aspectRatio: bannerAspectRatio,
 		justifyContent: 'space-between',
 		alignItems: 'center',
 		flexDirection: 'row',

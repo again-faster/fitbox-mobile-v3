@@ -5,6 +5,7 @@ import { navigate, resetRoot } from '@/navigators/NavigationRef';
 import { useTheme } from '@/theme';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { MenuStackParamList } from '@/types/navigation';
 import { Constant } from '@/utils';
 import useStore from '@/zustand/Store';
@@ -286,7 +287,7 @@ const Menu = ({ navigation }: MenuScreenProps) => {
 				<FontAwesomeIcon
 					name={item.icon}
 					style={styles.menuOptionIcon}
-					color="#777"
+					color={memberTheme.colors.primaryDeep}
 					size={15}
 				/>
 			);
@@ -295,7 +296,7 @@ const Menu = ({ navigation }: MenuScreenProps) => {
 				<Ionicons
 					name={item.icon}
 					style={[styles.menuOptionIcon, styles.menuOptionIonic]}
-					color="#777"
+					color={memberTheme.colors.primaryDeep}
 					size={21}
 				/>
 			);
@@ -308,7 +309,7 @@ const Menu = ({ navigation }: MenuScreenProps) => {
 		<>
 			<List.Icon
 				icon="chevron-right"
-				color="#777"
+				color={memberTheme.colors.textMuted}
 				style={styles.menuOptionRightIcon}
 			/>
 			{badge && (
@@ -333,6 +334,24 @@ const Menu = ({ navigation }: MenuScreenProps) => {
 
 	return (
 		<ScrollView contentContainerStyle={styles.container}>
+			<View style={styles.heroCard}>
+				<View style={styles.heroIcon}>
+					<Ionicons
+						name="options-outline"
+						size={26}
+						color={memberTheme.colors.primaryDeep}
+					/>
+				</View>
+				<View style={layout.flex_1}>
+					<Text bold style={styles.heroTitle}>
+						Your fitbox
+					</Text>
+					<Text style={styles.heroText}>
+						Manage your profile, gym, memberships and app
+						preferences.
+					</Text>
+				</View>
+			</View>
 			{menuOptions.map((op, i) => {
 				const options = op.items.map(item => {
 					const showBadge = getOptionBadge(item.id);
@@ -346,8 +365,14 @@ const Menu = ({ navigation }: MenuScreenProps) => {
 							key={item.id}
 							style={styles.menuOption}
 							title={item.name}
-							titleStyle={layout.fontMontserratRegular}
+							titleStyle={[
+								layout.fontMontserratRegular,
+								styles.menuOptionTitle,
+							]}
 							onPress={() => onClick(item.id)}
+							accessibilityRole="button"
+							accessibilityLabel={item.name}
+							accessibilityHint={`Opens ${item.name}`}
 							left={() => renderLeftIcon(item)}
 							right={() => renderRightIcon(showBadge)}
 						/>
@@ -361,7 +386,10 @@ const Menu = ({ navigation }: MenuScreenProps) => {
 							style={styles.menuOptionContainer}
 						>
 							<List.Subheader
-								style={layout.fontMontserratRegular}
+								style={[
+									layout.fontMontserratRegular,
+									styles.sectionTitle,
+								]}
 							>
 								{op.title}
 							</List.Subheader>
@@ -374,7 +402,7 @@ const Menu = ({ navigation }: MenuScreenProps) => {
 			})}
 
 			<View style={styles.versionContainer}>
-				<Text>{`App Version ${
+				<Text style={styles.versionText}>{`App Version ${
 					menuOptions ? `${version} (${build})` : ''
 				}`}</Text>
 				{[
@@ -394,16 +422,62 @@ export default Menu;
 
 const styles = StyleSheet.create({
 	container: {
-		backgroundColor: '#F4F4F4',
+		backgroundColor: memberTheme.colors.background,
+		flexGrow: 1,
+		padding: memberTheme.spacing.lg,
+	},
+	heroCard: {
+		alignItems: 'center',
+		backgroundColor: memberTheme.colors.surfaceSoft,
+		borderRadius: memberTheme.radius.lg,
+		flexDirection: 'row',
+		marginBottom: memberTheme.spacing.md,
+		padding: memberTheme.spacing.lg,
+	},
+	heroIcon: {
+		alignItems: 'center',
+		backgroundColor: memberTheme.colors.surface,
+		borderRadius: memberTheme.radius.md,
+		height: 50,
+		justifyContent: 'center',
+		marginRight: memberTheme.spacing.md,
+		width: 50,
+	},
+	heroTitle: { color: memberTheme.colors.ink, fontSize: 19 },
+	heroText: {
+		color: memberTheme.colors.textMuted,
+		fontSize: 12,
+		lineHeight: 17,
+		marginTop: 4,
 	},
 	iconContainer: {
+		alignItems: 'center',
+		backgroundColor: memberTheme.colors.surfaceSoft,
+		borderRadius: memberTheme.radius.sm,
+		height: 40,
 		justifyContent: 'center',
+		marginLeft: memberTheme.spacing.sm,
+		width: 40,
 	},
 	menuOptionContainer: {
-		gap: 1,
+		backgroundColor: memberTheme.colors.surface,
+		borderColor: memberTheme.colors.border,
+		borderRadius: memberTheme.radius.lg,
+		borderWidth: 1,
+		overflow: 'hidden',
 	},
 	menuOption: {
-		backgroundColor: 'white',
+		backgroundColor: memberTheme.colors.surface,
+		borderTopColor: memberTheme.colors.border,
+		borderTopWidth: 1,
+		minHeight: 60,
+	},
+	menuOptionTitle: { color: memberTheme.colors.text, fontSize: 15 },
+	sectionTitle: {
+		color: memberTheme.colors.textMuted,
+		fontSize: 12,
+		letterSpacing: 0.8,
+		textTransform: 'uppercase',
 	},
 	menuOptionIcon: {
 		width: 23,
@@ -423,6 +497,7 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		paddingVertical: config.metrics.lg,
 	},
+	versionText: { color: memberTheme.colors.textMuted, fontSize: 12 },
 	environment: {
 		marginTop: config.metrics.lg,
 		color: config.colors.danger,

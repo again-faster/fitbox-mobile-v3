@@ -1,5 +1,6 @@
 ﻿import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
+import { trainingTheme } from '@/theme/training';
 
 const SkeletonCard = () => {
 	const opacity = useRef(new Animated.Value(0.3)).current;
@@ -31,15 +32,17 @@ const SkeletonCard = () => {
 
 const styles = StyleSheet.create({
 	card: {
-		backgroundColor: '#F3F4F6',
-		borderRadius: 12,
-		padding: 16,
-		marginBottom: 10,
-		gap: 10,
+		backgroundColor: trainingTheme.colors.surface,
+		borderRadius: trainingTheme.radius.lg,
+		padding: trainingTheme.spacing.lg,
+		marginBottom: trainingTheme.spacing.sm,
+		gap: trainingTheme.spacing.sm,
+		borderWidth: 1,
+		borderColor: trainingTheme.colors.border,
 	},
 	line: {
 		height: 14,
-		backgroundColor: '#E5E7EB',
+		backgroundColor: trainingTheme.colors.surfaceMuted,
 		borderRadius: 7,
 	},
 	short: {

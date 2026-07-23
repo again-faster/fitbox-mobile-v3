@@ -89,8 +89,12 @@ function mapRow(row: RawLeaderboardRow, scoringType: string): LeaderboardEntry {
 
 function makeComparator(
 	scoringType: string,
+	sortDirection?: 'asc' | 'desc' | null,
 ): (a: LeaderboardEntry, b: LeaderboardEntry) => number {
-	const scoreAsc = ['for_time', 'chipper', 'emom'].includes(scoringType);
+	const scoreAsc =
+		sortDirection === 'asc' ||
+		(sortDirection == null &&
+			['for_time', 'chipper', 'emom'].includes(scoringType));
 	return function compareEntries(
 		a: LeaderboardEntry,
 		b: LeaderboardEntry,
@@ -109,40 +113,54 @@ function makeComparator(
 const fetchLeaderboard = async (
 	workoutId: string,
 	scoringType: string,
+	sectionId?: string,
+	sortDirection?: 'asc' | 'desc' | null,
 ): Promise<LeaderboardEntry[]> => {
+	const resource = sectionId ? 'section_results' : 'workout_results';
+	const scope: Record<string, string> = sectionId
+		? { section_id: `eq.${sectionId}` }
+		: { workout_id: `eq.${workoutId}` };
 	const rows = await wsApi()
-		.get('workout_results', {
+		.get(resource, {
 			searchParams: {
 				select: SELECT_WITH_PROFILES,
-				workout_id: `eq.${workoutId}`,
+				...scope,
 			},
 		})
 		.json<RawLeaderboardRow[]>()
 		.catch(async () =>
 			wsApi()
-				.get('workout_results', {
+				.get(resource, {
 					searchParams: {
 						select: SELECT_NO_PROFILES,
-						workout_id: `eq.${workoutId}`,
+						...scope,
 					},
 				})
 				.json<Omit<RawLeaderboardRow, 'profiles'>[]>()
 				.then(r => r.map(row => ({ ...row, profiles: null }))),
 		);
 
-	return rows
-		.map(row => mapRow(row, scoringType))
-		.sort(makeComparator(scoringType));
+	const comparator = makeComparator(scoringType, sortDirection);
+	const ranked = rows.map(row => mapRow(row, scoringType)).sort(comparator);
+	const athleteIds = new Set<string>();
+	return ranked.filter(entry => {
+		if (athleteIds.has(entry.athleteId)) return false;
+		athleteIds.add(entry.athleteId);
+		return true;
+	});
 };
 
 export const useWorkoutLeaderboard = (
 	workoutId: string,
 	scoringType: string,
 	enabled: boolean,
+	sectionId?: string,
+	sortDirection?: 'asc' | 'desc' | null,
 ) =>
 	useQuery({
-		queryKey: ['ws-leaderboard', workoutId],
-		queryFn: () => fetchLeaderboard(workoutId, scoringType),
+		queryKey: ['ws-leaderboard', workoutId, sectionId, sortDirection],
+		queryFn: () =>
+			fetchLeaderboard(workoutId, scoringType, sectionId, sortDirection),
 		enabled,
 		staleTime: 300_000,
 	});

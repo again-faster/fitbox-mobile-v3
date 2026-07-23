@@ -163,6 +163,9 @@ export default {
 		process.env.WS_BRIDGE_URL ??
 		'https://studio.fitbox.iq/api/public/mobile/auth/exchange',
 	WS_BRIDGE_KEY: process.env.WS_BRIDGE_KEY ?? '',
+	WS_MOBILE_API_URL:
+		process.env.WS_MOBILE_API_URL ??
+		'https://studio.fitbox.iq/api/public/mobile',
 	IS_ANDROID: Platform.OS === 'android',
 	SORT_OPTIONS,
 	DEFAULT_DATE_FORMAT,
