@@ -18,7 +18,12 @@ const WebView = ({ route }: ApplicationScreenProps) => {
 
 	if (content) {
 		return (
-			<ScrollView style={{ padding: metrics.rg }}>
+			<ScrollView
+				style={{
+					padding: metrics.rg,
+				}}
+				contentContainerStyle={{ flexGrow: 1 }}
+			>
 				<HTMLView content={content} />
 			</ScrollView>
 		);
