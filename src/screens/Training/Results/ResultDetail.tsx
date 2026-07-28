@@ -347,6 +347,22 @@ const ResultDetail = ({ route, navigation }: Props) => {
 						)}
 					</Text>
 				</View>
+				<TouchableOpacity
+					accessibilityRole="button"
+					accessibilityLabel="Share workout"
+					onPress={() =>
+						navigation.navigate('TrainingShareWorkout', {
+							workoutResultId,
+						})
+					}
+					style={styles.shareButton}
+				>
+					<Ionicons
+						name="share-variant-outline"
+						size={22}
+						color={trainingTheme.colors.primary}
+					/>
+				</TouchableOpacity>
 			</View>
 
 			{hasSummaryMetrics ? (
@@ -701,6 +717,14 @@ const styles = StyleSheet.create({
 		backgroundColor: trainingTheme.colors.success,
 	},
 	headingCopy: { flex: 1 },
+	shareButton: {
+		width: 44,
+		height: 44,
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderRadius: 22,
+		backgroundColor: trainingTheme.colors.primarySoft,
+	},
 	title: {
 		color: trainingTheme.colors.text,
 		fontFamily: 'Inter-Variable',

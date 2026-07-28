@@ -29,6 +29,7 @@ import InjuryLog from '@/screens/Training/Injuries/InjuryLog';
 import InjuryDailyUpdate from '@/screens/Training/Injuries/InjuryDailyUpdate';
 import WorkoutComplete from '@/screens/Training/Workouts/WorkoutComplete';
 import ResultDetail from '@/screens/Training/Results/ResultDetail';
+import ShareWorkoutComposer from '@/screens/Training/Sharing/ShareWorkoutComposer';
 import TrainingProfile from '@/screens/Training/Profile/TrainingProfile';
 import Benchmarks from '@/screens/Training/Benchmarks/Benchmarks';
 import Progress from '@/screens/Training/Progress/Progress';
@@ -115,6 +116,11 @@ const TrainingStackNavigator = () => {
 				name="TrainingResultDetail"
 				component={ResultDetail}
 				options={{ title: 'Workout result' }}
+			/>
+			<Stack.Screen
+				name="TrainingShareWorkout"
+				component={ShareWorkoutComposer}
+				options={{ title: 'Share workout' }}
 			/>
 			<Stack.Screen
 				name="TrainingGymFeed"

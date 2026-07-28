@@ -285,6 +285,7 @@ export type TrainingStackParamList = {
 	};
 	TrainingResults: undefined;
 	TrainingResultDetail: { workoutResultId: string };
+	TrainingShareWorkout: { workoutResultId: string };
 	TrainingGymFeed: undefined;
 	TrainingWellness: undefined;
 	TrainingMaxes: undefined;

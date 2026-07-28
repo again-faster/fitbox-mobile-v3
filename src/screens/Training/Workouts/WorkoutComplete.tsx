@@ -51,6 +51,17 @@ const WorkoutComplete = ({ route, navigation }: Props) => {
 			</TrainingCard>
 
 			<View style={styles.actions}>
+				<Text style={styles.photoPrompt}>
+					That was a big one. Get the crew together for a photo?
+				</Text>
+				<PrimaryButton
+					label="Share workout"
+					onPress={() =>
+						navigation.navigate('TrainingShareWorkout', {
+							workoutResultId: route.params.workoutResultId,
+						})
+					}
+				/>
 				<PrimaryButton
 					label="View my results"
 					onPress={() =>
@@ -134,6 +145,14 @@ const styles = StyleSheet.create({
 		backgroundColor: trainingTheme.colors.border,
 	},
 	actions: { marginTop: 'auto', gap: trainingTheme.spacing.sm },
+	photoPrompt: {
+		color: trainingTheme.colors.textMuted,
+		fontFamily: 'Inter-Variable',
+		fontSize: 13,
+		lineHeight: 19,
+		textAlign: 'center',
+		marginBottom: trainingTheme.spacing.xs,
+	},
 	secondaryButton: {
 		minHeight: 48,
 		borderRadius: trainingTheme.radius.sm,
