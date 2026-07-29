@@ -1,7 +1,8 @@
 import { ScrollView, Text } from '@/components/atoms';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
-import { resolveClassTrainingWorkout } from '@/services/workoutStudio/classTrainingWorkout';
+import { buildClassSessionSummary } from '@/services/workoutStudio/classSessionSummary';
 import { getScheduleDetail } from '@/services/session';
+import { useWorkoutDetail } from '@/screens/Training/hooks/useWorkoutDetail';
 import { memberTheme } from '@/theme/member';
 import { ApplicationScreenProps, SessionParams } from '@/types/navigation';
 import {
@@ -24,6 +25,7 @@ import {
 	SessionLoader,
 	SessionTabButtons,
 } from './components';
+import { useClassTrainingWorkout } from './hooks/useClassTrainingWorkout';
 
 const Session = ({ route, navigation }: ApplicationScreenProps) => {
 	const loggedInUser = useStore(state => state.loggedInUser);
@@ -148,6 +150,37 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 		() => Number(session?.class_event.class_id),
 		[session],
 	);
+	const wsSession = getStoredWSSession();
+	const activeTenantId = wsSession?.user.active_tenant_id;
+	const classTrainingParams = useMemo(
+		() =>
+			activeTenantId && session
+				? {
+						tenantId: activeTenantId,
+						classId,
+						eventId,
+						sessionDate: moment(session.start_datetime).format(
+							Constant.DEFAULT_DATE_FORMAT,
+						),
+					}
+				: null,
+		[activeTenantId, classId, eventId, session],
+	);
+	const classTrainingQuery = useClassTrainingWorkout(classTrainingParams);
+	const mappedWorkoutId =
+		classTrainingQuery.data?.status === 'resolved'
+			? classTrainingQuery.data.workoutId
+			: '';
+	const workoutDetailQuery = useWorkoutDetail(mappedWorkoutId);
+	const todaySessionSummary = useMemo(
+		() => buildClassSessionSummary(workoutDetailQuery.data),
+		[workoutDetailQuery.data],
+	);
+	const todaySessionLoading =
+		classTrainingParams !== null &&
+		(classTrainingQuery.isPending ||
+			(classTrainingQuery.data?.status === 'resolved' &&
+				workoutDetailQuery.isPending));
 
 	const openTrainingWorkout: (
 		initialTab: 'overview' | 'leaderboard',
@@ -157,8 +190,7 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 		setLoadingTab(initialTab === 'leaderboard' ? 'results' : 'workout');
 
 		try {
-			const wsSession = getStoredWSSession();
-			if (!wsSession?.user.active_tenant_id) {
+			if (!activeTenantId) {
 				navigation.push('Main', {
 					screen: 'TrainingStack',
 					params: { screen: 'TrainingActivate', params: {} },
@@ -166,14 +198,17 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 				return;
 			}
 
-			const resolution = await resolveClassTrainingWorkout({
-				tenantId: wsSession.user.active_tenant_id,
-				classId,
-				eventId,
-				sessionDate: moment(session.start_datetime).format(
-					Constant.DEFAULT_DATE_FORMAT,
-				),
-			});
+			const resolution =
+				classTrainingQuery.data ??
+				(await classTrainingQuery.refetch()).data;
+
+			if (!resolution) {
+				Alert.alert(
+					'Workout unavailable',
+					'The Workout Studio workout could not be opened.',
+				);
+				return;
+			}
 
 			if (resolution.status === 'resolved') {
 				navigation.push('Main', {
@@ -340,6 +375,8 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 			{activeTab === SessionTabsEnum.INFO ? (
 				<SessionInformationTab
 					session={session as SessionDetailSchemaType}
+					todaySessionLoading={todaySessionLoading}
+					todaySessionSummary={todaySessionSummary}
 				/>
 			) : null}
 
