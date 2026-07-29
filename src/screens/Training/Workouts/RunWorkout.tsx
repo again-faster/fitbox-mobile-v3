@@ -1,6 +1,11 @@
 ﻿import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import { createSubmissionId } from '@/services/workoutStudio/scoreable';
+import {
+	calculateWorkoutVolumeKg,
+	completeWorkoutResult,
+	startWorkoutResult,
+} from '@/services/workoutStudio/workoutResults';
 import type {
 	BlockMovement,
 	ScalingLevel,
@@ -137,6 +142,7 @@ const RunWorkout = ({ route, navigation }: Props) => {
 		useState<WorkoutSection | null>(null);
 	const [restTimer, setRestTimer] = useState<number | null>(null);
 	const [isFinishing, setIsFinishing] = useState(false);
+	const [preparationFailed, setPreparationFailed] = useState(false);
 	const restInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 	const allowExitRef = useRef(false);
 	const startedAt = useRef(restoredDraft?.startedAt ?? Date.now());
@@ -149,25 +155,23 @@ const RunWorkout = ({ route, navigation }: Props) => {
 
 	useEffect(() => {
 		if (!uid || !tenantId || !workoutId || workoutResultId) return;
-		wsApi()
-			.post('workout_results', {
-				json: {
-					workout_id: workoutId,
-					assignment_id: assignmentId ?? null,
-					athlete_id: uid,
-					tenant_id: tenantId,
-					started_at: new Date().toISOString(),
-					client_session_id: sessionSubmissionId,
-				},
-				headers: { Prefer: 'return=representation' },
+		startWorkoutResult({
+			workoutId,
+			assignmentId,
+			athleteId: uid,
+			tenantId,
+			clientSessionId: sessionSubmissionId,
+			scalingLevel,
+			startedAt: new Date(startedAt.current).toISOString(),
+		})
+			.then(id => {
+				setWorkoutResultId(id);
+				setPreparationFailed(false);
 			})
-			.json<{ id: string }[]>()
-			.then(rows => {
-				if (rows[0]) setWorkoutResultId(rows[0].id);
-			})
-			.catch(() => {});
+			.catch(() => setPreparationFailed(true));
 	}, [
 		assignmentId,
+		scalingLevel,
 		sessionSubmissionId,
 		tenantId,
 		uid,
@@ -352,6 +356,9 @@ const RunWorkout = ({ route, navigation }: Props) => {
 			0,
 		);
 
+	const completedVolumeKg = () =>
+		calculateWorkoutVolumeKg(Object.values(setStates).flat());
+
 	const hasUnsyncedSets = () =>
 		Object.values(setStates).some(sets =>
 			sets.some(
@@ -406,19 +413,11 @@ const RunWorkout = ({ route, navigation }: Props) => {
 								),
 							);
 							try {
-								await wsApi()
-									.patch(
-										`workout_results?id=eq.${workoutResultId}`,
-										{
-											json: {
-												completed_at:
-													new Date().toISOString(),
-												duration_seconds:
-													durationSeconds,
-											},
-										},
-									)
-									.json();
+								await completeWorkoutResult(workoutResultId, {
+									completedAt: new Date().toISOString(),
+									durationSeconds,
+									totalVolumeKg: completedVolumeKg(),
+								});
 								allowExitRef.current = true;
 								navigation.replace('TrainingWorkoutComplete', {
 									workoutResultId,
@@ -472,6 +471,19 @@ const RunWorkout = ({ route, navigation }: Props) => {
 
 	return (
 		<View style={styles.screen}>
+			{preparationFailed ? (
+				<View style={styles.syncErrorBanner} accessibilityRole="alert">
+					<Ionicons
+						name="cloud-alert-outline"
+						size={18}
+						color={trainingTheme.colors.danger}
+					/>
+					<Text style={styles.syncErrorText}>
+						Workout setup could not sync. Reopen this workout after
+						checking your connection.
+					</Text>
+				</View>
+			) : null}
 			{restoredDraft ? (
 				<View style={styles.recoveredBanner} accessibilityRole="alert">
 					<Ionicons

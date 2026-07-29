@@ -15,7 +15,6 @@ export type SectionScorePayload = Partial<{
 	calories: number;
 	points: number;
 	completed: boolean;
-	score_type: string;
 }>;
 
 export type SectionScoreEntryPayload = SectionScorePayload & {
@@ -70,6 +69,20 @@ export const createSubmissionId = (): string =>
 		return Math.floor(Math.random() * 16).toString(16);
 	});
 
+const omitLegacyScoreType = <T extends object>(
+	payload: T,
+): Omit<T, 'score_type'> => {
+	const { score_type: scoreType, ...rpcPayload } = payload as T & {
+		score_type?: unknown;
+	};
+	void scoreType;
+	return rpcPayload;
+};
+
+export const toRpcSectionScorePayload = (
+	payload: SectionScorePayload & { score_type?: string },
+): SectionScorePayload => omitLegacyScoreType(payload);
+
 export const logSectionResultAtomic = async (
 	input: AtomicSectionResultInput,
 ): Promise<AtomicSectionResult> => {
@@ -81,8 +94,8 @@ export const logSectionResultAtomic = async (
 			p_section_submission_id: input.sectionSubmissionId,
 			p_completed_at: input.completedAt,
 			p_scaling_level: input.scalingLevel ?? 'rx',
-			p_score: input.score ?? {},
-			p_entries: input.entries ?? [],
+			p_score: toRpcSectionScorePayload(input.score ?? {}),
+			p_entries: (input.entries ?? []).map(omitLegacyScoreType),
 			p_notes: input.notes,
 			p_assignment_id: input.assignmentId,
 		},

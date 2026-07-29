@@ -108,34 +108,28 @@ const SectionScoreModal = ({
 	if (kind === 'calories') labels = ['Calories', ''];
 
 	const buildScore = (state: EntryState): SectionScorePayload => {
-		if (kind === 'time')
-			return { time_seconds: parseTime(state.primary), score_type: kind };
+		if (kind === 'time') return { time_seconds: parseTime(state.primary) };
 		if (kind === 'rounds_reps')
 			return {
 				rounds: numberOrUndefined(state.primary),
 				partial_reps: numberOrUndefined(state.secondary),
-				score_type: kind,
 			};
 		if (kind === 'load')
 			return {
 				weight_kg: numberOrUndefined(state.primary),
 				reps: numberOrUndefined(state.secondary),
-				score_type: kind,
 			};
-		if (kind === 'reps')
-			return { reps: numberOrUndefined(state.primary), score_type: kind };
+		if (kind === 'reps') return { reps: numberOrUndefined(state.primary) };
 		if (kind === 'distance')
 			return {
 				distance_meters: numberOrUndefined(state.primary),
-				score_type: kind,
 			};
 		if (kind === 'calories')
 			return {
 				calories: numberOrUndefined(state.primary),
-				score_type: kind,
 			};
-		if (kind === 'completed') return { completed: true, score_type: kind };
-		return { points: numberOrUndefined(state.primary), score_type: kind };
+		if (kind === 'completed') return { completed: true };
+		return { points: numberOrUndefined(state.primary) };
 	};
 
 	const submit = async () => {
@@ -169,9 +163,7 @@ const SectionScoreModal = ({
 			sectionSubmissionId: submissionId,
 			completedAt: new Date().toISOString().slice(0, 10),
 			scalingLevel,
-			score: isMulti
-				? { score_type: kind }
-				: buildScore({ primary, secondary }),
+			score: isMulti ? {} : buildScore({ primary, secondary }),
 			entries: isMulti
 				? entries.map((entry, index) => ({
 						...buildScore(entry),
