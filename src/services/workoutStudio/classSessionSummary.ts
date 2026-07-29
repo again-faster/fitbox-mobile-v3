@@ -57,7 +57,6 @@ export const buildClassSessionSummary = (
 	if (!workout) return null;
 
 	const movementLimit = Math.max(0, Math.floor(maxMovementsPerSection));
-	let publicMovementCount = 0;
 	const sections = workout.workout_sections
 		.filter(section => section.section_mode === 'workout')
 		.slice()
@@ -85,7 +84,6 @@ export const buildClassSessionSummary = (
 						});
 				});
 
-			publicMovementCount += movementSummaries.length;
 			const movements = movementSummaries.slice(0, movementLimit);
 			return {
 				id: section.id,
@@ -94,9 +92,13 @@ export const buildClassSessionSummary = (
 				movements,
 				remainingMovementCount: movementSummaries.length - movements.length,
 			};
-		});
+		})
+		.filter(
+			section =>
+				section.movements.length > 0 || section.remainingMovementCount > 0,
+		);
 
-	if (publicMovementCount === 0) return null;
+	if (sections.length === 0) return null;
 	return {
 		workoutId: workout.id,
 		workoutName: workout.name,

@@ -246,6 +246,23 @@ describe('buildClassSessionSummary', () => {
 		expect(serialized).toContain('Deadlift');
 	});
 
+	it('omits workout sections without public movements', () => {
+		const input = workout([
+			section('empty', 'Empty', 0, [movement('blank', '   ', 0)]),
+			section('main', 'Main', 1, [movement('squat', 'Squat', 0)]),
+		]);
+
+		expect(buildClassSessionSummary(input)?.sections).toEqual([
+			{
+				id: 'main',
+				name: 'Main',
+				details: [],
+				movements: ['Squat'],
+				remainingMovementCount: 0,
+			},
+		]);
+	});
+
 	it('returns null for undefined, notes-only, and movement-empty workouts', () => {
 		const notesOnly = workout([
 			section('notes', 'Coach briefing', 0, [], { section_mode: 'notes' }),
