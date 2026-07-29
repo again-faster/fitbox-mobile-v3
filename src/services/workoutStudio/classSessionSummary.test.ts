@@ -183,6 +183,18 @@ describe('buildClassSessionSummary', () => {
 		});
 	});
 
+	it('uses the singular label for one round', () => {
+		const input = workout([
+			section('conditioning', 'Conditioning', 0, [
+				movement('row', 'Row', 0),
+			], { rounds: 1 }),
+		]);
+
+		expect(buildClassSessionSummary(input)?.sections[0]?.details).toEqual([
+			'1 round',
+		]);
+	});
+
 	it('deduplicates movement identities before default truncation', () => {
 		const input = workout([
 			section('main', 'Main', 0, [

@@ -88,7 +88,9 @@ export const buildClassSessionSummary = (
 			return {
 				id: section.id,
 				name: section.name,
-				details: section.rounds ? [`${section.rounds} rounds`] : [],
+				details: section.rounds
+					? [`${section.rounds} ${section.rounds === 1 ? 'round' : 'rounds'}`]
+					: [],
 				movements,
 				remainingMovementCount: movementSummaries.length - movements.length,
 			};
