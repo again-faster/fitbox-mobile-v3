@@ -115,6 +115,14 @@ jobs:
                   pod repo update
                   bundle exec pod update Sentry/HybridSDK --verbose
 
+            - name: Test workout summary formatter
+              run: |
+                  cd ios
+                  xcodebuild test -workspace fitbox.xcworkspace \
+                  -scheme fitbox \
+                  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+                  -only-testing:fitboxTests/FitboxWorkoutSummaryTests
+
             - name: Configure preview app target
               run: |
                   cd ios
