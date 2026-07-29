@@ -32,18 +32,20 @@ describe('classTrainingWorkoutQueryKey', () => {
 });
 
 describe('shouldRefreshClassTrainingResolution', () => {
-	it.each([undefined, { status: 'offline' }, { status: 'auth' }, { status: 'error' }] as const)(
-		'refreshes transient resolution %p',
-		resolution => {
-			expect(shouldRefreshClassTrainingResolution(resolution)).toBe(true);
-		},
-	);
+	it.each([
+		undefined,
+		{ status: 'offline' },
+		{ status: 'auth' },
+		{ status: 'error' },
+	] as const)('refreshes transient resolution %p', (resolution) => {
+		expect(shouldRefreshClassTrainingResolution(resolution)).toBe(true);
+	});
 
 	it.each([
 		{ status: 'resolved', workoutId: 'workout-1' },
 		{ status: 'not_mapped' },
 		{ status: 'ambiguous' },
-	] as const)('reuses stable resolution %p', resolution => {
+	] as const)('reuses stable resolution %p', (resolution) => {
 		expect(shouldRefreshClassTrainingResolution(resolution)).toBe(false);
 	});
 });
@@ -56,7 +58,10 @@ describe('classTrainingWorkoutQueryOptions', () => {
 			eventId: 1001,
 			sessionDate: '2026-07-29',
 		};
-		const resolution = { status: 'resolved', workoutId: 'workout-1' } as const;
+		const resolution = {
+			status: 'resolved',
+			workoutId: 'workout-1',
+		} as const;
 		const resolver = jest
 			.spyOn(classTrainingWorkoutService, 'resolveClassTrainingWorkout')
 			.mockResolvedValueOnce(resolution);

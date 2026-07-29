@@ -1,8 +1,4 @@
-import type {
-	BlockMovement,
-	WorkoutDetail,
-	WorkoutSection,
-} from './types';
+import type { BlockMovement, WorkoutDetail, WorkoutSection } from './types';
 import { buildClassSessionSummary } from './classSessionSummary';
 
 const movement = (
@@ -185,9 +181,13 @@ describe('buildClassSessionSummary', () => {
 
 	it('uses the singular label for one round', () => {
 		const input = workout([
-			section('conditioning', 'Conditioning', 0, [
-				movement('row', 'Row', 0),
-			], { rounds: 1 }),
+			section(
+				'conditioning',
+				'Conditioning',
+				0,
+				[movement('row', 'Row', 0)],
+				{ rounds: 1 },
+			),
 		]);
 
 		expect(buildClassSessionSummary(input)?.sections[0]?.details).toEqual([
@@ -254,7 +254,9 @@ describe('buildClassSessionSummary', () => {
 			buildClassSessionSummary(workout([privateSection])),
 		);
 
-		privateSecrets.forEach(secret => expect(serialized).not.toContain(secret));
+		privateSecrets.forEach((secret) =>
+			expect(serialized).not.toContain(secret),
+		);
 		expect(serialized).toContain('Deadlift');
 	});
 
@@ -277,12 +279,12 @@ describe('buildClassSessionSummary', () => {
 
 	it('returns null for undefined, notes-only, and movement-empty workouts', () => {
 		const notesOnly = workout([
-			section('notes', 'Coach briefing', 0, [], { section_mode: 'notes' }),
+			section('notes', 'Coach briefing', 0, [], {
+				section_mode: 'notes',
+			}),
 		]);
 		const empty = workout([
-			section('empty', 'Empty', 0, [
-				movement('missing-name', '   ', 0),
-			]),
+			section('empty', 'Empty', 0, [movement('missing-name', '   ', 0)]),
 		]);
 
 		expect(buildClassSessionSummary()).toBeNull();

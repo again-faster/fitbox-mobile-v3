@@ -82,7 +82,7 @@ export const buildWorkoutShareDescription = (
 	const sectionSummaries = workout.workout_sections
 		.slice()
 		.sort((left, right) => left.position - right.position)
-		.map(section => {
+		.map((section) => {
 			const sectionName =
 				compactWhitespace(section.name) ||
 				compactWhitespace(section.section_mode.replace(/_/g, ' '));
@@ -90,7 +90,7 @@ export const buildWorkoutShareDescription = (
 			const movementSummaries = section.section_blocks
 				.slice()
 				.sort((left, right) => left.position - right.position)
-				.flatMap(block =>
+				.flatMap((block) =>
 					block.block_movements
 						.slice()
 						.sort((left, right) => left.position - right.position),
@@ -108,16 +108,21 @@ export const buildWorkoutShareDescription = (
 		})
 		.filter((summary): summary is string => summary !== null);
 
-	let description = workoutName;
-	for (const summary of sectionSummaries) {
-		const separator = description === workoutName ? ' — ' : ' · ';
-		const available = limit - description.length - separator.length;
-		if (available <= 0) break;
-		const bounded = truncateAtWord(summary, available);
-		if (!bounded) break;
-		description += `${separator}${bounded}`;
-		if (bounded !== summary) break;
-	}
-
-	return description;
+	return sectionSummaries.reduce(
+		(state, summary) => {
+			if (state.stopped || state.description.length >= limit)
+				return state;
+			const separator = state.description === workoutName ? ' — ' : ' · ';
+			const available =
+				limit - state.description.length - separator.length;
+			if (available <= 0) return { ...state, stopped: true };
+			const bounded = truncateAtWord(summary, available);
+			if (!bounded) return { ...state, stopped: true };
+			return {
+				description: `${state.description}${separator}${bounded}`,
+				stopped: bounded !== summary,
+			};
+		},
+		{ description: workoutName, stopped: false },
+	).description;
 };

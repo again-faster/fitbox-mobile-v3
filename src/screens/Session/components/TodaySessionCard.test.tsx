@@ -45,9 +45,7 @@ describe('TodaySessionCard', () => {
 		expect(screen.getByText('Wednesday Conditioning')).toBeTruthy();
 		expect(screen.getByText('Main Set')).toBeTruthy();
 		expect(
-			screen.getByText(
-				'3 rounds · 200 m Run · 10 x Air Squat · +2 more',
-			),
+			screen.getByText('3 rounds · 200 m Run · 10 x Air Squat · +2 more'),
 		).toBeTruthy();
 	});
 
