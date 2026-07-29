@@ -21,12 +21,13 @@ The generated value is ordinary text. Typing, replacing, or clearing it must not
 - Start with the workout name.
 - Include every programmed section mode, including Strength and Metcon; do not restrict generation to sections whose mode is `workout`.
 - Label each included section with its public section name when available; otherwise use a human-readable version of its section mode.
-- Summarize movements using public prescription fields already available in `WorkoutDetail`, such as sets, repetitions, duration, distance, calories, and weight.
+- Prefer each section's member-visible `coach_notes` as its summary when present. Despite the database field name, this text is displayed to members in the workout runner and is part of the public programming for text-based sessions such as Midweek Engine.
+- When a section has no member-visible notes, summarize movements using public prescription fields already available in `WorkoutDetail`, such as sets, repetitions, duration, distance, calories, and weight.
 - Preserve programming order and remove duplicate movement summaries.
-- Never include coach notes, block intent, scaling notes, foundations notes, or movement notes.
+- Never include block intent, scaling notes, foundations notes, or movement notes.
 - Keep the final value at or below the existing 180-character input limit.
 - Prefer removing later movement or section summaries at natural boundaries instead of cutting words. If even the workout name is longer than the limit, truncate only the name to fit.
-- If no section or movement summary is available, use the workout name by itself. If the workout has no usable name, leave the description empty.
+- If no usable section summary is available, use the workout name by itself. If the workout has no usable name, leave the description empty.
 
 ## Architecture and data flow
 
@@ -43,8 +44,9 @@ Missing or partial workout detail should produce the most useful safe result ava
 Unit tests for the pure formatter will cover:
 
 - workout name plus ordered Strength and Metcon summaries;
-- exclusion of all coach/internal note fields;
-- fallback to workout name when there are no movements;
+- use of member-visible section notes for text-based Strength and Metcon programming;
+- exclusion of block intent, scaling/foundations notes, and movement notes;
+- fallback to workout name when there are no member-visible notes or structured movements;
 - natural-boundary shortening to 180 characters;
 - an empty result when neither a usable name nor public workout information exists.
 
