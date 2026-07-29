@@ -45,8 +45,15 @@ private struct FitboxWorkoutEnvelope: Decodable {
 
 @available(iOS 18.0, *)
 private struct FitboxWorkoutAssignment: Decodable {
+  let workoutId: String
   let notes: String?
   let workouts: FitboxAssignedWorkout
+
+  enum CodingKeys: String, CodingKey {
+    case workoutId = "workout_id"
+    case notes
+    case workouts
+  }
 }
 
 @available(iOS 18.0, *)
@@ -57,6 +64,220 @@ private struct FitboxAssignedWorkout: Decodable {
   enum CodingKeys: String, CodingKey {
     case name
     case estimatedDurationMinutes = "estimated_duration_minutes"
+  }
+}
+
+@available(iOS 18.0, *)
+struct FitboxPublicMovementName: Decodable {
+  let id: String
+  let name: String
+}
+
+@available(iOS 18.0, *)
+struct FitboxPublicBlockMovement: Decodable {
+  let id: String
+  let position: Int
+  let sets: Int?
+  let repsScheme: String?
+  let weightKg: Double?
+  let durationSeconds: Int?
+  let distanceMeters: Double?
+  let calories: Double?
+  let movements: FitboxPublicMovementName
+
+  enum CodingKeys: String, CodingKey {
+    case id, position, sets, calories, movements
+    case repsScheme = "reps_scheme"
+    case weightKg = "weight_kg"
+    case durationSeconds = "duration_seconds"
+    case distanceMeters = "distance_meters"
+  }
+}
+
+@available(iOS 18.0, *)
+struct FitboxPublicSectionBlock: Decodable {
+  let id: String
+  let position: Int
+  var blockMovements: [FitboxPublicBlockMovement]
+
+  enum CodingKeys: String, CodingKey {
+    case id, position
+    case blockMovements = "block_movements"
+  }
+}
+
+@available(iOS 18.0, *)
+struct FitboxPublicWorkoutSection: Decodable {
+  let id: String
+  let name: String
+  let position: Int
+  let sectionMode: String
+  let coachNotes: String?
+  var sectionBlocks: [FitboxPublicSectionBlock]
+
+  enum CodingKeys: String, CodingKey {
+    case id, name, position
+    case sectionMode = "section_mode"
+    case coachNotes = "coach_notes"
+    case sectionBlocks = "section_blocks"
+  }
+}
+
+@available(iOS 18.0, *)
+private struct FitboxPublicSectionRow: Decodable {
+  let id: String
+  let name: String
+  let position: Int
+  let sectionMode: String
+  let coachNotes: String?
+
+  enum CodingKeys: String, CodingKey {
+    case id, name, position
+    case sectionMode = "section_mode"
+    case coachNotes = "coach_notes"
+  }
+}
+
+@available(iOS 18.0, *)
+private struct FitboxPublicBlockRow: Decodable {
+  let id: String
+  let sectionId: String
+  let position: Int
+
+  enum CodingKeys: String, CodingKey {
+    case id, position
+    case sectionId = "section_id"
+  }
+}
+
+@available(iOS 18.0, *)
+private struct FitboxPublicMovementRow: Decodable {
+  let blockId: String
+  let movement: FitboxPublicBlockMovement
+
+  enum CodingKeys: String, CodingKey {
+    case blockId = "block_id"
+    case id, position, sets, calories, movements
+    case repsScheme = "reps_scheme"
+    case weightKg = "weight_kg"
+    case durationSeconds = "duration_seconds"
+    case distanceMeters = "distance_meters"
+  }
+
+  init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
+    blockId = try values.decode(String.self, forKey: .blockId)
+    movement = FitboxPublicBlockMovement(
+      id: try values.decode(String.self, forKey: .id),
+      position: try values.decode(Int.self, forKey: .position),
+      sets: try values.decodeIfPresent(Int.self, forKey: .sets),
+      repsScheme: try values.decodeIfPresent(String.self, forKey: .repsScheme),
+      weightKg: try values.decodeIfPresent(Double.self, forKey: .weightKg),
+      durationSeconds: try values.decodeIfPresent(Int.self, forKey: .durationSeconds),
+      distanceMeters: try values.decodeIfPresent(Double.self, forKey: .distanceMeters),
+      calories: try values.decodeIfPresent(Double.self, forKey: .calories),
+      movements: try values.decode(FitboxPublicMovementName.self, forKey: .movements)
+    )
+  }
+}
+
+@available(iOS 18.0, *)
+enum FitboxWorkoutSpeechFormatter {
+  static let maxLength = 500
+
+  static func format(
+    workoutName: String,
+    estimatedDurationMinutes: Int?,
+    sections: [FitboxPublicWorkoutSection],
+    dayName: String
+  ) -> String {
+    let day = dayName.prefix(1).uppercased() + String(dayName.dropFirst())
+    var response = "\(day)'s workout is \(compact(workoutName))"
+    if let duration = estimatedDurationMinutes, duration > 0 {
+      response += ", about \(duration) minutes"
+    }
+    response += "."
+
+    for section in sections.sorted(by: { $0.position < $1.position }) {
+      guard let detail = sectionSummary(section) else { continue }
+      let sentence = " \(compact(section.name)): \(detail)."
+      if response.count + sentence.count <= maxLength {
+        response += sentence
+        continue
+      }
+
+      let remaining = maxLength - response.count - 2
+      guard remaining > 12 else { break }
+      response += " " + truncate(detail: "\(compact(section.name)): \(detail)", to: remaining) + "."
+      break
+    }
+
+    if response.count > maxLength {
+      response = truncate(detail: response, to: maxLength - 1) + "."
+    }
+    return response.trimmingCharacters(in: .whitespacesAndNewlines)
+  }
+
+  private static func sectionSummary(_ section: FitboxPublicWorkoutSection) -> String? {
+    if let notes = section.coachNotes {
+      let summary = compact(notes)
+      if !summary.isEmpty { return summary }
+    }
+
+    var seen = Set<String>()
+    let movements = section.sectionBlocks
+      .sorted(by: { $0.position < $1.position })
+      .flatMap { $0.blockMovements.sorted(by: { $0.position < $1.position }) }
+      .compactMap { movement -> String? in
+        guard seen.insert(movement.movements.id).inserted else { return nil }
+        return movementSummary(movement)
+      }
+    return movements.isEmpty ? nil : movements.joined(separator: ", ")
+  }
+
+  private static func movementSummary(_ movement: FitboxPublicBlockMovement) -> String? {
+    let name = compact(movement.movements.name)
+    guard !name.isEmpty else { return nil }
+
+    var summary: String
+    if let reps = movement.repsScheme, !compact(reps).isEmpty {
+      summary = "\(compact(reps)) \(name)"
+      if let sets = movement.sets, sets > 1 {
+        summary = "\(sets) sets of \(summary)"
+      }
+    } else if let distance = movement.distanceMeters, distance > 0 {
+      summary = "\(number(distance)) meters \(name)"
+    } else if let duration = movement.durationSeconds, duration > 0 {
+      summary = duration % 60 == 0
+        ? "\(duration / 60) minutes \(name)"
+        : "\(duration) seconds \(name)"
+    } else if let calories = movement.calories, calories > 0 {
+      summary = "\(number(calories)) calories \(name)"
+    } else {
+      summary = name
+    }
+
+    if let weight = movement.weightKg, weight > 0 {
+      summary += " at \(number(weight)) kilograms"
+    }
+    return summary
+  }
+
+  private static func compact(_ value: String) -> String {
+    value.split(whereSeparator: { $0.isWhitespace }).joined(separator: " ")
+  }
+
+  private static func number(_ value: Double) -> String {
+    value.rounded() == value ? String(Int(value)) : String(format: "%g", value)
+  }
+
+  private static func truncate(detail: String, to limit: Int) -> String {
+    guard detail.count > limit else { return detail }
+    let prefix = String(detail.prefix(limit))
+    if let boundary = prefix.lastIndex(where: { $0.isWhitespace }) {
+      return String(prefix[..<boundary]).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    return prefix
   }
 }
 
@@ -76,7 +297,11 @@ private enum FitboxWorkoutSummaryService {
         credentials: credentials,
         daysFromToday: daysFromToday
       )
-      return format(assignments: assignments, dayName: dayName)
+      return await format(
+        assignments: assignments,
+        dayName: dayName,
+        credentials: credentials
+      )
     } catch FitboxWorkoutSummaryError.missingSession {
       return "Open fitbox Preview and sign in to Training, then ask me again."
     } catch FitboxWorkoutSummaryError.expiredSession {
@@ -215,14 +440,132 @@ private enum FitboxWorkoutSummaryService {
     return assignments
   }
 
+  private static func fetchWorkoutSections(
+    credentials: FitboxAppIntentCredentials,
+    workoutId: String
+  ) async throws -> [FitboxPublicWorkoutSection] {
+    let sections: [FitboxPublicSectionRow] = try await fetchSupabaseRows(
+      credentials: credentials,
+      table: "workout_sections",
+      queryItems: [
+        URLQueryItem(name: "select", value: "id,name,position,section_mode,coach_notes"),
+        URLQueryItem(name: "workout_id", value: "eq.\(workoutId)"),
+        URLQueryItem(name: "order", value: "position.asc")
+      ]
+    )
+    guard !sections.isEmpty else { return [] }
+
+    let sectionIds = sections.map(\.id).joined(separator: ",")
+    let blocks: [FitboxPublicBlockRow] = try await fetchSupabaseRows(
+      credentials: credentials,
+      table: "section_blocks",
+      queryItems: [
+        URLQueryItem(name: "select", value: "id,section_id,position"),
+        URLQueryItem(name: "section_id", value: "in.(\(sectionIds))"),
+        URLQueryItem(name: "order", value: "position.asc")
+      ]
+    )
+
+    var movementsByBlock = [String: [FitboxPublicBlockMovement]]()
+    if !blocks.isEmpty {
+      let blockIds = blocks.map(\.id).joined(separator: ",")
+      let movementRows: [FitboxPublicMovementRow] = try await fetchSupabaseRows(
+        credentials: credentials,
+        table: "block_movements",
+        queryItems: [
+          URLQueryItem(
+            name: "select",
+            value: "id,block_id,position,sets,reps_scheme,weight_kg,duration_seconds,distance_meters,calories,movements(id,name)"
+          ),
+          URLQueryItem(name: "block_id", value: "in.(\(blockIds))"),
+          URLQueryItem(name: "order", value: "position.asc")
+        ]
+      )
+      for row in movementRows {
+        movementsByBlock[row.blockId, default: []].append(row.movement)
+      }
+    }
+
+    var blocksBySection = [String: [FitboxPublicSectionBlock]]()
+    for block in blocks {
+      blocksBySection[block.sectionId, default: []].append(
+        FitboxPublicSectionBlock(
+          id: block.id,
+          position: block.position,
+          blockMovements: movementsByBlock[block.id] ?? []
+        )
+      )
+    }
+
+    return sections.map { section in
+      FitboxPublicWorkoutSection(
+        id: section.id,
+        name: section.name,
+        position: section.position,
+        sectionMode: section.sectionMode,
+        coachNotes: section.coachNotes,
+        sectionBlocks: blocksBySection[section.id] ?? []
+      )
+    }
+  }
+
+  private static func fetchSupabaseRows<T: Decodable>(
+    credentials: FitboxAppIntentCredentials,
+    table: String,
+    queryItems: [URLQueryItem]
+  ) async throws -> T {
+    guard !credentials.accessToken.isEmpty,
+          !credentials.supabaseUrl.isEmpty,
+          !credentials.supabaseAnonKey.isEmpty else {
+      throw FitboxWorkoutSummaryError.missingSession
+    }
+    let base = credentials.supabaseUrl.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    guard var components = URLComponents(string: "\(base)/rest/v1/\(table)") else {
+      throw FitboxWorkoutSummaryError.invalidResponse
+    }
+    components.queryItems = queryItems
+    guard let url = components.url else {
+      throw FitboxWorkoutSummaryError.invalidResponse
+    }
+
+    var request = URLRequest(url: url, timeoutInterval: 15)
+    request.setValue("Bearer \(credentials.accessToken)", forHTTPHeaderField: "Authorization")
+    request.setValue(credentials.supabaseAnonKey, forHTTPHeaderField: "apikey")
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    let (data, response) = try await URLSession.shared.data(for: request)
+    guard let http = response as? HTTPURLResponse else {
+      throw FitboxWorkoutSummaryError.invalidResponse
+    }
+    if http.statusCode == 401 {
+      throw FitboxWorkoutSummaryError.expiredSession
+    }
+    guard (200..<300).contains(http.statusCode) else {
+      throw FitboxWorkoutSummaryError.invalidResponse
+    }
+    return try JSONDecoder().decode(T.self, from: data)
+  }
+
   private static func format(
     assignments: [FitboxWorkoutAssignment],
-    dayName: String
-  ) -> String {
+    dayName: String,
+    credentials: FitboxAppIntentCredentials
+  ) async -> String {
     guard !assignments.isEmpty else {
       return "You don't have a workout assigned for \(dayName)."
     }
     if assignments.count == 1, let assignment = assignments.first {
+      if let sections = try? await fetchWorkoutSections(
+        credentials: credentials,
+        workoutId: assignment.workoutId
+      ) {
+        return FitboxWorkoutSpeechFormatter.format(
+          workoutName: assignment.workouts.name,
+          estimatedDurationMinutes: assignment.workouts.estimatedDurationMinutes,
+          sections: sections,
+          dayName: dayName
+        )
+      }
+
       var response = "Your workout \(dayName) is \(assignment.workouts.name)"
       if let duration = assignment.workouts.estimatedDurationMinutes, duration > 0 {
         response += ", about \(duration) minutes"
