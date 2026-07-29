@@ -1,11 +1,11 @@
-jest.mock('./api', () => ({ wsApi: jest.fn() }));
-
 import { wsApi } from './api';
 import {
 	calculateWorkoutVolumeKg,
 	completeWorkoutResult,
 	startWorkoutResult,
 } from './workoutResults';
+
+jest.mock('./api', () => ({ wsApi: jest.fn() }));
 
 const mockWsApi = wsApi as jest.MockedFunction<typeof wsApi>;
 
@@ -59,17 +59,14 @@ describe('workout result lifecycle', () => {
 			totalVolumeKg: 1250,
 		});
 
-		expect(patch).toHaveBeenCalledWith(
-			'workout_results?id=eq.result-1',
-			{
-				json: {
-					completed_at: '2026-07-29T05:45:00.000Z',
-					duration_seconds: 2700,
-					total_volume_kg: 1250,
-				},
-				headers: { Prefer: 'return=minimal' },
+		expect(patch).toHaveBeenCalledWith('workout_results?id=eq.result-1', {
+			json: {
+				completed_at: '2026-07-29T05:45:00.000Z',
+				duration_seconds: 2700,
+				total_volume_kg: 1250,
 			},
-		);
+			headers: { Prefer: 'return=minimal' },
+		});
 	});
 
 	it('calculates volume from only completed sets with valid values', () => {
