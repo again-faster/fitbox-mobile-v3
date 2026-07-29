@@ -12,10 +12,11 @@ import {
 import { Constant, Func } from '@/utils';
 import { SessionTabsEnum, VisibilityOptions } from '@/utils/Enum';
 import useStore from '@/zustand/Store';
-import { useQuery } from '@tanstack/react-query';
+import { useFocusEffect } from '@react-navigation/native';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { isArray } from 'lodash';
 import moment from 'moment';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
@@ -25,11 +26,16 @@ import {
 	SessionLoader,
 	SessionTabButtons,
 } from './components';
-import { useClassTrainingWorkout } from './hooks/useClassTrainingWorkout';
+import {
+	classTrainingWorkoutQueryOptions,
+	shouldRefreshClassTrainingResolution,
+	useClassTrainingWorkout,
+} from './hooks/useClassTrainingWorkout';
 
 const Session = ({ route, navigation }: ApplicationScreenProps) => {
 	const loggedInUser = useStore(state => state.loggedInUser);
 	const allowLeaderboards = useStore(state => state.allowLeaderboards);
+	const queryClient = useQueryClient();
 	const [activeTab, setActiveTab] = useState<SessionTabsEnum>(
 		SessionTabsEnum.INFO,
 	);
@@ -37,6 +43,9 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 		null,
 	);
 	const trainingNavigationPending = useRef(false);
+	const [activeTenantId, setActiveTenantId] = useState<string | null>(
+		() => getStoredWSSession()?.user.active_tenant_id ?? null,
+	);
 
 	const {
 		id: eventId = 0,
@@ -150,8 +159,6 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 		() => Number(session?.class_event.class_id),
 		[session],
 	);
-	const wsSession = getStoredWSSession();
-	const activeTenantId = wsSession?.user.active_tenant_id;
 	const classTrainingParams = useMemo(
 		() =>
 			activeTenantId && session
@@ -182,15 +189,29 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 			(classTrainingQuery.data?.status === 'resolved' &&
 				workoutDetailQuery.isPending));
 
+	useFocusEffect(
+		useCallback(() => {
+			setActiveTenantId(
+				getStoredWSSession()?.user.active_tenant_id ?? null,
+			);
+			trainingNavigationPending.current = false;
+			setLoadingTab(null);
+		}, []),
+	);
+
 	const openTrainingWorkout: (
 		initialTab: 'overview' | 'leaderboard',
 	) => Promise<void> = async initialTab => {
 		if (trainingNavigationPending.current || !session) return;
 		trainingNavigationPending.current = true;
 		setLoadingTab(initialTab === 'leaderboard' ? 'results' : 'workout');
+		let navigationStarted = false;
 
 		try {
-			if (!activeTenantId) {
+			const actionTenantId =
+				getStoredWSSession()?.user.active_tenant_id ?? null;
+			if (!actionTenantId) {
+				navigationStarted = true;
 				navigation.push('Main', {
 					screen: 'TrainingStack',
 					params: { screen: 'TrainingActivate', params: {} },
@@ -198,9 +219,26 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 				return;
 			}
 
-			const resolution =
-				classTrainingQuery.data ??
-				(await classTrainingQuery.refetch()).data;
+			const actionParams = {
+				tenantId: actionTenantId,
+				classId,
+				eventId,
+				sessionDate: moment(session.start_datetime).format(
+					Constant.DEFAULT_DATE_FORMAT,
+				),
+			};
+			const tenantChanged = actionTenantId !== activeTenantId;
+			if (tenantChanged) setActiveTenantId(actionTenantId);
+
+			let resolution = classTrainingQuery.data;
+			if (tenantChanged) {
+				resolution = await queryClient.fetchQuery({
+					...classTrainingWorkoutQueryOptions(actionParams),
+					staleTime: 0,
+				});
+			} else if (shouldRefreshClassTrainingResolution(resolution)) {
+				resolution = (await classTrainingQuery.refetch()).data;
+			}
 
 			if (!resolution) {
 				Alert.alert(
@@ -211,6 +249,7 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 			}
 
 			if (resolution.status === 'resolved') {
+				navigationStarted = true;
 				navigation.push('Main', {
 					screen: 'TrainingStack',
 					params: {
@@ -225,6 +264,7 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 			}
 
 			if (resolution.status === 'auth') {
+				navigationStarted = true;
 				navigation.push('Main', {
 					screen: 'TrainingStack',
 					params: { screen: 'TrainingActivate', params: {} },
@@ -260,8 +300,10 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 			}
 			Alert.alert(alertTitle, alertMessage);
 		} finally {
-			trainingNavigationPending.current = false;
-			setLoadingTab(null);
+			if (!navigationStarted) {
+				trainingNavigationPending.current = false;
+				setLoadingTab(null);
+			}
 		}
 	};
 

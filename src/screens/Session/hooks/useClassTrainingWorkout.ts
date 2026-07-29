@@ -25,15 +25,27 @@ export const classTrainingWorkoutQueryKey = (
 				params.sessionDate,
 			] as const);
 
+export const shouldRefreshClassTrainingResolution = (
+	resolution: ClassTrainingResolution | undefined,
+) =>
+	resolution === undefined ||
+	resolution.status === 'offline' ||
+	resolution.status === 'auth' ||
+	resolution.status === 'error';
+
+export const classTrainingWorkoutQueryOptions = (
+	params: ClassTrainingWorkoutParams | null,
+) => ({
+	queryKey: classTrainingWorkoutQueryKey(params),
+	queryFn: () =>
+		params === null
+			? Promise.resolve({ status: 'not_mapped' } as const)
+			: resolveClassTrainingWorkout(params),
+	enabled: params !== null,
+	staleTime: 300_000,
+});
+
 export const useClassTrainingWorkout = (
 	params: ClassTrainingWorkoutParams | null,
 ) =>
-	useQuery<ClassTrainingResolution>({
-		queryKey: classTrainingWorkoutQueryKey(params),
-		queryFn: () =>
-			params === null
-				? Promise.resolve({ status: 'not_mapped' })
-				: resolveClassTrainingWorkout(params),
-		enabled: params !== null,
-		staleTime: 300_000,
-	});
+	useQuery<ClassTrainingResolution>(classTrainingWorkoutQueryOptions(params));
