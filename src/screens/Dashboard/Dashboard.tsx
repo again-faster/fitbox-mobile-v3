@@ -97,7 +97,7 @@ const actionButtons = [
 	{
 		id: 'results',
 		icon: 'trophy',
-		text: 'Leaderboard',
+		text: 'My Results',
 	},
 ];
 
@@ -841,7 +841,10 @@ const Dashboard = () => {
 		if (navTo === 'calendar') {
 			navigate('Calendar');
 		} else if (navTo === 'results') {
-			navigate('ClassResults');
+			navigate('Main', {
+				screen: 'TrainingStack',
+				params: { screen: 'TrainingResults' },
+			});
 		} else {
 			Alert.alert('Coming soon', `${navTo} screen`);
 		}

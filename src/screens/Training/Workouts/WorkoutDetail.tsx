@@ -43,6 +43,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
+import { initialWorkoutDetailTab } from './workoutDetailTabs';
 
 const SCALING_LEVEL_KEY = 'ws:last-scaling-level';
 
@@ -108,7 +109,8 @@ type WorkoutShell = {
 
 const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	const { colors } = useTheme();
-	const { workoutId, assignmentId, programContext } = route.params;
+	const { workoutId, assignmentId, programContext, initialTab } =
+		route.params;
 	const session = getStoredWSSession();
 	const uid = session?.user.id;
 	const tenantId = session?.user.active_tenant_id;
@@ -146,8 +148,10 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	const [weightKg, setWeightKg] = useState('');
 	const [reps, setReps] = useState('');
 	const [submitting, setSubmitting] = useState(false);
-	const [tab, setTab] = useState<'overview' | 'leaderboard'>('overview');
-	const [leaderboardOpened, setLeaderboardOpened] = useState(false);
+	const [tab, setTab] = useState(() => initialWorkoutDetailTab(initialTab));
+	const [leaderboardOpened, setLeaderboardOpened] = useState(
+		initialTab === 'leaderboard',
+	);
 	const [isPR, setIsPR] = useState(false);
 	const [toastVisible, setToastVisible] = useState(false);
 	const [toastMessage, setToastMessage] = useState(

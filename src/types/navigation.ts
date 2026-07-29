@@ -270,6 +270,7 @@ export type TrainingStackParamList = {
 		workoutId: string;
 		assignmentId?: string;
 		programContext?: ProgramContext;
+		initialTab?: 'overview' | 'leaderboard';
 	};
 	TrainingRunWorkout: {
 		workoutId: string;

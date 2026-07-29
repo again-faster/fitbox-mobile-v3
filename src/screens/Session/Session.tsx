@@ -1,5 +1,6 @@
 import { ScrollView, Text } from '@/components/atoms';
-import { goBack } from '@/navigators/NavigationRef';
+import { getStoredWSSession } from '@/services/workoutStudio/auth';
+import { resolveClassTrainingWorkout } from '@/services/workoutStudio/classTrainingWorkout';
 import { getScheduleDetail } from '@/services/session';
 import { memberTheme } from '@/theme/member';
 import { ApplicationScreenProps, SessionParams } from '@/types/navigation';
@@ -13,39 +14,27 @@ import useStore from '@/zustand/Store';
 import { useQuery } from '@tanstack/react-query';
 import { isArray } from 'lodash';
 import moment from 'moment';
-import {
-	useCallback,
-	useEffect,
-	useLayoutEffect,
-	useMemo,
-	useState,
-} from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, StyleSheet, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import ClassResultsScreen from '../ClassResultsScreen/ClassResultsScreen';
 import {
 	SessionActionButtons,
 	SessionAttendanceTab,
 	SessionInformationTab,
 	SessionLoader,
-	SessionSectionsTab,
 	SessionTabButtons,
 } from './components';
 
 const Session = ({ route, navigation }: ApplicationScreenProps) => {
 	const loggedInUser = useStore(state => state.loggedInUser);
 	const allowLeaderboards = useStore(state => state.allowLeaderboards);
-	const setToLeaderboardsCallback = useStore(
-		state => state.setToLeaderboardsCallback,
-	);
-
-	const [isFromLeaderboards, setIsFromLeaderboards] =
-		useState<boolean>(false);
-
-	const [firstLoad, setFirstLoad] = useState<boolean>(true);
 	const [activeTab, setActiveTab] = useState<SessionTabsEnum>(
 		SessionTabsEnum.INFO,
 	);
+	const [loadingTab, setLoadingTab] = useState<'workout' | 'results' | null>(
+		null,
+	);
+	const trainingNavigationPending = useRef(false);
 
 	const {
 		id: eventId = 0,
@@ -53,47 +42,12 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 		waitlistTime,
 	} = route.params as SessionParams;
 
-	const {
-		data,
-		isFetching: refreshing,
-		error,
-		isSuccess,
-		isFetchedAfterMount,
-	} = useQuery({
+	const { data, error, isFetchedAfterMount } = useQuery({
 		queryKey: ['sessionGetScheduleDetail'],
 		queryFn: () => getScheduleDetail(eventId),
 		select: res => res.data,
 		enabled: !!eventId,
 	});
-
-	const setToLeaderboardsTab = useCallback(() => {
-		setIsFromLeaderboards(true);
-		setActiveTab(SessionTabsEnum.RESULTS);
-	}, []);
-
-	const handleBackButton = () => {
-		if (isFromLeaderboards) {
-			setActiveTab(SessionTabsEnum.SECTIONS);
-			setIsFromLeaderboards(false);
-		} else {
-			goBack();
-		}
-	};
-	const renderBackButton = () => (
-		<TouchableOpacity onPress={handleBackButton}>
-			<Icon name="chevron-left" color="white" size={40} />
-		</TouchableOpacity>
-	);
-
-	useLayoutEffect(() => {
-		navigation.setOptions({
-			headerLeft: renderBackButton,
-		});
-	}, [isFromLeaderboards]);
-
-	useEffect(() => {
-		setToLeaderboardsCallback(setToLeaderboardsTab);
-	}, [setToLeaderboardsCallback, setToLeaderboardsTab]);
 
 	const session = data;
 	const sessionTitle = session?.fb_class?.name ?? 'Class session';
@@ -103,14 +57,6 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 	// const sections = useMemo(() => session?.sections, [session]);
 	const attendanceView = session?.attendance_view ?? false;
 	// const attendanceLimit = session?.attendance_limit ?? null;
-
-	const hasLeaderboard = useMemo(() => {
-		if (session?.sections && isArray(session.sections)) {
-			return session?.sections?.some(e => !!e.is_leaderboard);
-		}
-
-		return false;
-	}, [session?.sections]);
 
 	const subscribed = useMemo(
 		() => Func.checkSubscription(session?.bookable),
@@ -203,6 +149,91 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 		[session],
 	);
 
+	const openTrainingWorkout: (
+		initialTab: 'overview' | 'leaderboard',
+	) => Promise<void> = async initialTab => {
+		if (trainingNavigationPending.current || !session) return;
+		trainingNavigationPending.current = true;
+		setLoadingTab(initialTab === 'leaderboard' ? 'results' : 'workout');
+
+		try {
+			const wsSession = getStoredWSSession();
+			if (!wsSession?.user.active_tenant_id) {
+				navigation.push('Main', {
+					screen: 'TrainingStack',
+					params: { screen: 'TrainingActivate', params: {} },
+				});
+				return;
+			}
+
+			const resolution = await resolveClassTrainingWorkout({
+				tenantId: wsSession.user.active_tenant_id,
+				classId,
+				eventId,
+				sessionDate: moment(session.start_datetime).format(
+					Constant.DEFAULT_DATE_FORMAT,
+				),
+			});
+
+			if (resolution.status === 'resolved') {
+				navigation.push('Main', {
+					screen: 'TrainingStack',
+					params: {
+						screen: 'TrainingWorkoutDetail',
+						params: {
+							workoutId: resolution.workoutId,
+							initialTab,
+						},
+					},
+				});
+				return;
+			}
+
+			if (resolution.status === 'auth') {
+				navigation.push('Main', {
+					screen: 'TrainingStack',
+					params: { screen: 'TrainingActivate', params: {} },
+				});
+				return;
+			}
+
+			if (resolution.status === 'offline') {
+				Alert.alert(
+					'Workout Studio is offline',
+					'Check your connection and try again.',
+					[
+						{ text: 'Cancel', style: 'cancel' },
+						{
+							text: 'Retry',
+							onPress: () => void openTrainingWorkout(initialTab),
+						},
+					],
+				);
+				return;
+			}
+
+			let alertTitle = 'Workout unavailable';
+			let alertMessage =
+				'The Workout Studio workout could not be opened.';
+			if (resolution.status === 'ambiguous') {
+				alertTitle = 'Workout mapping conflict';
+				alertMessage =
+					'More than one Workout Studio workout is linked to this class. Please ask your gym team to correct the mapping.';
+			} else if (resolution.status === 'not_mapped') {
+				alertMessage =
+					'No Workout Studio workout is linked to this class.';
+			}
+			Alert.alert(alertTitle, alertMessage);
+		} finally {
+			trainingNavigationPending.current = false;
+			setLoadingTab(null);
+		}
+	};
+
+	const openTrainingResults = () => {
+		void openTrainingWorkout('leaderboard');
+	};
+
 	const handleTabChange = (tab: SessionTabsEnum) => {
 		setActiveTab(tab);
 	};
@@ -212,20 +243,6 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 			setActiveTab(SessionTabsEnum.INFO);
 		}
 	}, [isLimited]);
-
-	useEffect(() => {
-		if (isSuccess) {
-			if (
-				data.sections &&
-				data.sections.length > 0 &&
-				firstLoad &&
-				!isLimited
-			) {
-				setActiveTab(SessionTabsEnum.SECTIONS);
-				setFirstLoad(false);
-			}
-		}
-	}, [isSuccess, data]);
 
 	if (error) {
 		return (
@@ -307,6 +324,9 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 			<SessionTabButtons
 				activeTab={activeTab}
 				handleTabChange={handleTabChange}
+				handleWorkoutPress={() => void openTrainingWorkout('overview')}
+				handleResultsPress={openTrainingResults}
+				loadingTab={loadingTab}
 				subscribed={subscribed}
 				isLimited={isLimited}
 				allowLeaderboards={allowLeaderboards}
@@ -314,30 +334,12 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 				bookedMembers={
 					bookedMembers as SessionMemberAttendanceSchemaType[]
 				}
-				hasLeaderboard={hasLeaderboard}
 				isStaff={!!loggedInUser?.user_data.is_staff}
 			/>
 
 			{activeTab === SessionTabsEnum.INFO ? (
 				<SessionInformationTab
 					session={session as SessionDetailSchemaType}
-				/>
-			) : null}
-
-			{activeTab === SessionTabsEnum.SECTIONS ? (
-				<SessionSectionsTab
-					session={session as SessionDetailSchemaType}
-					refreshing={refreshing}
-					handleTabChange={handleTabChange}
-				/>
-			) : null}
-
-			{activeTab === SessionTabsEnum.RESULTS ? (
-				<ClassResultsScreen
-					selectClass={classId}
-					dateFromParams={moment(session?.start_datetime).format(
-						Constant.DEFAULT_DATE_FORMAT,
-					)}
 				/>
 			) : null}
 
