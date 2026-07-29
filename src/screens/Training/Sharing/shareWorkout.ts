@@ -4,6 +4,21 @@ import type {
 	WorkoutResult,
 } from '@/services/workoutStudio/types';
 
+export const SHARE_DESCRIPTION_MAX_LENGTH = 180;
+
+const SECTION_PREVIEW_MAX_LENGTH = 72;
+
+const compactWhitespace = (value?: string | null) =>
+	value?.split(/\s+/).filter(Boolean).join(' ').trim() ?? '';
+
+const truncateAtWord = (value: string, limit: number) => {
+	if (value.length <= limit) return value;
+	if (limit <= 1) return value.slice(0, Math.max(0, limit));
+	const candidate = value.slice(0, limit - 1).trimEnd();
+	const boundary = candidate.lastIndexOf(' ');
+	return `${(boundary > 0 ? candidate.slice(0, boundary) : candidate).trimEnd()}…`;
+};
+
 export const formatShareDuration = (seconds: number) => {
 	const hours = Math.floor(seconds / 3600);
 	const minutes = Math.floor((seconds % 3600) / 60);
@@ -56,18 +71,53 @@ const movementSummary = (movement: BlockMovement) => {
 
 export const buildWorkoutShareDescription = (
 	workout?: WorkoutDetail,
-	maxMovements = 4,
+	maxLength = SHARE_DESCRIPTION_MAX_LENGTH,
 ) => {
 	if (!workout) return '';
-	const summaries = workout.workout_sections
-		.filter(section => section.section_mode === 'workout')
-		.flatMap(section => section.section_blocks)
-		.flatMap(block => block.block_movements)
-		.map(movementSummary)
-		.filter((summary, index, all) => all.indexOf(summary) === index);
+	const limit = Math.max(0, Math.floor(maxLength));
+	const workoutName = compactWhitespace(workout.name);
+	if (!workoutName || limit === 0) return '';
+	if (workoutName.length >= limit) return truncateAtWord(workoutName, limit);
 
-	if (summaries.length === 0) return '';
-	const visible = summaries.slice(0, maxMovements);
-	const remaining = summaries.length - visible.length;
-	return `${visible.join(' · ')}${remaining > 0 ? ` · +${remaining} more` : ''}`;
+	const sectionSummaries = workout.workout_sections
+		.slice()
+		.sort((left, right) => left.position - right.position)
+		.map(section => {
+			const sectionName =
+				compactWhitespace(section.name) ||
+				compactWhitespace(section.section_mode.replace(/_/g, ' '));
+			const visibleNote = compactWhitespace(section.coach_notes);
+			const movementSummaries = section.section_blocks
+				.slice()
+				.sort((left, right) => left.position - right.position)
+				.flatMap(block =>
+					block.block_movements
+						.slice()
+						.sort((left, right) => left.position - right.position),
+				)
+				.map(movementSummary)
+				.filter(
+					(summary, index, all) => all.indexOf(summary) === index,
+				);
+			const detail = visibleNote || movementSummaries.join(', ');
+			if (!sectionName || !detail) return null;
+			return `${sectionName}: ${truncateAtWord(
+				detail,
+				SECTION_PREVIEW_MAX_LENGTH,
+			)}`;
+		})
+		.filter((summary): summary is string => summary !== null);
+
+	let description = workoutName;
+	for (const summary of sectionSummaries) {
+		const separator = description === workoutName ? ' — ' : ' · ';
+		const available = limit - description.length - separator.length;
+		if (available <= 0) break;
+		const bounded = truncateAtWord(summary, available);
+		if (!bounded) break;
+		description += `${separator}${bounded}`;
+		if (bounded !== summary) break;
+	}
+
+	return description;
 };

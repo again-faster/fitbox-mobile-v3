@@ -15,7 +15,7 @@ const workout = {
 			name: 'Main workout',
 			position: 1,
 			section_mode: 'workout',
-			coach_notes: 'Private note',
+			coach_notes: null,
 			scoring_type: 'for_time',
 			is_scored: true,
 			score_collection_mode: 'aggregate',
@@ -31,11 +31,11 @@ const workout = {
 				{
 					id: 'block-1',
 					label: null,
-					intent: '',
+					intent: 'Private block intent',
 					position: 1,
 					rest_seconds: null,
-					scaled_notes: null,
-					foundations_notes: null,
+					scaled_notes: 'Private scaled note',
+					foundations_notes: 'Private foundations note',
 					block_movements: [
 						{
 							id: 'movement-1',
@@ -49,7 +49,7 @@ const workout = {
 							calories: null,
 							set_scheme: null,
 							advanced: null,
-							notes: null,
+							notes: 'Private movement note',
 							movements: { id: 'deadlift', name: 'Deadlift' },
 						},
 					],
@@ -60,10 +60,67 @@ const workout = {
 } satisfies WorkoutDetail;
 
 describe('workout sharing formatters', () => {
-	it('builds a public movement summary without coach notes', () => {
+	it('builds a named public movement summary without internal fields', () => {
 		const summary = buildWorkoutShareDescription(workout);
-		expect(summary).toBe('100 x Deadlift');
-		expect(summary).not.toContain('Private note');
+		expect(summary).toBe('Heavy 100 — Main workout: 100 x Deadlift');
+		expect(summary).not.toContain('Private block intent');
+		expect(summary).not.toContain('Private scaled note');
+		expect(summary).not.toContain('Private foundations note');
+		expect(summary).not.toContain('Private movement note');
+	});
+
+	it('prefers ordered member-visible Strength and Metcon notes', () => {
+		const textWorkout = {
+			...workout,
+			name: 'Midweek Engine',
+			workout_sections: [
+				{
+					...workout.workout_sections[0]!,
+					id: 'metcon',
+					name: 'Metcon',
+					position: 2,
+					section_mode: 'workout',
+					coach_notes:
+						'18-minute EMOM with bike, dumbbell snatches, and burpees.',
+					section_blocks: [],
+				},
+				{
+					...workout.workout_sections[0]!,
+					id: 'strength',
+					name: 'Strength',
+					position: 1,
+					section_mode: 'workout',
+					coach_notes: 'Deadlift: 5 x 3 at a moderate load.',
+					section_blocks: [],
+				},
+			],
+		} satisfies WorkoutDetail;
+
+		const summary = buildWorkoutShareDescription(textWorkout);
+
+		expect(summary).toContain('Midweek Engine');
+		expect(summary.indexOf('Strength:')).toBeLessThan(
+			summary.indexOf('Metcon:'),
+		);
+		expect(summary).toContain('Deadlift: 5 x 3');
+		expect(summary).toContain('18-minute EMOM');
+		expect(summary.length).toBeLessThanOrEqual(180);
+	});
+
+	it('falls back to the workout name when no public section summary exists', () => {
+		expect(
+			buildWorkoutShareDescription({ ...workout, workout_sections: [] }),
+		).toBe('Heavy 100');
+	});
+
+	it('returns an empty description when the workout name is blank', () => {
+		expect(
+			buildWorkoutShareDescription({
+				...workout,
+				name: '   ',
+				workout_sections: [],
+			}),
+		).toBe('');
 	});
 
 	it('formats duration for a compact overlay', () => {

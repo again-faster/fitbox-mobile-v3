@@ -34,6 +34,7 @@ import {
 	buildWorkoutShareDescription,
 	formatShareDuration,
 	formatShareScore,
+	SHARE_DESCRIPTION_MAX_LENGTH,
 } from './shareWorkout';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingShareWorkout'>;
@@ -378,13 +379,13 @@ const ShareWorkoutComposer = ({ route }: Props) => {
 					onChangeText={setDescription}
 					placeholder="For example: 100 x Deadlift"
 					placeholderTextColor={trainingTheme.colors.textMuted}
-					maxLength={180}
+					maxLength={SHARE_DESCRIPTION_MAX_LENGTH}
 					multiline
 					style={styles.descriptionInput}
 				/>
 				<Text style={styles.helperText}>
-					Generated from workout movements. Coach notes are never
-					included.
+					Generated from the workout name and member-visible sections.
+					You can edit or remove it.
 				</Text>
 			</View>
 
