@@ -118,9 +118,22 @@ jobs:
             - name: Test workout summary formatter
               run: |
                   cd ios
+                  SIMULATOR_ID=$(xcrun simctl list devices available --json | python3 -c '
+                  import json, sys
+                  devices = json.load(sys.stdin)["devices"]
+                  iphones = [
+                      device
+                      for runtime in devices.values()
+                      for device in runtime
+                      if device.get("isAvailable") and device.get("name", "").startswith("iPhone")
+                  ]
+                  if not iphones:
+                      raise SystemExit("No available iPhone simulator was found")
+                  print(iphones[-1]["udid"])
+                  ')
                   xcodebuild test -workspace fitbox.xcworkspace \
                   -scheme fitbox \
-                  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+                  -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
                   -only-testing:fitboxTests/FitboxWorkoutSummaryTests
 
             - name: Configure preview app target
