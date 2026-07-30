@@ -37,7 +37,7 @@ describe('shouldRefreshClassTrainingResolution', () => {
 		{ status: 'offline' },
 		{ status: 'auth' },
 		{ status: 'error' },
-	] as const)('refreshes transient resolution %p', (resolution) => {
+	] as const)('refreshes transient resolution %p', resolution => {
 		expect(shouldRefreshClassTrainingResolution(resolution)).toBe(true);
 	});
 
@@ -45,7 +45,7 @@ describe('shouldRefreshClassTrainingResolution', () => {
 		{ status: 'resolved', workoutId: 'workout-1' },
 		{ status: 'not_mapped' },
 		{ status: 'ambiguous' },
-	] as const)('reuses stable resolution %p', (resolution) => {
+	] as const)('reuses stable resolution %p', resolution => {
 		expect(shouldRefreshClassTrainingResolution(resolution)).toBe(false);
 	});
 });

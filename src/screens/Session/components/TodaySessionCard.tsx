@@ -22,7 +22,7 @@ const TodaySessionCard = ({ isLoading, summary }: TodaySessionCardProps) => {
 					<Text size="md" bold style={styles.workoutName}>
 						{summary.workoutName}
 					</Text>
-					{summary.sections.map((section) => {
+					{summary.sections.map(section => {
 						const parts = [
 							...section.details,
 							...section.movements,

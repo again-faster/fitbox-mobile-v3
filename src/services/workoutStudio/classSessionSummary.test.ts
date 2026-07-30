@@ -254,7 +254,7 @@ describe('buildClassSessionSummary', () => {
 			buildClassSessionSummary(workout([privateSection])),
 		);
 
-		privateSecrets.forEach((secret) =>
+		privateSecrets.forEach(secret =>
 			expect(serialized).not.toContain(secret),
 		);
 		expect(serialized).toContain('Deadlift');

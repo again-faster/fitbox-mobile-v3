@@ -89,15 +89,19 @@ export const buildClassSessionSummary = (
 				id: section.id,
 				name: section.name,
 				details: section.rounds
-					? [`${section.rounds} ${section.rounds === 1 ? 'round' : 'rounds'}`]
+					? [
+							`${section.rounds} ${section.rounds === 1 ? 'round' : 'rounds'}`,
+						]
 					: [],
 				movements,
-				remainingMovementCount: movementSummaries.length - movements.length,
+				remainingMovementCount:
+					movementSummaries.length - movements.length,
 			};
 		})
 		.filter(
 			section =>
-				section.movements.length > 0 || section.remainingMovementCount > 0,
+				section.movements.length > 0 ||
+				section.remainingMovementCount > 0,
 		);
 
 	if (sections.length === 0) return null;

@@ -82,7 +82,7 @@ export const buildWorkoutShareDescription = (
 	const sectionSummaries = workout.workout_sections
 		.slice()
 		.sort((left, right) => left.position - right.position)
-		.map((section) => {
+		.map(section => {
 			const sectionName =
 				compactWhitespace(section.name) ||
 				compactWhitespace(section.section_mode.replace(/_/g, ' '));
@@ -90,7 +90,7 @@ export const buildWorkoutShareDescription = (
 			const movementSummaries = section.section_blocks
 				.slice()
 				.sort((left, right) => left.position - right.position)
-				.flatMap((block) =>
+				.flatMap(block =>
 					block.block_movements
 						.slice()
 						.sort((left, right) => left.position - right.position),
