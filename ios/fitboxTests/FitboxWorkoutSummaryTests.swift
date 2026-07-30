@@ -1,4 +1,3 @@
-@testable import fitbox
 import XCTest
 
 @available(iOS 18.0, *)
