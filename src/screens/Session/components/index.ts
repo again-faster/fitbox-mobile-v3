@@ -4,3 +4,4 @@ export { default as SessionInformationTab } from './SessionInformationTab';
 export { default as SessionLoader } from './SessionLoader';
 export { default as SessionSectionsTab } from './SessionSectionsTab';
 export { default as SessionTabButtons } from './SessionTabButtons';
+export { default as TodaySessionCard } from './TodaySessionCard';

@@ -55,13 +55,20 @@ import {
 	NotificationDialog,
 	UpdateDialog,
 } from '@/components/molecules';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import MovementHistory from '@/screens/PerformanceSummary/MovementHistory';
 import WorkoutHistory from '@/screens/PerformanceSummary/WorkoutHistory';
 import ResultTypesModal from '@/screens/PerformanceSummary/components/ResultTypesModal';
+import { MemberSurfaceGate } from '@/screens/Training/components/MemberFeatureGate';
+import {
+	getVisibleMainTabRoutes,
+	normalizeCurrentMainTab,
+} from '@/screens/Training/features/memberFeatureRoutes';
 import { minVersion } from '@/services/auth';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
 import type {
+	ApplicationScreenProps,
 	ApplicationStackParamList,
 	ComposeStackParamsList,
 	InboxParamList,
@@ -253,6 +260,7 @@ const tabBarIconRender = ({
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const MainTabNavigator = () => {
 	const { variant, colors } = useTheme();
+	const { isEnabled } = useWorkoutStudio();
 	const {
 		shopUrl,
 		activeMonth,
@@ -268,8 +276,20 @@ const MainTabNavigator = () => {
 		unreadMessages: state.unreadMessages,
 		setState: state.setAppState,
 	}));
-	const [currentTab, setCurrentTab] = useState<string>('DashboardStack');
+	const [currentTab, setCurrentTab] =
+		useState<keyof MainTabParamList>('DashboardStack');
 	const [loadingCalendar, setLoadingCalendar] = useState<boolean>(false);
+	const classesEnabled = isEnabled('classes');
+	const visibleMainTabRoutes = getVisibleMainTabRoutes(classesEnabled);
+	const showCalendar = visibleMainTabRoutes.includes('Calendar');
+
+	useEffect(() => {
+		const normalizedTab = normalizeCurrentMainTab(
+			currentTab,
+			classesEnabled,
+		);
+		if (normalizedTab !== currentTab) setCurrentTab(normalizedTab);
+	}, [classesEnabled, currentTab]);
 
 	const handleRefreshCalendar = () => {
 		if (loadingCalendar) return;
@@ -332,15 +352,17 @@ const MainTabNavigator = () => {
 				component={DashboardStackNavigator}
 				options={{ headerShown: false }}
 			/>
-			<Tab.Screen
-				name="Calendar"
-				component={Calendar}
-				options={{
-					headerLeft: CalendarHeaderLeftComponent,
-					headerRight: CalendarHeaderRightComponent,
-					title: headerTitle || activeMonth || 'Calendar',
-				}}
-			/>
+			{showCalendar && (
+				<Tab.Screen
+					name="Calendar"
+					component={Calendar}
+					options={{
+						headerLeft: CalendarHeaderLeftComponent,
+						headerRight: CalendarHeaderRightComponent,
+						title: headerTitle || activeMonth || 'Calendar',
+					}}
+				/>
+			)}
 			<Tab.Screen
 				name="InboxStack"
 				component={InboxStackNavigator}
@@ -417,6 +439,12 @@ const InboxStackNavigator = () => {
 		</InboxStack.Navigator>
 	);
 };
+
+const ClassSessionScreen = (props: ApplicationScreenProps) => (
+	<MemberSurfaceGate route="Session">
+		<Session {...props} />
+	</MemberSurfaceGate>
+);
 
 const ComposeStack = createStackNavigator<ComposeStackParamsList>();
 const ComposeStackNavigator = () => {
@@ -612,7 +640,7 @@ const ApplicationNavigator = () => {
 							/>
 							<Stack.Screen
 								name="Session"
-								component={Session}
+								component={ClassSessionScreen}
 								options={({ route }) => ({
 									title: getTrimmedTitle(
 										`${route.params.title}`,

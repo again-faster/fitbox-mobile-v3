@@ -6,6 +6,7 @@
 #import <RNCPushNotificationIOS.h>
 #import <Firebase.h>
 #import <React/RCTLinkingManager.h>
+#import "fitbox-Swift.h"
 
 @implementation AppDelegate
 
@@ -38,6 +39,10 @@ didReceiveNotificationResponse:(UNNotificationResponse *)response
   if ([FIRApp defaultApp] == nil) {
       [FIRApp configure];
     }
+
+  if (@available(iOS 18.0, *)) {
+    [FitboxAppShortcutsRegistrar refresh];
+  }
 
   self.moduleName = @"fitbox";
   // You can add your custom initial props in the dictionary below.

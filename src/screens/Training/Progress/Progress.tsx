@@ -12,12 +12,18 @@ import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { useQuery } from '@tanstack/react-query';
 import moment from 'moment';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import type { TrainingStackParamList } from '@/types/navigation';
 import { trainingTheme } from '@/theme/training';
 import SkeletonCard from '../components/SkeletonCard';
 import TrainingState from '../components/TrainingState';
+import {
+	buildProgressContent,
+	shouldRenderProgressScreen,
+	type ProgressContent,
+} from './progressFeatures';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingProgress'>;
 type Range = '30' | '90' | '365' | 'all';
@@ -37,7 +43,28 @@ const RANGES: Array<{ key: Range; label: string }> = [
 	{ key: 'all', label: 'All' },
 ];
 
+type ProgressScreenProps = Pick<Props, 'navigation'> & {
+	content: ProgressContent;
+};
+
 const Progress = ({ navigation }: Props) => {
+	const { features } = useWorkoutStudio();
+	const content = useMemo(() => buildProgressContent(features), [features]);
+
+	if (!shouldRenderProgressScreen(features)) {
+		return (
+			<TrainingState
+				kind="empty"
+				title="Progress unavailable"
+				message="Your gym hasn't enabled a progress feature for members."
+			/>
+		);
+	}
+
+	return <ProgressScreen navigation={navigation} content={content} />;
+};
+
+const ProgressScreen = ({ navigation, content }: ProgressScreenProps) => {
 	const uid = getStoredWSSession()?.user.id;
 	const [range, setRange] = useState<Range>('90');
 	const from =
@@ -58,7 +85,7 @@ const Progress = ({ navigation }: Props) => {
 					},
 				})
 				.json<ProgressResult[]>(),
-		enabled: !!uid,
+		enabled: !!uid && content.needsResultQuery,
 		staleTime: 120_000,
 	});
 	const prs = useQuery({
@@ -78,7 +105,7 @@ const Progress = ({ navigation }: Props) => {
 					},
 				})
 				.json<ProgressRM[]>(),
-		enabled: !!uid,
+		enabled: !!uid && content.needsRMQuery,
 		staleTime: 120_000,
 	});
 	const totals = useMemo(() => {
@@ -101,10 +128,15 @@ const Progress = ({ navigation }: Props) => {
 		};
 	}, [results.data, prs.data]);
 	const refresh = () => {
-		void results.refetch();
-		void prs.refetch();
+		if (content.needsResultQuery) void results.refetch();
+		if (content.needsRMQuery) void prs.refetch();
 	};
-	const loading = results.isLoading || prs.isLoading;
+	const loading =
+		(content.needsResultQuery && results.isLoading) ||
+		(content.needsRMQuery && prs.isLoading);
+	const hasError =
+		(content.needsResultQuery && results.isError) ||
+		(content.needsRMQuery && prs.isError);
 
 	return (
 		<ScrollView
@@ -112,7 +144,10 @@ const Progress = ({ navigation }: Props) => {
 			contentContainerStyle={styles.container}
 			refreshControl={
 				<RefreshControl
-					refreshing={results.isRefetching || prs.isRefetching}
+					refreshing={
+						(content.needsResultQuery && results.isRefetching) ||
+						(content.needsRMQuery && prs.isRefetching)
+					}
 					onRefresh={refresh}
 					tintColor={trainingTheme.colors.primary}
 				/>
@@ -150,7 +185,7 @@ const Progress = ({ navigation }: Props) => {
 					<SkeletonCard />
 					<SkeletonCard />
 				</>
-			) : results.isError || prs.isError ? (
+			) : hasError ? (
 				<TrainingState
 					kind="error"
 					title="Progress couldn't load"
@@ -160,7 +195,7 @@ const Progress = ({ navigation }: Props) => {
 				/>
 			) : (
 				<>
-					<View style={styles.kpiGrid}>
+					{content.showKpis && <View style={styles.kpiGrid}>
 						<View style={styles.kpi}>
 							<Text style={styles.kpiValue}>
 								{totals.workouts}
@@ -183,41 +218,11 @@ const Progress = ({ navigation }: Props) => {
 							<Text style={styles.kpiValue}>{totals.prs}</Text>
 							<Text style={styles.kpiLabel}>RM records</Text>
 						</View>
-					</View>
+					</View>}
+					{content.links.length > 0 && <>
 					<Text style={styles.sectionTitle}>Explore</Text>
 					<View style={styles.linkCard}>
-						{[
-							{
-								label: 'My Results',
-								detail: 'Scores and completed workouts',
-								icon: 'chart-timeline-variant',
-								route: 'TrainingResults' as const,
-							},
-							{
-								label: 'My PRs',
-								detail: 'Recent personal records',
-								icon: 'trophy-outline',
-								route: 'TrainingPRs' as const,
-							},
-							{
-								label: 'My Maxes',
-								detail: '1RM, 3RM and 5RM ladder',
-								icon: 'weight-lifter',
-								route: 'TrainingMaxes' as const,
-							},
-							{
-								label: 'Benchmarks',
-								detail: 'Repeatable workout history',
-								icon: 'medal-outline',
-								route: 'TrainingBenchmarks' as const,
-							},
-							{
-								label: 'Weekly Recap',
-								detail: 'This week compared with last week',
-								icon: 'calendar-check-outline',
-								route: 'TrainingWeeklyRecap' as const,
-							},
-						].map(item => (
+						{content.links.map(item => (
 							<TouchableOpacity
 								key={item.route}
 								accessibilityRole="button"
@@ -245,6 +250,8 @@ const Progress = ({ navigation }: Props) => {
 							</TouchableOpacity>
 						))}
 					</View>
+					</>}
+					{content.showRecentActivity && <>
 					<Text style={styles.sectionTitle}>Recent activity</Text>
 					{(results.data?.length ?? 0) === 0 ? (
 						<TrainingState
@@ -286,6 +293,7 @@ const Progress = ({ navigation }: Props) => {
 							</TouchableOpacity>
 						))
 					)}
+					</>}
 				</>
 			)}
 		</ScrollView>

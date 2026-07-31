@@ -23,7 +23,16 @@ import { trainingTheme } from '@/theme/training';
 import TrainingCard from '@/screens/Training/components/TrainingCard';
 import TrainingState from '@/screens/Training/components/TrainingState';
 import SkeletonCard from '@/screens/Training/components/SkeletonCard';
-import { useEffect, useState } from 'react';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
+import {
+	runWorkoutResultShare,
+	shouldShowWorkoutResultShare,
+} from '@/screens/Training/Workouts/workoutResultShareActions';
+import {
+	resultDetailCapabilities,
+	runResultDetailAction,
+} from './resultDetailCapabilities';
+import { useEffect, useRef, useState } from 'react';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingResultDetail'>;
 
@@ -103,6 +112,11 @@ const formatSectionScore = (score: SectionScoreShape) => {
 
 const ResultDetail = ({ route, navigation }: Props) => {
 	const { workoutResultId } = route.params;
+	const { isEnabled } = useWorkoutStudio();
+	const resultsEnabled = isEnabled('results');
+	const resultsEnabledRef = useRef(resultsEnabled);
+	resultsEnabledRef.current = resultsEnabled;
+	const actionCapabilities = resultDetailCapabilities(resultsEnabled);
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [isEditing, setIsEditing] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
@@ -182,6 +196,10 @@ const ResultDetail = ({ route, navigation }: Props) => {
 		setEditReps(result.data.score_reps?.toString() ?? '');
 	}, [result.data, isEditing]);
 
+	useEffect(() => {
+		if (!actionCapabilities.canEdit) setIsEditing(false);
+	}, [actionCapabilities.canEdit]);
+
 	const parseTime = (value: string): number | null => {
 		const trimmed = value.trim();
 		if (!trimmed) return null;
@@ -206,7 +224,7 @@ const ResultDetail = ({ route, navigation }: Props) => {
 	};
 
 	const saveEdits = async () => {
-		if (!result.data) return;
+		if (!resultsEnabledRef.current || !result.data) return;
 		const time = parseTime(editTime);
 		if (editTime.trim() && time == null) {
 			Alert.alert(
@@ -235,6 +253,7 @@ const ResultDetail = ({ route, navigation }: Props) => {
 		}
 		setIsSaving(true);
 		try {
+			if (!resultsEnabledRef.current) return;
 			await wsApi().patch(`workout_results?id=eq.${workoutResultId}`, {
 				json: {
 					notes: editNotes.trim() || null,
@@ -265,6 +284,7 @@ const ResultDetail = ({ route, navigation }: Props) => {
 	};
 
 	const deleteResult = () => {
+		if (!resultsEnabledRef.current) return;
 		Alert.alert(
 			'Delete this result?',
 			'This removes the result and its logged sets. This cannot be undone.',
@@ -275,6 +295,7 @@ const ResultDetail = ({ route, navigation }: Props) => {
 					style: 'destructive',
 					onPress: () => {
 						void (async () => {
+							if (!resultsEnabledRef.current) return;
 							setIsDeleting(true);
 							try {
 								await wsApi().delete(
@@ -347,6 +368,31 @@ const ResultDetail = ({ route, navigation }: Props) => {
 						)}
 					</Text>
 				</View>
+				{shouldShowWorkoutResultShare(resultsEnabled) ? (
+					<TouchableOpacity
+						accessibilityRole="button"
+						accessibilityLabel="Share workout"
+						onPress={() =>
+							runWorkoutResultShare(
+								() => resultsEnabledRef.current,
+								() =>
+									navigation.navigate(
+										'TrainingShareWorkout',
+										{
+											workoutResultId,
+										},
+									),
+							)
+						}
+						style={styles.shareButton}
+					>
+						<Ionicons
+							name="share-variant-outline"
+							size={22}
+							color={trainingTheme.colors.primary}
+						/>
+					</TouchableOpacity>
+				) : null}
 			</View>
 
 			{hasSummaryMetrics ? (
@@ -371,10 +417,15 @@ const ResultDetail = ({ route, navigation }: Props) => {
 				{result.data.scaling_level ? (
 					<Text style={styles.pill}>{result.data.scaling_level}</Text>
 				) : null}
-				{!hasSectionResults ? (
+				{actionCapabilities.canEdit && !hasSectionResults ? (
 					<TouchableOpacity
 						accessibilityRole="button"
-						onPress={() => setIsEditing(true)}
+						onPress={() =>
+							runResultDetailAction(
+								() => resultsEnabledRef.current,
+								() => setIsEditing(true),
+							)
+						}
 						style={styles.editButton}
 					>
 						<Ionicons
@@ -494,6 +545,7 @@ const ResultDetail = ({ route, navigation }: Props) => {
 				</>
 			) : null}
 
+			{actionCapabilities.canDelete ? (
 			<TouchableOpacity
 				accessibilityRole="button"
 				accessibilityState={{ disabled: isDeleting }}
@@ -511,12 +563,13 @@ const ResultDetail = ({ route, navigation }: Props) => {
 							color={trainingTheme.colors.danger}
 						/>
 						<Text style={styles.deleteLabel}>Delete result</Text>
-					</>
+				</>
 				)}
 			</TouchableOpacity>
+			) : null}
 
 			<Modal
-				visible={isEditing}
+				visible={actionCapabilities.canEdit && isEditing}
 				animationType="slide"
 				presentationStyle="pageSheet"
 				onRequestClose={() => !isSaving && setIsEditing(false)}
@@ -539,7 +592,12 @@ const ResultDetail = ({ route, navigation }: Props) => {
 						<TouchableOpacity
 							accessibilityRole="button"
 							disabled={isSaving}
-							onPress={() => void saveEdits()}
+							onPress={() =>
+								runResultDetailAction(
+									() => resultsEnabledRef.current,
+									() => void saveEdits(),
+								)
+							}
 							style={styles.editorHeaderButton}
 						>
 							{isSaving ? (
@@ -701,6 +759,14 @@ const styles = StyleSheet.create({
 		backgroundColor: trainingTheme.colors.success,
 	},
 	headingCopy: { flex: 1 },
+	shareButton: {
+		width: 44,
+		height: 44,
+		alignItems: 'center',
+		justifyContent: 'center',
+		borderRadius: 22,
+		backgroundColor: trainingTheme.colors.primarySoft,
+	},
 	title: {
 		color: trainingTheme.colors.text,
 		fontFamily: 'Inter-Variable',

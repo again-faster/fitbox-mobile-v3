@@ -1,4 +1,8 @@
-import { scoreEntryDescriptors, scoreKindForSection } from './scoreable';
+import {
+	scoreEntryDescriptors,
+	scoreKindForSection,
+	toRpcSectionScorePayload,
+} from './scoreable';
 import type { WorkoutSection } from './types';
 
 const section = (overrides: Partial<WorkoutSection> = {}): WorkoutSection => ({
@@ -44,6 +48,18 @@ describe('scoreKindForSection', () => {
 		expect(scoreKindForSection(section({ scoring_type: 'strength' }))).toBe(
 			'load',
 		);
+	});
+});
+
+describe('toRpcSectionScorePayload', () => {
+	it('removes legacy score_type metadata before calling the section result RPC', () => {
+		expect(
+			toRpcSectionScorePayload({
+				weight_kg: 100,
+				reps: 10,
+				score_type: 'load',
+			}),
+		).toEqual({ weight_kg: 100, reps: 10 });
 	});
 });
 

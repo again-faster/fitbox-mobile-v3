@@ -137,5 +137,6 @@ export const useWorkoutDetail = (workoutId: string) =>
 	useQuery({
 		queryKey: ['ws-workout', workoutId],
 		queryFn: () => fetchWorkoutDetail(workoutId),
+		enabled: workoutId.length > 0,
 		staleTime: 300_000,
 	});

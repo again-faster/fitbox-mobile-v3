@@ -8,7 +8,12 @@ import { Text } from '@/components/atoms';
 import { SessionMemberAttendanceSchemaType } from '@/types/schemas/session';
 import { SessionTabsEnum } from '@/utils/Enum';
 import { memo } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+	ActivityIndicator,
+	StyleSheet,
+	TouchableOpacity,
+	View,
+} from 'react-native';
 import { Badge } from 'react-native-paper';
 
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -18,9 +23,11 @@ import MIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 interface SessionTabButtonsProps {
 	activeTab: SessionTabsEnum;
 	handleTabChange: (tab: SessionTabsEnum) => void;
+	handleWorkoutPress: () => void;
+	handleResultsPress: () => void;
+	loadingTab: 'workout' | 'results' | null;
 	subscribed: boolean;
 	isLimited: boolean;
-	hasLeaderboard: boolean;
 	allowLeaderboards: boolean;
 	isStaff: boolean;
 	attendanceView: boolean;
@@ -30,9 +37,11 @@ interface SessionTabButtonsProps {
 const SessionTabButtons = ({
 	activeTab,
 	handleTabChange,
+	handleWorkoutPress,
+	handleResultsPress,
+	loadingTab,
 	subscribed,
 	isLimited,
-	hasLeaderboard,
 	allowLeaderboards,
 	isStaff,
 	attendanceView,
@@ -75,7 +84,8 @@ const SessionTabButtons = ({
 
 			{subscribed && !isLimited ? (
 				<TouchableOpacity
-					onPress={() => handleTabChange(SessionTabsEnum.SECTIONS)}
+					onPress={handleWorkoutPress}
+					disabled={loadingTab !== null}
 					style={[
 						styles.tabButton,
 						activeTab === SessionTabsEnum.SECTIONS &&
@@ -86,11 +96,18 @@ const SessionTabButtons = ({
 						selected: activeTab === SessionTabsEnum.SECTIONS,
 					}}
 				>
-					<Icon1
-						name="dumbbell"
-						size={18}
-						color={tabColor(SessionTabsEnum.SECTIONS)}
-					/>
+					{loadingTab === 'workout' ? (
+						<ActivityIndicator
+							size="small"
+							color={memberTheme.colors.primary}
+						/>
+					) : (
+						<Icon1
+							name="dumbbell"
+							size={18}
+							color={tabColor(SessionTabsEnum.SECTIONS)}
+						/>
+					)}
 					<Text
 						style={[
 							styles.tabLabel,
@@ -103,9 +120,10 @@ const SessionTabButtons = ({
 				</TouchableOpacity>
 			) : null}
 
-			{hasLeaderboard && (allowLeaderboards || isStaff) ? (
+			{!isLimited && (allowLeaderboards || isStaff) ? (
 				<TouchableOpacity
-					onPress={() => handleTabChange(SessionTabsEnum.RESULTS)}
+					onPress={handleResultsPress}
+					disabled={loadingTab !== null}
 					style={[
 						styles.tabButton,
 						activeTab === SessionTabsEnum.RESULTS &&
@@ -116,11 +134,18 @@ const SessionTabButtons = ({
 						selected: activeTab === SessionTabsEnum.RESULTS,
 					}}
 				>
-					<MIcon
-						name="trophy"
-						size={20}
-						color={tabColor(SessionTabsEnum.RESULTS)}
-					/>
+					{loadingTab === 'results' ? (
+						<ActivityIndicator
+							size="small"
+							color={memberTheme.colors.primary}
+						/>
+					) : (
+						<MIcon
+							name="trophy"
+							size={20}
+							color={tabColor(SessionTabsEnum.RESULTS)}
+						/>
+					)}
 					<Text
 						style={[
 							styles.tabLabel,

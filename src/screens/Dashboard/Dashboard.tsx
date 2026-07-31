@@ -10,8 +10,14 @@ import {
 	Text,
 } from '@/components/atoms';
 import { MemberProgressRing } from '@/components/member';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import useSwitchableUsers from '@/hooks/useSwitchableUsers';
 import { navigate } from '@/navigators/NavigationRef';
+import {
+	filterMemberSurfaceEntries,
+	shouldShowMemberSurface,
+	type MemberSurfaceRoute,
+} from '@/screens/Training/features/memberFeatureRoutes';
 import { betaActive, savePushToken } from '@/services/auth';
 import { getGymClasses, getGymVenues } from '@/services/gym';
 import { getAttendanceReport } from '@/services/leaderboards';
@@ -83,7 +89,12 @@ import LoginNotification from './components/LoginNotification';
 import RequiredFieldsModal from './components/RequiredFieldsModal';
 
 // List of action buttons to be displayed on the dashboard screen
-const actionButtons = [
+const actionButtons: {
+	id: string;
+	icon: string;
+	text: string;
+	route: MemberSurfaceRoute;
+}[] = [
 	// {
 	// 	id: 'calendar',
 	// 	icon: 'calendar-alt',
@@ -97,7 +108,8 @@ const actionButtons = [
 	{
 		id: 'results',
 		icon: 'trophy',
-		text: 'Leaderboard',
+		text: 'My Results',
+		route: 'TrainingResults',
 	},
 ];
 
@@ -115,6 +127,7 @@ const Dashboard = () => {
 	const { t } = useTranslation(['dashboard']);
 	const isFocused = useIsFocused();
 	const { user, getApiUrl, signOut, updateUser } = useAuth();
+	const { isEnabled } = useWorkoutStudio();
 	const timezone = user?.user_data.dob.timezone as string;
 	const [attendanceFilter, setAttendanceFilter] = useState<string[]>([]);
 	const [loginNotifications, setLoginNotifications] = useState<
@@ -210,6 +223,15 @@ const Dashboard = () => {
 		useState<boolean>(false);
 
 	const { hasSwitchableUsers } = useSwitchableUsers();
+	const classesEnabled = isEnabled('classes');
+	const showBookingsEntryPoints = shouldShowMemberSurface(
+		'Bookings',
+		classesEnabled,
+	);
+	const showSessionEntryPoints = shouldShowMemberSurface(
+		'Session',
+		classesEnabled,
+	);
 
 	const attendanceGoalKey = useMemo(() => {
 		const memberId = loggedInUser?.user_data.user_id;
@@ -848,7 +870,10 @@ const Dashboard = () => {
 		if (navTo === 'calendar') {
 			navigate('Calendar');
 		} else if (navTo === 'results') {
-			navigate('ClassResults');
+			navigate('Main', {
+				screen: 'TrainingStack',
+				params: { screen: 'TrainingResults' },
+			});
 		} else {
 			Alert.alert('Coming soon', `${navTo} screen`);
 		}
@@ -856,21 +881,38 @@ const Dashboard = () => {
 
 	const renderActionButtons = useMemo(
 		() =>
-			actionButtons.map(({ id, text, icon }) => {
-				const hideButton = false;
-				// const hideButton = id === 'results' && allow_leaderboards; // TODO: Hide button when results is disabled for gym
+			filterMemberSurfaceEntries(actionButtons, classesEnabled).map(
+				({ id, text, icon }) => {
+					const hideButton = false;
+					// const hideButton = id === 'results' && allow_leaderboards; // TODO: Hide button when results is disabled for gym
 
-				return !hideButton ? (
-					<DashboardActionButton
-						key={id}
-						text={text}
-						icon={icon}
-						onPress={() => onActionButtonClick(id)}
-						// onPress={() => onActionButtonClick(id)} // TODO: use this once screens are implemented
-					/>
-				) : null;
-			}),
-		[actionButtons],
+					return !hideButton ? (
+						<DashboardActionButton
+							key={id}
+							text={text}
+							icon={icon}
+							onPress={() => onActionButtonClick(id)}
+							// onPress={() => onActionButtonClick(id)} // TODO: use this once screens are implemented
+						/>
+					) : null;
+				},
+			),
+		[classesEnabled],
+	);
+
+	const visiblePresetFilters = useMemo(
+		() =>
+			filterMemberSurfaceEntries(
+				classFiltersDataState.map(item => ({
+					item,
+					route:
+						item.name === 'Leaderboard'
+							? ('TrainingResults' as const)
+							: ('Calendar' as const),
+				})),
+				classesEnabled,
+			).map(({ item }) => item),
+		[classFiltersDataState, classesEnabled],
 	);
 
 	const onPresetFilterClick = (data: ClassFiltersDataType) => {
@@ -1176,43 +1218,48 @@ const Dashboard = () => {
 						)
 					))}
 
-				{upcomingSessionsIsLoading && isEmpty(upcomingSessionsState) ? (
-					<>
-						<Spacer size="md" />
-						<SkeletonView height={66} width="100%" />
-						<View style={styles.viewMoreButton}>
-							<SkeletonView height={17.2} width="40%" />
-						</View>
-					</>
-				) : (
-					upcomingSessionsState.length > 0 && (
+				{showSessionEntryPoints &&
+					(upcomingSessionsIsLoading &&
+					isEmpty(upcomingSessionsState) ? (
 						<>
-							<View style={styles.sectionHeadingRow}>
-								<Text bold style={styles.sectionHeadingText}>
-									Coming up
-								</Text>
+							<Spacer size="md" />
+							<SkeletonView height={66} width="100%" />
+							<View style={styles.viewMoreButton}>
+								<SkeletonView height={17.2} width="40%" />
 							</View>
-							<View style={styles.bookedSessionsContainer}>
-								{upcomingSessionsState // show only 1
-									.slice(0, 1)
-									.map(({ ...rest }, i) => (
-										<BookedSessionCard key={i} {...rest} />
-									))}
-							</View>
-
-							{upcomingSessionsState.length > 1 && (
-								<TouchableOpacity
-									style={styles.viewMoreButton}
-									onPress={() => navigate('Bookings')}
-								>
-									<Text bold color="info">
-										{t('dashboard:sessions.member.viewAll')}
-									</Text>
-								</TouchableOpacity>
-							)}
 						</>
-					)
-				)}
+					) : (
+						upcomingSessionsState.length > 0 && (
+							<>
+								<View style={styles.sectionHeadingRow}>
+									<Text bold style={styles.sectionHeadingText}>
+										Coming up
+									</Text>
+								</View>
+								<View style={styles.bookedSessionsContainer}>
+									{upcomingSessionsState // show only 1
+										.slice(0, 1)
+										.map(({ ...rest }, i) => (
+											<BookedSessionCard key={i} {...rest} />
+										))}
+								</View>
+
+								{showBookingsEntryPoints &&
+									upcomingSessionsState.length > 1 && (
+										<TouchableOpacity
+											style={styles.viewMoreButton}
+											onPress={() => navigate('Bookings')}
+										>
+											<Text bold color="info">
+												{t(
+													'dashboard:sessions.member.viewAll',
+												)}
+											</Text>
+										</TouchableOpacity>
+									)}
+							</>
+						)
+					))}
 
 				{!presetFiltersIsLoaded && isEmpty(classFiltersDataState) ? (
 					<>
@@ -1233,7 +1280,7 @@ const Dashboard = () => {
 						>
 							{isEmpty(classFiltersDataState) &&
 								renderActionButtons}
-							{classFiltersDataState.map(item =>
+							{visiblePresetFilters.map(item =>
 								renderPresetFilters(item),
 							)}
 						</Row>

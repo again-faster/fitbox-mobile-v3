@@ -1,4 +1,5 @@
 import { Row, ScrollView, Spacer, Text } from '@/components/atoms';
+import type { ClassSessionSummary } from '@/services/workoutStudio/classSessionSummary';
 import layout from '@/theme/layout';
 import { memberTheme } from '@/theme/member';
 import { SessionDetailSchemaType } from '@/types/schemas/session';
@@ -8,12 +9,19 @@ import { useNavigation } from '@react-navigation/native';
 import moment from 'moment';
 import { useLayoutEffect, useMemo } from 'react';
 import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
+import TodaySessionCard from './TodaySessionCard';
 
 interface SessionInformationTabProps {
 	session: SessionDetailSchemaType;
+	todaySessionLoading: boolean;
+	todaySessionSummary: ClassSessionSummary | null;
 }
 
-const SessionInformationTab = ({ session }: SessionInformationTabProps) => {
+const SessionInformationTab = ({
+	session,
+	todaySessionLoading,
+	todaySessionSummary,
+}: SessionInformationTabProps) => {
 	const loggedInUser = useStore(state => state.loggedInUser);
 
 	const startTime = useMemo(() => moment(session?.start_datetime), [session]);
@@ -192,6 +200,11 @@ const SessionInformationTab = ({ session }: SessionInformationTabProps) => {
 						</Text>
 					)}
 				</View>
+
+				<TodaySessionCard
+					isLoading={todaySessionLoading}
+					summary={todaySessionSummary}
+				/>
 			</ScrollView>
 		</View>
 	);

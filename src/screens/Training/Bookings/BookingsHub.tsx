@@ -1,5 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
 	Alert,
 	RefreshControl,
@@ -15,17 +15,24 @@ import moment from 'moment';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import {
 	bookingApi,
+	isBookingFeatureDisabledError,
 	type BookingProvider,
 	type BookingResource,
 	type BookingService,
 	type MemberBooking,
 } from '@/services/workoutStudio/bookings';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
+import {
+	availableBookingTabs,
+	canRescheduleBooking,
+	type BookingTab,
+} from '../features/bookingFeaturePolicy';
 import { trainingTheme } from '@/theme/training';
 import SkeletonCard from '../components/SkeletonCard';
 import TrainingState from '../components/TrainingState';
 import BookingComposer from './BookingComposer';
 
-type Tab = 'pt' | 'treatment' | 'resource' | 'mine';
+type Tab = BookingTab;
 type BookingSelection = {
 	service: BookingService;
 	provider?: BookingProvider;
@@ -40,47 +47,86 @@ const TABS: Array<{ key: Tab; label: string }> = [
 ];
 
 const BookingsHub = () => {
+	const { features, refreshFeatures } = useWorkoutStudio();
+	const tabs = useMemo(
+		() =>
+			availableBookingTabs({
+				bookings: features.bookings,
+				myBookings: features.my_bookings,
+			}),
+		[features],
+	);
 	const session = getStoredWSSession();
 	const uid = session?.user.id;
 	const tenantId = session?.user.active_tenant_id;
-	const [tab, setTab] = useState<Tab>('pt');
+	const [tab, setTab] = useState<Tab | null>(() => tabs[0] ?? null);
 	const [selection, setSelection] = useState<BookingSelection | null>(null);
 	const services = useQuery({
 		queryKey: ['ws-bookable-service-types', tenantId],
 		queryFn: () => bookingApi.services(tenantId!),
-		enabled: !!tenantId,
+		enabled: !!tenantId && features.bookings,
 		staleTime: 300_000,
 	});
 	const ptProviders = useQuery({
 		queryKey: ['ws-booking-providers', tenantId, 'pt'],
 		queryFn: () => bookingApi.providers(tenantId!, 'pt'),
-		enabled: !!tenantId,
+		enabled: !!tenantId && features.bookings,
 		staleTime: 300_000,
 	});
 	const treatmentProviders = useQuery({
 		queryKey: ['ws-booking-providers', tenantId, 'treatment'],
 		queryFn: () => bookingApi.providers(tenantId!, 'treatment'),
-		enabled: !!tenantId,
+		enabled: !!tenantId && features.bookings,
 		staleTime: 300_000,
 	});
 	const resources = useQuery({
 		queryKey: ['ws-bookable-resources', tenantId],
 		queryFn: () => bookingApi.resources(tenantId!),
-		enabled: !!tenantId,
+		enabled: !!tenantId && features.bookings,
 		staleTime: 300_000,
 	});
 	const bookings = useQuery({
 		queryKey: ['ws-member-bookings', uid],
 		queryFn: () => bookingApi.mine('all', 100),
-		enabled: !!uid,
+		enabled: !!uid && features.my_bookings,
 		staleTime: 60_000,
 	});
+	useEffect(() => {
+		setTab(current =>
+			current && tabs.includes(current) ? current : (tabs[0] ?? null),
+		);
+		if (!features.bookings) setSelection(null);
+	}, [features.bookings, tabs]);
+	useEffect(() => {
+		const errors = [
+			services.error,
+			ptProviders.error,
+			treatmentProviders.error,
+			resources.error,
+			bookings.error,
+		];
+		if (errors.some(isBookingFeatureDisabledError)) {
+			setSelection(null);
+			void refreshFeatures();
+		}
+	}, [
+		bookings.error,
+		features.bookings,
+		features.my_bookings,
+		ptProviders.error,
+		refreshFeatures,
+		resources.error,
+		services.error,
+		treatmentProviders.error,
+	]);
 	const refresh = () => {
-		void services.refetch();
-		void ptProviders.refetch();
-		void treatmentProviders.refetch();
-		void resources.refetch();
-		void bookings.refetch();
+		if (features.bookings) {
+			void services.refetch();
+			void ptProviders.refetch();
+			void treatmentProviders.refetch();
+			void resources.refetch();
+		}
+		if (features.my_bookings) void bookings.refetch();
 	};
 	const typeMap = useMemo(
 		() => new Map((services.data ?? []).map(type => [type.id, type])),
@@ -104,6 +150,9 @@ const BookingsHub = () => {
 		[providerRows, typeMap, tab],
 	);
 	const loading =
+		!tab
+			? false
+			:
 		tab === 'mine'
 			? bookings.isLoading
 			: tab === 'resource'
@@ -113,6 +162,9 @@ const BookingsHub = () => {
 						? ptProviders.isLoading
 						: treatmentProviders.isLoading);
 	const hasError =
+		!tab
+			? false
+			:
 		tab === 'mine'
 			? bookings.isError
 			: tab === 'resource'
@@ -122,14 +174,19 @@ const BookingsHub = () => {
 						? ptProviders.isError
 						: treatmentProviders.isError);
 	const activeError =
+		!tab
+			? undefined
+			:
 		tab === 'mine'
 			? bookings.error
 			: tab === 'resource'
 				? (resources.error ?? services.error)
-				: (services.error ??
-					(tab === 'pt'
-						? ptProviders.error
-						: treatmentProviders.error));
+					: (services.error ??
+						(tab === 'pt'
+							? ptProviders.error
+							: treatmentProviders.error));
+	const featureDisabled =
+		tabs.length === 0 || isBookingFeatureDisabledError(activeError);
 	const beginReschedule = (booking: MemberBooking) => {
 		const service = booking.serviceType
 			? typeMap.get(booking.serviceType.id)
@@ -187,15 +244,21 @@ const BookingsHub = () => {
 					resource={selection.resource}
 					booking={selection.booking}
 					onClose={() => setSelection(null)}
+					onFeatureDisabled={() => {
+						setSelection(null);
+						void refreshFeatures();
+					}}
 					onBooked={() => {
 						setSelection(null);
-						setTab('mine');
+						setTab(current =>
+							tabs.includes('mine') ? 'mine' : (tabs[0] ?? current),
+						);
 					}}
 				/>
 			) : (
 				<>
 					<View style={styles.tabs}>
-						{TABS.map(item => (
+						{TABS.filter(item => tabs.includes(item.key)).map(item => (
 							<TouchableOpacity
 								key={item.key}
 								accessibilityRole="tab"
@@ -220,7 +283,15 @@ const BookingsHub = () => {
 							</TouchableOpacity>
 						))}
 					</View>
-					{loading ? (
+					{featureDisabled ? (
+						<TrainingState
+							kind="empty"
+							title="Bookings unavailable"
+							message="Your gym hasn't enabled service bookings for members."
+							actionLabel="Refresh"
+							onAction={() => void refreshFeatures()}
+						/>
+					) : loading ? (
 						<>
 							<SkeletonCard />
 							<SkeletonCard />
@@ -248,12 +319,19 @@ const BookingsHub = () => {
 					) : tab === 'mine' ? (
 						<BookingList
 							bookings={bookings.data ?? []}
-							onReschedule={beginReschedule}
+							onReschedule={
+								canRescheduleBooking({
+									bookings: features.bookings,
+									myBookings: features.my_bookings,
+								})
+									? beginReschedule
+									: undefined
+							}
 						/>
 					) : (
 						<ProviderList
 							providers={providers}
-							kind={tab}
+							kind={tab === 'treatment' ? 'treatment' : 'pt'}
 							onSelect={(provider, service) =>
 								setSelection({ provider, service })
 							}
@@ -407,7 +485,7 @@ const BookingList = ({
 	onReschedule,
 }: {
 	bookings: MemberBooking[];
-	onReschedule: (booking: MemberBooking) => void;
+	onReschedule?: (booking: MemberBooking) => void;
 }) => {
 	const client = useQueryClient();
 	const cancel = useMutation({
@@ -485,7 +563,7 @@ const BookingList = ({
 					</View>
 					{item.canCancel || item.canReschedule ? (
 						<View style={styles.bookingActions}>
-							{item.canReschedule ? (
+							{item.canReschedule && onReschedule ? (
 								<TouchableOpacity
 									accessibilityRole="button"
 									onPress={() => onReschedule(item)}

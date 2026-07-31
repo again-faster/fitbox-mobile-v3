@@ -54,7 +54,7 @@ const menuOptions = [
 			},
 			{
 				id: 'performance',
-				name: 'Past Performance',
+				name: 'My Results',
 				icon: 'chart-line',
 				fontAwesome: true,
 				context: 'member',
@@ -201,7 +201,10 @@ const Menu = ({ navigation }: MenuScreenProps) => {
 				navigation.navigate('PaymentInformation');
 				break;
 			case 'performance':
-				navigation.navigate('PerformanceSummary');
+				navigate('Main', {
+					screen: 'TrainingStack',
+					params: { screen: 'TrainingResults' },
+				});
 				break;
 			case 'health-info':
 				navigation.navigate('HealthCapture', { fromMenu: true });
