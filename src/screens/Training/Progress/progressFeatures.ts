@@ -27,6 +27,9 @@ export type ProgressContent = {
 	showProgressHub: boolean;
 };
 
+export const shouldRenderProgressScreen = (features: MemberFeatureMap) =>
+	shouldShowProgressHub(features);
+
 const LINK_DEFINITIONS: ReadonlyArray<
 	ProgressLink & { feature: MemberFeature }
 > = [

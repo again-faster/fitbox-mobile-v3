@@ -2,7 +2,10 @@ import {
 	ALL_MEMBER_FEATURES_DISABLED,
 	ALL_MEMBER_FEATURES_ENABLED,
 } from "@/services/workoutStudio/memberFeatures";
-import { buildProgressContent } from "./progressFeatures";
+import {
+	buildProgressContent,
+	shouldRenderProgressScreen,
+} from "./progressFeatures";
 
 describe("buildProgressContent", () => {
 	it("shows only PRs when PRs are the only enabled child feature", () => {
@@ -60,6 +63,18 @@ describe("buildProgressContent", () => {
 			needsRMQuery: false,
 			showProgressHub: false,
 		});
+	});
+
+	it("hides the screen policy when every child feature is disabled", () => {
+		expect(shouldRenderProgressScreen(ALL_MEMBER_FEATURES_DISABLED)).toBe(
+			false,
+		);
+		expect(
+			shouldRenderProgressScreen({
+				...ALL_MEMBER_FEATURES_DISABLED,
+				prs: true,
+			}),
+		).toBe(true);
 	});
 
 	it("includes each enabled link in the stable navigation order", () => {

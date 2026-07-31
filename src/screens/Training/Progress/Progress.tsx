@@ -19,7 +19,11 @@ import type { TrainingStackParamList } from "@/types/navigation";
 import { trainingTheme } from "@/theme/training";
 import SkeletonCard from "../components/SkeletonCard";
 import TrainingState from "../components/TrainingState";
-import { buildProgressContent } from "./progressFeatures";
+import {
+	buildProgressContent,
+	shouldRenderProgressScreen,
+	type ProgressContent,
+} from "./progressFeatures";
 
 type Props = StackScreenProps<TrainingStackParamList, "TrainingProgress">;
 type Range = "30" | "90" | "365" | "all";
@@ -39,9 +43,28 @@ const RANGES: Array<{ key: Range; label: string }> = [
 	{ key: "all", label: "All" },
 ];
 
+type ProgressScreenProps = Pick<Props, "navigation"> & {
+	content: ProgressContent;
+};
+
 const Progress = ({ navigation }: Props) => {
 	const { features } = useWorkoutStudio();
 	const content = useMemo(() => buildProgressContent(features), [features]);
+
+	if (!shouldRenderProgressScreen(features)) {
+		return (
+			<TrainingState
+				kind="empty"
+				title="Progress unavailable"
+				message="Your gym hasn't enabled a progress feature for members."
+			/>
+		);
+	}
+
+	return <ProgressScreen navigation={navigation} content={content} />;
+};
+
+const ProgressScreen = ({ navigation, content }: ProgressScreenProps) => {
 	const uid = getStoredWSSession()?.user.id;
 	const [range, setRange] = useState<Range>("90");
 	const from =
