@@ -1,3 +1,4 @@
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import { trainingTheme } from '@/theme/training';
 import type { TrainingStackParamList } from '@/types/navigation';
@@ -11,112 +12,19 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
+import { buildTrainingMoreGroups } from './trainingMoreItems';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingMore'>;
 type Route = keyof TrainingStackParamList;
-type Item = { label: string; description: string; icon: string; route: Route };
 
 const TrainingMore = ({ navigation }: Props) => {
 	const session = getStoredWSSession();
 	const { data: hasCustomWorkouts } = useCustomWorkouts();
-	const canBuild = session?.user.persona === 'solo' || hasCustomWorkouts;
-	const groups: Array<{ title: string; items: Item[] }> = [
-		{
-			title: 'Training',
-			items: [
-				{
-					label: 'Workouts',
-					description: 'Assignments and benchmarks',
-					icon: 'clipboard-text-outline',
-					route: 'TrainingWorkouts',
-				},
-				{
-					label: 'My Progress',
-					description: 'Results, PRs, maxes and recap',
-					icon: 'chart-line',
-					route: 'TrainingProgress',
-				},
-				{
-					label: 'Wellness',
-					description: 'Check-ins, trends and injuries',
-					icon: 'heart-pulse',
-					route: 'TrainingWellness',
-				},
-			],
-		},
-		{
-			title: 'Bookings',
-			items: [
-				{
-					label: 'Book services',
-					description: 'PT, treatments, resources and My Bookings',
-					icon: 'calendar-check-outline',
-					route: 'TrainingPT',
-				},
-			],
-		},
-		{
-			title: 'Community',
-			items: [
-				{
-					label: 'Coach Notes',
-					description: 'Feedback from your coaches',
-					icon: 'message-text-outline',
-					route: 'TrainingCoachNotes',
-				},
-				{
-					label: 'Gym Feed',
-					description: 'Recent member results',
-					icon: 'account-group-outline',
-					route: 'TrainingGymFeed',
-				},
-			],
-		},
-		{
-			title: 'My training',
-			items: [
-				{
-					label: 'Training Profile',
-					description: 'Scaling level and rep maxes',
-					icon: 'account-cog-outline',
-					route: 'TrainingProfile',
-				},
-				{
-					label: 'Wearables',
-					description: 'Connections, sync and readiness',
-					icon: 'watch-variant',
-					route: 'TrainingWearables',
-				},
-				...(canBuild
-					? [
-							{
-								label: 'Custom Workouts',
-								description: 'Build and schedule workouts',
-								icon: 'pencil-ruler',
-								route: 'TrainingBuildList' as Route,
-							},
-						]
-					: []),
-			],
-		},
-		{
-			title: 'Preferences',
-			items: [
-				{
-					label: 'Notifications',
-					description: 'Training updates and activity',
-					icon: 'bell-outline',
-					route: 'TrainingNotifications',
-				},
-				{
-					label: 'Settings',
-					description: 'Units, timer, privacy and account',
-					icon: 'cog-outline',
-					route: 'TrainingSettings',
-				},
-			],
-		},
-	];
+	const { features } = useWorkoutStudio();
+	const groups = buildTrainingMoreGroups(
+		features,
+		hasCustomWorkouts === true,
+	);
 
 	const open = (route: Route) => navigation.navigate(route as never);
 

@@ -37,11 +37,14 @@ import Wearables from '@/screens/Training/Wearables/Wearables';
 import WeeklyRecap from '@/screens/Training/Recap/WeeklyRecap';
 import TrainingMore from '@/screens/Training/More/TrainingMore';
 import BookingsHub from '@/screens/Training/Bookings/BookingsHub';
+import { MemberFeatureGate } from '@/screens/Training/components/MemberFeatureGate';
+import { useCustomWorkouts } from '@/screens/Training/hooks/useCustomWorkouts';
 
 const Stack = createStackNavigator<TrainingStackParamList>();
 
 const TrainingStackNavigator = () => {
 	const { colors } = useTheme();
+	const { data: hasCustomWorkouts } = useCustomWorkouts();
 
 	const headerStyle = {
 		backgroundColor: colors.brand,
@@ -91,42 +94,77 @@ const TrainingStackNavigator = () => {
 			/>
 			<Stack.Screen
 				name="TrainingRunWorkout"
-				component={RunWorkout}
 				options={({ route }) => ({
 					title: route.params.workoutName,
 					headerBackTitle: 'Exit',
 				})}
-			/>
+			>
+				{props => (
+					<MemberFeatureGate feature="results">
+						<RunWorkout {...props} />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingBenchmarks"
-				component={Benchmarks}
 				options={{ title: 'Benchmarks' }}
-			/>
+			>
+				{props => (
+					<MemberFeatureGate feature="benchmarks">
+						<Benchmarks {...props} />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingWorkoutComplete"
-				component={WorkoutComplete}
 				options={{ headerShown: false, gestureEnabled: false }}
-			/>
+			>
+				{props => (
+					<MemberFeatureGate feature="results">
+						<WorkoutComplete {...props} />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingResults"
-				component={Results}
 				options={{ title: 'My Results' }}
-			/>
+			>
+				{() => (
+					<MemberFeatureGate feature="results">
+						<Results />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingResultDetail"
-				component={ResultDetail}
 				options={{ title: 'Workout result' }}
-			/>
+			>
+				{props => (
+					<MemberFeatureGate feature="results">
+						<ResultDetail {...props} />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingShareWorkout"
-				component={ShareWorkoutComposer}
 				options={{ title: 'Share workout' }}
-			/>
+			>
+				{props => (
+					<MemberFeatureGate feature="results">
+						<ShareWorkoutComposer {...props} />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingGymFeed"
-				component={GymFeed}
 				options={{ title: 'Gym Feed' }}
-			/>
+			>
+				{() => (
+					<MemberFeatureGate feature="feed">
+						<GymFeed />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingWellness"
 				component={Wellness}
@@ -134,19 +172,34 @@ const TrainingStackNavigator = () => {
 			/>
 			<Stack.Screen
 				name="TrainingMaxes"
-				component={Maxes}
 				options={{ title: 'My Maxes' }}
-			/>
+			>
+				{() => (
+					<MemberFeatureGate feature="my_maxes">
+						<Maxes />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingPRs"
-				component={PRs}
 				options={{ title: 'Personal Records' }}
-			/>
+			>
+				{() => (
+					<MemberFeatureGate feature="prs">
+						<PRs />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingCoachNotes"
-				component={CoachNotes}
 				options={{ title: 'Coach Notes' }}
-			/>
+			>
+				{() => (
+					<MemberFeatureGate feature="coach_notes">
+						<CoachNotes />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingNotifications"
 				component={NotificationsInbox}
@@ -164,9 +217,14 @@ const TrainingStackNavigator = () => {
 			/>
 			<Stack.Screen
 				name="TrainingWeeklyRecap"
-				component={WeeklyRecap}
 				options={{ title: 'Weekly Recap' }}
-			/>
+			>
+				{props => (
+					<MemberFeatureGate feature="digest">
+						<WeeklyRecap {...props} />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingMore"
 				component={TrainingMore}
@@ -179,34 +237,73 @@ const TrainingStackNavigator = () => {
 			/>
 			<Stack.Screen
 				name="TrainingProfile"
-				component={TrainingProfile}
 				options={{ title: 'Training Profile' }}
-			/>
+			>
+				{props => (
+					<MemberFeatureGate feature="training_profile">
+						<TrainingProfile {...props} />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingAppleHealth"
-				component={AppleHealthScreen}
 				options={{ headerShown: false }}
-			/>
+			>
+				{props => (
+					<MemberFeatureGate feature="wearables">
+						<AppleHealthScreen {...props} />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingWearables"
-				component={Wearables}
 				options={{ headerShown: false }}
-			/>
+			>
+				{props => (
+					<MemberFeatureGate feature="wearables">
+						<Wearables {...props} />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingBuildList"
-				component={BuildList}
 				options={{ headerShown: false }}
-			/>
+			>
+				{() => (
+					<MemberFeatureGate
+						feature="custom_workouts"
+						allow={hasCustomWorkouts}
+					>
+						<BuildList />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingBuildEditor"
-				component={WorkoutEditor}
 				options={{ headerShown: false }}
-			/>
+			>
+				{props => (
+					<MemberFeatureGate
+						feature="custom_workouts"
+						allow={hasCustomWorkouts}
+					>
+						<WorkoutEditor {...props} />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingBuildSchedule"
-				component={BuildSchedule}
 				options={{ headerShown: false }}
-			/>
+			>
+				{props => (
+					<MemberFeatureGate
+						feature="custom_workouts"
+						allow={hasCustomWorkouts}
+					>
+						<BuildSchedule {...props} />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingCustomWorkoutsUpsell"
 				component={CustomWorkoutsUpsell}
@@ -214,19 +311,34 @@ const TrainingStackNavigator = () => {
 			/>
 			<Stack.Screen
 				name="TrainingInjuryList"
-				component={InjuryList}
 				options={{ headerShown: false }}
-			/>
+			>
+				{props => (
+					<MemberFeatureGate feature="pain_reports">
+						<InjuryList {...props} />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingInjuryLog"
-				component={InjuryLog}
 				options={{ headerShown: false }}
-			/>
+			>
+				{props => (
+					<MemberFeatureGate feature="pain_reports">
+						<InjuryLog {...props} />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingInjuryDailyUpdate"
-				component={InjuryDailyUpdate}
 				options={{ headerShown: false }}
-			/>
+			>
+				{props => (
+					<MemberFeatureGate feature="pain_reports">
+						<InjuryDailyUpdate {...props} />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 		</Stack.Navigator>
 	);
 };
