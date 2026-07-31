@@ -29,6 +29,7 @@ import { useScalingPreference } from '@/screens/Training/hooks/useScalingPrefere
 import { useSectionResultQueue } from '@/screens/Training/hooks/useSectionResultQueue';
 import { mmkvStorage } from '@/storage';
 import { useTheme } from '@/theme';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import type { TrainingStackParamList } from '@/types/navigation';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { useQuery } from '@tanstack/react-query';
@@ -44,6 +45,7 @@ import {
 	View,
 } from 'react-native';
 import { initialWorkoutDetailTab } from './workoutDetailTabs';
+import { workoutResultCapabilities } from './workoutResultCapabilities';
 
 const SCALING_LEVEL_KEY = 'ws:last-scaling-level';
 
@@ -109,6 +111,10 @@ type WorkoutShell = {
 
 const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	const { colors } = useTheme();
+	const { isEnabled } = useWorkoutStudio();
+	const resultCapabilities = workoutResultCapabilities(isEnabled('results'));
+	const resultCapabilitiesRef = useRef(resultCapabilities);
+	resultCapabilitiesRef.current = resultCapabilities;
 	const { workoutId, assignmentId, programContext, initialTab } =
 		route.params;
 	const session = getStoredWSSession();
@@ -325,6 +331,7 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 		toastTimer.current = setTimeout(() => setToastVisible(false), 2500);
 	};
 	const handleSectionLogged = (status: 'synced' | 'queued') => {
+		if (!resultCapabilitiesRef.current.canLogSectionScore) return;
 		if (status === 'queued') {
 			showLoggedToast('Saved offline · Will sync automatically');
 			void sectionResultQueue.refresh();
@@ -350,7 +357,13 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	};
 
 	const submit = async () => {
-		if (!uid || !tenantId || !workout) return;
+		if (
+			!resultCapabilitiesRef.current.canLogAggregateScore ||
+			!uid ||
+			!tenantId ||
+			!workout
+		)
+			return;
 		setSubmitting(true);
 		const bestBeforeSubmit = personalBest ?? null;
 		try {
@@ -462,7 +475,8 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 				>
 					{workout.name}
 				</Text>
-				{sectionResultQueue.pendingCount > 0 ? (
+				{resultCapabilities.canLogSectionScore &&
+				sectionResultQueue.pendingCount > 0 ? (
 					<View
 						style={styles.pendingResultBanner}
 						accessibilityRole="alert"
@@ -526,25 +540,28 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 					</View>
 				) : null}
 
-				<View style={styles.startCard}>
-					<View style={styles.startCopy}>
-						<Text style={styles.startTitle}>Ready to train?</Text>
-						<Text style={styles.startDescription}>
-							Track sets, rest periods and elapsed time as you go.
-						</Text>
+				{resultCapabilities.canStart ? (
+					<View style={styles.startCard}>
+						<View style={styles.startCopy}>
+							<Text style={styles.startTitle}>Ready to train?</Text>
+							<Text style={styles.startDescription}>
+								Track sets, rest periods and elapsed time as you
+								go.
+							</Text>
+						</View>
+						<PrimaryButton
+							label="Start workout"
+							onPress={() =>
+								navigation.navigate('TrainingRunWorkout', {
+									workoutId,
+									assignmentId,
+									workoutName: workout.name,
+									scalingLevel,
+								})
+							}
+						/>
 					</View>
-					<PrimaryButton
-						label="Start workout"
-						onPress={() =>
-							navigation.navigate('TrainingRunWorkout', {
-								workoutId,
-								assignmentId,
-								workoutName: workout.name,
-								scalingLevel,
-							})
-						}
-					/>
-				</View>
+				) : null}
 
 				<View style={styles.tabRow}>
 					<TouchableOpacity
@@ -697,7 +714,8 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 													)}
 												</View>
 											))}
-										{s.section_mode === 'workout' &&
+										{resultCapabilities.canLogSectionScore &&
+										s.section_mode === 'workout' &&
 										s.is_scored ? (
 											<TouchableOpacity
 												style={
@@ -721,7 +739,8 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 							</View>
 						)}
 
-					{!usesSectionScoring ? (
+					{resultCapabilities.canLogAggregateScore &&
+					!usesSectionScoring ? (
 						<View
 							style={[
 								styles.formCard,
@@ -1105,56 +1124,64 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 				</View>
 			</ScrollView>
 
-			<View
-				style={[
-					styles.footer,
-					{
-						backgroundColor: trainingTheme.colors.background,
-						display:
-							tab === 'leaderboard' || usesSectionScoring
-								? 'none'
-								: 'flex',
-					},
-				]}
-			>
-				<TouchableOpacity
+			{resultCapabilities.canLogAggregateScore ? (
+				<View
 					style={[
-						styles.submitBtn,
-						{ backgroundColor: trainingTheme.colors.primary },
-						submitting && { opacity: 0.6 },
+						styles.footer,
+						{
+							backgroundColor: trainingTheme.colors.background,
+							display:
+								tab === 'leaderboard' || usesSectionScoring
+									? 'none'
+									: 'flex',
+						},
 					]}
-					onPress={() => void submit()}
-					disabled={submitting}
 				>
-					{submitting ? (
-						<ActivityIndicator
-							color={trainingTheme.colors.onPrimary}
-						/>
-					) : (
-						<Text style={styles.submitBtnText}>Log result</Text>
-					)}
-				</TouchableOpacity>
-				<PRBadge visible={isPR} />
-				<MovementSheet
-					movementId={selectedMovement?.id ?? null}
-					movementName={selectedMovement?.name ?? ''}
-					uid={uid ?? null}
-					onClose={() => setSelectedMovement(null)}
-				/>
-				<Text style={styles.coachNote}>
-					Your score is visible to your coach and the gym leaderboard.
-				</Text>
-			</View>
-			<SectionScoreModal
-				section={selectedScoreSection}
-				visible={selectedScoreSection !== null}
-				onClose={() => setSelectedScoreSection(null)}
-				onLogged={handleSectionLogged}
-				sessionSubmissionId={sessionSubmissionId}
-				assignmentId={assignmentId}
-				scalingLevel={scalingLevel}
+					<TouchableOpacity
+						style={[
+							styles.submitBtn,
+							{ backgroundColor: trainingTheme.colors.primary },
+							submitting && { opacity: 0.6 },
+						]}
+						onPress={() => void submit()}
+						disabled={submitting}
+					>
+						{submitting ? (
+							<ActivityIndicator
+								color={trainingTheme.colors.onPrimary}
+							/>
+						) : (
+							<Text style={styles.submitBtnText}>Log result</Text>
+						)}
+					</TouchableOpacity>
+					<PRBadge visible={isPR} />
+					<Text style={styles.coachNote}>
+						Your score is visible to your coach and the gym
+						leaderboard.
+					</Text>
+				</View>
+			) : null}
+			<MovementSheet
+				movementId={selectedMovement?.id ?? null}
+				movementName={selectedMovement?.name ?? ''}
+				uid={uid ?? null}
+				onClose={() => setSelectedMovement(null)}
 			/>
-			{toastVisible ? (
+			{resultCapabilities.canLogSectionScore ? (
+				<SectionScoreModal
+					section={selectedScoreSection}
+					visible={selectedScoreSection !== null}
+					onClose={() => setSelectedScoreSection(null)}
+					onLogged={handleSectionLogged}
+					sessionSubmissionId={sessionSubmissionId}
+					assignmentId={assignmentId}
+					scalingLevel={scalingLevel}
+					canLogScore={() =>
+						resultCapabilitiesRef.current.canLogSectionScore
+					}
+				/>
+			) : null}
+			{resultCapabilities.canLogSectionScore && toastVisible ? (
 				<TouchableOpacity
 					style={styles.toast}
 					onPress={onToastPress}
@@ -1163,7 +1190,9 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 					<Text style={styles.toastText}>{toastMessage}</Text>
 				</TouchableOpacity>
 			) : null}
-			{isPR ? <Confetti /> : null}
+			{resultCapabilities.canLogAggregateScore && isPR ? (
+				<Confetti />
+			) : null}
 		</View>
 	);
 };

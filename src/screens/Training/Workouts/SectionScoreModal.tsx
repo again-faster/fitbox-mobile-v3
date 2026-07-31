@@ -57,6 +57,7 @@ const SectionScoreModal = ({
 	sessionSubmissionId,
 	assignmentId,
 	scalingLevel,
+	canLogScore,
 }: {
 	section: WorkoutSection | null;
 	visible: boolean;
@@ -65,6 +66,7 @@ const SectionScoreModal = ({
 	sessionSubmissionId: string;
 	assignmentId?: string;
 	scalingLevel: ScalingLevel;
+	canLogScore: () => boolean;
 }) => {
 	const session = getStoredWSSession();
 	const userId = session?.user.id;
@@ -133,6 +135,7 @@ const SectionScoreModal = ({
 	};
 
 	const submit = async () => {
+		if (!canLogScore()) return;
 		const states = isMulti ? entries : [{ primary, secondary }];
 		const hasInvalidScore = states.some(state => {
 			if (kind === 'completed') return false;
@@ -177,7 +180,7 @@ const SectionScoreModal = ({
 			assignmentId,
 		};
 		const saveForRetry = async () => {
-			if (!userId || !tenantId) return false;
+			if (!canLogScore() || !userId || !tenantId) return false;
 			await queueSectionResult({
 				id: submissionId,
 				userId,
@@ -191,6 +194,7 @@ const SectionScoreModal = ({
 		};
 		try {
 			if (isOffline && (await saveForRetry())) return;
+			if (!canLogScore()) return;
 			await logSectionResultAtomic(input);
 			onLogged('synced');
 			onClose();

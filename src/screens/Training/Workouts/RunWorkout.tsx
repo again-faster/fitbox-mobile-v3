@@ -13,6 +13,7 @@ import type {
 	WorkoutSection,
 } from '@/services/workoutStudio/types';
 import { useWorkoutDetail } from '@/screens/Training/hooks/useWorkoutDetail';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { useTheme } from '@/theme';
 import type { TrainingStackParamList } from '@/types/navigation';
 import type { StackScreenProps } from '@react-navigation/stack';
@@ -31,6 +32,7 @@ import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { trainingTheme } from '@/theme/training';
 import { mmkvStorage } from '@/storage';
 import SectionScoreModal from './SectionScoreModal';
+import { workoutResultCapabilities } from './workoutResultCapabilities';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingRunWorkout'>;
 
@@ -121,12 +123,18 @@ const loadDraft = (
 
 const RunWorkout = ({ route, navigation }: Props) => {
 	const { colors } = useTheme();
+	const { isEnabled } = useWorkoutStudio();
+	const resultCapabilities = workoutResultCapabilities(isEnabled('results'));
+	const resultCapabilitiesRef = useRef(resultCapabilities);
+	resultCapabilitiesRef.current = resultCapabilities;
 	const { workoutId, assignmentId } = route.params;
 	const scalingLevel: ScalingLevel = route.params.scalingLevel ?? 'rx';
 	const session = getStoredWSSession();
 	const uid = session?.user.id;
 	const restoredDraft = useRef(
-		loadDraft(uid, workoutId, assignmentId),
+		resultCapabilities.canStart
+			? loadDraft(uid, workoutId, assignmentId)
+			: null,
 	).current;
 
 	const [workoutResultId, setWorkoutResultId] = useState<string | null>(
@@ -154,7 +162,14 @@ const RunWorkout = ({ route, navigation }: Props) => {
 	const tenantId = session?.user.active_tenant_id;
 
 	useEffect(() => {
-		if (!uid || !tenantId || !workoutId || workoutResultId) return;
+		if (
+			!resultCapabilities.canStart ||
+			!uid ||
+			!tenantId ||
+			!workoutId ||
+			workoutResultId
+		)
+			return;
 		startWorkoutResult({
 			workoutId,
 			assignmentId,
@@ -171,6 +186,7 @@ const RunWorkout = ({ route, navigation }: Props) => {
 			.catch(() => setPreparationFailed(true));
 	}, [
 		assignmentId,
+		resultCapabilities.canStart,
 		scalingLevel,
 		sessionSubmissionId,
 		tenantId,
@@ -180,7 +196,7 @@ const RunWorkout = ({ route, navigation }: Props) => {
 	]);
 
 	useEffect(() => {
-		if (!uid) return;
+		if (!resultCapabilities.canStart || !uid) return;
 		const draft: WorkoutDraft = {
 			version: 1,
 			userId: uid,
@@ -204,6 +220,7 @@ const RunWorkout = ({ route, navigation }: Props) => {
 		workoutResultId,
 		setStates,
 		loggedSectionIds,
+		resultCapabilities.canStart,
 		sessionSubmissionId,
 		route.params.workoutName,
 	]);
@@ -230,12 +247,20 @@ const RunWorkout = ({ route, navigation }: Props) => {
 						onPress: () => {
 							void (async () => {
 								try {
-									if (workoutResultId) {
+									if (
+										resultCapabilitiesRef.current
+											.canStart &&
+										workoutResultId
+									) {
 										await wsApi().delete(
 											`workout_results?id=eq.${workoutResultId}`,
 										);
 									}
-									if (uid) {
+									if (
+										resultCapabilitiesRef.current
+											.canStart &&
+										uid
+									) {
 										mmkvStorage.delete(
 											draftKey(
 												uid,
@@ -304,6 +329,7 @@ const RunWorkout = ({ route, navigation }: Props) => {
 	};
 
 	const markDone = async (bm: BlockMovement, setIdx: number) => {
+		if (!resultCapabilitiesRef.current.canStart) return;
 		const s = getSetStates(bm)[setIdx];
 		if (!s) return;
 
@@ -378,7 +404,11 @@ const RunWorkout = ({ route, navigation }: Props) => {
 		).length ?? 0;
 
 	const finish = () => {
-		if (isFinishing) return;
+		if (
+			!resultCapabilitiesRef.current.canFinish ||
+			isFinishing
+		)
+			return;
 		if (hasUnsyncedSets()) {
 			Alert.alert(
 				'Some sets are not saved yet',
@@ -398,6 +428,8 @@ const RunWorkout = ({ route, navigation }: Props) => {
 					text: 'Finish',
 					onPress: () => {
 						void (async () => {
+							if (!resultCapabilitiesRef.current.canFinish)
+								return;
 							if (!workoutResultId) {
 								Alert.alert(
 									'Still preparing your workout',
@@ -471,7 +503,7 @@ const RunWorkout = ({ route, navigation }: Props) => {
 
 	return (
 		<View style={styles.screen}>
-			{preparationFailed ? (
+			{resultCapabilities.canStart && preparationFailed ? (
 				<View style={styles.syncErrorBanner} accessibilityRole="alert">
 					<Ionicons
 						name="cloud-alert-outline"
@@ -484,7 +516,7 @@ const RunWorkout = ({ route, navigation }: Props) => {
 					</Text>
 				</View>
 			) : null}
-			{restoredDraft ? (
+			{resultCapabilities.canStart && restoredDraft ? (
 				<View style={styles.recoveredBanner} accessibilityRole="alert">
 					<Ionicons
 						name="history"
@@ -496,13 +528,13 @@ const RunWorkout = ({ route, navigation }: Props) => {
 					</Text>
 				</View>
 			) : null}
-			{restTimer !== null && (
+			{resultCapabilities.canStart && restTimer !== null && (
 				<View style={styles.restBanner} accessibilityRole="timer">
 					<Text style={styles.restText}>Rest — {restTimer}s</Text>
 				</View>
 			)}
 			{/* eslint-disable-next-line no-nested-ternary */}
-			{failedSetCount > 0 ? (
+			{resultCapabilities.canStart && failedSetCount > 0 ? (
 				<View style={styles.syncErrorBanner} accessibilityRole="alert">
 					<Ionicons
 						name="cloud-alert-outline"
@@ -514,7 +546,7 @@ const RunWorkout = ({ route, navigation }: Props) => {
 						not saved. Tap the red icon to retry.
 					</Text>
 				</View>
-			) : pendingSetCount > 0 ? (
+			) : resultCapabilities.canStart && pendingSetCount > 0 ? (
 				<View style={styles.syncPendingBanner}>
 					<Ionicons
 						name="cloud-upload-outline"
@@ -626,7 +658,8 @@ const RunWorkout = ({ route, navigation }: Props) => {
 																		: ''}
 																</Text>
 															)}
-															{states.map(
+															{resultCapabilities.canStart
+																? states.map(
 																(s, idx) => (
 																	<View
 																		key={
@@ -777,13 +810,15 @@ const RunWorkout = ({ route, navigation }: Props) => {
 																		</TouchableOpacity>
 																	</View>
 																),
-															)}
+																)
+																: null}
 														</View>
 													);
 												})}
 										</View>
 									))}
-							{section.section_mode === 'workout' &&
+							{resultCapabilities.canLogSectionScore &&
+							section.section_mode === 'workout' &&
 							section.is_scored ? (
 								<TouchableOpacity
 									style={[
@@ -834,40 +869,53 @@ const RunWorkout = ({ route, navigation }: Props) => {
 					))}
 			</ScrollView>
 
-			<SectionScoreModal
-				section={selectedScoreSection}
-				visible={selectedScoreSection !== null}
-				onClose={() => setSelectedScoreSection(null)}
-				onLogged={() => {
-					if (!selectedScoreSection) return;
-					setLoggedSectionIds(current =>
-						current.includes(selectedScoreSection.id)
-							? current
-							: [...current, selectedScoreSection.id],
-					);
-				}}
-				sessionSubmissionId={sessionSubmissionId}
-				assignmentId={assignmentId}
-				scalingLevel={scalingLevel}
-			/>
+			{resultCapabilities.canLogSectionScore ? (
+				<SectionScoreModal
+					section={selectedScoreSection}
+					visible={selectedScoreSection !== null}
+					onClose={() => setSelectedScoreSection(null)}
+					onLogged={() => {
+						if (
+							!resultCapabilitiesRef.current.canLogSectionScore ||
+							!selectedScoreSection
+						)
+							return;
+						setLoggedSectionIds(current =>
+							current.includes(selectedScoreSection.id)
+								? current
+								: [...current, selectedScoreSection.id],
+						);
+					}}
+					sessionSubmissionId={sessionSubmissionId}
+					assignmentId={assignmentId}
+					scalingLevel={scalingLevel}
+					canLogScore={() =>
+						resultCapabilitiesRef.current.canLogSectionScore
+					}
+				/>
+			) : null}
 
-			<View style={styles.footer}>
-				<TouchableOpacity
-					style={styles.finishBtn}
-					accessibilityRole="button"
-					accessibilityState={{ disabled: isFinishing }}
-					disabled={isFinishing}
-					onPress={finish}
-				>
-					{isFinishing ? (
-						<ActivityIndicator
-							color={trainingTheme.colors.onPrimary}
-						/>
-					) : (
-						<Text style={styles.finishBtnText}>Finish workout</Text>
-					)}
-				</TouchableOpacity>
-			</View>
+			{resultCapabilities.canFinish ? (
+				<View style={styles.footer}>
+					<TouchableOpacity
+						style={styles.finishBtn}
+						accessibilityRole="button"
+						accessibilityState={{ disabled: isFinishing }}
+						disabled={isFinishing}
+						onPress={finish}
+					>
+						{isFinishing ? (
+							<ActivityIndicator
+								color={trainingTheme.colors.onPrimary}
+							/>
+						) : (
+							<Text style={styles.finishBtnText}>
+								Finish workout
+							</Text>
+						)}
+					</TouchableOpacity>
+				</View>
+			) : null}
 		</View>
 	);
 };
