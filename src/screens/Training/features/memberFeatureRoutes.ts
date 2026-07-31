@@ -2,7 +2,32 @@ import type {
 	MemberFeature,
 	MemberFeatureMap,
 } from '@/services/workoutStudio/memberFeatures';
-import type { TrainingStackParamList } from '@/types/navigation';
+import type {
+	ApplicationStackParamList,
+	DashboardParamList,
+	MainTabParamList,
+	TrainingStackParamList,
+} from '@/types/navigation';
+
+type MemberSurfaceRoute =
+	| keyof ApplicationStackParamList
+	| keyof DashboardParamList
+	| keyof MainTabParamList
+	| keyof TrainingStackParamList;
+
+const CLASS_SURFACES = new Set<MemberSurfaceRoute>([
+	'Calendar',
+	'Bookings',
+	'Session',
+]);
+
+export const isClassSurface = (route: MemberSurfaceRoute) =>
+	CLASS_SURFACES.has(route);
+
+export const shouldShowMemberSurface = (
+	route: MemberSurfaceRoute,
+	classesEnabled: boolean,
+) => classesEnabled || !isClassSurface(route);
 
 export const TRAINING_ROUTE_FEATURES: Partial<
 	Record<keyof TrainingStackParamList, MemberFeature>

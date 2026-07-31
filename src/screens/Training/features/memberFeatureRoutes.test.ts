@@ -5,7 +5,9 @@ import {
 import {
 	TRAINING_ROUTE_FEATURES,
 	featureForTrainingRoute,
+	isClassSurface,
 	shouldShowBookingsHub,
+	shouldShowMemberSurface,
 	shouldShowProgressHub,
 } from './memberFeatureRoutes';
 
@@ -87,5 +89,45 @@ describe('training member feature route policy', () => {
 
 	it('hides the bookings hub when both booking features are disabled', () => {
 		expect(shouldShowBookingsHub(ALL_MEMBER_FEATURES_DISABLED)).toBe(false);
+	});
+
+	it.each(['Calendar', 'Bookings', 'Session'] as const)(
+		'treats %s as a class surface',
+		route => {
+			expect(isClassSurface(route)).toBe(true);
+		},
+	);
+
+	it.each([
+		'TrainingToday',
+		'TrainingDay',
+		'TrainingWorkouts',
+		'TrainingWorkoutDetail',
+	] as const)('keeps the assigned-workout surface %s outside class gating', route => {
+		expect(isClassSurface(route)).toBe(false);
+	});
+
+	it('filters only class navigation surfaces when classes are disabled', () => {
+		const routes = [
+			'Calendar',
+			'Bookings',
+			'Session',
+			'TrainingToday',
+			'TrainingDay',
+			'TrainingWorkouts',
+			'TrainingWorkoutDetail',
+		] as const;
+
+		expect(
+			routes.filter(route => shouldShowMemberSurface(route, false)),
+		).toEqual([
+			'TrainingToday',
+			'TrainingDay',
+			'TrainingWorkouts',
+			'TrainingWorkoutDetail',
+		]);
+		expect(routes.filter(route => shouldShowMemberSurface(route, true))).toEqual(
+			routes,
+		);
 	});
 });
