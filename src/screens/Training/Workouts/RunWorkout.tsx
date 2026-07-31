@@ -190,6 +190,7 @@ const RunWorkout = ({ route, navigation }: Props) => {
 	}
 
 	useEffect(() => {
+		let cleanup: (() => void) | undefined;
 		if (
 			!resultCapabilities.canStart ||
 			!uid ||
@@ -198,21 +199,22 @@ const RunWorkout = ({ route, navigation }: Props) => {
 			workoutResultId
 		) {
 			startCoordinatorRef.current?.invalidate();
-			return;
+		} else {
+			const startedResult = startWorkoutResult({
+				workoutId,
+				assignmentId,
+				athleteId: uid,
+				tenantId,
+				clientSessionId: createSubmissionId(),
+				scalingLevel,
+				startedAt: new Date(startedAt.current).toISOString(),
+			});
+			void startCoordinatorRef.current?.start(startedResult);
+			cleanup = () => {
+				startCoordinatorRef.current?.invalidate();
+			};
 		}
-		const startedResult = startWorkoutResult({
-			workoutId,
-			assignmentId,
-			athleteId: uid,
-			tenantId,
-			clientSessionId: createSubmissionId(),
-			scalingLevel,
-			startedAt: new Date(startedAt.current).toISOString(),
-		});
-		void startCoordinatorRef.current?.start(startedResult);
-		return () => {
-			startCoordinatorRef.current?.invalidate();
-		};
+		return cleanup;
 	}, [
 		assignmentId,
 		resultCapabilities.canStart,

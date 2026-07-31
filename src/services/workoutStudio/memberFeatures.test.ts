@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/require-await, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/require-await, @typescript-eslint/no-unsafe-member-access */
 
 import {
 	ALL_MEMBER_FEATURES_DISABLED,
