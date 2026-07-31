@@ -1,3 +1,6 @@
+import { Constant } from '@/utils';
+import { getValidWSToken, reconcileAppIntentSession } from './auth';
+
 export const MEMBER_FEATURE_KEYS = [
 	'custom_workouts',
 	'results',
@@ -54,4 +57,77 @@ export const normalizeMemberFeatureResponse = (
 	return Object.fromEntries(
 		MEMBER_FEATURE_KEYS.map(key => [key, source[key] === true]),
 	) as MemberFeatureMap;
+};
+
+export type FeatureStorage = {
+	getString: (key: string) => string | undefined;
+	set: (key: string, value: string) => unknown;
+};
+
+export const memberFeatureCacheKey = (tenantId: string) =>
+	`ws:member-features:v1:${tenantId}`;
+
+export const loadCachedMemberFeatures = (
+	storage: FeatureStorage,
+	tenantId: string,
+): MemberFeatureMap | null => {
+	const value = storage.getString(memberFeatureCacheKey(tenantId));
+	if (!value) return null;
+	try {
+		return normalizeMemberFeatureResponse(tenantId, JSON.parse(value));
+	} catch {
+		return null;
+	}
+};
+
+export const saveCachedMemberFeatures = (
+	storage: FeatureStorage,
+	tenantId: string,
+	features: MemberFeatureMap,
+) =>
+	storage.set(
+		memberFeatureCacheKey(tenantId),
+		JSON.stringify({
+			ok: true,
+			data: { tenant_id: tenantId, features },
+		}),
+	);
+
+type FetchMemberFeatureDependencies = {
+	getToken?: (forceReconcile: boolean) => Promise<string | null>;
+	fetcher?: typeof fetch;
+	baseUrl?: string;
+};
+
+export const fetchMemberFeatures = async (
+	tenantId: string,
+	deps: FetchMemberFeatureDependencies = {},
+): Promise<MemberFeatureMap> => {
+	const defaultGetToken = async (forceReconcile: boolean) => {
+		if (forceReconcile) await reconcileAppIntentSession(true);
+		return getValidWSToken();
+	};
+	const getToken = deps.getToken ?? defaultGetToken;
+	const fetcher = deps.fetcher ?? fetch;
+	const baseUrl = deps.baseUrl ?? Constant.WS_MOBILE_API_URL;
+	const request = async (forceReconcile: boolean) => {
+		const token = await getToken(forceReconcile);
+		if (!token) throw new Error('Your Training session has expired.');
+		return fetcher(
+			`${baseUrl}/features?tenantId=${encodeURIComponent(tenantId)}`,
+			{
+				method: 'GET',
+				headers: {
+					Authorization: `Bearer ${token}`,
+					Accept: 'application/json',
+				},
+			},
+		);
+	};
+
+	let response = await request(false);
+	if (response.status === 401) response = await request(true);
+	if (!response.ok) throw new Error('Unable to load member features.');
+	const raw = await response.json();
+	return normalizeMemberFeatureResponse(tenantId, raw);
 };
