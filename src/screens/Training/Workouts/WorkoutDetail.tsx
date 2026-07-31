@@ -545,7 +545,9 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 				{resultCapabilities.canStart ? (
 					<View style={styles.startCard}>
 						<View style={styles.startCopy}>
-							<Text style={styles.startTitle}>Ready to train?</Text>
+							<Text style={styles.startTitle}>
+								Ready to train?
+							</Text>
 							<Text style={styles.startDescription}>
 								Track sets, rest periods and elapsed time as you
 								go.

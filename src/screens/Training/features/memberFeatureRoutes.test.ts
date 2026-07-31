@@ -55,9 +55,12 @@ describe('training member feature route policy', () => {
 		'TrainingWellness',
 		'TrainingProgress',
 		'TrainingPT',
-	] as const)('leaves the %s route unguarded for internal composition', route => {
-		expect(featureForTrainingRoute(route)).toBeNull();
-	});
+	] as const)(
+		'leaves the %s route unguarded for internal composition',
+		route => {
+			expect(featureForTrainingRoute(route)).toBeNull();
+		},
+	);
 
 	it.each([
 		'progress',
@@ -107,9 +110,12 @@ describe('training member feature route policy', () => {
 		'TrainingDay',
 		'TrainingWorkouts',
 		'TrainingWorkoutDetail',
-	] as const)('keeps the assigned-workout surface %s outside class gating', route => {
-		expect(isClassSurface(route)).toBe(false);
-	});
+	] as const)(
+		'keeps the assigned-workout surface %s outside class gating',
+		route => {
+			expect(isClassSurface(route)).toBe(false);
+		},
+	);
 
 	it('filters only class navigation surfaces when classes are disabled', () => {
 		const routes = [
@@ -130,9 +136,9 @@ describe('training member feature route policy', () => {
 			'TrainingWorkouts',
 			'TrainingWorkoutDetail',
 		]);
-		expect(routes.filter(route => shouldShowMemberSurface(route, true))).toEqual(
-			routes,
-		);
+		expect(
+			routes.filter(route => shouldShowMemberSurface(route, true)),
+		).toEqual(routes);
 	});
 
 	it('omits only Calendar from main tabs when classes are disabled', () => {
@@ -181,7 +187,9 @@ describe('training member feature route policy', () => {
 	);
 
 	it('resets a disabled current Calendar tab without disturbing training', () => {
-		expect(normalizeCurrentMainTab('Calendar', false)).toBe('DashboardStack');
+		expect(normalizeCurrentMainTab('Calendar', false)).toBe(
+			'DashboardStack',
+		);
 		expect(normalizeCurrentMainTab('Calendar', true)).toBe('Calendar');
 		expect(normalizeCurrentMainTab('TrainingStack', false)).toBe(
 			'TrainingStack',

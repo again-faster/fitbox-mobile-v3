@@ -471,17 +471,17 @@ const Dashboard = () => {
 
 	const checkNotificationStatus = async () => {
 		const { status } = await checkNotifications();
-		const isEnabled = status === RESULTS.GRANTED;
+		const notificationsEnabled = status === RESULTS.GRANTED;
 
 		// Add notification settings to r=global state merged with the current state
 		const settings = {
 			...notifSettings,
-			enabled: isEnabled,
+			enabled: notificationsEnabled,
 		};
 
 		setAppState('notifSettings', settings);
 
-		return isEnabled;
+		return notificationsEnabled;
 	};
 
 	const initializeNotificationSettings = async () => {
@@ -498,10 +498,10 @@ const Dashboard = () => {
 				};
 			}, {});
 
-		const isEnabled = await checkNotificationStatus();
+		const notificationsEnabled = await checkNotificationStatus();
 		const notificationSettings = {
 			settings: notificationSettingValues,
-			enabled: isEnabled,
+			enabled: notificationsEnabled,
 		};
 
 		setAppState('notifSettings', notificationSettings);
@@ -1232,7 +1232,10 @@ const Dashboard = () => {
 						upcomingSessionsState.length > 0 && (
 							<>
 								<View style={styles.sectionHeadingRow}>
-									<Text bold style={styles.sectionHeadingText}>
+									<Text
+										bold
+										style={styles.sectionHeadingText}
+									>
 										Coming up
 									</Text>
 								</View>
@@ -1240,7 +1243,10 @@ const Dashboard = () => {
 									{upcomingSessionsState // show only 1
 										.slice(0, 1)
 										.map(({ ...rest }, i) => (
-											<BookedSessionCard key={i} {...rest} />
+											<BookedSessionCard
+												key={i}
+												{...rest}
+											/>
 										))}
 								</View>
 

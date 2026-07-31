@@ -43,12 +43,9 @@ describe('buildTrainingMoreGroups', () => {
 		['feed', 'Gym Feed', 'TrainingGymFeed'],
 		['training_profile', 'Training Profile', 'TrainingProfile'],
 		['coach_notes', 'Coach Notes', 'TrainingCoachNotes'],
-	] as const)(
-		'shows %s independently as %s',
-		(feature, label, route) => {
-			expect(itemFor(feature, label)).toMatchObject({ label, route });
-		},
-	);
+	] as const)('shows %s independently as %s', (feature, label, route) => {
+		expect(itemFor(feature, label)).toMatchObject({ label, route });
+	});
 
 	it('does not treat pain reports as wellness', () => {
 		const labels = labelsFor({
@@ -89,10 +86,7 @@ describe('buildTrainingMoreGroups', () => {
 	});
 
 	it('shows Custom Workouts for a sponsored entitlement', () => {
-		const item = buildTrainingMoreGroups(
-			ALL_MEMBER_FEATURES_DISABLED,
-			true,
-		)
+		const item = buildTrainingMoreGroups(ALL_MEMBER_FEATURES_DISABLED, true)
 			.flatMap(group => group.items)
 			.find(entry => entry.label === 'Custom Workouts');
 

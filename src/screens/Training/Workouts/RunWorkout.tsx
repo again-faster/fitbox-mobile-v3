@@ -432,11 +432,7 @@ const RunWorkout = ({ route, navigation }: Props) => {
 		).length ?? 0;
 
 	const finish = () => {
-		if (
-			!resultCapabilitiesRef.current.canFinish ||
-			isFinishing
-		)
-			return;
+		if (!resultCapabilitiesRef.current.canFinish || isFinishing) return;
 		if (hasUnsyncedSets()) {
 			Alert.alert(
 				'Some sets are not saved yet',
@@ -688,157 +684,160 @@ const RunWorkout = ({ route, navigation }: Props) => {
 															)}
 															{resultCapabilities.canStart
 																? states.map(
-																(s, idx) => (
-																	<View
-																		key={
-																			s.idempotency_key
-																		}
-																		style={[
-																			styles.setRow,
-																			s.completed && {
-																				opacity: 0.5,
-																			},
-																		]}
-																	>
-																		<Text
-																			style={[
-																				styles.setLabel,
-																				{
-																					color: trainingTheme
-																						.colors
-																						.textMuted,
-																				},
-																			]}
-																		>
-																			{idx +
-																				1}
-																		</Text>
-																		<TextInput
-																			style={[
-																				styles.input,
-																				{
-																					borderColor:
+																		(
+																			s,
+																			idx,
+																		) => (
+																			<View
+																				key={
+																					s.idempotency_key
+																				}
+																				style={[
+																					styles.setRow,
+																					s.completed && {
+																						opacity: 0.5,
+																					},
+																				]}
+																			>
+																				<Text
+																					style={[
+																						styles.setLabel,
+																						{
+																							color: trainingTheme
+																								.colors
+																								.textMuted,
+																						},
+																					]}
+																				>
+																					{idx +
+																						1}
+																				</Text>
+																				<TextInput
+																					style={[
+																						styles.input,
+																						{
+																							borderColor:
+																								trainingTheme
+																									.colors
+																									.border,
+																							color: trainingTheme
+																								.colors
+																								.text,
+																						},
+																					]}
+																					keyboardType="numeric"
+																					placeholder="Reps"
+																					placeholderTextColor={
 																						trainingTheme
 																							.colors
-																							.border,
-																					color: trainingTheme
-																						.colors
-																						.text,
-																				},
-																			]}
-																			keyboardType="numeric"
-																			placeholder="Reps"
-																			placeholderTextColor={
-																				trainingTheme
-																					.colors
-																					.textMuted
-																			}
-																			value={
-																				s.reps
-																			}
-																			editable={
-																				!s.completed
-																			}
-																			onChangeText={v =>
-																				updateSet(
-																					bm.id,
-																					idx,
-																					'reps',
-																					v,
-																				)
-																			}
-																		/>
-																		<TextInput
-																			style={[
-																				styles.input,
-																				{
-																					borderColor:
+																							.textMuted
+																					}
+																					value={
+																						s.reps
+																					}
+																					editable={
+																						!s.completed
+																					}
+																					onChangeText={v =>
+																						updateSet(
+																							bm.id,
+																							idx,
+																							'reps',
+																							v,
+																						)
+																					}
+																				/>
+																				<TextInput
+																					style={[
+																						styles.input,
+																						{
+																							borderColor:
+																								trainingTheme
+																									.colors
+																									.border,
+																							color: trainingTheme
+																								.colors
+																								.text,
+																						},
+																					]}
+																					keyboardType="numeric"
+																					placeholder="kg"
+																					placeholderTextColor={
 																						trainingTheme
 																							.colors
-																							.border,
-																					color: trainingTheme
-																						.colors
-																						.text,
-																				},
-																			]}
-																			keyboardType="numeric"
-																			placeholder="kg"
-																			placeholderTextColor={
-																				trainingTheme
-																					.colors
-																					.textMuted
-																			}
-																			value={
-																				s.weight
-																			}
-																			editable={
-																				!s.completed
-																			}
-																			onChangeText={v =>
-																				updateSet(
-																					bm.id,
-																					idx,
-																					'weight',
-																					v,
-																				)
-																			}
-																		/>
-																		<TouchableOpacity
-																			style={[
-																				styles.doneBtn,
-																				{
-																					backgroundColor:
-																						syncColor(
+																							.textMuted
+																					}
+																					value={
+																						s.weight
+																					}
+																					editable={
+																						!s.completed
+																					}
+																					onChangeText={v =>
+																						updateSet(
+																							bm.id,
+																							idx,
+																							'weight',
+																							v,
+																						)
+																					}
+																				/>
+																				<TouchableOpacity
+																					style={[
+																						styles.doneBtn,
+																						{
+																							backgroundColor:
+																								syncColor(
+																									s,
+																								),
+																							borderColor:
+																								syncColor(
+																									s,
+																								),
+																						},
+																					]}
+																					accessibilityRole="button"
+																					accessibilityLabel={
+																						s.syncStatus ===
+																						'failed'
+																							? `Retry saving set ${idx + 1}`
+																							: `Complete set ${idx + 1}`
+																					}
+																					disabled={
+																						s.syncStatus ===
+																							'pending' ||
+																						s.syncStatus ===
+																							'synced'
+																					}
+																					onPress={() =>
+																						void markDone(
+																							bm,
+																							idx,
+																						)
+																					}
+																				>
+																					<Ionicons
+																						name={syncIcon(
 																							s,
-																						),
-																					borderColor:
-																						syncColor(
-																							s,
-																						),
-																				},
-																			]}
-																			accessibilityRole="button"
-																			accessibilityLabel={
-																				s.syncStatus ===
-																				'failed'
-																					? `Retry saving set ${idx + 1}`
-																					: `Complete set ${idx + 1}`
-																			}
-																			disabled={
-																				s.syncStatus ===
-																					'pending' ||
-																				s.syncStatus ===
-																					'synced'
-																			}
-																			onPress={() =>
-																				void markDone(
-																					bm,
-																					idx,
-																				)
-																			}
-																		>
-																			<Ionicons
-																				name={syncIcon(
-																					s,
-																				)}
-																				size={
-																					22
-																				}
-																				color={
-																					s.syncStatus ===
-																					'idle'
-																						? trainingTheme
-																								.colors
-																								.textMuted
-																						: trainingTheme
-																								.colors
-																								.onPrimary
-																				}
-																			/>
-																		</TouchableOpacity>
-																	</View>
-																),
-																)
+																						)}
+																						size={
+																							22
+																						}
+																						color={
+																							s.syncStatus ===
+																							'idle'
+																								? trainingTheme
+																										.colors
+																										.textMuted
+																								: trainingTheme
+																										.colors
+																										.onPrimary
+																						}
+																					/>
+																				</TouchableOpacity>
+																			</View>
+																		),
+																	)
 																: null}
 														</View>
 													);

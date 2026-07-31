@@ -639,7 +639,9 @@ const Today = () => {
 							/>
 						</View>
 						<View style={styles.cardText}>
-							<Text style={styles.progressTitle}>My Progress</Text>
+							<Text style={styles.progressTitle}>
+								My Progress
+							</Text>
 							<Text style={styles.progressSubtitle}>
 								Results, PRs, maxes and benchmarks
 							</Text>

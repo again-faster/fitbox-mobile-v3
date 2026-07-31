@@ -128,6 +128,6 @@ export const fetchMemberFeatures = async (
 	let response = await request(false);
 	if (response.status === 401) response = await request(true);
 	if (!response.ok) throw new Error('Unable to load member features.');
-	const raw = await response.json();
+	const raw: unknown = await response.json();
 	return normalizeMemberFeatureResponse(tenantId, raw);
 };

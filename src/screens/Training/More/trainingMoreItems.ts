@@ -19,7 +19,8 @@ export type TrainingMoreGroup = {
 
 const definedItems = (
 	items: Array<TrainingMoreItem | false>,
-): TrainingMoreItem[] => items.filter((item): item is TrainingMoreItem => !!item);
+): TrainingMoreItem[] =>
+	items.filter((item): item is TrainingMoreItem => !!item);
 
 export const buildTrainingMoreGroups = (
 	features: MemberFeatureMap,

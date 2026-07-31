@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-no-useless-fragment */
+
 import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { navigate } from '@/navigators/NavigationRef';
 import {
@@ -46,7 +48,5 @@ export const MemberSurfaceGate = ({
 
 	if (!feature) return <>{children}</>;
 
-	return (
-		<MemberFeatureGate feature={feature}>{children}</MemberFeatureGate>
-	);
+	return <MemberFeatureGate feature={feature}>{children}</MemberFeatureGate>;
 };

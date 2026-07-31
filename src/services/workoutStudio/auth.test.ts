@@ -1,3 +1,5 @@
+/* eslint-disable no-underscore-dangle */
+
 import { mmkvStorage } from '@/storage';
 import ky from 'ky';
 import {
@@ -319,8 +321,6 @@ describe('Workout Studio session gym scoping', () => {
 
 		expect(getStoredWSSession()).toBeNull();
 		expect(storage.getString('ws_gym_id')).toBeUndefined();
-		expect(
-			storage.getString('ws_fitbox_member_id'),
-		).toBeUndefined();
+		expect(storage.getString('ws_fitbox_member_id')).toBeUndefined();
 	});
 });

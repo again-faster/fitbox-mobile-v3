@@ -177,10 +177,7 @@ const TrainingStackNavigator = () => {
 					</MemberFeatureGate>
 				)}
 			</Stack.Screen>
-			<Stack.Screen
-				name="TrainingMaxes"
-				options={{ title: 'My Maxes' }}
-			>
+			<Stack.Screen name="TrainingMaxes" options={{ title: 'My Maxes' }}>
 				{() => (
 					<MemberFeatureGate feature="my_maxes">
 						<Maxes />

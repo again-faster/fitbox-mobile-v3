@@ -1,3 +1,5 @@
+/* eslint-disable no-await-in-loop, no-continue */
+
 type WorkoutResultStartCoordinatorDependencies = {
 	accept: (workoutResultId: string) => void;
 	cleanup: (workoutResultId: string) => Promise<void>;

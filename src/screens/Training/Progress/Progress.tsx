@@ -195,105 +195,121 @@ const ProgressScreen = ({ navigation, content }: ProgressScreenProps) => {
 				/>
 			) : (
 				<>
-					{content.showKpis && <View style={styles.kpiGrid}>
-						<View style={styles.kpi}>
-							<Text style={styles.kpiValue}>
-								{totals.workouts}
-							</Text>
-							<Text style={styles.kpiLabel}>Workouts</Text>
+					{content.showKpis && (
+						<View style={styles.kpiGrid}>
+							<View style={styles.kpi}>
+								<Text style={styles.kpiValue}>
+									{totals.workouts}
+								</Text>
+								<Text style={styles.kpiLabel}>Workouts</Text>
+							</View>
+							<View style={styles.kpi}>
+								<Text style={styles.kpiValue}>
+									{totals.minutes.toLocaleString()}
+								</Text>
+								<Text style={styles.kpiLabel}>Minutes</Text>
+							</View>
+							<View style={styles.kpi}>
+								<Text style={styles.kpiValue}>
+									{totals.volume.toLocaleString()}
+								</Text>
+								<Text style={styles.kpiLabel}>Kg volume</Text>
+							</View>
+							<View style={styles.kpi}>
+								<Text style={styles.kpiValue}>
+									{totals.prs}
+								</Text>
+								<Text style={styles.kpiLabel}>RM records</Text>
+							</View>
 						</View>
-						<View style={styles.kpi}>
-							<Text style={styles.kpiValue}>
-								{totals.minutes.toLocaleString()}
-							</Text>
-							<Text style={styles.kpiLabel}>Minutes</Text>
-						</View>
-						<View style={styles.kpi}>
-							<Text style={styles.kpiValue}>
-								{totals.volume.toLocaleString()}
-							</Text>
-							<Text style={styles.kpiLabel}>Kg volume</Text>
-						</View>
-						<View style={styles.kpi}>
-							<Text style={styles.kpiValue}>{totals.prs}</Text>
-							<Text style={styles.kpiLabel}>RM records</Text>
-						</View>
-					</View>}
-					{content.links.length > 0 && <>
-					<Text style={styles.sectionTitle}>Explore</Text>
-					<View style={styles.linkCard}>
-						{content.links.map(item => (
-							<TouchableOpacity
-								key={item.route}
-								accessibilityRole="button"
-								style={styles.linkRow}
-								onPress={() => navigation.navigate(item.route)}
-							>
-								<Ionicons
-									name={item.icon}
-									size={21}
-									color={trainingTheme.colors.primary}
-								/>
-								<View style={styles.linkCopy}>
-									<Text style={styles.linkLabel}>
-										{item.label}
-									</Text>
-									<Text style={styles.linkDetail}>
-										{item.detail}
-									</Text>
-								</View>
-								<Ionicons
-									name="chevron-right"
-									size={20}
-									color={trainingTheme.colors.textMuted}
-								/>
-							</TouchableOpacity>
-						))}
-					</View>
-					</>}
-					{content.showRecentActivity && <>
-					<Text style={styles.sectionTitle}>Recent activity</Text>
-					{(results.data?.length ?? 0) === 0 ? (
-						<TrainingState
-							kind="empty"
-							title="No activity in this period"
-							message="Choose a longer time range or complete your next workout."
-						/>
-					) : (
-						results.data?.slice(0, 5).map(item => (
-							<TouchableOpacity
-								key={item.id}
-								style={styles.activity}
-								onPress={() =>
-									navigation.navigate(
-										'TrainingResultDetail',
-										{ workoutResultId: item.id },
-									)
-								}
-							>
-								<View style={styles.activityDot} />
-								<View style={styles.linkCopy}>
-									<Text style={styles.linkLabel}>
-										{item.workouts.name}
-									</Text>
-									<Text style={styles.linkDetail}>
-										{moment(item.completed_at).format(
-											'ddd, D MMM',
-										)}{' '}
-										{item.duration_seconds != null
-											? `· ${Math.round(item.duration_seconds / 60)} min`
-											: ''}
-									</Text>
-								</View>
-								<Ionicons
-									name="chevron-right"
-									size={20}
-									color={trainingTheme.colors.textMuted}
-								/>
-							</TouchableOpacity>
-						))
 					)}
-					</>}
+					{content.links.length > 0 && (
+						<>
+							<Text style={styles.sectionTitle}>Explore</Text>
+							<View style={styles.linkCard}>
+								{content.links.map(item => (
+									<TouchableOpacity
+										key={item.route}
+										accessibilityRole="button"
+										style={styles.linkRow}
+										onPress={() =>
+											navigation.navigate(item.route)
+										}
+									>
+										<Ionicons
+											name={item.icon}
+											size={21}
+											color={trainingTheme.colors.primary}
+										/>
+										<View style={styles.linkCopy}>
+											<Text style={styles.linkLabel}>
+												{item.label}
+											</Text>
+											<Text style={styles.linkDetail}>
+												{item.detail}
+											</Text>
+										</View>
+										<Ionicons
+											name="chevron-right"
+											size={20}
+											color={
+												trainingTheme.colors.textMuted
+											}
+										/>
+									</TouchableOpacity>
+								))}
+							</View>
+						</>
+					)}
+					{content.showRecentActivity && (
+						<>
+							<Text style={styles.sectionTitle}>
+								Recent activity
+							</Text>
+							{(results.data?.length ?? 0) === 0 ? (
+								<TrainingState
+									kind="empty"
+									title="No activity in this period"
+									message="Choose a longer time range or complete your next workout."
+								/>
+							) : (
+								results.data?.slice(0, 5).map(item => (
+									<TouchableOpacity
+										key={item.id}
+										style={styles.activity}
+										onPress={() =>
+											navigation.navigate(
+												'TrainingResultDetail',
+												{ workoutResultId: item.id },
+											)
+										}
+									>
+										<View style={styles.activityDot} />
+										<View style={styles.linkCopy}>
+											<Text style={styles.linkLabel}>
+												{item.workouts.name}
+											</Text>
+											<Text style={styles.linkDetail}>
+												{moment(
+													item.completed_at,
+												).format('ddd, D MMM')}{' '}
+												{item.duration_seconds != null
+													? `· ${Math.round(item.duration_seconds / 60)} min`
+													: ''}
+											</Text>
+										</View>
+										<Ionicons
+											name="chevron-right"
+											size={20}
+											color={
+												trainingTheme.colors.textMuted
+											}
+										/>
+									</TouchableOpacity>
+								))
+							)}
+						</>
+					)}
 				</>
 			)}
 		</ScrollView>

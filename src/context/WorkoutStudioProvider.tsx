@@ -119,15 +119,12 @@ export const WorkoutStudioProvider = ({
 	const [state, setState] = useState<WorkoutStudioState>({
 		status: 'loading',
 	});
-	const [sessionIdentity, setSessionIdentity] = useState<string | null>(
-		null,
-	);
-	const [featureSnapshot, setFeatureSnapshot] =
-		useState<FeatureSnapshot>({
-			tenantId: null,
-			features: ALL_MEMBER_FEATURES_ENABLED,
-			source: 'first-load',
-		});
+	const [sessionIdentity, setSessionIdentity] = useState<string | null>(null);
+	const [featureSnapshot, setFeatureSnapshot] = useState<FeatureSnapshot>({
+		tenantId: null,
+		features: ALL_MEMBER_FEATURES_ENABLED,
+		source: 'first-load',
+	});
 	const requestIdRef = useRef(0);
 	const activeSessionRef = useRef<WSSession | null>(null);
 	const activeTenantRef = useRef<string | null>(null);
@@ -146,9 +143,7 @@ export const WorkoutStudioProvider = ({
 		? state
 		: { status: 'loading' };
 	const visibleSession =
-		visibleState.status === 'authenticated'
-			? visibleState.session
-			: null;
+		visibleState.status === 'authenticated' ? visibleState.session : null;
 	const tenantId = visibleSession?.user.active_tenant_id ?? null;
 	const isMember = visibleSession?.user.persona === 'member';
 	const snapshotMatches =
@@ -214,9 +209,7 @@ export const WorkoutStudioProvider = ({
 
 		const params: ExchangeParams = {
 			email,
-			...(gymId != null
-				? { fitbox_gym_id: String(gymId) }
-				: {}),
+			...(gymId != null ? { fitbox_gym_id: String(gymId) } : {}),
 			fitbox_member_id: String(memberId),
 			...(fullName ? { full_name: fullName } : {}),
 		};
@@ -235,7 +228,7 @@ export const WorkoutStudioProvider = ({
 			return;
 		}
 
-		const session = nextState.session;
+		const { session } = nextState;
 		const nextTenantId = session.user.active_tenant_id;
 		activeSessionRef.current = session;
 		activeTenantRef.current = nextTenantId;
@@ -280,22 +273,18 @@ export const WorkoutStudioProvider = ({
 
 	useEffect(() => {
 		let previousState = AppState.currentState;
-		const subscription = AppState.addEventListener(
-			'change',
-			nextState => {
-				const becameActive =
-					nextState === 'active' && previousState !== 'active';
-				previousState = nextState;
-				if (
-					becameActive &&
-					resolvedServices.now() -
-						lastFeatureRefreshAtRef.current >=
-						5 * 60 * 1000
-				) {
-					void refreshFeatures();
-				}
-			},
-		);
+		const subscription = AppState.addEventListener('change', nextState => {
+			const becameActive =
+				nextState === 'active' && previousState !== 'active';
+			previousState = nextState;
+			if (
+				becameActive &&
+				resolvedServices.now() - lastFeatureRefreshAtRef.current >=
+					5 * 60 * 1000
+			) {
+				void refreshFeatures();
+			}
+		});
 		return () => subscription.remove();
 	}, [refreshFeatures, resolvedServices]);
 
