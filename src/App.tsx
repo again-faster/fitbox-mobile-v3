@@ -16,6 +16,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AuthProvider from './auth/AuthProvider/AuthProvider';
 import KeyboardVisibilityProvider from './context/KeyboardProvider';
 import SwitchableUserProvider from './context/SwitchableUser';
+import { WorkoutStudioProvider } from './context/WorkoutStudioProvider';
 import ApplicationNavigator from './navigators/Application';
 import { mmkvStorage } from './storage';
 import layout from './theme/layout';
@@ -109,15 +110,17 @@ function App() {
 			<SafeAreaProvider>
 				<QueryClientProvider client={queryClient}>
 					<AuthProvider storage={mmkvStorage}>
-						<ThemeProvider storage={mmkvStorage}>
-							<Provider theme={customTheme}>
-								<KeyboardVisibilityProvider>
-									<SwitchableUserProvider>
-										<ApplicationNavigator />
-									</SwitchableUserProvider>
-								</KeyboardVisibilityProvider>
-							</Provider>
-						</ThemeProvider>
+						<WorkoutStudioProvider storage={mmkvStorage}>
+							<ThemeProvider storage={mmkvStorage}>
+								<Provider theme={customTheme}>
+									<KeyboardVisibilityProvider>
+										<SwitchableUserProvider>
+											<ApplicationNavigator />
+										</SwitchableUserProvider>
+									</KeyboardVisibilityProvider>
+								</Provider>
+							</ThemeProvider>
+						</WorkoutStudioProvider>
 					</AuthProvider>
 				</QueryClientProvider>
 			</SafeAreaProvider>

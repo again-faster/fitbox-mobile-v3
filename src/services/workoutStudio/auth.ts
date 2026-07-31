@@ -12,6 +12,7 @@ const KEYS = {
 	REFRESH_TOKEN: 'ws_refresh_token',
 	EXPIRES_AT: 'ws_expires_at',
 	USER: 'ws_user',
+	GYM_ID: 'ws_gym_id',
 } as const;
 
 export type WSPersona = 'member' | 'solo' | 'coach' | 'gym_admin';
@@ -31,6 +32,10 @@ export type WSSession = {
 	expires_at: number;
 	user: WSUser;
 };
+
+export type WSSessionResult =
+	| { session: WSSession }
+	| { error: WSAuthError };
 
 export type WSAuthError =
 	| 'NOT_FOUND'
@@ -55,11 +60,18 @@ export const getStoredWSSession = (): WSSession | null => {
 	};
 };
 
-export const saveWSSession = (session: WSSession) => {
+export const saveWSSession = (
+	session: WSSession,
+	gymId?: string | null,
+) => {
 	mmkvStorage.set(KEYS.ACCESS_TOKEN, session.access_token);
 	mmkvStorage.set(KEYS.REFRESH_TOKEN, session.refresh_token);
 	mmkvStorage.set(KEYS.EXPIRES_AT, session.expires_at);
 	mmkvStorage.set(KEYS.USER, JSON.stringify(session.user));
+	if (gymId !== undefined) {
+		if (gymId === null) mmkvStorage.delete(KEYS.GYM_ID);
+		else mmkvStorage.set(KEYS.GYM_ID, gymId);
+	}
 	void syncAppIntentCredentials(session).catch(() => undefined);
 };
 
@@ -106,7 +118,7 @@ export const reconcileAppIntentSession = async (
 	return reconciled;
 };
 
-type ExchangeParams = {
+export type ExchangeParams = {
 	email: string;
 	fitbox_gym_id?: string;
 	fitbox_member_id?: string;
@@ -115,7 +127,7 @@ type ExchangeParams = {
 
 export const exchangeForWSSession = async (
 	params: ExchangeParams,
-): Promise<{ session: WSSession } | { error: WSAuthError }> => {
+): Promise<WSSessionResult> => {
 	const attempt = () =>
 		ky
 			.post(Constant.WS_BRIDGE_URL, {
@@ -130,7 +142,7 @@ export const exchangeForWSSession = async (
 
 	try {
 		const session = await attempt();
-		saveWSSession(session);
+		saveWSSession(session, params.fitbox_gym_id ?? null);
 		return { session };
 	} catch (err) {
 		if (err instanceof HTTPError) {
@@ -155,7 +167,7 @@ export const exchangeForWSSession = async (
 				});
 				try {
 					const session = await attempt();
-					saveWSSession(session);
+					saveWSSession(session, params.fitbox_gym_id ?? null);
 					return { session };
 				} catch {
 					return { error: 'PROVISION_FAILED' };
@@ -164,6 +176,38 @@ export const exchangeForWSSession = async (
 		}
 		return { error: 'NETWORK_ERROR' };
 	}
+};
+
+export const sessionCanBeReused = (
+	storedGymId: string | undefined,
+	requestedGymId: string | undefined,
+) => storedGymId === requestedGymId;
+
+const pendingExchanges = new Map<string, Promise<WSSessionResult>>();
+
+export const ensureWSSession = (
+	params: ExchangeParams,
+): Promise<WSSessionResult> => {
+	const stored = getStoredWSSession();
+	const storedGymId = mmkvStorage.getString(KEYS.GYM_ID);
+	if (
+		stored &&
+		sessionCanBeReused(storedGymId, params.fitbox_gym_id)
+	) {
+		return Promise.resolve({ session: stored });
+	}
+
+	const key = `${params.email.trim().toLowerCase()}:${
+		params.fitbox_gym_id ?? 'no-gym'
+	}`;
+	const pending = pendingExchanges.get(key);
+	if (pending) return pending;
+
+	const exchange = exchangeForWSSession(params).finally(() => {
+		pendingExchanges.delete(key);
+	});
+	pendingExchanges.set(key, exchange);
+	return exchange;
 };
 
 const refreshWSToken = async (refreshToken: string): Promise<WSSession> => {
