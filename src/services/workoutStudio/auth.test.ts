@@ -52,13 +52,16 @@ type TestStorage = typeof mmkvStorage & {
 const storage = mmkvStorage as TestStorage;
 const mockedPost = jest.mocked(ky.post);
 
-const session = (tenantId = 'tenant-a'): WSSession => ({
+const session = (
+	tenantId = 'tenant-a',
+	email = 'member@example.com',
+): WSSession => ({
 	access_token: `access-${tenantId}`,
 	refresh_token: `refresh-${tenantId}`,
 	expires_at: Math.floor(Date.now() / 1000) + 3600,
 	user: {
 		id: `user-${tenantId}`,
-		email: 'member@example.com',
+		email,
 		full_name: 'Member Example',
 		persona: 'member',
 		active_tenant_id: tenantId,
@@ -126,6 +129,30 @@ describe('Workout Studio session gym scoping', () => {
 		expect(otherGym).toEqual({ session: session('tenant-b') });
 		expect(mockedPost).toHaveBeenCalledTimes(1);
 	});
+
+	it.each([undefined, 'gym-a'])(
+		'does not reuse another user session for requested gym %s',
+		async gymId => {
+			saveWSSession(session(), gymId ?? null);
+			mockedPost.mockReturnValue({
+				json: jest
+					.fn()
+					.mockResolvedValue(
+						session('tenant-b', 'other@example.com'),
+					),
+			} as never);
+
+			const result = await ensureWSSession({
+				email: 'other@example.com',
+				...(gymId ? { fitbox_gym_id: gymId } : {}),
+			});
+
+			expect(result).toEqual({
+				session: session('tenant-b', 'other@example.com'),
+			});
+			expect(mockedPost).toHaveBeenCalledTimes(1);
+		},
+	);
 
 	it('deduplicates concurrent exchanges for the same email and gym', async () => {
 		let resolveSession: ((value: WSSession) => void) | undefined;
@@ -195,5 +222,63 @@ describe('Workout Studio session gym scoping', () => {
 			}),
 		).resolves.toEqual({ session: session('tenant-b') });
 		expect(mockedPost).toHaveBeenCalledTimes(2);
+	});
+
+	it('arbitrates out-of-order exchanges globally across different users', async () => {
+		let resolveUserA: ((value: WSSession) => void) | undefined;
+		let resolveUserB: ((value: WSSession) => void) | undefined;
+		const userAResponse = new Promise<WSSession>(resolve => {
+			resolveUserA = resolve;
+		});
+		const userBResponse = new Promise<WSSession>(resolve => {
+			resolveUserB = resolve;
+		});
+		mockedPost
+			.mockReturnValueOnce({
+				json: jest.fn(() => userAResponse),
+			} as never)
+			.mockReturnValueOnce({
+				json: jest.fn(() => userBResponse),
+			} as never);
+
+		const oldUserExchange = ensureWSSession({
+			email: 'user-a@example.com',
+			fitbox_gym_id: 'gym-a',
+		});
+		const currentUserExchange = ensureWSSession({
+			email: 'user-b@example.com',
+			fitbox_gym_id: 'gym-b',
+		});
+
+		resolveUserB?.(session('tenant-b', 'user-b@example.com'));
+		await currentUserExchange;
+		resolveUserA?.(session('tenant-a', 'user-a@example.com'));
+		await oldUserExchange;
+
+		expect(storage.getString('ws_gym_id')).toBe('gym-b');
+		expect(getStoredWSSession()).toEqual(
+			session('tenant-b', 'user-b@example.com'),
+		);
+	});
+
+	it('does not restore a session when a pending exchange resolves after clear', async () => {
+		let resolveSession: ((value: WSSession) => void) | undefined;
+		const pendingSession = new Promise<WSSession>(resolve => {
+			resolveSession = resolve;
+		});
+		mockedPost.mockReturnValue({
+			json: jest.fn(() => pendingSession),
+		} as never);
+
+		const exchange = ensureWSSession({
+			email: 'member@example.com',
+			fitbox_gym_id: 'gym-a',
+		});
+		clearWSSession();
+		resolveSession?.(session());
+		await exchange;
+
+		expect(getStoredWSSession()).toBeNull();
+		expect(storage.getString('ws_gym_id')).toBeUndefined();
 	});
 });

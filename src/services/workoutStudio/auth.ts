@@ -46,6 +46,14 @@ export type WSAuthError =
 	| 'UNKNOWN_GYM'
 	| 'PROVISION_FAILED';
 
+type PendingExchange = {
+	generation: number;
+	promise: Promise<WSSessionResult>;
+};
+
+const pendingExchanges = new Map<string, PendingExchange>();
+let persistenceGeneration = 0;
+
 export const getStoredWSSession = (): WSSession | null => {
 	const token = mmkvStorage.getString(KEYS.ACCESS_TOKEN);
 	const refreshToken = mmkvStorage.getString(KEYS.REFRESH_TOKEN);
@@ -76,6 +84,8 @@ export const saveWSSession = (
 };
 
 export const clearWSSession = () => {
+	persistenceGeneration += 1;
+	pendingExchanges.clear();
 	Object.values(KEYS).forEach(k => mmkvStorage.delete(k));
 	void clearAppIntentCredentials().catch(() => undefined);
 };
@@ -191,33 +201,43 @@ export const sessionCanBeReused = (
 	requestedGymId: string | undefined,
 ) => storedGymId === requestedGymId;
 
-const pendingExchanges = new Map<string, Promise<WSSessionResult>>();
-const latestExchangeByEmail = new Map<string, string>();
-
 export const ensureWSSession = (
 	params: ExchangeParams,
 ): Promise<WSSessionResult> => {
 	const emailKey = params.email.trim().toLowerCase();
-	const key = `${emailKey}:${params.fitbox_gym_id ?? 'no-gym'}`;
-	latestExchangeByEmail.set(emailKey, key);
+	const key = JSON.stringify([
+		emailKey,
+		params.fitbox_gym_id ?? null,
+		params.fitbox_member_id ?? null,
+	]);
+	const generation = persistenceGeneration + 1;
+	persistenceGeneration = generation;
 
 	const stored = getStoredWSSession();
 	const storedGymId = mmkvStorage.getString(KEYS.GYM_ID);
 	if (
 		stored &&
+		stored.user.email.trim().toLowerCase() === emailKey &&
 		sessionCanBeReused(storedGymId, params.fitbox_gym_id)
 	) {
 		return Promise.resolve({ session: stored });
 	}
 
 	const pending = pendingExchanges.get(key);
-	if (pending) return pending;
+	if (pending) {
+		pending.generation = generation;
+		return pending.promise;
+	}
 
-	const exchange = requestWSSession(params)
+	const entry: PendingExchange = {
+		generation,
+		promise: Promise.resolve({ error: 'NETWORK_ERROR' }),
+	};
+	entry.promise = requestWSSession(params)
 		.then(result => {
 			if (
 				'session' in result &&
-				latestExchangeByEmail.get(emailKey) === key
+				entry.generation === persistenceGeneration
 			) {
 				saveWSSession(
 					result.session,
@@ -227,10 +247,12 @@ export const ensureWSSession = (
 			return result;
 		})
 		.finally(() => {
-			pendingExchanges.delete(key);
+			if (pendingExchanges.get(key) === entry) {
+				pendingExchanges.delete(key);
+			}
 		});
-	pendingExchanges.set(key, exchange);
-	return exchange;
+	pendingExchanges.set(key, entry);
+	return entry.promise;
 };
 
 const refreshWSToken = async (refreshToken: string): Promise<WSSession> => {
