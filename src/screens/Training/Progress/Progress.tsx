@@ -1,5 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import { useMemo, useState } from "react";
+import { useMemo, useState } from 'react';
 import {
 	RefreshControl,
 	ScrollView,
@@ -7,26 +7,26 @@ import {
 	Text,
 	TouchableOpacity,
 	View,
-} from "react-native";
-import Ionicons from "react-native-vector-icons/MaterialCommunityIcons";
-import type { StackScreenProps } from "@react-navigation/stack";
-import { useQuery } from "@tanstack/react-query";
-import moment from "moment";
-import { useWorkoutStudio } from "@/context/WorkoutStudioProvider";
-import { wsApi } from "@/services/workoutStudio/api";
-import { getStoredWSSession } from "@/services/workoutStudio/auth";
-import type { TrainingStackParamList } from "@/types/navigation";
-import { trainingTheme } from "@/theme/training";
-import SkeletonCard from "../components/SkeletonCard";
-import TrainingState from "../components/TrainingState";
+} from 'react-native';
+import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
+import type { StackScreenProps } from '@react-navigation/stack';
+import { useQuery } from '@tanstack/react-query';
+import moment from 'moment';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
+import { wsApi } from '@/services/workoutStudio/api';
+import { getStoredWSSession } from '@/services/workoutStudio/auth';
+import type { TrainingStackParamList } from '@/types/navigation';
+import { trainingTheme } from '@/theme/training';
+import SkeletonCard from '../components/SkeletonCard';
+import TrainingState from '../components/TrainingState';
 import {
 	buildProgressContent,
 	shouldRenderProgressScreen,
 	type ProgressContent,
-} from "./progressFeatures";
+} from './progressFeatures';
 
-type Props = StackScreenProps<TrainingStackParamList, "TrainingProgress">;
-type Range = "30" | "90" | "365" | "all";
+type Props = StackScreenProps<TrainingStackParamList, 'TrainingProgress'>;
+type Range = '30' | '90' | '365' | 'all';
 type ProgressResult = {
 	id: string;
 	workout_id: string;
@@ -37,13 +37,13 @@ type ProgressResult = {
 };
 type ProgressRM = { id: string; achieved_on: string };
 const RANGES: Array<{ key: Range; label: string }> = [
-	{ key: "30", label: "30D" },
-	{ key: "90", label: "90D" },
-	{ key: "365", label: "1Y" },
-	{ key: "all", label: "All" },
+	{ key: '30', label: '30D' },
+	{ key: '90', label: '90D' },
+	{ key: '365', label: '1Y' },
+	{ key: 'all', label: 'All' },
 ];
 
-type ProgressScreenProps = Pick<Props, "navigation"> & {
+type ProgressScreenProps = Pick<Props, 'navigation'> & {
 	content: ProgressContent;
 };
 
@@ -66,22 +66,22 @@ const Progress = ({ navigation }: Props) => {
 
 const ProgressScreen = ({ navigation, content }: ProgressScreenProps) => {
 	const uid = getStoredWSSession()?.user.id;
-	const [range, setRange] = useState<Range>("90");
+	const [range, setRange] = useState<Range>('90');
 	const from =
-		range === "all"
+		range === 'all'
 			? null
-			: moment().subtract(Number(range), "days").toISOString();
+			: moment().subtract(Number(range), 'days').toISOString();
 	const results = useQuery({
-		queryKey: ["ws-progress-results", uid, range],
+		queryKey: ['ws-progress-results', uid, range],
 		queryFn: () =>
 			wsApi()
-				.get("workout_results", {
+				.get('workout_results', {
 					searchParams: {
-						select: "id,workout_id,completed_at,duration_seconds,total_volume_kg,workouts(name)",
+						select: 'id,workout_id,completed_at,duration_seconds,total_volume_kg,workouts(name)',
 						athlete_id: `eq.${uid}`,
 						...(from ? { completed_at: `gte.${from}` } : {}),
-						order: "completed_at.desc",
-						limit: "1000",
+						order: 'completed_at.desc',
+						limit: '1000',
 					},
 				})
 				.json<ProgressResult[]>(),
@@ -89,19 +89,19 @@ const ProgressScreen = ({ navigation, content }: ProgressScreenProps) => {
 		staleTime: 120_000,
 	});
 	const prs = useQuery({
-		queryKey: ["ws-progress-prs", uid, range],
+		queryKey: ['ws-progress-prs', uid, range],
 		queryFn: () =>
 			wsApi()
-				.get("athlete_rms", {
+				.get('athlete_rms', {
 					searchParams: {
-						select: "id,achieved_on",
+						select: 'id,achieved_on',
 						athlete_id: `eq.${uid}`,
 						...(from
 							? {
-									achieved_on: `gte.${moment(from).format("YYYY-MM-DD")}`,
+									achieved_on: `gte.${moment(from).format('YYYY-MM-DD')}`,
 								}
 							: {}),
-						limit: "1000",
+						limit: '1000',
 					},
 				})
 				.json<ProgressRM[]>(),
@@ -158,7 +158,7 @@ const ProgressScreen = ({ navigation, content }: ProgressScreenProps) => {
 				A simple view of your training consistency and output.
 			</Text>
 			<View style={styles.rangeRow}>
-				{RANGES.map((item) => (
+				{RANGES.map(item => (
 					<TouchableOpacity
 						key={item.key}
 						accessibilityRole="button"
@@ -195,121 +195,105 @@ const ProgressScreen = ({ navigation, content }: ProgressScreenProps) => {
 				/>
 			) : (
 				<>
-					{content.showKpis && (
-						<View style={styles.kpiGrid}>
-							<View style={styles.kpi}>
-								<Text style={styles.kpiValue}>
-									{totals.workouts}
-								</Text>
-								<Text style={styles.kpiLabel}>Workouts</Text>
-							</View>
-							<View style={styles.kpi}>
-								<Text style={styles.kpiValue}>
-									{totals.minutes.toLocaleString()}
-								</Text>
-								<Text style={styles.kpiLabel}>Minutes</Text>
-							</View>
-							<View style={styles.kpi}>
-								<Text style={styles.kpiValue}>
-									{totals.volume.toLocaleString()}
-								</Text>
-								<Text style={styles.kpiLabel}>Kg volume</Text>
-							</View>
-							<View style={styles.kpi}>
-								<Text style={styles.kpiValue}>
-									{totals.prs}
-								</Text>
-								<Text style={styles.kpiLabel}>RM records</Text>
-							</View>
-						</View>
-					)}
-					{content.links.length > 0 && (
-						<>
-							<Text style={styles.sectionTitle}>Explore</Text>
-							<View style={styles.linkCard}>
-								{content.links.map((item) => (
-									<TouchableOpacity
-										key={item.route}
-										accessibilityRole="button"
-										style={styles.linkRow}
-										onPress={() =>
-											navigation.navigate(item.route)
-										}
-									>
-										<Ionicons
-											name={item.icon}
-											size={21}
-											color={trainingTheme.colors.primary}
-										/>
-										<View style={styles.linkCopy}>
-											<Text style={styles.linkLabel}>
-												{item.label}
-											</Text>
-											<Text style={styles.linkDetail}>
-												{item.detail}
-											</Text>
-										</View>
-										<Ionicons
-											name="chevron-right"
-											size={20}
-											color={
-												trainingTheme.colors.textMuted
-											}
-										/>
-									</TouchableOpacity>
-								))}
-							</View>
-						</>
-					)}
-					{content.showRecentActivity && (
-						<>
-							<Text style={styles.sectionTitle}>
-								Recent activity
+					{content.showKpis && <View style={styles.kpiGrid}>
+						<View style={styles.kpi}>
+							<Text style={styles.kpiValue}>
+								{totals.workouts}
 							</Text>
-							{(results.data?.length ?? 0) === 0 ? (
-								<TrainingState
-									kind="empty"
-									title="No activity in this period"
-									message="Choose a longer time range or complete your next workout."
+							<Text style={styles.kpiLabel}>Workouts</Text>
+						</View>
+						<View style={styles.kpi}>
+							<Text style={styles.kpiValue}>
+								{totals.minutes.toLocaleString()}
+							</Text>
+							<Text style={styles.kpiLabel}>Minutes</Text>
+						</View>
+						<View style={styles.kpi}>
+							<Text style={styles.kpiValue}>
+								{totals.volume.toLocaleString()}
+							</Text>
+							<Text style={styles.kpiLabel}>Kg volume</Text>
+						</View>
+						<View style={styles.kpi}>
+							<Text style={styles.kpiValue}>{totals.prs}</Text>
+							<Text style={styles.kpiLabel}>RM records</Text>
+						</View>
+					</View>}
+					{content.links.length > 0 && <>
+					<Text style={styles.sectionTitle}>Explore</Text>
+					<View style={styles.linkCard}>
+						{content.links.map(item => (
+							<TouchableOpacity
+								key={item.route}
+								accessibilityRole="button"
+								style={styles.linkRow}
+								onPress={() => navigation.navigate(item.route)}
+							>
+								<Ionicons
+									name={item.icon}
+									size={21}
+									color={trainingTheme.colors.primary}
 								/>
-							) : (
-								results.data?.slice(0, 5).map((item) => (
-									<TouchableOpacity
-										key={item.id}
-										style={styles.activity}
-										onPress={() =>
-											navigation.navigate(
-												"TrainingResultDetail",
-												{ workoutResultId: item.id },
-											)
-										}
-									>
-										<View style={styles.activityDot} />
-										<View style={styles.linkCopy}>
-											<Text style={styles.linkLabel}>
-												{item.workouts.name}
-											</Text>
-											<Text style={styles.linkDetail}>
-												{moment(
-													item.completed_at,
-												).format("ddd, D MMM")}{" "}
-												{item.duration_seconds != null
-													? `· ${Math.round(item.duration_seconds / 60)} min`
-													: ""}
-											</Text>
-										</View>
-										<Ionicons
-											name="chevron-right"
-											size={20}
-											color={
-												trainingTheme.colors.textMuted
-											}
-										/>
-									</TouchableOpacity>
-								))
-							)}
-						</>
+								<View style={styles.linkCopy}>
+									<Text style={styles.linkLabel}>
+										{item.label}
+									</Text>
+									<Text style={styles.linkDetail}>
+										{item.detail}
+									</Text>
+								</View>
+								<Ionicons
+									name="chevron-right"
+									size={20}
+									color={trainingTheme.colors.textMuted}
+								/>
+							</TouchableOpacity>
+						))}
+					</View>
+					</>}
+					{content.showRecentActivity && <>
+					<Text style={styles.sectionTitle}>Recent activity</Text>
+					{(results.data?.length ?? 0) === 0 ? (
+						<TrainingState
+							kind="empty"
+							title="No activity in this period"
+							message="Choose a longer time range or complete your next workout."
+						/>
+					) : (
+						results.data?.slice(0, 5).map(item => (
+							<TouchableOpacity
+								key={item.id}
+								style={styles.activity}
+								onPress={() =>
+									navigation.navigate(
+										'TrainingResultDetail',
+										{ workoutResultId: item.id },
+									)
+								}
+							>
+								<View style={styles.activityDot} />
+								<View style={styles.linkCopy}>
+									<Text style={styles.linkLabel}>
+										{item.workouts.name}
+									</Text>
+									<Text style={styles.linkDetail}>
+										{moment(item.completed_at).format(
+											'ddd, D MMM',
+										)}{' '}
+										{item.duration_seconds != null
+											? `· ${Math.round(item.duration_seconds / 60)} min`
+											: ''}
+									</Text>
+								</View>
+								<Ionicons
+									name="chevron-right"
+									size={20}
+									color={trainingTheme.colors.textMuted}
+								/>
+							</TouchableOpacity>
+						))
 					)}
+					</>}
 				</>
 			)}
 		</ScrollView>
@@ -322,7 +306,7 @@ const styles = StyleSheet.create({
 	title: {
 		color: trainingTheme.colors.text,
 		fontSize: 26,
-		fontWeight: "700",
+		fontWeight: '700',
 	},
 	subtitle: {
 		color: trainingTheme.colors.textMuted,
@@ -330,7 +314,7 @@ const styles = StyleSheet.create({
 		marginTop: -9,
 	},
 	rangeRow: {
-		flexDirection: "row",
+		flexDirection: 'row',
 		padding: 4,
 		borderRadius: 12,
 		backgroundColor: trainingTheme.colors.surfaceMuted,
@@ -338,22 +322,22 @@ const styles = StyleSheet.create({
 	rangeButton: {
 		flex: 1,
 		minHeight: 40,
-		alignItems: "center",
-		justifyContent: "center",
+		alignItems: 'center',
+		justifyContent: 'center',
 		borderRadius: 9,
 	},
 	rangeSelected: { backgroundColor: trainingTheme.colors.surface },
 	rangeLabel: {
 		color: trainingTheme.colors.textMuted,
 		fontSize: 13,
-		fontWeight: "600",
+		fontWeight: '600',
 	},
 	rangeLabelSelected: { color: trainingTheme.colors.primary },
-	kpiGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+	kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
 	kpi: {
-		width: "48%",
+		width: '48%',
 		minHeight: 92,
-		justifyContent: "center",
+		justifyContent: 'center',
 		padding: 14,
 		borderRadius: 16,
 		backgroundColor: trainingTheme.colors.surface,
@@ -363,7 +347,7 @@ const styles = StyleSheet.create({
 	kpiValue: {
 		color: trainingTheme.colors.text,
 		fontSize: 23,
-		fontWeight: "700",
+		fontWeight: '700',
 	},
 	kpiLabel: {
 		color: trainingTheme.colors.textMuted,
@@ -373,7 +357,7 @@ const styles = StyleSheet.create({
 	sectionTitle: {
 		color: trainingTheme.colors.text,
 		fontSize: 17,
-		fontWeight: "700",
+		fontWeight: '700',
 		marginTop: 4,
 	},
 	linkCard: {
@@ -381,12 +365,12 @@ const styles = StyleSheet.create({
 		backgroundColor: trainingTheme.colors.surface,
 		borderWidth: 1,
 		borderColor: trainingTheme.colors.border,
-		overflow: "hidden",
+		overflow: 'hidden',
 	},
 	linkRow: {
 		minHeight: 65,
-		flexDirection: "row",
-		alignItems: "center",
+		flexDirection: 'row',
+		alignItems: 'center',
 		gap: 12,
 		paddingHorizontal: 14,
 		borderBottomWidth: StyleSheet.hairlineWidth,
@@ -396,7 +380,7 @@ const styles = StyleSheet.create({
 	linkLabel: {
 		color: trainingTheme.colors.text,
 		fontSize: 15,
-		fontWeight: "600",
+		fontWeight: '600',
 	},
 	linkDetail: {
 		color: trainingTheme.colors.textMuted,
@@ -405,8 +389,8 @@ const styles = StyleSheet.create({
 	},
 	activity: {
 		minHeight: 64,
-		flexDirection: "row",
-		alignItems: "center",
+		flexDirection: 'row',
+		alignItems: 'center',
 		gap: 12,
 		padding: 14,
 		borderRadius: 14,
