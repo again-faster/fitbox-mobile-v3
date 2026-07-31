@@ -31,9 +31,10 @@ import {
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { trainingTheme } from '@/theme/training';
 import { mmkvStorage } from '@/storage';
+import { queueWorkoutResultCleanup } from '@/services/workoutStudio/workoutResultCleanupQueue';
 import SectionScoreModal from './SectionScoreModal';
 import { workoutResultCapabilities } from './workoutResultCapabilities';
-import { settleWorkoutResultStart } from './workoutResultStartController';
+import { createWorkoutResultStartCoordinator } from './workoutResultStartController';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingRunWorkout'>;
 
@@ -161,6 +162,32 @@ const RunWorkout = ({ route, navigation }: Props) => {
 
 	const { data: workout, isLoading } = useWorkoutDetail(workoutId);
 	const tenantId = session?.user.active_tenant_id;
+	const startCoordinatorRef = useRef<ReturnType<
+		typeof createWorkoutResultStartCoordinator
+	> | null>(null);
+	if (!startCoordinatorRef.current) {
+		startCoordinatorRef.current = createWorkoutResultStartCoordinator({
+			accept: id => {
+				setWorkoutResultId(id);
+				setPreparationFailed(false);
+			},
+			cleanup: async id => {
+				await wsApi().delete(`workout_results?id=eq.${id}`);
+			},
+			retainCleanup: async id => {
+				if (!uid || !tenantId)
+					throw new Error('Missing workout cleanup identity.');
+				await queueWorkoutResultCleanup({
+					id: `${tenantId}:${uid}:${id}`,
+					workoutResultId: id,
+					userId: uid,
+					tenantId,
+					queuedAt: new Date().toISOString(),
+				});
+			},
+			failCurrent: () => setPreparationFailed(true),
+		});
+	}
 
 	useEffect(() => {
 		if (
@@ -169,46 +196,27 @@ const RunWorkout = ({ route, navigation }: Props) => {
 			!tenantId ||
 			!workoutId ||
 			workoutResultId
-		)
+		) {
+			startCoordinatorRef.current?.invalidate();
 			return;
-		let isCurrentAttempt = true;
+		}
 		const startedResult = startWorkoutResult({
 			workoutId,
 			assignmentId,
 			athleteId: uid,
 			tenantId,
-			clientSessionId: sessionSubmissionId,
+			clientSessionId: createSubmissionId(),
 			scalingLevel,
 			startedAt: new Date(startedAt.current).toISOString(),
 		});
-		void settleWorkoutResultStart({
-			startedResult,
-			isCurrent: () =>
-				isCurrentAttempt &&
-				resultCapabilitiesRef.current.canStart,
-			accept: id => {
-				setWorkoutResultId(id);
-				setPreparationFailed(false);
-			},
-			discard: id =>
-				wsApi()
-					.delete(`workout_results?id=eq.${id}`)
-					.then(() => undefined),
-		}).catch(() => {
-			if (
-				isCurrentAttempt &&
-				resultCapabilitiesRef.current.canStart
-			)
-				setPreparationFailed(true);
-		});
+		void startCoordinatorRef.current?.start(startedResult);
 		return () => {
-			isCurrentAttempt = false;
+			startCoordinatorRef.current?.invalidate();
 		};
 	}, [
 		assignmentId,
 		resultCapabilities.canStart,
 		scalingLevel,
-		sessionSubmissionId,
 		tenantId,
 		uid,
 		workoutId,

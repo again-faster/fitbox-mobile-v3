@@ -39,12 +39,14 @@ import TrainingMore from '@/screens/Training/More/TrainingMore';
 import BookingsHub from '@/screens/Training/Bookings/BookingsHub';
 import { MemberFeatureGate } from '@/screens/Training/components/MemberFeatureGate';
 import { useCustomWorkouts } from '@/screens/Training/hooks/useCustomWorkouts';
+import { useWorkoutResultCleanupQueue } from '@/screens/Training/hooks/useWorkoutResultCleanupQueue';
 
 const Stack = createStackNavigator<TrainingStackParamList>();
 
 const TrainingStackNavigator = () => {
 	const { colors } = useTheme();
 	const { data: hasCustomWorkouts } = useCustomWorkouts();
+	useWorkoutResultCleanupQueue();
 
 	const headerStyle = {
 		backgroundColor: colors.brand,
