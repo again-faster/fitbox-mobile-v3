@@ -13,9 +13,10 @@ describe('workout result cleanup queue', () => {
 			.mockRejectedValueOnce(new Error('offline'))
 			.mockResolvedValueOnce(undefined);
 		const deps: WorkoutResultCleanupQueueDependencies = {
-			load: async () => stored,
-			save: async entries => {
+			load: () => Promise.resolve(stored),
+			save: entries => {
 				stored = entries;
+				return Promise.resolve();
 			},
 			removeResult,
 		};

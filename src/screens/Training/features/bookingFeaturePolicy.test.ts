@@ -32,8 +32,8 @@ describe('booking feature policy', () => {
 		expect(
 			canRescheduleBooking({ bookings: false, myBookings: true }),
 		).toBe(false);
-		expect(
-			canRescheduleBooking({ bookings: true, myBookings: true }),
-		).toBe(true);
+		expect(canRescheduleBooking({ bookings: true, myBookings: true })).toBe(
+			true,
+		);
 	});
 });

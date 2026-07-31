@@ -546,26 +546,30 @@ const ResultDetail = ({ route, navigation }: Props) => {
 			) : null}
 
 			{actionCapabilities.canDelete ? (
-			<TouchableOpacity
-				accessibilityRole="button"
-				accessibilityState={{ disabled: isDeleting }}
-				disabled={isDeleting}
-				onPress={deleteResult}
-				style={styles.deleteButton}
-			>
-				{isDeleting ? (
-					<ActivityIndicator color={trainingTheme.colors.danger} />
-				) : (
-					<>
-						<Ionicons
-							name="trash-can-outline"
-							size={18}
+				<TouchableOpacity
+					accessibilityRole="button"
+					accessibilityState={{ disabled: isDeleting }}
+					disabled={isDeleting}
+					onPress={deleteResult}
+					style={styles.deleteButton}
+				>
+					{isDeleting ? (
+						<ActivityIndicator
 							color={trainingTheme.colors.danger}
 						/>
-						<Text style={styles.deleteLabel}>Delete result</Text>
-				</>
-				)}
-			</TouchableOpacity>
+					) : (
+						<>
+							<Ionicons
+								name="trash-can-outline"
+								size={18}
+								color={trainingTheme.colors.danger}
+							/>
+							<Text style={styles.deleteLabel}>
+								Delete result
+							</Text>
+						</>
+					)}
+				</TouchableOpacity>
 			) : null}
 
 			<Modal

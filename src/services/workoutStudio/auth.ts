@@ -34,9 +34,7 @@ export type WSSession = {
 	user: WSUser;
 };
 
-export type WSSessionResult =
-	| { session: WSSession }
-	| { error: WSAuthError };
+export type WSSessionResult = { session: WSSession } | { error: WSAuthError };
 
 export type WSAuthError =
 	| 'NOT_FOUND'
@@ -197,10 +195,7 @@ const persistExchangeResult = (
 	params: ExchangeParams,
 	generation: number,
 ) => {
-	if (
-		'session' in result &&
-		generation === persistenceGeneration
-	) {
+	if ('session' in result && generation === persistenceGeneration) {
 		saveWSSession(
 			result.session,
 			params.fitbox_gym_id ?? null,
@@ -224,9 +219,7 @@ export const sessionCanBeReused = (
 	requestedGymId: string | undefined,
 	storedMemberId?: string,
 	requestedMemberId?: string,
-) =>
-	storedGymId === requestedGymId &&
-	storedMemberId === requestedMemberId;
+) => storedGymId === requestedGymId && storedMemberId === requestedMemberId;
 
 export const ensureWSSession = (
 	params: ExchangeParams,

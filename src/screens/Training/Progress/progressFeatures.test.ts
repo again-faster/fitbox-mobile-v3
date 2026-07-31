@@ -43,7 +43,9 @@ describe('buildProgressContent', () => {
 			results: true,
 		});
 
-		expect(content.links.map(link => link.route)).toEqual(['TrainingResults']);
+		expect(content.links.map(link => link.route)).toEqual([
+			'TrainingResults',
+		]);
 		expect(content.showKpis).toBe(false);
 		expect(content.showRecentActivity).toBe(true);
 		expect(content.needsResultQuery).toBe(true);

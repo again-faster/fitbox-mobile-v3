@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/require-await, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+
 import {
 	ALL_MEMBER_FEATURES_DISABLED,
 	ALL_MEMBER_FEATURES_ENABLED,
@@ -8,10 +10,7 @@ import {
 	normalizeMemberFeatureResponse,
 	saveCachedMemberFeatures,
 } from './memberFeatures';
-import {
-	getValidWSToken,
-	reconcileAppIntentSession,
-} from './auth';
+import { getValidWSToken, reconcileAppIntentSession } from './auth';
 
 jest.mock('./auth', () => ({
 	getValidWSToken: jest.fn(),
@@ -19,9 +18,7 @@ jest.mock('./auth', () => ({
 }));
 
 const mockedGetValidWSToken = jest.mocked(getValidWSToken);
-const mockedReconcileAppIntentSession = jest.mocked(
-	reconcileAppIntentSession,
-);
+const mockedReconcileAppIntentSession = jest.mocked(reconcileAppIntentSession);
 
 describe('member feature contract', () => {
 	it('declares exactly the 22 stable server keys', () => {
@@ -146,16 +143,12 @@ describe('member feature cache', () => {
 		saveCachedMemberFeatures(storage, 'tenant-a', features);
 
 		expect(
-			JSON.parse(
-				values.get(memberFeatureCacheKey('tenant-a')) ?? '',
-			),
+			JSON.parse(values.get(memberFeatureCacheKey('tenant-a')) ?? ''),
 		).toEqual({
 			ok: true,
 			data: { tenant_id: 'tenant-a', features },
 		});
-		expect(loadCachedMemberFeatures(storage, 'tenant-a')).toEqual(
-			features,
-		);
+		expect(loadCachedMemberFeatures(storage, 'tenant-a')).toEqual(features);
 	});
 
 	it('isolates cached flags by tenant', () => {
@@ -165,9 +158,9 @@ describe('member feature cache', () => {
 			classes: false,
 		});
 
-		expect(
-			loadCachedMemberFeatures(storage, 'tenant-a')?.classes,
-		).toBe(false);
+		expect(loadCachedMemberFeatures(storage, 'tenant-a')?.classes).toBe(
+			false,
+		);
 		expect(loadCachedMemberFeatures(storage, 'tenant-b')).toBeNull();
 	});
 
@@ -304,9 +297,7 @@ describe('member feature API', () => {
 		expect(mockedReconcileAppIntentSession).toHaveBeenCalledWith(true);
 		expect(
 			mockedReconcileAppIntentSession.mock.invocationCallOrder[0],
-		).toBeLessThan(
-			mockedGetValidWSToken.mock.invocationCallOrder[1] ?? 0,
-		);
+		).toBeLessThan(mockedGetValidWSToken.mock.invocationCallOrder[1] ?? 0);
 	});
 
 	it('throws an expired-session error when no token is available', async () => {

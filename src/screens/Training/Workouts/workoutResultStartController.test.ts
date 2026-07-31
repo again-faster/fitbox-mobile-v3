@@ -1,6 +1,6 @@
 import { createWorkoutResultStartCoordinator } from './workoutResultStartController';
 
-const deferred = <T,>() => {
+const deferred = <T>() => {
 	let resolve!: (value: T) => void;
 	const promise = new Promise<T>(next => {
 		resolve = next;

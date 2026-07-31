@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-syntax, no-continue, no-await-in-loop */
+
 import * as Keychain from 'react-native-keychain';
 import { wsApi } from './api';
 

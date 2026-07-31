@@ -21,13 +21,13 @@ import {
 	type BookingService,
 	type MemberBooking,
 } from '@/services/workoutStudio/bookings';
+import { trainingTheme } from '@/theme/training';
 import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import {
 	availableBookingTabs,
 	canRescheduleBooking,
 	type BookingTab,
-} from '../features/bookingFeaturePolicy';
-import { trainingTheme } from '@/theme/training';
+	} from '../features/bookingFeaturePolicy';
 import SkeletonCard from '../components/SkeletonCard';
 import TrainingState from '../components/TrainingState';
 import BookingComposer from './BookingComposer';
@@ -149,11 +149,9 @@ const BookingsHub = () => {
 				.filter(row => row.offered.length > 0),
 		[providerRows, typeMap, tab],
 	);
-	const loading =
-		!tab
-			? false
-			:
-		tab === 'mine'
+	const loading = !tab
+		? false
+		: tab === 'mine'
 			? bookings.isLoading
 			: tab === 'resource'
 				? services.isLoading || resources.isLoading
@@ -161,11 +159,9 @@ const BookingsHub = () => {
 					(tab === 'pt'
 						? ptProviders.isLoading
 						: treatmentProviders.isLoading);
-	const hasError =
-		!tab
-			? false
-			:
-		tab === 'mine'
+	const hasError = !tab
+		? false
+		: tab === 'mine'
 			? bookings.isError
 			: tab === 'resource'
 				? services.isError || resources.isError
@@ -173,18 +169,16 @@ const BookingsHub = () => {
 					(tab === 'pt'
 						? ptProviders.isError
 						: treatmentProviders.isError);
-	const activeError =
-		!tab
-			? undefined
-			:
-		tab === 'mine'
+	const activeError = !tab
+		? undefined
+		: tab === 'mine'
 			? bookings.error
 			: tab === 'resource'
 				? (resources.error ?? services.error)
-					: (services.error ??
-						(tab === 'pt'
-							? ptProviders.error
-							: treatmentProviders.error));
+				: (services.error ??
+					(tab === 'pt'
+						? ptProviders.error
+						: treatmentProviders.error));
 	const featureDisabled =
 		tabs.length === 0 || isBookingFeatureDisabledError(activeError);
 	const beginReschedule = (booking: MemberBooking) => {
@@ -251,37 +245,41 @@ const BookingsHub = () => {
 					onBooked={() => {
 						setSelection(null);
 						setTab(current =>
-							tabs.includes('mine') ? 'mine' : (tabs[0] ?? current),
+							tabs.includes('mine')
+								? 'mine'
+								: (tabs[0] ?? current),
 						);
 					}}
 				/>
 			) : (
 				<>
 					<View style={styles.tabs}>
-						{TABS.filter(item => tabs.includes(item.key)).map(item => (
-							<TouchableOpacity
-								key={item.key}
-								accessibilityRole="tab"
-								accessibilityState={{
-									selected: tab === item.key,
-								}}
-								onPress={() => setTab(item.key)}
-								style={[
-									styles.tab,
-									tab === item.key && styles.tabSelected,
-								]}
-							>
-								<Text
+						{TABS.filter(item => tabs.includes(item.key)).map(
+							item => (
+								<TouchableOpacity
+									key={item.key}
+									accessibilityRole="tab"
+									accessibilityState={{
+										selected: tab === item.key,
+									}}
+									onPress={() => setTab(item.key)}
 									style={[
-										styles.tabText,
-										tab === item.key &&
-											styles.tabTextSelected,
+										styles.tab,
+										tab === item.key && styles.tabSelected,
 									]}
 								>
-									{item.label}
-								</Text>
-							</TouchableOpacity>
-						))}
+									<Text
+										style={[
+											styles.tabText,
+											tab === item.key &&
+												styles.tabTextSelected,
+										]}
+									>
+										{item.label}
+									</Text>
+								</TouchableOpacity>
+							),
+						)}
 					</View>
 					{featureDisabled ? (
 						<TrainingState

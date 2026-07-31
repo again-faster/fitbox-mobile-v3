@@ -5,11 +5,11 @@ import type {
 import { shouldShowProgressHub } from '../features/memberFeatureRoutes';
 
 export type ProgressRoute =
-  | 'TrainingResults'
-  | 'TrainingPRs'
-  | 'TrainingMaxes'
-  | 'TrainingBenchmarks'
-  | 'TrainingWeeklyRecap';
+	| 'TrainingResults'
+	| 'TrainingPRs'
+	| 'TrainingMaxes'
+	| 'TrainingBenchmarks'
+	| 'TrainingWeeklyRecap';
 
 export type ProgressLink = {
 	label: string;
@@ -19,12 +19,12 @@ export type ProgressLink = {
 };
 
 export type ProgressContent = {
-  links: ProgressLink[];
-  showKpis: boolean;
-  showRecentActivity: boolean;
-  needsResultQuery: boolean;
-  needsRMQuery: boolean;
-  showProgressHub: boolean;
+	links: ProgressLink[];
+	showKpis: boolean;
+	showRecentActivity: boolean;
+	needsResultQuery: boolean;
+	needsRMQuery: boolean;
+	showProgressHub: boolean;
 };
 
 export const shouldRenderProgressScreen = (features: MemberFeatureMap) =>

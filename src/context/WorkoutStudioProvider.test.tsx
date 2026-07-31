@@ -6,7 +6,6 @@ import {
 } from '@/services/workoutStudio/memberFeatures';
 import { WSSession, WSSessionResult } from '@/services/workoutStudio/auth';
 import { act, render, waitFor } from '@testing-library/react-native';
-import React from 'react';
 import { Text } from 'react-native';
 import { useWSAuth } from '@/screens/Training/hooks/useWSAuth';
 import {
@@ -57,9 +56,7 @@ const createSession = (
 	},
 });
 
-const features = (
-	overrides: Partial<MemberFeatureMap>,
-): MemberFeatureMap => ({
+const features = (overrides: Partial<MemberFeatureMap>): MemberFeatureMap => ({
 	...ALL_MEMBER_FEATURES_DISABLED,
 	...overrides,
 });
@@ -71,12 +68,8 @@ const Consumer = () => {
 			<Text testID="status">{studio.state.status}</Text>
 			<Text testID="tenant">{studio.tenantId ?? 'none'}</Text>
 			<Text testID="source">{studio.featureSource}</Text>
-			<Text testID="classes">
-				{String(studio.isEnabled('classes'))}
-			</Text>
-			<Text testID="results">
-				{String(studio.isEnabled('results'))}
-			</Text>
+			<Text testID="classes">{String(studio.isEnabled('classes'))}</Text>
+			<Text testID="results">{String(studio.isEnabled('results'))}</Text>
 		</>
 	);
 };
@@ -96,10 +89,12 @@ describe('WorkoutStudioProvider', () => {
 
 	it('renders cached member flags before replacing them with a persisted network refresh', async () => {
 		const { storage, values } = createStorage();
-		saveCachedMemberFeatures(storage, 'tenant-a', features({ classes: false }));
-		let resolveFeatures:
-			| ((value: MemberFeatureMap) => void)
-			| undefined;
+		saveCachedMemberFeatures(
+			storage,
+			'tenant-a',
+			features({ classes: false }),
+		);
+		let resolveFeatures: ((value: MemberFeatureMap) => void) | undefined;
 		const networkFeatures = new Promise<MemberFeatureMap>(resolve => {
 			resolveFeatures = resolve;
 		});
@@ -109,9 +104,8 @@ describe('WorkoutStudioProvider', () => {
 			<WorkoutStudioProvider
 				storage={storage}
 				services={{
-					ensureWSSession: async () => ({
-						session: createSession('tenant-a'),
-					}),
+					ensureWSSession: () =>
+						Promise.resolve({ session: createSession('tenant-a') }),
 					fetchMemberFeatures,
 				}}
 			>
@@ -146,30 +140,39 @@ describe('WorkoutStudioProvider', () => {
 
 	it('never exposes the previous tenant flags after the auth gym changes', async () => {
 		const { storage } = createStorage();
-		saveCachedMemberFeatures(storage, 'tenant-a', features({ classes: false }));
-		saveCachedMemberFeatures(storage, 'tenant-b', features({ classes: true }));
+		saveCachedMemberFeatures(
+			storage,
+			'tenant-a',
+			features({ classes: false }),
+		);
+		saveCachedMemberFeatures(
+			storage,
+			'tenant-b',
+			features({ classes: true }),
+		);
 		const ensureWSSession = jest.fn(
-			async ({
+			({
 				fitbox_gym_id: gymId,
 			}: {
 				fitbox_gym_id?: string;
-			}): Promise<WSSessionResult> => ({
-				session: createSession(
-					gymId === '20' ? 'tenant-b' : 'tenant-a',
-				),
-			}),
+			}): Promise<WSSessionResult> =>
+				Promise.resolve({
+					session: createSession(
+						gymId === '20' ? 'tenant-b' : 'tenant-a',
+					),
+				}),
 		);
 		const observed: string[] = [];
 		const ObservingConsumer = () => {
 			const studio = useWorkoutStudio();
-			observed.push(
-				`${studio.tenantId}:${studio.isEnabled('classes')}`,
-			);
+			observed.push(`${studio.tenantId}:${studio.isEnabled('classes')}`);
 			return <Consumer />;
 		};
 		const services = {
 			ensureWSSession,
-			fetchMemberFeatures: jest.fn().mockRejectedValue(new Error('offline')),
+			fetchMemberFeatures: jest
+				.fn()
+				.mockRejectedValue(new Error('offline')),
 		};
 
 		const screen = render(
@@ -208,12 +211,10 @@ describe('WorkoutStudioProvider', () => {
 			<WorkoutStudioProvider
 				storage={storage}
 				services={{
-					ensureWSSession: async () => ({
-						session: createSession('tenant-a'),
-					}),
-					fetchMemberFeatures: async () => {
-						throw new Error('offline');
-					},
+					ensureWSSession: () =>
+						Promise.resolve({ session: createSession('tenant-a') }),
+					fetchMemberFeatures: () =>
+						Promise.reject(new Error('offline')),
 				}}
 			>
 				<Consumer />
@@ -241,9 +242,10 @@ describe('WorkoutStudioProvider', () => {
 				<WorkoutStudioProvider
 					storage={storage}
 					services={{
-						ensureWSSession: async () => ({
-							session: createSession('tenant-a', persona),
-						}),
+						ensureWSSession: () =>
+							Promise.resolve({
+								session: createSession('tenant-a', persona),
+							}),
 						fetchMemberFeatures,
 					}}
 				>
@@ -268,12 +270,8 @@ describe('WorkoutStudioProvider', () => {
 
 	it('provides the legacy useWSAuth shape as an adapter to the context', async () => {
 		const { storage } = createStorage();
-		let adapter:
-			| ReturnType<typeof useWSAuth>
-			| undefined;
-		let studio:
-			| ReturnType<typeof useWorkoutStudio>
-			| undefined;
+		let adapter: ReturnType<typeof useWSAuth> | undefined;
+		let studio: ReturnType<typeof useWorkoutStudio> | undefined;
 		const AdapterConsumer = () => {
 			adapter = useWSAuth();
 			studio = useWorkoutStudio();
@@ -284,9 +282,10 @@ describe('WorkoutStudioProvider', () => {
 			<WorkoutStudioProvider
 				storage={storage}
 				services={{
-					ensureWSSession: async () => ({
-						session: createSession('tenant-a', 'coach'),
-					}),
+					ensureWSSession: () =>
+						Promise.resolve({
+							session: createSession('tenant-a', 'coach'),
+						}),
 				}}
 			>
 				<AdapterConsumer />

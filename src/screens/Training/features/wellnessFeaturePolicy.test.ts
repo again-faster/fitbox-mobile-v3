@@ -1,6 +1,4 @@
-import {
-	ALL_MEMBER_FEATURES_DISABLED,
-} from '@/services/workoutStudio/memberFeatures';
+import { ALL_MEMBER_FEATURES_DISABLED } from '@/services/workoutStudio/memberFeatures';
 import { wellbeingPolicy } from './wellnessFeaturePolicy';
 
 describe('wellbeing feature policy', () => {
