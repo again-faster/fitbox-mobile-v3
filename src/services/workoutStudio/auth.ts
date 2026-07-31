@@ -13,6 +13,7 @@ const KEYS = {
 	EXPIRES_AT: 'ws_expires_at',
 	USER: 'ws_user',
 	GYM_ID: 'ws_gym_id',
+	MEMBER_ID: 'ws_fitbox_member_id',
 } as const;
 
 export type WSPersona = 'member' | 'solo' | 'coach' | 'gym_admin';
@@ -71,6 +72,7 @@ export const getStoredWSSession = (): WSSession | null => {
 export const saveWSSession = (
 	session: WSSession,
 	gymId?: string | null,
+	memberId?: string | null,
 ) => {
 	mmkvStorage.set(KEYS.ACCESS_TOKEN, session.access_token);
 	mmkvStorage.set(KEYS.REFRESH_TOKEN, session.refresh_token);
@@ -79,6 +81,10 @@ export const saveWSSession = (
 	if (gymId !== undefined) {
 		if (gymId === null) mmkvStorage.delete(KEYS.GYM_ID);
 		else mmkvStorage.set(KEYS.GYM_ID, gymId);
+	}
+	if (memberId !== undefined) {
+		if (memberId === null) mmkvStorage.delete(KEYS.MEMBER_ID);
+		else mmkvStorage.set(KEYS.MEMBER_ID, memberId);
 	}
 	void syncAppIntentCredentials(session).catch(() => undefined);
 };
@@ -186,20 +192,41 @@ const requestWSSession = async (
 	}
 };
 
+const persistExchangeResult = (
+	result: WSSessionResult,
+	params: ExchangeParams,
+	generation: number,
+) => {
+	if (
+		'session' in result &&
+		generation === persistenceGeneration
+	) {
+		saveWSSession(
+			result.session,
+			params.fitbox_gym_id ?? null,
+			params.fitbox_member_id ?? null,
+		);
+	}
+};
+
 export const exchangeForWSSession = async (
 	params: ExchangeParams,
 ): Promise<WSSessionResult> => {
+	const generation = persistenceGeneration + 1;
+	persistenceGeneration = generation;
 	const result = await requestWSSession(params);
-	if ('session' in result) {
-		saveWSSession(result.session, params.fitbox_gym_id ?? null);
-	}
+	persistExchangeResult(result, params, generation);
 	return result;
 };
 
 export const sessionCanBeReused = (
 	storedGymId: string | undefined,
 	requestedGymId: string | undefined,
-) => storedGymId === requestedGymId;
+	storedMemberId?: string,
+	requestedMemberId?: string,
+) =>
+	storedGymId === requestedGymId &&
+	storedMemberId === requestedMemberId;
 
 export const ensureWSSession = (
 	params: ExchangeParams,
@@ -215,10 +242,16 @@ export const ensureWSSession = (
 
 	const stored = getStoredWSSession();
 	const storedGymId = mmkvStorage.getString(KEYS.GYM_ID);
+	const storedMemberId = mmkvStorage.getString(KEYS.MEMBER_ID);
 	if (
 		stored &&
 		stored.user.email.trim().toLowerCase() === emailKey &&
-		sessionCanBeReused(storedGymId, params.fitbox_gym_id)
+		sessionCanBeReused(
+			storedGymId,
+			params.fitbox_gym_id,
+			storedMemberId,
+			params.fitbox_member_id,
+		)
 	) {
 		return Promise.resolve({ session: stored });
 	}
@@ -235,15 +268,7 @@ export const ensureWSSession = (
 	};
 	entry.promise = requestWSSession(params)
 		.then(result => {
-			if (
-				'session' in result &&
-				entry.generation === persistenceGeneration
-			) {
-				saveWSSession(
-					result.session,
-					params.fitbox_gym_id ?? null,
-				);
-			}
+			persistExchangeResult(result, params, entry.generation);
 			return result;
 		})
 		.finally(() => {

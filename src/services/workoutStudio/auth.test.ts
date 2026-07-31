@@ -130,6 +130,23 @@ describe('Workout Studio session gym scoping', () => {
 		expect(mockedPost).toHaveBeenCalledTimes(1);
 	});
 
+	it('does not reuse the same email and gym for a different Fitbox member', async () => {
+		saveWSSession(session(), 'gym-a', 'member-a');
+		mockedPost.mockReturnValue({
+			json: jest.fn().mockResolvedValue(session('tenant-b')),
+		} as never);
+
+		const result = await ensureWSSession({
+			email: 'member@example.com',
+			fitbox_gym_id: 'gym-a',
+			fitbox_member_id: 'member-b',
+		});
+
+		expect(result).toEqual({ session: session('tenant-b') });
+		expect(mockedPost).toHaveBeenCalledTimes(1);
+		expect(storage.getString('ws_fitbox_member_id')).toBe('member-b');
+	});
+
 	it.each([undefined, 'gym-a'])(
 		'does not reuse another user session for requested gym %s',
 		async gymId => {
@@ -280,5 +297,30 @@ describe('Workout Studio session gym scoping', () => {
 
 		expect(getStoredWSSession()).toBeNull();
 		expect(storage.getString('ws_gym_id')).toBeUndefined();
+	});
+
+	it('does not restore a direct exchange when it resolves after clear', async () => {
+		let resolveSession: ((value: WSSession) => void) | undefined;
+		const pendingSession = new Promise<WSSession>(resolve => {
+			resolveSession = resolve;
+		});
+		mockedPost.mockReturnValue({
+			json: jest.fn(() => pendingSession),
+		} as never);
+
+		const exchange = exchangeForWSSession({
+			email: 'member@example.com',
+			fitbox_gym_id: 'gym-a',
+			fitbox_member_id: 'member-a',
+		});
+		clearWSSession();
+		resolveSession?.(session());
+		await exchange;
+
+		expect(getStoredWSSession()).toBeNull();
+		expect(storage.getString('ws_gym_id')).toBeUndefined();
+		expect(
+			storage.getString('ws_fitbox_member_id'),
+		).toBeUndefined();
 	});
 });
