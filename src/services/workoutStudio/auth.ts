@@ -125,7 +125,7 @@ export type ExchangeParams = {
 	full_name?: string;
 };
 
-export const exchangeForWSSession = async (
+const requestWSSession = async (
 	params: ExchangeParams,
 ): Promise<WSSessionResult> => {
 	const attempt = () =>
@@ -142,7 +142,6 @@ export const exchangeForWSSession = async (
 
 	try {
 		const session = await attempt();
-		saveWSSession(session, params.fitbox_gym_id ?? null);
 		return { session };
 	} catch (err) {
 		if (err instanceof HTTPError) {
@@ -167,7 +166,6 @@ export const exchangeForWSSession = async (
 				});
 				try {
 					const session = await attempt();
-					saveWSSession(session, params.fitbox_gym_id ?? null);
 					return { session };
 				} catch {
 					return { error: 'PROVISION_FAILED' };
@@ -178,16 +176,31 @@ export const exchangeForWSSession = async (
 	}
 };
 
+export const exchangeForWSSession = async (
+	params: ExchangeParams,
+): Promise<WSSessionResult> => {
+	const result = await requestWSSession(params);
+	if ('session' in result) {
+		saveWSSession(result.session, params.fitbox_gym_id ?? null);
+	}
+	return result;
+};
+
 export const sessionCanBeReused = (
 	storedGymId: string | undefined,
 	requestedGymId: string | undefined,
 ) => storedGymId === requestedGymId;
 
 const pendingExchanges = new Map<string, Promise<WSSessionResult>>();
+const latestExchangeByEmail = new Map<string, string>();
 
 export const ensureWSSession = (
 	params: ExchangeParams,
 ): Promise<WSSessionResult> => {
+	const emailKey = params.email.trim().toLowerCase();
+	const key = `${emailKey}:${params.fitbox_gym_id ?? 'no-gym'}`;
+	latestExchangeByEmail.set(emailKey, key);
+
 	const stored = getStoredWSSession();
 	const storedGymId = mmkvStorage.getString(KEYS.GYM_ID);
 	if (
@@ -197,15 +210,25 @@ export const ensureWSSession = (
 		return Promise.resolve({ session: stored });
 	}
 
-	const key = `${params.email.trim().toLowerCase()}:${
-		params.fitbox_gym_id ?? 'no-gym'
-	}`;
 	const pending = pendingExchanges.get(key);
 	if (pending) return pending;
 
-	const exchange = exchangeForWSSession(params).finally(() => {
-		pendingExchanges.delete(key);
-	});
+	const exchange = requestWSSession(params)
+		.then(result => {
+			if (
+				'session' in result &&
+				latestExchangeByEmail.get(emailKey) === key
+			) {
+				saveWSSession(
+					result.session,
+					params.fitbox_gym_id ?? null,
+				);
+			}
+			return result;
+		})
+		.finally(() => {
+			pendingExchanges.delete(key);
+		});
 	pendingExchanges.set(key, exchange);
 	return exchange;
 };

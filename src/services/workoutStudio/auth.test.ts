@@ -5,6 +5,7 @@ import {
 	clearWSSession,
 	ensureWSSession,
 	exchangeForWSSession,
+	getStoredWSSession,
 	saveWSSession,
 	sessionCanBeReused,
 } from './auth';
@@ -150,5 +151,49 @@ describe('Workout Studio session gym scoping', () => {
 			{ session: session() },
 			{ session: session() },
 		]);
+	});
+
+	it('does not persist an old gym when its exchange resolves after the current gym', async () => {
+		let resolveGymA: ((value: WSSession) => void) | undefined;
+		let resolveGymB: ((value: WSSession) => void) | undefined;
+		const gymAResponse = new Promise<WSSession>(resolve => {
+			resolveGymA = resolve;
+		});
+		const gymBResponse = new Promise<WSSession>(resolve => {
+			resolveGymB = resolve;
+		});
+		mockedPost
+			.mockReturnValueOnce({
+				json: jest.fn(() => gymAResponse),
+			} as never)
+			.mockReturnValueOnce({
+				json: jest.fn(() => gymBResponse),
+			} as never);
+
+		const oldGymExchange = ensureWSSession({
+			email: 'member@example.com',
+			fitbox_gym_id: 'gym-a',
+		});
+		const currentGymExchange = ensureWSSession({
+			email: 'member@example.com',
+			fitbox_gym_id: 'gym-b',
+		});
+
+		resolveGymB?.(session('tenant-b'));
+		await expect(currentGymExchange).resolves.toEqual({
+			session: session('tenant-b'),
+		});
+		resolveGymA?.(session('tenant-a'));
+		await oldGymExchange;
+
+		expect(storage.getString('ws_gym_id')).toBe('gym-b');
+		expect(getStoredWSSession()).toEqual(session('tenant-b'));
+		await expect(
+			ensureWSSession({
+				email: 'member@example.com',
+				fitbox_gym_id: 'gym-b',
+			}),
+		).resolves.toEqual({ session: session('tenant-b') });
+		expect(mockedPost).toHaveBeenCalledTimes(2);
 	});
 });
