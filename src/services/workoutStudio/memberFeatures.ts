@@ -41,11 +41,16 @@ export const normalizeMemberFeatureResponse = (
 	requestedTenantId: string,
 	raw: unknown,
 ): MemberFeatureMap => {
-	if (!isRecord(raw) || raw.ok !== true || !isRecord(raw.data))
+	if (
+		!isRecord(raw) ||
+		raw.ok !== true ||
+		!isRecord(raw.data) ||
+		!isRecord(raw.data.features)
+	)
 		throw new Error('invalid feature response');
 	if (raw.data.tenant_id !== requestedTenantId)
 		throw new Error('feature response tenant mismatch');
-	const source = isRecord(raw.data.features) ? raw.data.features : {};
+	const source = raw.data.features;
 	return Object.fromEntries(
 		MEMBER_FEATURE_KEYS.map(key => [key, source[key] === true]),
 	) as MemberFeatureMap;

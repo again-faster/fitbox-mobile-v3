@@ -60,6 +60,12 @@ describe('member feature contract', () => {
 		{ ok: false, data: {} },
 		{ ok: true },
 		{ ok: true, data: [] },
+		{ ok: true, data: { tenant_id: 'tenant-1' } },
+		{
+			ok: true,
+			data: { tenant_id: 'tenant-1', features: 'classes' },
+		},
+		{ ok: true, data: { tenant_id: 'tenant-1', features: [] } },
 	])('rejects an invalid response envelope: %p', raw => {
 		expect(() => normalizeMemberFeatureResponse('tenant-1', raw)).toThrow(
 			'invalid feature response',
