@@ -27,7 +27,7 @@ import {
 	availableBookingTabs,
 	canRescheduleBooking,
 	type BookingTab,
-	} from '../features/bookingFeaturePolicy';
+} from '../features/bookingFeaturePolicy';
 import SkeletonCard from '../components/SkeletonCard';
 import TrainingState from '../components/TrainingState';
 import BookingComposer from './BookingComposer';

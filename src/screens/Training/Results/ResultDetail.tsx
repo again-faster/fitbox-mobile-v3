@@ -13,6 +13,7 @@ import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { useQuery } from '@tanstack/react-query';
 import moment from 'moment';
+import { useEffect, useRef, useState } from 'react';
 import type { TrainingStackParamList } from '@/types/navigation';
 import type {
 	ScalingLevel,
@@ -32,7 +33,6 @@ import {
 	resultDetailCapabilities,
 	runResultDetailAction,
 } from './resultDetailCapabilities';
-import { useEffect, useRef, useState } from 'react';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingResultDetail'>;
 

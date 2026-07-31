@@ -29,9 +29,9 @@ import {
 	removeQueuedWellnessCheckin,
 	type QueuedWellnessCheckin,
 } from '@/services/workoutStudio/wellnessQueue';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import SkeletonCard from '../components/SkeletonCard';
 import { useTrainingConnectivity } from '../hooks/useTrainingConnectivity';
-import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { wellbeingPolicy } from '../features/wellnessFeaturePolicy';
 
 type Props = TrainingStackScreenProps<'TrainingWellness'>;
