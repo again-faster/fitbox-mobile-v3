@@ -6,7 +6,7 @@ import {
 import { useCallback, useEffect, useState } from 'react';
 import { useTrainingConnectivity } from './useTrainingConnectivity';
 
-export const useSectionResultQueue = () => {
+export const useSectionResultQueue = (enabled = true) => {
 	const session = getStoredWSSession();
 	const userId = session?.user.id;
 	const tenantId = session?.user.active_tenant_id;
@@ -15,7 +15,7 @@ export const useSectionResultQueue = () => {
 	const [isSyncing, setIsSyncing] = useState(false);
 
 	const refresh = useCallback(async () => {
-		if (!userId || !tenantId) {
+		if (!enabled || !userId || !tenantId) {
 			setPendingCount(0);
 			return;
 		}
@@ -25,7 +25,7 @@ export const useSectionResultQueue = () => {
 				item => item.userId === userId && item.tenantId === tenantId,
 			).length,
 		);
-	}, [tenantId, userId]);
+	}, [enabled, tenantId, userId]);
 
 	useEffect(() => {
 		void refresh();
@@ -33,6 +33,7 @@ export const useSectionResultQueue = () => {
 
 	useEffect(() => {
 		if (
+			!enabled ||
 			isOffline ||
 			!userId ||
 			!tenantId ||
@@ -44,7 +45,7 @@ export const useSectionResultQueue = () => {
 		void flushSectionResultQueue(userId, tenantId)
 			.then(result => setPendingCount(result.remaining))
 			.finally(() => setIsSyncing(false));
-	}, [isOffline, isSyncing, pendingCount, tenantId, userId]);
+	}, [enabled, isOffline, isSyncing, pendingCount, tenantId, userId]);
 
 	return { isOffline, isSyncing, pendingCount, refresh };
 };

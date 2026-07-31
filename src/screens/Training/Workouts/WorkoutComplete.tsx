@@ -5,6 +5,12 @@ import type { TrainingStackParamList } from '@/types/navigation';
 import { trainingTheme } from '@/theme/training';
 import PrimaryButton from '@/screens/Training/components/PrimaryButton';
 import TrainingCard from '@/screens/Training/components/TrainingCard';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
+import { useRef } from 'react';
+import {
+	runWorkoutResultShare,
+	shouldShowWorkoutResultShare,
+} from './workoutResultShareActions';
 
 type Props = StackScreenProps<
 	TrainingStackParamList,
@@ -22,6 +28,10 @@ const formatDuration = (seconds: number) => {
 
 const WorkoutComplete = ({ route, navigation }: Props) => {
 	const { workoutName, durationSeconds, completedSets } = route.params;
+	const { isEnabled } = useWorkoutStudio();
+	const resultsEnabled = isEnabled('results');
+	const resultsEnabledRef = useRef(resultsEnabled);
+	resultsEnabledRef.current = resultsEnabled;
 
 	return (
 		<View style={styles.screen}>
@@ -51,17 +61,31 @@ const WorkoutComplete = ({ route, navigation }: Props) => {
 			</TrainingCard>
 
 			<View style={styles.actions}>
-				<Text style={styles.photoPrompt}>
-					That was a big one. Get the crew together for a photo?
-				</Text>
-				<PrimaryButton
-					label="Share workout"
-					onPress={() =>
-						navigation.navigate('TrainingShareWorkout', {
-							workoutResultId: route.params.workoutResultId,
-						})
-					}
-				/>
+				{shouldShowWorkoutResultShare(resultsEnabled) ? (
+					<>
+						<Text style={styles.photoPrompt}>
+							That was a big one. Get the crew together for a
+							photo?
+						</Text>
+						<PrimaryButton
+							label="Share workout"
+							onPress={() =>
+								runWorkoutResultShare(
+									() => resultsEnabledRef.current,
+									() =>
+										navigation.navigate(
+											'TrainingShareWorkout',
+											{
+												workoutResultId:
+													route.params
+														.workoutResultId,
+											},
+										),
+								)
+							}
+						/>
+					</>
+				) : null}
 				<PrimaryButton
 					label="View my results"
 					onPress={() =>

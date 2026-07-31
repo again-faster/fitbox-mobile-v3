@@ -121,7 +121,9 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 	const uid = session?.user.id;
 	const tenantId = session?.user.active_tenant_id;
 	const scalingPreference = useScalingPreference(uid, tenantId);
-	const sectionResultQueue = useSectionResultQueue();
+	const sectionResultQueue = useSectionResultQueue(
+		resultCapabilities.canLogSectionScore,
+	);
 	const serverScalingApplied = useRef(false);
 
 	const [selectedMovement, setSelectedMovement] = useState<{

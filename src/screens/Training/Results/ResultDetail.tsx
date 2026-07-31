@@ -23,7 +23,12 @@ import { trainingTheme } from '@/theme/training';
 import TrainingCard from '@/screens/Training/components/TrainingCard';
 import TrainingState from '@/screens/Training/components/TrainingState';
 import SkeletonCard from '@/screens/Training/components/SkeletonCard';
-import { useEffect, useState } from 'react';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
+import {
+	runWorkoutResultShare,
+	shouldShowWorkoutResultShare,
+} from '@/screens/Training/Workouts/workoutResultShareActions';
+import { useEffect, useRef, useState } from 'react';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingResultDetail'>;
 
@@ -103,6 +108,10 @@ const formatSectionScore = (score: SectionScoreShape) => {
 
 const ResultDetail = ({ route, navigation }: Props) => {
 	const { workoutResultId } = route.params;
+	const { isEnabled } = useWorkoutStudio();
+	const resultsEnabled = isEnabled('results');
+	const resultsEnabledRef = useRef(resultsEnabled);
+	resultsEnabledRef.current = resultsEnabled;
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [isEditing, setIsEditing] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
@@ -347,22 +356,31 @@ const ResultDetail = ({ route, navigation }: Props) => {
 						)}
 					</Text>
 				</View>
-				<TouchableOpacity
-					accessibilityRole="button"
-					accessibilityLabel="Share workout"
-					onPress={() =>
-						navigation.navigate('TrainingShareWorkout', {
-							workoutResultId,
-						})
-					}
-					style={styles.shareButton}
-				>
-					<Ionicons
-						name="share-variant-outline"
-						size={22}
-						color={trainingTheme.colors.primary}
-					/>
-				</TouchableOpacity>
+				{shouldShowWorkoutResultShare(resultsEnabled) ? (
+					<TouchableOpacity
+						accessibilityRole="button"
+						accessibilityLabel="Share workout"
+						onPress={() =>
+							runWorkoutResultShare(
+								() => resultsEnabledRef.current,
+								() =>
+									navigation.navigate(
+										'TrainingShareWorkout',
+										{
+											workoutResultId,
+										},
+									),
+							)
+						}
+						style={styles.shareButton}
+					>
+						<Ionicons
+							name="share-variant-outline"
+							size={22}
+							color={trainingTheme.colors.primary}
+						/>
+					</TouchableOpacity>
+				) : null}
 			</View>
 
 			{hasSummaryMetrics ? (

@@ -33,6 +33,7 @@ import { trainingTheme } from '@/theme/training';
 import { mmkvStorage } from '@/storage';
 import SectionScoreModal from './SectionScoreModal';
 import { workoutResultCapabilities } from './workoutResultCapabilities';
+import { settleWorkoutResultStart } from './workoutResultStartController';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingRunWorkout'>;
 
@@ -170,7 +171,8 @@ const RunWorkout = ({ route, navigation }: Props) => {
 			workoutResultId
 		)
 			return;
-		startWorkoutResult({
+		let isCurrentAttempt = true;
+		const startedResult = startWorkoutResult({
 			workoutId,
 			assignmentId,
 			athleteId: uid,
@@ -178,12 +180,30 @@ const RunWorkout = ({ route, navigation }: Props) => {
 			clientSessionId: sessionSubmissionId,
 			scalingLevel,
 			startedAt: new Date(startedAt.current).toISOString(),
-		})
-			.then(id => {
+		});
+		void settleWorkoutResultStart({
+			startedResult,
+			isCurrent: () =>
+				isCurrentAttempt &&
+				resultCapabilitiesRef.current.canStart,
+			accept: id => {
 				setWorkoutResultId(id);
 				setPreparationFailed(false);
-			})
-			.catch(() => setPreparationFailed(true));
+			},
+			discard: id =>
+				wsApi()
+					.delete(`workout_results?id=eq.${id}`)
+					.then(() => undefined),
+		}).catch(() => {
+			if (
+				isCurrentAttempt &&
+				resultCapabilitiesRef.current.canStart
+			)
+				setPreparationFailed(true);
+		});
+		return () => {
+			isCurrentAttempt = false;
+		};
 	}, [
 		assignmentId,
 		resultCapabilities.canStart,
