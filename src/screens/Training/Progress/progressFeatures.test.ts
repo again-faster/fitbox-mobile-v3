@@ -5,6 +5,7 @@ import {
 import {
 	buildProgressContent,
 	shouldRenderProgressScreen,
+	shouldShowTodayProgressCard,
 } from './progressFeatures';
 
 describe('buildProgressContent', () => {
@@ -69,6 +70,18 @@ describe('buildProgressContent', () => {
 			shouldRenderProgressScreen({
 				...ALL_MEMBER_FEATURES_DISABLED,
 				prs: true,
+			}),
+		).toBe(true);
+	});
+
+	it('hides the Today progress card when every child feature is disabled', () => {
+		expect(shouldShowTodayProgressCard(ALL_MEMBER_FEATURES_DISABLED)).toBe(
+			false,
+		);
+		expect(
+			shouldShowTodayProgressCard({
+				...ALL_MEMBER_FEATURES_DISABLED,
+				results: true,
 			}),
 		).toBe(true);
 	});

@@ -28,6 +28,7 @@ import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCallback, useRef, useEffect, useMemo, useState } from 'react';
 import { trainingTheme } from '@/theme/training';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
 import SkeletonCard from '../components/SkeletonCard';
 import ConsistencyCard from './components/ConsistencyCard';
@@ -35,6 +36,7 @@ import SectionHeading from '../components/SectionHeading';
 import OfflineBanner from '../components/OfflineBanner';
 import TrainingState from '../components/TrainingState';
 import { useTrainingConnectivity } from '../hooks/useTrainingConnectivity';
+import { shouldShowTodayProgressCard } from '../Progress/progressFeatures';
 
 type Nav = StackNavigationProp<TrainingStackParamList>;
 
@@ -256,6 +258,7 @@ const useToday = () => {
 
 const Today = () => {
 	const nav = useNavigation<Nav>();
+	const { features } = useWorkoutStudio();
 	const {
 		assignments,
 		wellness,
@@ -622,30 +625,32 @@ const Today = () => {
 
 				<ConsistencyCard />
 
-				<TouchableOpacity
-					style={styles.progressCard}
-					accessibilityRole="button"
-					onPress={() => nav.navigate('TrainingProgress')}
-				>
-					<View style={styles.progressIcon}>
+				{shouldShowTodayProgressCard(features) && (
+					<TouchableOpacity
+						style={styles.progressCard}
+						accessibilityRole="button"
+						onPress={() => nav.navigate('TrainingProgress')}
+					>
+						<View style={styles.progressIcon}>
+							<Ionicons
+								name="chart-line"
+								size={22}
+								color={trainingTheme.colors.primary}
+							/>
+						</View>
+						<View style={styles.cardText}>
+							<Text style={styles.progressTitle}>My Progress</Text>
+							<Text style={styles.progressSubtitle}>
+								Results, PRs, maxes and benchmarks
+							</Text>
+						</View>
 						<Ionicons
-							name="chart-line"
-							size={22}
-							color={trainingTheme.colors.primary}
+							name="chevron-right"
+							size={21}
+							color={trainingTheme.colors.textMuted}
 						/>
-					</View>
-					<View style={styles.cardText}>
-						<Text style={styles.progressTitle}>My Progress</Text>
-						<Text style={styles.progressSubtitle}>
-							Results, PRs, maxes and benchmarks
-						</Text>
-					</View>
-					<Ionicons
-						name="chevron-right"
-						size={21}
-						color={trainingTheme.colors.textMuted}
-					/>
-				</TouchableOpacity>
+					</TouchableOpacity>
+				)}
 
 				<TouchableOpacity
 					style={styles.readinessCard}

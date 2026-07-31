@@ -30,6 +30,9 @@ export type ProgressContent = {
 export const shouldRenderProgressScreen = (features: MemberFeatureMap) =>
 	shouldShowProgressHub(features);
 
+export const shouldShowTodayProgressCard = (features: MemberFeatureMap) =>
+	shouldShowProgressHub(features);
+
 const LINK_DEFINITIONS: ReadonlyArray<
 	ProgressLink & { feature: MemberFeature }
 > = [
