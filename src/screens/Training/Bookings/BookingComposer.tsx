@@ -2,6 +2,7 @@
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import {
 	bookingApi,
+	isBookingFeatureDisabledError,
 	type BookingProvider,
 	type BookingResource,
 	type BookingService,
@@ -28,6 +29,7 @@ type Props = {
 	resource?: BookingResource;
 	booking?: MemberBooking;
 	onClose: () => void;
+	onFeatureDisabled?: () => void;
 	onBooked: () => void;
 };
 
@@ -43,6 +45,7 @@ const BookingComposer = ({
 	resource,
 	booking,
 	onClose,
+	onFeatureDisabled,
 	onBooked,
 }: Props) => {
 	const tenantId = getStoredWSSession()?.user.active_tenant_id;
@@ -118,6 +121,9 @@ const BookingComposer = ({
 				queryKey: ['ws-member-bookings'],
 			});
 			onBooked();
+		},
+		onError: error => {
+			if (isBookingFeatureDisabledError(error)) onFeatureDisabled?.();
 		},
 	});
 
