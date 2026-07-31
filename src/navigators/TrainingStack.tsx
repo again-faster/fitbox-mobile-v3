@@ -169,9 +169,14 @@ const TrainingStackNavigator = () => {
 			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingWellness"
-				component={Wellness}
 				options={{ title: 'Wellness' }}
-			/>
+			>
+				{props => (
+					<MemberFeatureGate feature="wellness">
+						<Wellness {...props} />
+					</MemberFeatureGate>
+				)}
+			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingMaxes"
 				options={{ title: 'My Maxes' }}

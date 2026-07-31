@@ -13,6 +13,7 @@ import {
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
 import { buildTrainingMoreGroups } from './trainingMoreItems';
+import { wellbeingPolicy } from '../features/wellnessFeaturePolicy';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingMore'>;
 type Route = keyof TrainingStackParamList;
@@ -21,8 +22,14 @@ const TrainingMore = ({ navigation }: Props) => {
 	const session = getStoredWSSession();
 	const { data: hasCustomWorkouts } = useCustomWorkouts();
 	const { features } = useWorkoutStudio();
+	const wellbeing = wellbeingPolicy(features);
 	const groups = buildTrainingMoreGroups(
-		features,
+		{
+			...features,
+			wellness: wellbeing.showWellness,
+			pain_reports: wellbeing.showPainReports,
+			wearables: wellbeing.showWearables,
+		},
 		hasCustomWorkouts === true,
 	);
 
