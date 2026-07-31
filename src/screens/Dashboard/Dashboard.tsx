@@ -13,7 +13,11 @@ import { MemberProgressRing } from '@/components/member';
 import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import useSwitchableUsers from '@/hooks/useSwitchableUsers';
 import { navigate } from '@/navigators/NavigationRef';
-import { shouldShowMemberSurface } from '@/screens/Training/features/memberFeatureRoutes';
+import {
+	filterMemberSurfaceEntries,
+	shouldShowMemberSurface,
+	type MemberSurfaceRoute,
+} from '@/screens/Training/features/memberFeatureRoutes';
 import { betaActive, savePushToken } from '@/services/auth';
 import { getGymClasses, getGymVenues } from '@/services/gym';
 import { getAttendanceReport } from '@/services/leaderboards';
@@ -85,7 +89,12 @@ import LoginNotification from './components/LoginNotification';
 import RequiredFieldsModal from './components/RequiredFieldsModal';
 
 // List of action buttons to be displayed on the dashboard screen
-const actionButtons = [
+const actionButtons: {
+	id: string;
+	icon: string;
+	text: string;
+	route: MemberSurfaceRoute;
+}[] = [
 	// {
 	// 	id: 'calendar',
 	// 	icon: 'calendar-alt',
@@ -100,6 +109,7 @@ const actionButtons = [
 		id: 'results',
 		icon: 'trophy',
 		text: 'My Results',
+		route: 'TrainingResults',
 	},
 ];
 
@@ -211,10 +221,6 @@ const Dashboard = () => {
 
 	const { hasSwitchableUsers } = useSwitchableUsers();
 	const classesEnabled = isEnabled('classes');
-	const showCalendarEntryPoints = shouldShowMemberSurface(
-		'Calendar',
-		classesEnabled,
-	);
 	const showBookingsEntryPoints = shouldShowMemberSurface(
 		'Bookings',
 		classesEnabled,
@@ -868,9 +874,8 @@ const Dashboard = () => {
 
 	const renderActionButtons = useMemo(
 		() =>
-			actionButtons
-				.filter(({ id }) => id !== 'calendar' || showCalendarEntryPoints)
-				.map(({ id, text, icon }) => {
+			filterMemberSurfaceEntries(actionButtons, classesEnabled).map(
+				({ id, text, icon }) => {
 					const hideButton = false;
 					// const hideButton = id === 'results' && allow_leaderboards; // TODO: Hide button when results is disabled for gym
 
@@ -883,16 +888,24 @@ const Dashboard = () => {
 							// onPress={() => onActionButtonClick(id)} // TODO: use this once screens are implemented
 						/>
 					) : null;
-				}),
-		[showCalendarEntryPoints],
+				},
+			),
+		[classesEnabled],
 	);
 
 	const visiblePresetFilters = useMemo(
 		() =>
-			classFiltersDataState.filter(
-				item => showCalendarEntryPoints || item.name === 'Leaderboard',
-			),
-		[classFiltersDataState, showCalendarEntryPoints],
+			filterMemberSurfaceEntries(
+				classFiltersDataState.map(item => ({
+					item,
+					route:
+						item.name === 'Leaderboard'
+							? ('TrainingResults' as const)
+							: ('Calendar' as const),
+				})),
+				classesEnabled,
+			).map(({ item }) => item),
+		[classFiltersDataState, classesEnabled],
 	);
 
 	const onPresetFilterClick = (data: ClassFiltersDataType) => {

@@ -59,8 +59,11 @@ import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import MovementHistory from '@/screens/PerformanceSummary/MovementHistory';
 import WorkoutHistory from '@/screens/PerformanceSummary/WorkoutHistory';
 import ResultTypesModal from '@/screens/PerformanceSummary/components/ResultTypesModal';
-import { MemberFeatureGate } from '@/screens/Training/components/MemberFeatureGate';
-import { shouldShowMemberSurface } from '@/screens/Training/features/memberFeatureRoutes';
+import { MemberSurfaceGate } from '@/screens/Training/components/MemberFeatureGate';
+import {
+	getVisibleMainTabRoutes,
+	normalizeCurrentMainTab,
+} from '@/screens/Training/features/memberFeatureRoutes';
 import { minVersion } from '@/services/auth';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
@@ -273,12 +276,20 @@ const MainTabNavigator = () => {
 		unreadMessages: state.unreadMessages,
 		setState: state.setAppState,
 	}));
-	const [currentTab, setCurrentTab] = useState<string>('DashboardStack');
+	const [currentTab, setCurrentTab] =
+		useState<keyof MainTabParamList>('DashboardStack');
 	const [loadingCalendar, setLoadingCalendar] = useState<boolean>(false);
-	const showCalendar = shouldShowMemberSurface(
-		'Calendar',
-		isEnabled('classes'),
-	);
+	const classesEnabled = isEnabled('classes');
+	const visibleMainTabRoutes = getVisibleMainTabRoutes(classesEnabled);
+	const showCalendar = visibleMainTabRoutes.includes('Calendar');
+
+	useEffect(() => {
+		const normalizedTab = normalizeCurrentMainTab(
+			currentTab,
+			classesEnabled,
+		);
+		if (normalizedTab !== currentTab) setCurrentTab(normalizedTab);
+	}, [classesEnabled, currentTab]);
 
 	const handleRefreshCalendar = () => {
 		if (loadingCalendar) return;
@@ -430,9 +441,9 @@ const InboxStackNavigator = () => {
 };
 
 const ClassSessionScreen = (props: ApplicationScreenProps) => (
-	<MemberFeatureGate feature="classes">
+	<MemberSurfaceGate route="Session">
 		<Session {...props} />
-	</MemberFeatureGate>
+	</MemberSurfaceGate>
 );
 
 const ComposeStack = createStackNavigator<ComposeStackParamsList>();

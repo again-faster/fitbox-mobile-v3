@@ -4,8 +4,12 @@ import {
 } from '@/services/workoutStudio/memberFeatures';
 import {
 	TRAINING_ROUTE_FEATURES,
+	featureForMemberSurface,
 	featureForTrainingRoute,
+	filterMemberSurfaceEntries,
+	getVisibleMainTabRoutes,
 	isClassSurface,
+	normalizeCurrentMainTab,
 	shouldShowBookingsHub,
 	shouldShowMemberSurface,
 	shouldShowProgressHub,
@@ -128,6 +132,59 @@ describe('training member feature route policy', () => {
 		]);
 		expect(routes.filter(route => shouldShowMemberSurface(route, true))).toEqual(
 			routes,
+		);
+	});
+
+	it('omits only Calendar from main tabs when classes are disabled', () => {
+		const disabledRoutes = getVisibleMainTabRoutes(false);
+
+		expect(disabledRoutes).not.toContain('Calendar');
+		expect(disabledRoutes).toContain('TrainingStack');
+		expect(disabledRoutes).toContain('DashboardStack');
+		expect(getVisibleMainTabRoutes(true)).toEqual([
+			'DashboardStack',
+			'Calendar',
+			'InboxStack',
+			'Shop',
+			'TrainingStack',
+			'MenuTab',
+		]);
+	});
+
+	it('filters dashboard class entries without removing results or training', () => {
+		const entries = [
+			{ id: 'calendar', route: 'Calendar' },
+			{ id: 'bookings', route: 'Bookings' },
+			{ id: 'session', route: 'Session' },
+			{ id: 'results', route: 'TrainingResults' },
+			{ id: 'training', route: 'TrainingToday' },
+		] as const;
+
+		expect(
+			filterMemberSurfaceEntries(entries, false).map(entry => entry.id),
+		).toEqual(['results', 'training']);
+		expect(filterMemberSurfaceEntries(entries, true)).toEqual(entries);
+	});
+
+	it.each(['Calendar', 'Bookings', 'Session'] as const)(
+		'requires the classes feature for the %s surface',
+		route => {
+			expect(featureForMemberSurface(route)).toBe('classes');
+		},
+	);
+
+	it.each(['TrainingToday', 'TrainingWorkoutDetail'] as const)(
+		'does not add a class guard to %s',
+		route => {
+			expect(featureForMemberSurface(route)).toBeNull();
+		},
+	);
+
+	it('resets a disabled current Calendar tab without disturbing training', () => {
+		expect(normalizeCurrentMainTab('Calendar', false)).toBe('DashboardStack');
+		expect(normalizeCurrentMainTab('Calendar', true)).toBe('Calendar');
+		expect(normalizeCurrentMainTab('TrainingStack', false)).toBe(
+			'TrainingStack',
 		);
 	});
 });

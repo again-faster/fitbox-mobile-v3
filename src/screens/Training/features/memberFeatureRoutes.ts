@@ -9,11 +9,20 @@ import type {
 	TrainingStackParamList,
 } from '@/types/navigation';
 
-type MemberSurfaceRoute =
+export type MemberSurfaceRoute =
 	| keyof ApplicationStackParamList
 	| keyof DashboardParamList
 	| keyof MainTabParamList
 	| keyof TrainingStackParamList;
+
+const MAIN_TAB_ROUTES: readonly (keyof MainTabParamList)[] = [
+	'DashboardStack',
+	'Calendar',
+	'InboxStack',
+	'Shop',
+	'TrainingStack',
+	'MenuTab',
+];
 
 const CLASS_SURFACES = new Set<MemberSurfaceRoute>([
 	'Calendar',
@@ -28,6 +37,33 @@ export const shouldShowMemberSurface = (
 	route: MemberSurfaceRoute,
 	classesEnabled: boolean,
 ) => classesEnabled || !isClassSurface(route);
+
+export const featureForMemberSurface = (
+	route: MemberSurfaceRoute,
+): MemberFeature | null => (isClassSurface(route) ? 'classes' : null);
+
+export const filterMemberSurfaceEntries = <
+	TEntry extends { route: MemberSurfaceRoute },
+>(
+	entries: readonly TEntry[],
+	classesEnabled: boolean,
+) =>
+	entries.filter(entry =>
+		shouldShowMemberSurface(entry.route, classesEnabled),
+	);
+
+export const getVisibleMainTabRoutes = (classesEnabled: boolean) =>
+	MAIN_TAB_ROUTES.filter(route =>
+		shouldShowMemberSurface(route, classesEnabled),
+	);
+
+export const normalizeCurrentMainTab = (
+	currentTab: keyof MainTabParamList,
+	classesEnabled: boolean,
+): keyof MainTabParamList =>
+	shouldShowMemberSurface(currentTab, classesEnabled)
+		? currentTab
+		: 'DashboardStack';
 
 export const TRAINING_ROUTE_FEATURES: Partial<
 	Record<keyof TrainingStackParamList, MemberFeature>

@@ -8,7 +8,7 @@ import {
 } from '@/screens';
 import FailedInvoicesDetailsScreen from '@/screens/FailedInvoicesDetailsScreen/FailedInvoicesDetailsScreen';
 import FailedInvoicesScreen from '@/screens/FailedInvoicesScreen/FailedInvoicesScreen';
-import { MemberFeatureGate } from '@/screens/Training/components/MemberFeatureGate';
+import { MemberSurfaceGate } from '@/screens/Training/components/MemberFeatureGate';
 import { DashboardParamList } from '@/types/navigation';
 import { createStackNavigator } from '@react-navigation/stack';
 import { CommonHeaderOptions } from './utils/options';
@@ -19,9 +19,9 @@ const NavigateToDashboard = () => {
 };
 
 const ClassBookingsScreen = () => (
-	<MemberFeatureGate feature="classes">
+	<MemberSurfaceGate route="Bookings">
 		<BookingScreen />
-	</MemberFeatureGate>
+	</MemberSurfaceGate>
 );
 
 const DashboardStackNavigator = () => {

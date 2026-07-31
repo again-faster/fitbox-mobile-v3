@@ -2,7 +2,7 @@ import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { navigate } from '@/navigators/NavigationRef';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { Text } from 'react-native';
-import { MemberFeatureGate } from './MemberFeatureGate';
+import { MemberFeatureGate, MemberSurfaceGate } from './MemberFeatureGate';
 
 jest.mock('@/context/WorkoutStudioProvider');
 jest.mock('@/navigators/NavigationRef', () => ({
@@ -88,5 +88,48 @@ describe('MemberFeatureGate', () => {
 
 		expect(screen.getByText('sponsored builder')).toBeTruthy();
 		expect(screen.queryByText('Feature unavailable')).toBeNull();
+	});
+
+	it.each(['Session', 'Bookings'] as const)(
+		'guards the %s route with the classes feature',
+		route => {
+			const isEnabled = mockFeatureEnabled(false);
+
+			render(
+				<MemberSurfaceGate route={route}>
+					<Text>{route} content</Text>
+				</MemberSurfaceGate>,
+			);
+
+			expect(isEnabled).toHaveBeenCalledWith('classes');
+			expect(screen.queryByText(`${route} content`)).toBeNull();
+			expect(screen.getByText('Feature unavailable')).toBeTruthy();
+		},
+	);
+
+	it('renders an enabled class surface', () => {
+		const isEnabled = mockFeatureEnabled(true);
+
+		render(
+			<MemberSurfaceGate route="Session">
+				<Text>enabled session</Text>
+			</MemberSurfaceGate>,
+		);
+
+		expect(isEnabled).toHaveBeenCalledWith('classes');
+		expect(screen.getByText('enabled session')).toBeTruthy();
+	});
+
+	it('does not class-gate Training Today', () => {
+		const isEnabled = mockFeatureEnabled(false);
+
+		render(
+			<MemberSurfaceGate route="TrainingToday">
+				<Text>assigned workout</Text>
+			</MemberSurfaceGate>,
+		);
+
+		expect(isEnabled).not.toHaveBeenCalled();
+		expect(screen.getByText('assigned workout')).toBeTruthy();
 	});
 });

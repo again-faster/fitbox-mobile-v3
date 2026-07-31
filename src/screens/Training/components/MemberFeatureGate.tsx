@@ -1,5 +1,9 @@
 import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { navigate } from '@/navigators/NavigationRef';
+import {
+	featureForMemberSurface,
+	type MemberSurfaceRoute,
+} from '@/screens/Training/features/memberFeatureRoutes';
 import type { MemberFeature } from '@/services/workoutStudio/memberFeatures';
 import type { PropsWithChildren } from 'react';
 import TrainingState from './TrainingState';
@@ -31,5 +35,18 @@ export const MemberFeatureGate = ({
 				})
 			}
 		/>
+	);
+};
+
+export const MemberSurfaceGate = ({
+	route,
+	children,
+}: PropsWithChildren<{ route: MemberSurfaceRoute }>) => {
+	const feature = featureForMemberSurface(route);
+
+	if (!feature) return <>{children}</>;
+
+	return (
+		<MemberFeatureGate feature={feature}>{children}</MemberFeatureGate>
 	);
 };
