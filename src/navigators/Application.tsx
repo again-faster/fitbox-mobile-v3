@@ -98,6 +98,8 @@ import { navigationRef } from './NavigationRef';
 import HeaderCloseButton from './components/HeaderCloseButton';
 import { CommonHeaderOptions, TabHeaderOptions } from './utils/options';
 
+const PREVIEW_IOS_PACKAGE_NAME = 'com.againfaster.fitbox.preview';
+
 const linking: LinkingOptions<ApplicationStackParamList> = {
 	prefixes: ['appfitbox://', 'https://fitbox.iq', 'http://fitbox.iq'],
 	config: {
@@ -551,6 +553,15 @@ const ApplicationNavigator = () => {
 
 	useEffect(() => {
 		const checkIfUpdateNeeded = async () => {
+			// TestFlight already manages preview distribution. A forced in-app
+			// update gate can strand testers when the store handoff is unavailable.
+			if (
+				Platform.OS === 'ios' &&
+				DeviceInfo.getBundleId() === PREVIEW_IOS_PACKAGE_NAME
+			) {
+				return;
+			}
+
 			const needUpdateConfig: Record<string, string | number> = {
 				depth: 2,
 			};
