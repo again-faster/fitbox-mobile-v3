@@ -769,80 +769,91 @@ const Today = () => {
 				{/* Recent PRs */}
 				{shouldShowTodayPRs(features) &&
 					(recentPRs.data?.length ?? 0) > 0 && (
-					<>
-						<SectionHeading title="Recent PRs" action="View all" />
-						<ScrollView
-							horizontal
-							showsHorizontalScrollIndicator={false}
-							contentContainerStyle={styles.prScroll}
-						>
-							{recentPRs.data?.map(pr => (
-								<TouchableOpacity
-									key={pr.id}
-									style={[
-										styles.prCard,
-										{ backgroundColor: '#FFFFFF' },
-									]}
-									onPress={() => nav.navigate('TrainingPRs')}
-								>
-									<Ionicons
-										name="trophy-outline"
-										size={18}
-										color="#FFB300"
-									/>
-									<Text
+						<>
+							<SectionHeading
+								title="Recent PRs"
+								action="View all"
+							/>
+							<ScrollView
+								horizontal
+								showsHorizontalScrollIndicator={false}
+								contentContainerStyle={styles.prScroll}
+							>
+								{recentPRs.data?.map(pr => (
+									<TouchableOpacity
+										key={pr.id}
 										style={[
-											styles.prName,
-											{ color: '#111827' },
+											styles.prCard,
+											{ backgroundColor: '#FFFFFF' },
 										]}
+										onPress={() =>
+											nav.navigate('TrainingPRs')
+										}
 									>
-										{pr.movements.name}
-									</Text>
-									<Text
-										style={[
-											styles.prWeight,
-											{
-												color: trainingTheme.colors
-													.primary,
-											},
-										]}
-									>
-										{pr.weight_kg}kg x {pr.rep_max}RM
-									</Text>
-								</TouchableOpacity>
-							))}
-						</ScrollView>
-					</>
-				)}
+										<Ionicons
+											name="trophy-outline"
+											size={18}
+											color="#FFB300"
+										/>
+										<Text
+											style={[
+												styles.prName,
+												{ color: '#111827' },
+											]}
+										>
+											{pr.movements.name}
+										</Text>
+										<Text
+											style={[
+												styles.prWeight,
+												{
+													color: trainingTheme.colors
+														.primary,
+												},
+											]}
+										>
+											{pr.weight_kg}kg x {pr.rep_max}RM
+										</Text>
+									</TouchableOpacity>
+								))}
+							</ScrollView>
+						</>
+					)}
 
 				{/* Coach notes — members only */}
 				{shouldShowTodayCoachNotes(features) &&
 					!isSolo &&
 					(coachNotes.data ?? 0) > 0 && (
-					<TouchableOpacity
-						style={[styles.card, { backgroundColor: '#FFFFFF' }]}
-						onPress={() => nav.navigate('TrainingCoachNotes')}
-					>
-						<View style={styles.cardRow}>
-							<Ionicons
-								name="message-text-outline"
-								size={22}
-								color={trainingTheme.colors.primary}
-							/>
-							<Text
-								style={[styles.cardTitle, { color: '#111827' }]}
-							>
-								{coachNotes.data} unread coach note
-								{(coachNotes.data ?? 0) > 1 ? 's' : ''}
-							</Text>
-							<Ionicons
-								name="chevron-right"
-								size={20}
-								color="#6B7280"
-							/>
-						</View>
-					</TouchableOpacity>
-				)}
+						<TouchableOpacity
+							style={[
+								styles.card,
+								{ backgroundColor: '#FFFFFF' },
+							]}
+							onPress={() => nav.navigate('TrainingCoachNotes')}
+						>
+							<View style={styles.cardRow}>
+								<Ionicons
+									name="message-text-outline"
+									size={22}
+									color={trainingTheme.colors.primary}
+								/>
+								<Text
+									style={[
+										styles.cardTitle,
+										{ color: '#111827' },
+									]}
+								>
+									{coachNotes.data} unread coach note
+									{(coachNotes.data ?? 0) > 1 ? 's' : ''}
+								</Text>
+								<Ionicons
+									name="chevron-right"
+									size={20}
+									color="#6B7280"
+								/>
+							</View>
+						</TouchableOpacity>
+					)}
 
 				{/* Build card */}
 				{shouldShowTodayCustomWorkouts(

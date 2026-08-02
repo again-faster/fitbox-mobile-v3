@@ -62,8 +62,12 @@ describe('Today feature policy', () => {
 
 	it('keeps every Today policy enabled for a fully enabled map', () => {
 		expect(shouldShowTodayWellness(ALL_MEMBER_FEATURES_ENABLED)).toBe(true);
-		expect(shouldShowTodayWearables(ALL_MEMBER_FEATURES_ENABLED)).toBe(true);
+		expect(shouldShowTodayWearables(ALL_MEMBER_FEATURES_ENABLED)).toBe(
+			true,
+		);
 		expect(shouldShowTodayPRs(ALL_MEMBER_FEATURES_ENABLED)).toBe(true);
-		expect(shouldShowTodayCoachNotes(ALL_MEMBER_FEATURES_ENABLED)).toBe(true);
+		expect(shouldShowTodayCoachNotes(ALL_MEMBER_FEATURES_ENABLED)).toBe(
+			true,
+		);
 	});
 });
