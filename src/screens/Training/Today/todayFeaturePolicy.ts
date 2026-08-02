@@ -6,8 +6,7 @@ export const shouldShowTodayWellness = (features: MemberFeatureMap) =>
 export const shouldShowTodayWearables = (features: MemberFeatureMap) =>
 	features.wearables;
 
-export const shouldShowTodayPRs = (features: MemberFeatureMap) =>
-	features.prs;
+export const shouldShowTodayPRs = (features: MemberFeatureMap) => features.prs;
 
 export const shouldShowTodayCoachNotes = (features: MemberFeatureMap) =>
 	features.coach_notes;
