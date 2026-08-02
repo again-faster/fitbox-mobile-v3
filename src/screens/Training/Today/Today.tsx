@@ -6,6 +6,7 @@ import type {
 	ProgramContext,
 	WellnessResponse,
 } from '@/services/workoutStudio/types';
+import type { MemberFeatureMap } from '@/services/workoutStudio/memberFeatures';
 import { getMemberWorkouts } from '@/services/workoutStudio/workouts';
 import { mmkvStorage } from '@/storage';
 import type { TrainingStackParamList } from '@/types/navigation';
@@ -37,6 +38,13 @@ import OfflineBanner from '../components/OfflineBanner';
 import TrainingState from '../components/TrainingState';
 import { useTrainingConnectivity } from '../hooks/useTrainingConnectivity';
 import { shouldShowTodayProgressCard } from '../Progress/progressFeatures';
+import {
+	shouldShowTodayCoachNotes,
+	shouldShowTodayCustomWorkouts,
+	shouldShowTodayPRs,
+	shouldShowTodayWearables,
+	shouldShowTodayWellness,
+} from './todayFeaturePolicy';
 
 type Nav = StackNavigationProp<TrainingStackParamList>;
 
@@ -146,7 +154,7 @@ const fourteenAgo = moment().subtract(14, 'days').format('YYYY-MM-DD');
 const wellnessPromptsEnabledKey = 'training.wellnessPromptsEnabled';
 const wellnessPromptDismissedDateKey = 'training.wellnessPromptDismissedDate';
 
-const useToday = () => {
+const useToday = (features: MemberFeatureMap) => {
 	const session = getStoredWSSession();
 	const uid = session?.user.id;
 	const tenantId = session?.user.active_tenant_id;
@@ -201,7 +209,7 @@ const useToday = () => {
 					},
 				})
 				.json<WellnessResponse[]>(),
-		enabled: !!uid,
+		enabled: !!uid && shouldShowTodayWellness(features),
 		staleTime: 60_000,
 	});
 
@@ -225,7 +233,7 @@ const useToday = () => {
 					);
 					return total;
 				}),
-		enabled: !!uid,
+		enabled: !!uid && shouldShowTodayCoachNotes(features),
 		staleTime: 60_000,
 	});
 
@@ -242,7 +250,7 @@ const useToday = () => {
 					},
 				})
 				.json<AthleteRM[]>(),
-		enabled: !!uid,
+		enabled: !!uid && shouldShowTodayPRs(features),
 		staleTime: 300_000,
 	});
 
@@ -266,7 +274,7 @@ const Today = () => {
 		recentPRs,
 		firstName,
 		programCtxMap,
-	} = useToday();
+	} = useToday(features);
 	const session = getStoredWSSession();
 	const persona = session?.user.persona;
 	const wearableConnected =
@@ -312,6 +320,7 @@ const Today = () => {
 
 			if (
 				isForegrounding &&
+				shouldShowTodayWearables(features) &&
 				mmkvStorage.getString('healthkit.authorized') === 'true'
 			) {
 				syncNow().catch(e => {
@@ -324,12 +333,13 @@ const Today = () => {
 		return () => {
 			subscription.remove();
 		};
-	}, []);
+	}, [features]);
 
 	const isLoading = assignments.isLoading || wellness.isLoading;
 	const isRefreshing = assignments.isRefetching || wellness.isRefetching;
 	const hasWellnessToday = (wellness.data?.length ?? 0) > 0;
 	const showWellnessPrompt =
+		shouldShowTodayWellness(features) &&
 		!hasWellnessToday &&
 		wellnessPromptsEnabled &&
 		wellnessPromptDismissedDate !== todayStr;
@@ -654,32 +664,34 @@ const Today = () => {
 					</TouchableOpacity>
 				)}
 
-				<TouchableOpacity
-					style={styles.readinessCard}
-					accessibilityRole="button"
-					onPress={() => nav.navigate('TrainingWearables')}
-				>
-					<View style={styles.readinessIcon}>
+				{shouldShowTodayWearables(features) && (
+					<TouchableOpacity
+						style={styles.readinessCard}
+						accessibilityRole="button"
+						onPress={() => nav.navigate('TrainingWearables')}
+					>
+						<View style={styles.readinessIcon}>
+							<Ionicons
+								name="weather-sunset-up"
+								size={22}
+								color={trainingTheme.colors.primary}
+							/>
+						</View>
+						<View style={styles.cardText}>
+							<Text style={styles.progressTitle}>Readiness</Text>
+							<Text style={styles.progressSubtitle}>
+								{wearableConnected && wearableLastSync
+									? `Health data synced ${moment(wearableLastSync).fromNow()}`
+									: 'Connect a wearable to add recovery context'}
+							</Text>
+						</View>
 						<Ionicons
-							name="weather-sunset-up"
-							size={22}
-							color={trainingTheme.colors.primary}
+							name="chevron-right"
+							size={21}
+							color={trainingTheme.colors.textMuted}
 						/>
-					</View>
-					<View style={styles.cardText}>
-						<Text style={styles.progressTitle}>Readiness</Text>
-						<Text style={styles.progressSubtitle}>
-							{wearableConnected && wearableLastSync
-								? `Health data synced ${moment(wearableLastSync).fromNow()}`
-								: 'Connect a wearable to add recovery context'}
-						</Text>
-					</View>
-					<Ionicons
-						name="chevron-right"
-						size={21}
-						color={trainingTheme.colors.textMuted}
-					/>
-				</TouchableOpacity>
+					</TouchableOpacity>
+				)}
 
 				{/* Wellness check-in card */}
 				{showWellnessPrompt ? (
@@ -755,7 +767,8 @@ const Today = () => {
 				) : null}
 
 				{/* Recent PRs */}
-				{(recentPRs.data?.length ?? 0) > 0 && (
+				{shouldShowTodayPRs(features) &&
+					(recentPRs.data?.length ?? 0) > 0 && (
 					<>
 						<SectionHeading title="Recent PRs" action="View all" />
 						<ScrollView
@@ -803,7 +816,9 @@ const Today = () => {
 				)}
 
 				{/* Coach notes — members only */}
-				{!isSolo && (coachNotes.data ?? 0) > 0 && (
+				{shouldShowTodayCoachNotes(features) &&
+					!isSolo &&
+					(coachNotes.data ?? 0) > 0 && (
 					<TouchableOpacity
 						style={[styles.card, { backgroundColor: '#FFFFFF' }]}
 						onPress={() => nav.navigate('TrainingCoachNotes')}
@@ -830,7 +845,11 @@ const Today = () => {
 				)}
 
 				{/* Build card */}
-				{(isSolo || hasCustomWorkouts) && (
+				{shouldShowTodayCustomWorkouts(
+					features,
+					isSolo,
+					hasCustomWorkouts === true,
+				) && (
 					<TouchableOpacity
 						style={[styles.card, { backgroundColor: '#FFFFFF' }]}
 						onPress={() => nav.navigate('TrainingBuildList')}
