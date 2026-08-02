@@ -98,6 +98,11 @@ import { navigationRef } from './NavigationRef';
 import HeaderCloseButton from './components/HeaderCloseButton';
 import { CommonHeaderOptions, TabHeaderOptions } from './utils/options';
 
+const PREVIEW_PACKAGE_NAMES = new Set([
+	'com.againfaster.fitbox.preview',
+	'com.wa.fitbox.dev',
+]);
+
 const linking: LinkingOptions<ApplicationStackParamList> = {
 	prefixes: ['appfitbox://', 'https://fitbox.iq', 'http://fitbox.iq'],
 	config: {
@@ -551,6 +556,12 @@ const ApplicationNavigator = () => {
 
 	useEffect(() => {
 		const checkIfUpdateNeeded = async () => {
+			// Preview distribution is managed by TestFlight or Google Play.
+			// Do not strand preview testers behind a forced in-app update gate.
+			if (PREVIEW_PACKAGE_NAMES.has(DeviceInfo.getBundleId())) {
+				return;
+			}
+
 			const needUpdateConfig: Record<string, string | number> = {
 				depth: 2,
 			};
