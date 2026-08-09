@@ -34,15 +34,68 @@ import {
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingProgress'>;
 type Range = '30' | '90' | '365' | 'all';
-type ProgressResult = {
+export type ProgressResult = {
 	id: string;
 	workout_id: string;
 	completed_at: string;
-	duration_seconds: number | null;
-	total_volume_kg: number | null;
-	workouts: { name: string };
+	duration_seconds: number | null | undefined;
+	total_volume_kg: number | null | undefined;
+	workouts: { name?: string | null } | null | undefined;
 };
 type ProgressRM = { id: string; achieved_on: string };
+
+export type ProgressTotals = {
+	workouts: number;
+	minutes: number | null;
+	volume: number | null;
+	prs: number;
+};
+
+const hasMetricValue = (
+	value: number | null | undefined,
+): value is number => typeof value === 'number' && Number.isFinite(value);
+
+const sumPresent = (values: Array<number | null | undefined>): number | null => {
+	const present = values.filter(hasMetricValue);
+	return present.length > 0
+		? present.reduce((sum, value) => sum + value, 0)
+		: null;
+};
+
+export const summarizeProgress = (
+	rows: ProgressResult[],
+	prs: number,
+): ProgressTotals => {
+	const seconds = sumPresent(rows.map(item => item.duration_seconds));
+	const volume = sumPresent(rows.map(item => item.total_volume_kg));
+	return {
+		workouts: rows.length,
+		minutes: seconds === null ? null : Math.round(seconds / 60),
+		volume: volume === null ? null : Math.round(volume),
+		prs,
+	};
+};
+
+export type ProgressActivityCopy = {
+	name: string;
+	detail: string;
+	accessibilityLabel: string;
+};
+
+export const progressActivityCopy = (
+	item: Pick<ProgressResult, 'completed_at' | 'duration_seconds' | 'workouts'>,
+): ProgressActivityCopy => {
+	const name = item.workouts?.name?.trim() || 'Workout';
+	const date = moment(item.completed_at).format('ddd, D MMM');
+	const duration = hasMetricValue(item.duration_seconds)
+		? `${Math.round(item.duration_seconds / 60)} min`
+		: 'Duration not available';
+	return {
+		name,
+		detail: `${date} · ${duration}`,
+		accessibilityLabel: `${name}. Completed ${date}. ${duration}.`,
+	};
+};
 const RANGES: Array<{ key: Range; label: string }> = [
 	{ key: '30', label: '30D' },
 	{ key: '90', label: '90D' },
@@ -64,6 +117,11 @@ export const shouldEnableReadinessQuery = (
 	featureEnabled &&
 	!!session?.user.id &&
 	!!session?.user.active_tenant_id;
+
+export const hasAuthenticatedProgressSession = (
+	session: ReadinessSession,
+): boolean =>
+	!!session?.user.id && !!session?.user.active_tenant_id;
 
 const providerNames: Record<ProviderId, string> = {
 	apple_health: 'Apple Health',
@@ -91,15 +149,20 @@ export type ReadinessHistoryCopy = {
 	nativeMetrics: ReadinessMetric[];
 };
 
-const hasNativeMetric = (metric: ReadinessMetric): boolean =>
-	metric.sleepMinutes !== null ||
-	metric.hrvMs !== null ||
-	metric.restingHr !== null ||
-	metric.nativeRecoveryScore !== null ||
-	metric.nativeReadinessScore !== null;
+export const formatNativeMetric = (
+	value: number | null | undefined,
+	suffix = '',
+): string => (hasMetricValue(value) ? `${value}${suffix}` : 'Not available');
 
-const formatScore = (score: number | null): string =>
-	score === null ? 'Not available' : String(score);
+const hasNativeMetric = (metric: ReadinessMetric): boolean =>
+	hasMetricValue(metric.sleepMinutes) ||
+	hasMetricValue(metric.hrvMs) ||
+	hasMetricValue(metric.restingHr) ||
+	hasMetricValue(metric.nativeRecoveryScore) ||
+	hasMetricValue(metric.nativeReadinessScore);
+
+const formatScore = (score: number | null | undefined): string =>
+	formatNativeMetric(score);
 
 export const readinessHistoryCopy = (
 	result: ReadinessResult,
@@ -243,14 +306,15 @@ export const ProgressReadinessHistory = ({
 								{providerNames[metric.provider]} · {metric.asOfDate}
 							</Text>
 							<Text style={styles.nativeMetricsText}>
-								Readiness {formatScore(metric.nativeReadinessScore)} · Recovery{' '}
+								Native readiness{' '}
+								{formatNativeMetric(metric.nativeReadinessScore)} · Recovery{' '}
 								{formatScore(metric.nativeRecoveryScore)} · Sleep{' '}
-								{metric.sleepMinutes === null
+								{!hasMetricValue(metric.sleepMinutes)
 									? 'Not available'
 									: `${metric.sleepMinutes} min`}{' '}
-								· HRV {metric.hrvMs === null ? 'Not available' : `${metric.hrvMs} ms`}
+								· HRV {!hasMetricValue(metric.hrvMs) ? 'Not available' : `${metric.hrvMs} ms`}
 								 · Resting HR{' '}
-								{metric.restingHr === null
+								{!hasMetricValue(metric.restingHr)
 									? 'Not available'
 									: `${metric.restingHr} bpm`}
 							</Text>
@@ -292,6 +356,9 @@ const ProgressScreen = ({
 }: ProgressScreenProps) => {
 	const session = getStoredWSSession();
 	const uid = session?.user.id;
+	const hasAuthenticatedSession = hasAuthenticatedProgressSession(session);
+	const readinessQueryEnabled =
+		readinessFeatureEnabled && hasAuthenticatedSession;
 	const [range, setRange] = useState<Range>('90');
 	const from =
 		range === 'all'
@@ -311,7 +378,7 @@ const ProgressScreen = ({
 					},
 				})
 				.json<ProgressResult[]>(),
-		enabled: !!uid && content.needsResultQuery,
+		enabled: hasAuthenticatedSession && content.needsResultQuery,
 		staleTime: 120_000,
 	});
 	const prs = useQuery({
@@ -331,7 +398,7 @@ const ProgressScreen = ({
 					},
 				})
 				.json<ProgressRM[]>(),
-		enabled: !!uid && content.needsRMQuery,
+		enabled: hasAuthenticatedSession && content.needsRMQuery,
 		staleTime: 120_000,
 	});
 	const readinessQuery = useQuery<ReadinessResult>({
@@ -345,49 +412,30 @@ const ProgressScreen = ({
 				windowDays: 31,
 				featureEnabled: readinessFeatureEnabled,
 			}),
-		enabled: shouldEnableReadinessQuery(
-			readinessFeatureEnabled,
-			session,
-		),
+		enabled: readinessQueryEnabled,
 		staleTime: 120_000,
 	});
-	const readinessQueryEnabled = shouldEnableReadinessQuery(
-		readinessFeatureEnabled,
-		session,
-	);
 	const readinessResult = readinessQueryEnabled
 		? (readinessQuery.data ?? createLoadingReadinessResult())
 		: null;
-	const totals = useMemo(() => {
-		const rows = results.data ?? [];
-		return {
-			workouts: rows.length,
-			minutes: Math.round(
-				rows.reduce(
-					(sum, item) => sum + (item.duration_seconds ?? 0),
-					0,
-				) / 60,
-			),
-			volume: Math.round(
-				rows.reduce(
-					(sum, item) => sum + (item.total_volume_kg ?? 0),
-					0,
-				),
-			),
-			prs: prs.data?.length ?? 0,
-		};
-	}, [results.data, prs.data]);
+	const totals = useMemo(
+		() => summarizeProgress(results.data ?? [], prs.data?.length ?? 0),
+		[results.data, prs.data],
+	);
 	const refresh = () => {
+		if (!hasAuthenticatedSession) return;
 		if (content.needsResultQuery) void results.refetch();
 		if (content.needsRMQuery) void prs.refetch();
 		if (readinessQueryEnabled) void readinessQuery.refetch();
 	};
 	const loading =
-		(content.needsResultQuery && results.isLoading) ||
-		(content.needsRMQuery && prs.isLoading);
+		(hasAuthenticatedSession &&
+			content.needsResultQuery &&
+			results.isLoading) ||
+		(hasAuthenticatedSession && content.needsRMQuery && prs.isLoading);
 	const hasError =
-		(content.needsResultQuery && results.isError) ||
-		(content.needsRMQuery && prs.isError);
+		(hasAuthenticatedSession && content.needsResultQuery && results.isError) ||
+		(hasAuthenticatedSession && content.needsRMQuery && prs.isError);
 
 	return (
 		<ScrollView
@@ -396,8 +444,12 @@ const ProgressScreen = ({
 			refreshControl={
 				<RefreshControl
 					refreshing={
-						(content.needsResultQuery && results.isRefetching) ||
-						(content.needsRMQuery && prs.isRefetching) ||
+						(hasAuthenticatedSession &&
+							content.needsResultQuery &&
+							results.isRefetching) ||
+						(hasAuthenticatedSession &&
+							content.needsRMQuery &&
+							prs.isRefetching) ||
 						(readinessQueryEnabled && readinessQuery.isRefetching)
 					}
 					onRefresh={refresh}
@@ -460,13 +512,17 @@ const ProgressScreen = ({
 							</View>
 							<View style={styles.kpi}>
 								<Text style={styles.kpiValue}>
-									{totals.minutes.toLocaleString()}
+					{totals.minutes === null
+						? 'Not available'
+						: totals.minutes.toLocaleString()}
 								</Text>
 								<Text style={styles.kpiLabel}>Minutes</Text>
 							</View>
 							<View style={styles.kpi}>
 								<Text style={styles.kpiValue}>
-									{totals.volume.toLocaleString()}
+					{totals.volume === null
+						? 'Not available'
+						: totals.volume.toLocaleString()}
 								</Text>
 								<Text style={styles.kpiLabel}>Kg volume</Text>
 							</View>
@@ -532,6 +588,10 @@ const ProgressScreen = ({
 									<TouchableOpacity
 										key={item.id}
 										style={styles.activity}
+										accessibilityRole="button"
+										accessibilityLabel={
+											progressActivityCopy(item).accessibilityLabel
+										}
 										onPress={() =>
 											navigation.navigate(
 												'TrainingResultDetail',
@@ -542,15 +602,10 @@ const ProgressScreen = ({
 										<View style={styles.activityDot} />
 										<View style={styles.linkCopy}>
 											<Text style={styles.linkLabel}>
-												{item.workouts.name}
+												{progressActivityCopy(item).name}
 											</Text>
 											<Text style={styles.linkDetail}>
-												{moment(
-													item.completed_at,
-												).format('ddd, D MMM')}{' '}
-												{item.duration_seconds != null
-													? `· ${Math.round(item.duration_seconds / 60)} min`
-													: ''}
+												{progressActivityCopy(item).detail}
 											</Text>
 										</View>
 										<Ionicons

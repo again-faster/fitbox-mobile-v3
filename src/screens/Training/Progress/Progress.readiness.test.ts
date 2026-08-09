@@ -9,8 +9,12 @@ import type {
 } from '@/services/workoutStudio/readiness';
 import {
 	ProgressReadinessHistory,
+	formatNativeMetric,
+	hasAuthenticatedProgressSession,
+	progressActivityCopy,
 	shouldEnableReadinessQuery,
 	readinessHistoryCopy,
+	summarizeProgress,
 } from './Progress';
 
 const metrics: ReadinessMetric[] = [
@@ -108,6 +112,63 @@ describe('Progress readiness history presentation', () => {
 				user: { id: 'member-1', active_tenant_id: 'tenant-1' },
 			} as never),
 		).toBe(true);
+		expect(hasAuthenticatedProgressSession(null)).toBe(false);
+		expect(
+			hasAuthenticatedProgressSession({
+				user: { id: 'member-1', active_tenant_id: 'tenant-1' },
+			} as never),
+		).toBe(true);
+		expect(
+			hasAuthenticatedProgressSession({
+				user: { id: 'member-1', active_tenant_id: null },
+			} as never),
+		).toBe(false);
+	});
+
+	it('preserves missing totals and native values as unavailable', () => {
+		const missing = {
+			id: 'missing',
+			workout_id: 'workout-1',
+			completed_at: '2026-08-09T00:00:00Z',
+			duration_seconds: null,
+			total_volume_kg: undefined,
+			workouts: null,
+		};
+		const present = {
+			...missing,
+			id: 'present',
+			duration_seconds: 60,
+			total_volume_kg: 5,
+			workouts: { name: 'Lift' },
+		};
+
+		expect(summarizeProgress([missing, present], 0)).toMatchObject({
+			workouts: 2,
+			minutes: 1,
+			volume: 5,
+		});
+		expect(summarizeProgress([missing], 0)).toMatchObject({
+			minutes: null,
+			volume: null,
+		});
+		expect(formatNativeMetric(null)).toBe('Not available');
+		expect(formatNativeMetric(undefined)).toBe('Not available');
+		expect(formatNativeMetric(72)).toBe('72');
+	});
+
+	it('uses a safe activity fallback and accessibility copy', () => {
+		const copy = progressActivityCopy({
+			completed_at: '2026-08-09T00:00:00Z',
+			duration_seconds: undefined,
+			workouts: undefined,
+		});
+
+		expect(copy.name).toBe('Workout');
+		expect(copy.detail).toMatch(/Duration not available/);
+		expect(copy.accessibilityLabel).toMatch(
+		/Workout.*Duration not available/,
+	);
+		expect(copy.accessibilityLabel).not.toMatch(/undefined/);
 	});
 
 	it.each(['loading', 'ready', 'empty', 'baseline', 'error'] as const)(
