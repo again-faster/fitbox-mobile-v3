@@ -2,6 +2,7 @@ import { mmkvStorage } from '@/storage';
 import { trainingTheme } from '@/theme/training';
 import type { TrainingStackParamList } from '@/types/navigation';
 import type { StackScreenProps } from '@react-navigation/stack';
+import { useQuery } from '@tanstack/react-query';
 import moment from 'moment';
 import {
 	Platform,
@@ -13,6 +14,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
+import { getStoredWSSession } from '@/services/workoutStudio/auth';
+import {
+	createLoadingReadinessResult,
+	getMemberReadiness,
+	type ProviderId,
+	type ReadinessMetric,
+	type ReadinessResult,
+} from '@/services/workoutStudio/readiness';
+import TrainingState from '../components/TrainingState';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingWearables'>;
 type ProviderProps = {
@@ -23,6 +34,174 @@ type ProviderProps = {
 	active?: boolean;
 	available?: boolean;
 	onPress?: () => void;
+};
+
+const providerNames: Record<ProviderId, string> = {
+	apple_health: 'Apple Health',
+	health_connect: 'Health Connect',
+	whoop: 'WHOOP',
+	garmin: 'Garmin',
+	fitbit: 'Fitbit',
+	strava: 'Strava',
+};
+
+const latestMetric = (
+	metrics: ReadinessMetric[],
+): ReadinessMetric | null =>
+	[...metrics].sort((left, right) =>
+		right.asOfDate.localeCompare(left.asOfDate),
+	)[0] ?? null;
+
+const formatMetric = (value: number | null, suffix = ''): string =>
+	value === null ? 'Not available' : `${value}${suffix}`;
+
+type ReadinessCopy = {
+	status: ReadinessResult['status'];
+	statusLabel: string;
+	title: string;
+	detail: string;
+	score: string;
+	band: string;
+	confidence: string;
+	freshness: string;
+	metric: ReadinessMetric | null;
+};
+
+export const wearablesReadinessCopy = (
+	result: ReadinessResult,
+): ReadinessCopy => {
+	if (result.status === 'loading')
+		return {
+			status: result.status,
+			statusLabel: 'Loading',
+			title: 'Loading readiness',
+			detail: 'Checking your latest recovery signals.',
+			score: 'Not available',
+			band: 'Not available',
+			confidence: 'Not available',
+			freshness: 'Not available',
+			metric: null,
+		};
+	if (result.status === 'error')
+		return {
+			status: result.status,
+			statusLabel: 'Error',
+			title: 'Readiness unavailable',
+			detail: result.error.message,
+			score: 'Not available',
+			band: 'Not available',
+			confidence: 'Not available',
+			freshness: 'Not available',
+			metric: null,
+		};
+
+	const metric = latestMetric(result.data.metrics);
+	const stateCopy = {
+		ready: {
+			statusLabel: 'Ready',
+			title: 'Readiness is ready',
+			detail: 'A provider-native readiness score is available.',
+			band: 'Ready',
+			confidence: 'Measured',
+		},
+		baseline: {
+			statusLabel: 'Baseline',
+			title: 'Building your baseline',
+			detail:
+				'More connected data is needed before a readiness score is available.',
+			band: 'Baseline',
+			confidence: 'Building',
+		},
+		empty: {
+			statusLabel: 'Empty',
+			title: 'No readiness data yet',
+			detail: 'Connect a supported provider to add recovery context.',
+			band: 'No data',
+			confidence: 'Not available',
+		},
+	} as const;
+	const copy = stateCopy[result.status];
+
+	return {
+		status: result.status,
+		...copy,
+		score: formatMetric(metric?.nativeReadinessScore ?? null),
+		freshness: `As of ${result.asOfDate}`,
+		metric,
+	};
+};
+
+type WearablesReadinessSummaryProps = {
+	result: ReadinessResult;
+};
+
+export const WearablesReadinessSummary = ({
+	result,
+}: WearablesReadinessSummaryProps) => {
+	const copy = wearablesReadinessCopy(result);
+
+	return (
+		<View
+			style={styles.readinessCard}
+			accessibilityRole="summary"
+			accessibilityLabel={`Fitbox readiness. Status ${copy.statusLabel}. ${copy.title}. Score ${copy.score}. Band ${copy.band}. Confidence ${copy.confidence}. Freshness ${copy.freshness}.`}
+		>
+			<View style={styles.readinessIcon}>
+				<Ionicons
+					name="weather-sunset-up"
+					size={27}
+					color={trainingTheme.colors.primary}
+				/>
+			</View>
+			<View style={styles.providerCopy}>
+				<Text style={styles.providerName}>Fitbox readiness</Text>
+				<Text style={styles.providerDescription}>{copy.title}</Text>
+				<Text style={styles.readinessDetail}>{copy.detail}</Text>
+				<View style={styles.readinessStats}>
+					<Text style={styles.readinessMeta}>Status {copy.statusLabel}</Text>
+					<Text style={styles.readinessMeta}>Score {copy.score}</Text>
+					<Text style={styles.readinessMeta}>Band {copy.band}</Text>
+					<Text style={styles.readinessMeta}>
+						Confidence {copy.confidence}
+					</Text>
+				</View>
+				<Text style={styles.readinessMeta}>{copy.freshness}</Text>
+			</View>
+		</View>
+	);
+};
+
+type ProviderNativeStatusProps = {
+	metric: ReadinessMetric | null;
+	connectionStatus: string;
+};
+
+export const ProviderNativeStatus = ({
+	metric,
+	connectionStatus,
+}: ProviderNativeStatusProps) => {
+	const metricText = metric
+		? `${providerNames[metric.provider]} native metrics. Native readiness ${formatMetric(metric.nativeReadinessScore)}. Recovery ${formatMetric(metric.nativeRecoveryScore)}. Sleep ${formatMetric(metric.sleepMinutes, ' min')}. HRV ${formatMetric(metric.hrvMs, ' ms')}. Resting HR ${formatMetric(metric.restingHr, ' bpm')}. As of ${metric.asOfDate}.`
+		: 'No provider-native metrics available.';
+
+	return (
+		<View
+			style={styles.nativeStatusCard}
+			accessibilityRole="summary"
+			accessibilityLabel={`Provider-native status. ${connectionStatus}. ${metricText}`}
+		>
+			<View style={styles.nativeStatusHeader}>
+				<Ionicons
+					name="chart-timeline-variant"
+					size={22}
+					color={trainingTheme.colors.primary}
+				/>
+				<Text style={styles.nativeStatusTitle}>Provider-native status</Text>
+			</View>
+			<Text style={styles.nativeStatusText}>{connectionStatus}</Text>
+			<Text style={styles.nativeStatusText}>{metricText}</Text>
+		</View>
+	);
 };
 
 const Provider = ({
@@ -91,10 +270,50 @@ const Provider = ({
 );
 
 const Wearables = ({ navigation }: Props) => {
+	const { isEnabled } = useWorkoutStudio();
+	const readinessFeatureEnabled = isEnabled('wearables');
+	const session = getStoredWSSession();
+	const readinessQuery = useQuery<ReadinessResult>({
+		queryKey: [
+			'ws-member-readiness-wearables',
+			session?.user.id,
+			session?.user.active_tenant_id,
+		],
+		queryFn: () =>
+			getMemberReadiness({
+				windowDays: 7,
+				featureEnabled: readinessFeatureEnabled,
+			}),
+		enabled: readinessFeatureEnabled,
+		staleTime: 60_000,
+	});
+	const readinessResult = readinessFeatureEnabled
+		? (readinessQuery.data ?? createLoadingReadinessResult())
+		: null;
 	const appleConnected =
 		Platform.OS === 'ios' &&
 		mmkvStorage.getString('healthkit.authorized') === 'true';
 	const lastSync = mmkvStorage.getString('healthkit.lastSyncedAt');
+
+	if (!readinessFeatureEnabled) {
+		return (
+			<TrainingState
+				kind="empty"
+				title="Wearables unavailable"
+				message="Your gym hasn't enabled wearable readiness for members."
+			/>
+		);
+	}
+
+	const readinessMetric = readinessResult
+		? wearablesReadinessCopy(readinessResult).metric
+		: null;
+	const nativeConnectionStatus =
+		Platform.OS === 'ios'
+			? appleConnected
+				? 'Apple Health connected'
+				: 'Apple Health not connected'
+			: 'Health Connect not connected';
 
 	return (
 		<SafeAreaView style={styles.screen} edges={['top']}>
@@ -222,28 +441,14 @@ const Wearables = ({ navigation }: Props) => {
 					</Text>
 				</View>
 
-				<Text style={styles.sectionTitle}>Readiness</Text>
-				<View style={styles.readinessCard}>
-					<View style={styles.readinessIcon}>
-						<Ionicons
-							name="weather-sunset-up"
-							size={27}
-							color={trainingTheme.colors.primary}
-						/>
-					</View>
-					<View style={styles.providerCopy}>
-						<Text style={styles.providerName}>
-							{appleConnected && lastSync
-								? 'Health data synced'
-								: 'Connect a wearable to get started'}
-						</Text>
-						<Text style={styles.providerDescription}>
-							{appleConnected && lastSync
-								? 'Recent signals can contribute to readiness once enough data is available.'
-								: 'Readiness can add recovery context without automatically changing your prescribed workout.'}
-						</Text>
-					</View>
-				</View>
+				<Text style={styles.sectionTitle}>Fitbox readiness</Text>
+				{readinessResult && (
+					<WearablesReadinessSummary result={readinessResult} />
+				)}
+				<ProviderNativeStatus
+					metric={readinessMetric}
+					connectionStatus={nativeConnectionStatus}
+				/>
 			</ScrollView>
 		</SafeAreaView>
 	);
@@ -438,7 +643,7 @@ const styles = StyleSheet.create({
 		color: trainingTheme.colors.textMuted,
 	},
 	readinessCard: {
-		minHeight: 104,
+		minHeight: 164,
 		flexDirection: 'row',
 		alignItems: 'center',
 		gap: trainingTheme.spacing.md,
@@ -454,6 +659,49 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		backgroundColor: trainingTheme.colors.primarySoft,
+	},
+	readinessDetail: {
+		fontSize: 12,
+		lineHeight: 17,
+		color: trainingTheme.colors.textMuted,
+		marginTop: 4,
+	},
+	readinessStats: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		gap: trainingTheme.spacing.sm,
+		marginTop: trainingTheme.spacing.sm,
+	},
+	readinessMeta: {
+		fontSize: 11,
+		lineHeight: 16,
+		color: trainingTheme.colors.textMuted,
+		marginTop: 3,
+	},
+	nativeStatusCard: {
+		padding: trainingTheme.spacing.lg,
+		borderRadius: trainingTheme.radius.lg,
+		backgroundColor: trainingTheme.colors.surfaceMuted,
+		borderWidth: 1,
+		borderColor: trainingTheme.colors.border,
+		gap: trainingTheme.spacing.xs,
+	},
+	nativeStatusHeader: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: trainingTheme.spacing.sm,
+		marginBottom: trainingTheme.spacing.xs,
+	},
+	nativeStatusTitle: {
+		fontSize: 15,
+		lineHeight: 20,
+		fontWeight: '800',
+		color: trainingTheme.colors.text,
+	},
+	nativeStatusText: {
+		fontSize: 12,
+		lineHeight: 18,
+		color: trainingTheme.colors.textMuted,
 	},
 });
 
