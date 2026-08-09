@@ -23,6 +23,12 @@ const metric: ReadinessMetric = {
 	nativeReadinessScore: 81,
 };
 
+const recoveryOnlyMetric: ReadinessMetric = {
+	...metric,
+	nativeRecoveryScore: 72,
+	nativeReadinessScore: null,
+};
+
 const snapshot: ReadinessSnapshot = {
 	asOfDate: '2026-08-09',
 	windowStart: '2026-08-03',
@@ -54,6 +60,13 @@ const resultFor = (status: ReadinessResult['status']): ReadinessResult => {
 	};
 };
 
+const resultWithMetrics = (metrics: ReadinessMetric[]): ReadinessResult => ({
+	status: 'ready',
+	data: { ...snapshot, metrics },
+	error: null,
+	asOfDate: snapshot.asOfDate,
+});
+
 describe('Wearables readiness presentation', () => {
 	it.each(['loading', 'ready', 'empty', 'baseline', 'error'] as const)(
 		'renders an explicit %s copy without zero fallbacks',
@@ -66,6 +79,47 @@ describe('Wearables readiness presentation', () => {
 			expect(copy.confidence).not.toBe('0');
 		},
 	);
+
+	it('does not present recovery-only data as a scored readiness result', () => {
+		const copy = wearablesReadinessCopy(
+			resultWithMetrics([recoveryOnlyMetric]),
+		);
+		const summary = render(
+			createElement(WearablesReadinessSummary, {
+				result: resultWithMetrics([recoveryOnlyMetric]),
+			}),
+		);
+
+		expect(copy.status).toBe('recovery');
+		expect(copy.statusLabel).toBe('Recovery available');
+		expect(copy.title).toBe('Recovery data available');
+		expect(copy.score).toBe('Not available');
+		expect(copy.band).toBe('Recovery available');
+		expect(copy.confidence).toBe('Score not available');
+		expect(copy.detail).toMatch(/readiness score is not available/);
+		expect(summary.getByText('Recovery data available')).toBeTruthy();
+		expect(summary.getByText('Score Not available')).toBeTruthy();
+		expect(summary.queryByText('Readiness is ready')).toBeNull();
+	});
+
+	it('keeps the latest useful value when a newer metric row is all null', () => {
+		const newerEmptyMetric: ReadinessMetric = {
+			...metric,
+			asOfDate: '2026-08-09',
+			nativeReadinessScore: null,
+		};
+		const olderScoredMetric: ReadinessMetric = {
+			...metric,
+			asOfDate: '2026-08-08',
+		};
+		const copy = wearablesReadinessCopy(
+			resultWithMetrics([olderScoredMetric, newerEmptyMetric]),
+		);
+
+		expect(copy.score).toBe('81');
+		expect(copy.metric?.nativeReadinessScore).toBe(81);
+		expect(copy.metric?.asOfDate).toBe('2026-08-08');
+	});
 
 	it('renders the Fitbox summary values and separate native status', () => {
 		const summary = render(

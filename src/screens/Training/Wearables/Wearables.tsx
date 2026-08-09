@@ -45,18 +45,50 @@ const providerNames: Record<ProviderId, string> = {
 	strava: 'Strava',
 };
 
-const latestMetric = (
+type MetricValueKey =
+	| 'sleepMinutes'
+	| 'hrvMs'
+	| 'restingHr'
+	| 'nativeRecoveryScore'
+	| 'nativeReadinessScore';
+
+const latestUsefulMetric = (
 	metrics: ReadinessMetric[],
-): ReadinessMetric | null =>
-	[...metrics].sort((left, right) =>
+): ReadinessMetric | null => {
+	const sortedMetrics = [...metrics].sort((left, right) =>
 		right.asOfDate.localeCompare(left.asOfDate),
-	)[0] ?? null;
+	);
+	const latestMetricWithData = sortedMetrics.find(metric =>
+		(
+			[
+				'sleepMinutes',
+				'hrvMs',
+				'restingHr',
+				'nativeRecoveryScore',
+				'nativeReadinessScore',
+			] as MetricValueKey[]
+		).some(key => metric[key] !== null),
+	);
+	if (!latestMetricWithData) return null;
+
+	const latestValue = <K extends MetricValueKey>(key: K): ReadinessMetric[K] =>
+		sortedMetrics.find(metric => metric[key] !== null)?.[key] ?? null;
+
+	return {
+		...latestMetricWithData,
+		sleepMinutes: latestValue('sleepMinutes'),
+		hrvMs: latestValue('hrvMs'),
+		restingHr: latestValue('restingHr'),
+		nativeRecoveryScore: latestValue('nativeRecoveryScore'),
+		nativeReadinessScore: latestValue('nativeReadinessScore'),
+	};
+};
 
 const formatMetric = (value: number | null, suffix = ''): string =>
 	value === null ? 'Not available' : `${value}${suffix}`;
 
 type ReadinessCopy = {
-	status: ReadinessResult['status'];
+	status: ReadinessResult['status'] | 'recovery';
 	statusLabel: string;
 	title: string;
 	detail: string;
@@ -95,7 +127,18 @@ export const wearablesReadinessCopy = (
 			metric: null,
 		};
 
-	const metric = latestMetric(result.data.metrics);
+	const metric = latestUsefulMetric(result.data.metrics);
+	const hasReadinessScore =
+	metric !== null && metric.nativeReadinessScore !== null;
+	const hasRecoveryScore =
+	metric !== null && metric.nativeRecoveryScore !== null;
+	const displayStatus = hasReadinessScore
+		? result.status
+		: hasRecoveryScore
+			? 'recovery'
+			: result.status === 'ready'
+				? 'baseline'
+				: result.status;
 	const stateCopy = {
 		ready: {
 			statusLabel: 'Ready',
@@ -119,11 +162,19 @@ export const wearablesReadinessCopy = (
 			band: 'No data',
 			confidence: 'Not available',
 		},
+		recovery: {
+			statusLabel: 'Recovery available',
+			title: 'Recovery data available',
+			detail:
+				'Recovery data is available, but a readiness score is not available yet.',
+			band: 'Recovery available',
+			confidence: 'Score not available',
+		},
 	} as const;
-	const copy = stateCopy[result.status];
+	const copy = stateCopy[displayStatus];
 
 	return {
-		status: result.status,
+		status: displayStatus,
 		...copy,
 		score: formatMetric(metric?.nativeReadinessScore ?? null),
 		freshness: `As of ${result.asOfDate}`,
