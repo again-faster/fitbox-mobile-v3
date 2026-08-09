@@ -83,7 +83,12 @@ const resultFor = (status: ReadinessResult['status']): ReadinessResult => {
 				...snapshot,
 				metrics: [
 					{
-						...metrics[0],
+						provider: 'apple_health',
+						asOfDate: '2026-08-07',
+						sleepMinutes: 420,
+						hrvMs: null,
+						restingHr: null,
+						nativeRecoveryScore: null,
 						nativeReadinessScore: null,
 					},
 				],
