@@ -2,6 +2,7 @@ import { wsRpc } from "./api";
 import { getStoredWSSession } from "./auth";
 import { WSApiError } from "./errors";
 import {
+	createLoadingReadinessResult,
 	getMemberReadiness,
 	getReadinessState,
 	normalizeReadinessSnapshot,
@@ -53,18 +54,23 @@ describe("member readiness service", () => {
 		mockedGetStoredWSSession.mockReturnValue(memberSession as never);
 	});
 
-	it("queries an authenticated member without accepting a client user id or date", async () => {
+	it("returns a ready result without accepting a client user id or date", async () => {
 		mockedWsRpc.mockResolvedValue(response as never);
 
-		const snapshot = await getMemberReadiness({ windowDays: 3 });
+		const result = await getMemberReadiness({ windowDays: 3 });
 
 		expect(mockedWsRpc).toHaveBeenCalledWith("member_readiness_snapshot", {
 			p_window_days: 3,
 		});
-		expect(snapshot.asOfDate).toBe("2026-08-09");
-		expect(snapshot.windowStart).toBe("2026-08-06");
-		expect(snapshot.windowEnd).toBe("2026-08-09");
-		expect(snapshot.metrics[0]).toMatchObject({
+		expect(result).toMatchObject({
+			status: "ready",
+			asOfDate: "2026-08-09",
+			error: null,
+		});
+		if (result.status !== "ready") throw new Error("expected ready result");
+		expect(result.data.windowStart).toBe("2026-08-06");
+		expect(result.data.windowEnd).toBe("2026-08-09");
+		expect(result.data.metrics[0]).toMatchObject({
 			provider: "apple_health",
 			sleepMinutes: 420,
 			hrvMs: null,
@@ -72,19 +78,34 @@ describe("member readiness service", () => {
 		});
 	});
 
-	it("rejects unauthenticated or non-member callers before the server query", async () => {
+	it("returns typed auth errors before the server query", async () => {
 		mockedGetStoredWSSession.mockReturnValueOnce(null);
-		await expect(getMemberReadiness()).rejects.toMatchObject({
-			kind: "unauthorized",
+		await expect(getMemberReadiness()).resolves.toMatchObject({
+			status: "error",
+			data: null,
+			asOfDate: null,
+			error: { kind: "unauthorized" },
 		});
 
 		mockedGetStoredWSSession.mockReturnValueOnce({
 			user: { ...memberSession.user, persona: "coach" },
 		} as never);
-		await expect(getMemberReadiness()).rejects.toMatchObject({
-			kind: "forbidden",
+		await expect(getMemberReadiness()).resolves.toMatchObject({
+			status: "error",
+			data: null,
+			asOfDate: null,
+			error: { kind: "forbidden" },
 		});
 		expect(mockedWsRpc).not.toHaveBeenCalled();
+	});
+
+	it("provides a loading result shape for screens before the request starts", () => {
+		expect(createLoadingReadinessResult()).toEqual({
+			status: "loading",
+			data: null,
+			error: null,
+			asOfDate: null,
+		});
 	});
 
 	it("keeps server missingness as null instead of turning it into zero", () => {
@@ -135,6 +156,7 @@ describe("member readiness service", () => {
 				],
 			},
 		],
+		["ready", response.data],
 	])("classifies a %s snapshot without inventing a score", (state, data) => {
 		const snapshot = normalizeReadinessSnapshot({
 			ok: true,
@@ -169,15 +191,54 @@ describe("member readiness service", () => {
 		).toThrow("readiness contract");
 	});
 
-	it("returns no snapshot when the feature is disabled or the endpoint is unavailable", async () => {
-		await expect(
-			getMemberReadiness({ enabled: false }),
-		).resolves.toBeNull();
+	it("returns empty, baseline, and ready result shapes with server-owned dates", async () => {
+		for (const [status, data] of [
+			["empty", { metrics: [] }],
+			[
+				"baseline",
+				{
+					metrics: [
+						{
+							...response.data.metrics[0],
+							readiness_score: null,
+							recovery_score: null,
+						},
+					],
+				},
+			],
+			["ready", response.data],
+		] as const) {
+			mockedWsRpc.mockResolvedValue({
+				...response,
+				data: { ...response.data, ...data },
+			} as never);
+
+			const result = await getMemberReadiness();
+			expect(result.status).toBe(status);
+			expect(result.asOfDate).toBe("2026-08-09");
+			expect(result.error).toBeNull();
+			if (result.status !== "error" && result.status !== "loading")
+				expect(result.data.windowStart).toBe("2026-08-06");
+		}
+	});
+
+	it("returns typed errors for disabled features and unavailable endpoints", async () => {
+		await expect(getMemberReadiness({ enabled: false })).resolves.toMatchObject({
+			status: "error",
+			data: null,
+			asOfDate: null,
+			error: { kind: "feature_disabled" },
+		});
 		expect(mockedWsRpc).not.toHaveBeenCalled();
 
 		mockedWsRpc.mockRejectedValue(
 			new WSApiError("not_found", "Readiness is unavailable.", 404),
 		);
-		await expect(getMemberReadiness()).resolves.toBeNull();
+		await expect(getMemberReadiness()).resolves.toMatchObject({
+			status: "error",
+			data: null,
+			asOfDate: null,
+			error: { kind: "not_found", status: 404 },
+		});
 	});
 });

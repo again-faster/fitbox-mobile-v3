@@ -1,6 +1,7 @@
 import { wsRpc } from "./api";
 import { getStoredWSSession } from "./auth";
 import { WSApiError } from "./errors";
+import type { WSFailureKind } from "./errors";
 
 export type ReadinessProvider =
 	| "apple_health"
@@ -28,13 +29,47 @@ export type ReadinessSnapshot = {
 	metrics: ReadinessMetric[];
 };
 
-export type ReadinessState = "empty" | "baseline" | "scored";
+export type ReadinessState = "empty" | "baseline" | "ready";
 
 export type ReadinessOptions = {
 	windowDays?: number;
 	enabled?: boolean;
 	featureEnabled?: boolean;
 };
+
+export type ReadinessErrorKind = WSFailureKind | "feature_disabled" | "contract";
+
+export type ReadinessError = {
+	kind: ReadinessErrorKind;
+	message: string;
+	status?: number;
+};
+
+export type ReadinessLoadingResult = {
+	status: "loading";
+	data: null;
+	error: null;
+	asOfDate: null;
+};
+
+export type ReadinessDataResult = {
+	status: Exclude<ReadinessState, "ready"> | "ready";
+	data: ReadinessSnapshot;
+	error: null;
+	asOfDate: string;
+};
+
+export type ReadinessErrorResult = {
+	status: "error";
+	data: null;
+	error: ReadinessError;
+	asOfDate: null;
+};
+
+export type ReadinessResult =
+	| ReadinessLoadingResult
+	| ReadinessDataResult
+	| ReadinessErrorResult;
 
 const DEFAULT_WINDOW_DAYS = 7;
 const MAX_WINDOW_DAYS = 31;
@@ -61,10 +96,6 @@ const toNullableNumber = (value: unknown): number | null => {
 	if (!isNullableNumber(value)) throw new Error("readiness contract");
 	return value;
 };
-
-const isUnavailable = (error: unknown): boolean =>
-	error instanceof WSApiError &&
-	["not_found", "server", "network", "timeout"].includes(error.kind);
 
 const requireMemberSession = () => {
 	const session = getStoredWSSession();
@@ -96,6 +127,39 @@ const normalizeWindowDays = (windowDays: number): number => {
 		);
 	return windowDays;
 };
+
+const toReadinessError = (error: unknown): ReadinessError => {
+	if (error instanceof WSApiError) {
+		return {
+			kind: error.kind,
+			message: error.message,
+			...(error.status === undefined ? {} : { status: error.status }),
+		};
+	}
+	if (error instanceof Error && error.message === "readiness contract")
+		return {
+			kind: "contract",
+			message: "Readiness data was not returned in a supported format.",
+		};
+	return {
+		kind: "unknown",
+		message: error instanceof Error ? error.message : "Readiness is unavailable.",
+	};
+};
+
+const createErrorResult = (error: ReadinessError): ReadinessErrorResult => ({
+	status: "error",
+	data: null,
+	error,
+	asOfDate: null,
+});
+
+export const createLoadingReadinessResult = (): ReadinessLoadingResult => ({
+	status: "loading",
+	data: null,
+	error: null,
+	asOfDate: null,
+});
 
 export const normalizeReadinessSnapshot = (raw: unknown): ReadinessSnapshot => {
 	if (!isRecord(raw) || raw.ok !== true || !isRecord(raw.data))
@@ -142,36 +206,6 @@ export const normalizeReadinessSnapshot = (raw: unknown): ReadinessSnapshot => {
 	};
 };
 
-export function getMemberReadiness(
-	options?: Omit<ReadinessOptions, "enabled" | "featureEnabled"> & {
-		enabled?: true;
-		featureEnabled?: true;
-	},
-): Promise<ReadinessSnapshot>;
-export function getMemberReadiness(
-	options: ReadinessOptions & { enabled: false },
-): Promise<ReadinessSnapshot | null>;
-export function getMemberReadiness(
-	options: ReadinessOptions = {},
-): Promise<ReadinessSnapshot | null> {
-	if (!isEnabled(options)) return Promise.resolve(null);
-
-	return (async () => {
-		requireMemberSession();
-		try {
-			const raw = await wsRpc<unknown>("member_readiness_snapshot", {
-				p_window_days: normalizeWindowDays(
-					options.windowDays ?? DEFAULT_WINDOW_DAYS,
-				),
-			});
-			return normalizeReadinessSnapshot(raw);
-		} catch (error) {
-			if (isUnavailable(error)) return null;
-			throw error;
-		}
-	})();
-}
-
 export const getReadinessState = (
 	snapshot: ReadinessSnapshot,
 ): ReadinessState => {
@@ -183,6 +217,34 @@ export const getReadinessState = (
 				metric.nativeRecoveryScore !== null,
 		)
 	)
-		return "scored";
+		return "ready";
 	return "baseline";
+};
+
+export const getMemberReadiness = async (
+	options: ReadinessOptions = {},
+): Promise<ReadinessResult> => {
+	if (!isEnabled(options))
+		return createErrorResult({
+			kind: "feature_disabled",
+			message: "Readiness is disabled for this member.",
+		});
+
+	try {
+		requireMemberSession();
+		const raw = await wsRpc<unknown>("member_readiness_snapshot", {
+			p_window_days: normalizeWindowDays(
+				options.windowDays ?? DEFAULT_WINDOW_DAYS,
+			),
+		});
+		const data = normalizeReadinessSnapshot(raw);
+		return {
+			status: getReadinessState(data),
+			data,
+			error: null,
+			asOfDate: data.asOfDate,
+		};
+	} catch (error) {
+		return createErrorResult(toReadinessError(error));
+	}
 };
