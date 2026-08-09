@@ -138,6 +138,20 @@ describe("member readiness service", () => {
 		});
 	});
 
+	it("preserves missing or invalid connection state as null", () => {
+		const missing = normalizeReadinessSnapshot({
+			...response,
+			data: { ...response.data, has_connection: undefined },
+		});
+		const invalid = normalizeReadinessSnapshot({
+			...response,
+			data: { ...response.data, has_connection: "unknown" },
+		});
+
+		expect(missing.hasConnection).toBeNull();
+		expect(invalid.hasConnection).toBeNull();
+	});
+
 	it.each([
 		["empty", { metrics: [] }],
 		[
@@ -189,6 +203,64 @@ describe("member readiness service", () => {
 				},
 			}),
 		).toThrow("readiness contract");
+
+		expect(() =>
+			normalizeReadinessSnapshot({
+				ok: true,
+				data: {
+					...response.data,
+					as_of_date: "2026-02-30",
+				},
+			}),
+		).toThrow("readiness contract");
+
+		expect(() =>
+			normalizeReadinessSnapshot({
+				ok: true,
+				data: {
+					...response.data,
+					window_end: "2026-08-05",
+				},
+			}),
+		).toThrow("readiness contract");
+
+		expect(() =>
+			normalizeReadinessSnapshot({
+				ok: true,
+				data: {
+					...response.data,
+					metrics: [
+						{
+							...response.data.metrics[0],
+							metric_date: "2026-08-10",
+						},
+					],
+				},
+			}),
+		).toThrow("readiness contract");
+	});
+
+	it("accepts the supported Strava provider and rejects unsupported Oura", () => {
+		const strava = normalizeReadinessSnapshot({
+			...response,
+			data: {
+				...response.data,
+				metrics: [{ ...response.data.metrics[0], provider: "strava" }],
+			},
+		});
+
+		expect(strava.metrics[0]?.provider).toBe("strava");
+		expect(() =>
+			normalizeReadinessSnapshot({
+				...response,
+				data: {
+					...response.data,
+					metrics: [
+						{ ...response.data.metrics[0], provider: "oura" },
+					],
+				},
+			}),
+		).toThrow("readiness contract");
 	});
 
 	it("returns empty, baseline, and ready result shapes with server-owned dates", async () => {
@@ -223,7 +295,9 @@ describe("member readiness service", () => {
 	});
 
 	it("returns typed errors for disabled features and unavailable endpoints", async () => {
-		await expect(getMemberReadiness({ enabled: false })).resolves.toMatchObject({
+		await expect(
+			getMemberReadiness({ enabled: false }),
+		).resolves.toMatchObject({
 			status: "error",
 			data: null,
 			asOfDate: null,
@@ -239,6 +313,37 @@ describe("member readiness service", () => {
 			data: null,
 			asOfDate: null,
 			error: { kind: "not_found", status: 404 },
+		});
+	});
+
+	it("redacts unexpected and backend-internal error messages", async () => {
+		mockedWsRpc.mockRejectedValueOnce(
+			new Error("SQL: member_email=member@example.com; secret=token"),
+		);
+		const unexpected = await getMemberReadiness();
+		expect(unexpected).toMatchObject({
+			status: "error",
+			error: {
+				code: "unknown",
+				kind: "unknown",
+				message: "Readiness could not be loaded.",
+			},
+		});
+		expect(
+			unexpected.status === "error" && unexpected.error.message,
+		).not.toContain("member@example.com");
+
+		mockedWsRpc.mockRejectedValueOnce(
+			new WSApiError("server", "SQL: internal member data", 503),
+		);
+		await expect(getMemberReadiness()).resolves.toMatchObject({
+			status: "error",
+			error: {
+				code: "server",
+				kind: "server",
+				message: "Readiness is temporarily unavailable.",
+				status: 503,
+			},
 		});
 	});
 });

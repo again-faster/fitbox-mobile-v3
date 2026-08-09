@@ -3,13 +3,15 @@ import { getStoredWSSession } from "./auth";
 import { WSApiError } from "./errors";
 import type { WSFailureKind } from "./errors";
 
-export type ReadinessProvider =
+export type ProviderId =
 	| "apple_health"
 	| "health_connect"
 	| "whoop"
-	| "oura"
 	| "garmin"
-	| "fitbit";
+	| "fitbit"
+	| "strava";
+
+export type ReadinessProvider = ProviderId;
 
 export type ReadinessMetric = {
 	provider: ReadinessProvider;
@@ -25,7 +27,7 @@ export type ReadinessSnapshot = {
 	asOfDate: string;
 	windowStart: string;
 	windowEnd: string;
-	hasConnection: boolean;
+	hasConnection: boolean | null;
 	metrics: ReadinessMetric[];
 };
 
@@ -37,9 +39,13 @@ export type ReadinessOptions = {
 	featureEnabled?: boolean;
 };
 
-export type ReadinessErrorKind = WSFailureKind | "feature_disabled" | "contract";
+export type ReadinessErrorKind =
+	| WSFailureKind
+	| "feature_disabled"
+	| "contract";
 
 export type ReadinessError = {
+	code: ReadinessErrorKind;
 	kind: ReadinessErrorKind;
 	message: string;
 	status?: number;
@@ -73,20 +79,43 @@ export type ReadinessResult =
 
 const DEFAULT_WINDOW_DAYS = 7;
 const MAX_WINDOW_DAYS = 31;
-const READINESS_PROVIDERS: ReadinessProvider[] = [
+const READINESS_PROVIDERS: ProviderId[] = [
 	"apple_health",
 	"health_connect",
 	"whoop",
-	"oura",
 	"garmin",
 	"fitbit",
+	"strava",
 ];
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
 	typeof value === "object" && value !== null && !Array.isArray(value);
 
-const isDateOnly = (value: unknown): value is string =>
-	typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+const isDateOnly = (value: unknown): value is string => {
+	if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value))
+		return false;
+	const [yearString, monthString, dayString] = value.split("-");
+	const year = Number(yearString);
+	const month = Number(monthString);
+	const day = Number(dayString);
+	if (year < 1 || month < 1 || month > 12 || day < 1) return false;
+	const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+	const daysInMonth = [
+		31,
+		leapYear ? 29 : 28,
+		31,
+		30,
+		31,
+		30,
+		31,
+		31,
+		30,
+		31,
+		30,
+		31,
+	][month - 1];
+	return daysInMonth !== undefined && day <= daysInMonth;
+};
 
 const isNullableNumber = (value: unknown): value is number | null =>
 	value === null || (typeof value === "number" && Number.isFinite(value));
@@ -96,6 +125,9 @@ const toNullableNumber = (value: unknown): number | null => {
 	if (!isNullableNumber(value)) throw new Error("readiness contract");
 	return value;
 };
+
+const toNullableBoolean = (value: unknown): boolean | null =>
+	typeof value === "boolean" ? value : null;
 
 const requireMemberSession = () => {
 	const session = getStoredWSSession();
@@ -128,22 +160,51 @@ const normalizeWindowDays = (windowDays: number): number => {
 	return windowDays;
 };
 
+const safeReadinessMessage = (kind: ReadinessErrorKind): string => {
+	switch (kind) {
+		case "unauthorized":
+			return "Your Training session has expired.";
+		case "forbidden":
+			return "You do not have access to this Training data.";
+		case "not_found":
+			return "Readiness is not available.";
+		case "rate_limited":
+			return "Readiness is temporarily unavailable. Please try again later.";
+		case "timeout":
+			return "Readiness took too long to load. Please try again.";
+		case "server":
+			return "Readiness is temporarily unavailable.";
+		case "network":
+			return "Check your internet connection and try again.";
+		case "feature_disabled":
+			return "Readiness is disabled for this member.";
+		case "contract":
+			return "Readiness data was not returned in a supported format.";
+		case "unknown":
+			return "Readiness could not be loaded.";
+	}
+};
+
 const toReadinessError = (error: unknown): ReadinessError => {
 	if (error instanceof WSApiError) {
 		return {
+			code: error.kind,
 			kind: error.kind,
-			message: error.message,
+			message: safeReadinessMessage(error.kind),
 			...(error.status === undefined ? {} : { status: error.status }),
 		};
 	}
-	if (error instanceof Error && error.message === "readiness contract")
+	if (error instanceof Error && error.message === "readiness contract") {
 		return {
+			code: "contract",
 			kind: "contract",
-			message: "Readiness data was not returned in a supported format.",
+			message: safeReadinessMessage("contract"),
 		};
+	}
 	return {
+		code: "unknown",
 		kind: "unknown",
-		message: error instanceof Error ? error.message : "Readiness is unavailable.",
+		message: safeReadinessMessage("unknown"),
 	};
 };
 
@@ -171,6 +232,8 @@ export const normalizeReadinessSnapshot = (raw: unknown): ReadinessSnapshot => {
 		!isDateOnly(data.window_start) ||
 		!isDateOnly(data.window_end) ||
 		data.window_start > data.window_end ||
+		data.as_of_date < data.window_start ||
+		data.as_of_date > data.window_end ||
 		!Array.isArray(data.metrics)
 	)
 		throw new Error("readiness contract");
@@ -182,7 +245,10 @@ export const normalizeReadinessSnapshot = (raw: unknown): ReadinessSnapshot => {
 			!READINESS_PROVIDERS.includes(
 				rawMetric.provider as ReadinessProvider,
 			) ||
-			!isDateOnly(rawMetric.metric_date)
+			!isDateOnly(rawMetric.metric_date) ||
+			rawMetric.metric_date < data.window_start ||
+			rawMetric.metric_date > data.window_end ||
+			rawMetric.metric_date > data.as_of_date
 		)
 			throw new Error("readiness contract");
 
@@ -201,7 +267,7 @@ export const normalizeReadinessSnapshot = (raw: unknown): ReadinessSnapshot => {
 		asOfDate: data.as_of_date,
 		windowStart: data.window_start,
 		windowEnd: data.window_end,
-		hasConnection: data.has_connection === true,
+		hasConnection: toNullableBoolean(data.has_connection),
 		metrics,
 	};
 };
@@ -226,6 +292,7 @@ export const getMemberReadiness = async (
 ): Promise<ReadinessResult> => {
 	if (!isEnabled(options))
 		return createErrorResult({
+			code: "feature_disabled",
 			kind: "feature_disabled",
 			message: "Readiness is disabled for this member.",
 		});
