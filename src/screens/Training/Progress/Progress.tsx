@@ -55,6 +55,16 @@ type ProgressScreenProps = Pick<Props, 'navigation'> & {
 	readinessFeatureEnabled: boolean;
 };
 
+type ReadinessSession = ReturnType<typeof getStoredWSSession>;
+
+export const shouldEnableReadinessQuery = (
+	featureEnabled: boolean,
+	session: ReadinessSession,
+): boolean =>
+	featureEnabled &&
+	!!session?.user.id &&
+	!!session?.user.active_tenant_id;
+
 const providerNames: Record<ProviderId, string> = {
 	apple_health: 'Apple Health',
 	health_connect: 'Health Connect',
@@ -91,17 +101,6 @@ const hasNativeMetric = (metric: ReadinessMetric): boolean =>
 const formatScore = (score: number | null): string =>
 	score === null ? 'Not available' : String(score);
 
-const trendCopy = (scores: ReadinessHistoryPoint[]): string => {
-	const scored = scores.filter(
-		(point): point is ReadinessHistoryPoint & { score: number } =>
-			point.score !== null,
-	);
-	if (scored.length < 2) return 'Not enough scored data';
-	const change = scored[scored.length - 1].score - scored[0].score;
-	if (change === 0) return 'Stable';
-	return `${change > 0 ? 'Up' : 'Down'} ${Math.abs(change)}`;
-};
-
 export const readinessHistoryCopy = (
 	result: ReadinessResult,
 ): ReadinessHistoryCopy => {
@@ -133,36 +132,18 @@ export const readinessHistoryCopy = (
 	const sortedMetrics = [...result.data.metrics].sort((left, right) =>
 		left.asOfDate.localeCompare(right.asOfDate),
 	);
-	const points = sortedMetrics.slice(-7).map(metric => ({
-		date: metric.asOfDate,
-		score: metric.nativeReadinessScore,
-	}));
-	const scoredMetrics = sortedMetrics.filter(
-		metric => metric.nativeReadinessScore !== null,
-	);
+	const points: ReadinessHistoryPoint[] = [];
 	const nativeMetrics = sortedMetrics.filter(hasNativeMetric).slice(-7);
-	const latestScoredMetric = scoredMetrics[scoredMetrics.length - 1];
-	const latestNativeMetric = sortedMetrics[sortedMetrics.length - 1];
-	const hasReadinessScore = latestScoredMetric !== undefined;
-	const hasRecoveryOnlyData =
-		!hasReadinessScore &&
-		sortedMetrics.some(metric => metric.nativeRecoveryScore !== null);
 
 	let statusLabel = 'Empty';
 	let title = 'No readiness history yet';
 	let detail = 'Connect a supported provider to add recovery context.';
 	let confidence = 'Not available';
-	if (result.status === 'ready' && hasReadinessScore) {
-		statusLabel = 'Ready';
-		title = 'Readiness trend';
-		detail = 'Your recent server-reported readiness scores.';
-		confidence = 'Measured';
-	} else if (result.status === 'ready' && hasRecoveryOnlyData) {
-		statusLabel = 'Baseline';
-		title = 'Recovery data available';
+	if (result.status === 'ready') {
+		statusLabel = 'Unavailable';
+		title = 'Fitbox readiness unavailable';
 		detail =
-			'Recovery data is available, but a readiness score is not available yet.';
-		confidence = 'Score not available';
+			'No Fitbox readiness score is available in this window. Provider-native scores are shown separately.';
 	} else if (result.status === 'baseline') {
 		statusLabel = 'Baseline';
 		title = 'Building your baseline';
@@ -177,12 +158,8 @@ export const readinessHistoryCopy = (
 		title,
 		detail,
 		confidence,
-		freshness: `As of ${
-			latestScoredMetric?.asOfDate ??
-			latestNativeMetric?.asOfDate ??
-			result.asOfDate
-		}`,
-		trend: trendCopy(points),
+		freshness: 'Not available',
+		trend: 'Not available',
 		points,
 		nativeMetrics,
 	};
@@ -368,10 +345,17 @@ const ProgressScreen = ({
 				windowDays: 31,
 				featureEnabled: readinessFeatureEnabled,
 			}),
-		enabled: readinessFeatureEnabled,
+		enabled: shouldEnableReadinessQuery(
+			readinessFeatureEnabled,
+			session,
+		),
 		staleTime: 120_000,
 	});
-	const readinessResult = readinessFeatureEnabled
+	const readinessQueryEnabled = shouldEnableReadinessQuery(
+		readinessFeatureEnabled,
+		session,
+	);
+	const readinessResult = readinessQueryEnabled
 		? (readinessQuery.data ?? createLoadingReadinessResult())
 		: null;
 	const totals = useMemo(() => {
@@ -396,7 +380,7 @@ const ProgressScreen = ({
 	const refresh = () => {
 		if (content.needsResultQuery) void results.refetch();
 		if (content.needsRMQuery) void prs.refetch();
-		if (readinessFeatureEnabled) void readinessQuery.refetch();
+		if (readinessQueryEnabled) void readinessQuery.refetch();
 	};
 	const loading =
 		(content.needsResultQuery && results.isLoading) ||
@@ -414,7 +398,7 @@ const ProgressScreen = ({
 					refreshing={
 						(content.needsResultQuery && results.isRefetching) ||
 						(content.needsRMQuery && prs.isRefetching) ||
-						(readinessFeatureEnabled && readinessQuery.isRefetching)
+						(readinessQueryEnabled && readinessQuery.isRefetching)
 					}
 					onRefresh={refresh}
 					tintColor={trainingTheme.colors.primary}
