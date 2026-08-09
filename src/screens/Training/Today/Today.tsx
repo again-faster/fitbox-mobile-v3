@@ -468,11 +468,14 @@ const Today = () => {
 		if (!readinessResult) return null;
 		const summary = readinessCopy(readinessResult);
 		const native = summary.metric;
+		const nativeText = native
+			? `${providerNames[native.provider]} native · Sleep ${formatReadinessMetric(native.sleepMinutes, ' min')} · HRV ${formatReadinessMetric(native.hrvMs, ' ms')} · Resting HR ${formatReadinessMetric(native.restingHr, ' bpm')} · Recovery ${formatReadinessMetric(native.nativeRecoveryScore)} · Native readiness ${formatReadinessMetric(native.nativeReadinessScore)}`
+			: 'No provider-native metrics available';
 		return (
 			<TouchableOpacity
 				style={styles.readinessCard}
 				accessibilityRole="button"
-				accessibilityLabel={`Readiness. ${summary.title}. ${summary.detail}`}
+				accessibilityLabel={`Readiness. ${summary.title}. Score ${summary.score}. Band ${summary.band}. Confidence ${summary.confidence}. Freshness ${summary.freshness}. ${nativeText}`}
 				onPress={() => nav.navigate('TrainingWearables')}
 			>
 				<View style={styles.readinessIcon}>
@@ -488,25 +491,19 @@ const Today = () => {
 					<Text style={styles.readinessDetail}>{summary.detail}</Text>
 					<View style={styles.readinessStats}>
 						<Text style={styles.readinessMeta}>
-							Score {summary.scoreLabel}
+							Score {summary.score}
 						</Text>
 						<Text style={styles.readinessMeta}>
-							Band {summary.bandLabel}
+							Band {summary.band}
 						</Text>
 						<Text style={styles.readinessMeta}>
-							Confidence {summary.confidenceLabel}
+							Confidence {summary.confidence}
 						</Text>
 					</View>
 					<Text style={styles.readinessMeta}>
-						{summary.freshnessLabel}
+						{summary.freshness}
 					</Text>
-					{native ? (
-						<Text style={styles.readinessMeta}>
-							{providerNames[native.provider]} native · Sleep{' '}
-							{formatReadinessMetric(native.sleepMinutes, ' min')} · HRV{' '}
-							{formatReadinessMetric(native.hrvMs, ' ms')}
-						</Text>
-					) : null}
+					<Text style={styles.readinessMeta}>{nativeText}</Text>
 				</View>
 				<Ionicons
 					name="chevron-right"

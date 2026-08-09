@@ -47,7 +47,12 @@ jest.mock("react-native-safe-area-context", () => ({
 }));
 
 import type { ReadinessResult } from "@/services/workoutStudio/readiness";
-import { readinessCopy } from "./Today";
+import { useQuery } from "@tanstack/react-query";
+import { createElement } from "react";
+import { render } from "@testing-library/react-native";
+import Today, { readinessCopy } from "./Today";
+
+const mockedUseQuery = jest.mocked(useQuery);
 
 const snapshot = {
 	asOfDate: "2026-08-09",
@@ -68,6 +73,43 @@ const snapshot = {
 };
 
 describe("Today readiness state presentation", () => {
+	beforeEach(() => {
+		jest.clearAllMocks();
+		mockedUseQuery.mockImplementation((options) => {
+			const key = options.queryKey as readonly unknown[];
+			if (key[0] === "ws-member-readiness-today") {
+				return {
+					data: {
+						status: "ready",
+						data: {
+							...snapshot,
+							hasConnection: true,
+							metrics: [
+								{
+									...snapshot.metrics[0],
+									nativeReadinessScore: 81,
+								},
+							],
+						},
+						error: null,
+						asOfDate: snapshot.asOfDate,
+					},
+					isLoading: false,
+					isRefetching: false,
+					isError: false,
+					refetch: jest.fn(),
+				} as never;
+			}
+			return {
+				data: [],
+				isLoading: false,
+				isRefetching: false,
+				isError: false,
+				refetch: jest.fn(),
+			} as never;
+		});
+	});
+
 	it.each([
 		[
 			"loading",
@@ -126,4 +168,20 @@ describe("Today readiness state presentation", () => {
 				expect(copy.detail).toBe(result.error.message);
 		},
 	);
+
+	it("renders the readiness summary values and provider-native metrics", () => {
+		const screen = render(createElement(Today));
+
+		expect(screen.getByLabelText(/Score 81/)).toBeTruthy();
+		expect(screen.getByText("Score 81")).toBeTruthy();
+		expect(screen.getByText("Band Ready")).toBeTruthy();
+		expect(screen.getByText("Confidence Measured")).toBeTruthy();
+		expect(screen.getByText("As of 2026-08-09")).toBeTruthy();
+		expect(
+			screen.getByText(
+				/Apple Health native · Sleep Not available · HRV Not available/,
+			),
+		).toBeTruthy();
+		expect(screen.queryByText(/undefined/)).toBeNull();
+	});
 });
