@@ -16,8 +16,10 @@ jest.mock("@tanstack/react-query", () => ({
 import { createElement } from "react";
 import { fireEvent, render } from "@testing-library/react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { StackScreenProps } from "@react-navigation/stack";
 import { getStoredWSSession } from "@/services/workoutStudio/auth";
 import type { MemberNotification } from "@/services/workoutStudio/notifications";
+import type { TrainingStackParamList } from "@/types/navigation";
 import NotificationsInbox, {
 	hasMemberNotificationSession,
 	notificationInboxStateCopy,
@@ -37,6 +39,15 @@ const memberSession = {
 		persona: "member" as const,
 		active_tenant_id: "tenant-1",
 	},
+};
+
+const notificationsRoute: StackScreenProps<
+	TrainingStackParamList,
+	"TrainingNotifications"
+>["route"] = {
+	key: "NotificationsTest",
+	name: "TrainingNotifications",
+	params: undefined,
 };
 
 const notifications: MemberNotification[] = [
@@ -145,6 +156,7 @@ describe("Notifications Inbox", () => {
 		const screen = render(
 			createElement(NotificationsInbox, {
 				navigation: { navigate: jest.fn(), goBack: jest.fn() } as never,
+				route: notificationsRoute,
 			}),
 		);
 
@@ -170,6 +182,7 @@ describe("Notifications Inbox", () => {
 		const screen = render(
 			createElement(NotificationsInbox, {
 				navigation: { navigate: jest.fn(), goBack: jest.fn() } as never,
+				route: notificationsRoute,
 			}),
 		);
 
@@ -188,6 +201,7 @@ describe("Notifications Inbox", () => {
 		const screen = render(
 			createElement(NotificationsInbox, {
 				navigation: { navigate: jest.fn(), goBack: jest.fn() } as never,
+				route: notificationsRoute,
 			}),
 		);
 
