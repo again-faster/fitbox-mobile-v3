@@ -54,35 +54,22 @@ type MetricValueKey =
 
 const latestUsefulMetric = (
 	metrics: ReadinessMetric[],
-): ReadinessMetric | null => {
-	const sortedMetrics = [...metrics].sort((left, right) =>
-		right.asOfDate.localeCompare(left.asOfDate),
-	);
-	const latestMetricWithData = sortedMetrics.find(metric =>
-		(
-			[
-				'sleepMinutes',
-				'hrvMs',
-				'restingHr',
-				'nativeRecoveryScore',
-				'nativeReadinessScore',
-			] as MetricValueKey[]
-		).some(key => metric[key] !== null),
-	);
-	if (!latestMetricWithData) return null;
+	key: MetricValueKey,
+): ReadinessMetric | null =>
+	[...metrics]
+		.sort((left, right) => right.asOfDate.localeCompare(left.asOfDate))
+		.find(metric => metric[key] !== null) ?? null;
 
-	const latestValue = <K extends MetricValueKey>(key: K): ReadinessMetric[K] =>
-		sortedMetrics.find(metric => metric[key] !== null)?.[key] ?? null;
-
-	return {
-		...latestMetricWithData,
-		sleepMinutes: latestValue('sleepMinutes'),
-		hrvMs: latestValue('hrvMs'),
-		restingHr: latestValue('restingHr'),
-		nativeRecoveryScore: latestValue('nativeRecoveryScore'),
-		nativeReadinessScore: latestValue('nativeReadinessScore'),
-	};
-};
+const hasUsefulMetric = (metric: ReadinessMetric): boolean =>
+	(
+		[
+			'sleepMinutes',
+			'hrvMs',
+			'restingHr',
+			'nativeRecoveryScore',
+			'nativeReadinessScore',
+		] as MetricValueKey[]
+	).some(key => metric[key] !== null);
 
 const formatMetric = (value: number | null, suffix = ''): string =>
 	value === null ? 'Not available' : `${value}${suffix}`;
@@ -97,6 +84,7 @@ type ReadinessCopy = {
 	confidence: string;
 	freshness: string;
 	metric: ReadinessMetric | null;
+	metrics: ReadinessMetric[];
 };
 
 export const wearablesReadinessCopy = (
@@ -111,8 +99,9 @@ export const wearablesReadinessCopy = (
 			score: 'Not available',
 			band: 'Not available',
 			confidence: 'Not available',
-			freshness: 'Not available',
+		freshness: 'Not available',
 			metric: null,
+			metrics: [],
 		};
 	if (result.status === 'error')
 		return {
@@ -125,9 +114,19 @@ export const wearablesReadinessCopy = (
 			confidence: 'Not available',
 			freshness: 'Not available',
 			metric: null,
+			metrics: [],
 		};
 
-	const metric = latestUsefulMetric(result.data.metrics);
+	const usefulMetrics = result.data.metrics.filter(hasUsefulMetric);
+	const scoreMetric = latestUsefulMetric(
+		usefulMetrics,
+		'nativeReadinessScore',
+	);
+	const recoveryMetric = latestUsefulMetric(
+		usefulMetrics,
+		'nativeRecoveryScore',
+	);
+	const metric = scoreMetric ?? recoveryMetric ?? usefulMetrics[0] ?? null;
 	const hasReadinessScore =
 	metric !== null && metric.nativeReadinessScore !== null;
 	const hasRecoveryScore =
@@ -177,8 +176,11 @@ export const wearablesReadinessCopy = (
 		status: displayStatus,
 		...copy,
 		score: formatMetric(metric?.nativeReadinessScore ?? null),
-		freshness: `As of ${result.asOfDate}`,
+		freshness: metric
+			? `As of ${metric.asOfDate}`
+			: `As of ${result.asOfDate}`,
 		metric,
+		metrics: usefulMetrics,
 	};
 };
 
@@ -223,16 +225,21 @@ export const WearablesReadinessSummary = ({
 };
 
 type ProviderNativeStatusProps = {
-	metric: ReadinessMetric | null;
+	metrics: ReadinessMetric[];
 	connectionStatus: string;
 };
 
 export const ProviderNativeStatus = ({
-	metric,
+	metrics,
 	connectionStatus,
 }: ProviderNativeStatusProps) => {
-	const metricText = metric
-		? `${providerNames[metric.provider]} native metrics. Native readiness ${formatMetric(metric.nativeReadinessScore)}. Recovery ${formatMetric(metric.nativeRecoveryScore)}. Sleep ${formatMetric(metric.sleepMinutes, ' min')}. HRV ${formatMetric(metric.hrvMs, ' ms')}. Resting HR ${formatMetric(metric.restingHr, ' bpm')}. As of ${metric.asOfDate}.`
+	const metricText = metrics.length
+		? metrics
+				.map(
+					metric =>
+						`${providerNames[metric.provider]} native metrics. Native readiness ${formatMetric(metric.nativeReadinessScore)}. Recovery ${formatMetric(metric.nativeRecoveryScore)}. Sleep ${formatMetric(metric.sleepMinutes, ' min')}. HRV ${formatMetric(metric.hrvMs, ' ms')}. Resting HR ${formatMetric(metric.restingHr, ' bpm')}. As of ${metric.asOfDate}.`,
+				)
+				.join(' ')
 		: 'No provider-native metrics available.';
 
 	return (
@@ -356,9 +363,10 @@ const Wearables = ({ navigation }: Props) => {
 		);
 	}
 
-	const readinessMetric = readinessResult
-		? wearablesReadinessCopy(readinessResult).metric
+	const readinessCopy = readinessResult
+		? wearablesReadinessCopy(readinessResult)
 		: null;
+	const readinessMetrics = readinessCopy?.metrics ?? [];
 	const nativeConnectionStatus =
 		Platform.OS === 'ios'
 			? appleConnected
@@ -497,7 +505,7 @@ const Wearables = ({ navigation }: Props) => {
 					<WearablesReadinessSummary result={readinessResult} />
 				)}
 				<ProviderNativeStatus
-					metric={readinessMetric}
+					metrics={readinessMetrics}
 					connectionStatus={nativeConnectionStatus}
 				/>
 			</ScrollView>

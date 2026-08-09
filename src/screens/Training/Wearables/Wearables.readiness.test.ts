@@ -119,6 +119,43 @@ describe('Wearables readiness presentation', () => {
 		expect(copy.score).toBe('81');
 		expect(copy.metric?.nativeReadinessScore).toBe(81);
 		expect(copy.metric?.asOfDate).toBe('2026-08-08');
+		expect(copy.freshness).toBe('As of 2026-08-08');
+	});
+
+	it('keeps mixed-provider metrics separate and preserves the selected row source', () => {
+		const appleSleepMetric: ReadinessMetric = {
+			...metric,
+			asOfDate: '2026-08-09',
+			nativeReadinessScore: null,
+			sleepMinutes: 420,
+		};
+		const whoopScoreMetric: ReadinessMetric = {
+			...metric,
+			provider: 'whoop',
+			asOfDate: '2026-08-08',
+			nativeReadinessScore: 85,
+		};
+		const copy = wearablesReadinessCopy(
+			resultWithMetrics([appleSleepMetric, whoopScoreMetric]),
+		);
+		const native = render(
+			createElement(ProviderNativeStatus, {
+				metrics: copy.metrics,
+				connectionStatus: 'Provider connections available',
+			}),
+		);
+
+		expect(copy.metric?.provider).toBe('whoop');
+		expect(copy.metric?.nativeReadinessScore).toBe(85);
+		expect(copy.metric?.sleepMinutes).toBeNull();
+		expect(copy.freshness).toBe('As of 2026-08-08');
+		expect(native.getByText(/Apple Health native metrics/)).toBeTruthy();
+		expect(native.getByText(/WHOOP native metrics/)).toBeTruthy();
+		expect(
+			native.getByLabelText(
+				/Apple Health native metrics.*WHOOP native metrics/,
+			),
+		).toBeTruthy();
 	});
 
 	it('renders the Fitbox summary values and separate native status', () => {
@@ -129,7 +166,7 @@ describe('Wearables readiness presentation', () => {
 		);
 		const native = render(
 			createElement(ProviderNativeStatus, {
-				metric,
+				metrics: [metric],
 				connectionStatus: 'Apple Health connected',
 			}),
 		);
