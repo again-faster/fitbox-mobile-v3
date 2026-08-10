@@ -41,7 +41,7 @@ const WorkoutList = () => {
 	const sections = useMemo(() => {
 		if (!data) return [];
 		const grouped: Record<string, WorkoutAssignment[]> = {};
-		data.forEach(a => {
+		data.forEach((a: WorkoutAssignment) => {
 			const d = a.due_date;
 			if (!grouped[d]) grouped[d] = [];
 			grouped[d]!.push(a);

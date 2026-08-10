@@ -441,7 +441,7 @@ const ResultDetail = ({ route, navigation }: Props) => {
 			{hasSectionResults ? (
 				<>
 					<Text style={styles.sectionTitle}>Section scores</Text>
-					{sectionResults.data?.map(sectionResult => (
+					{sectionResults.data?.map((sectionResult: SectionResult) => (
 						<TrainingCard key={sectionResult.id}>
 							<View style={styles.sectionScoreHeading}>
 								<Text style={styles.sectionScoreName}>
@@ -451,7 +451,7 @@ const ResultDetail = ({ route, navigation }: Props) => {
 									{formatSectionScore(sectionResult)}
 								</Text>
 							</View>
-							{sectionResult.section_score_entries.map(entry => (
+							{sectionResult.section_score_entries.map((entry: SectionScoreEntry) => (
 								<View
 									key={entry.id}
 									style={styles.sectionEntryRow}
@@ -479,7 +479,7 @@ const ResultDetail = ({ route, navigation }: Props) => {
 				<>
 					<Text style={styles.sectionTitle}>Sets</Text>
 					<TrainingCard>
-						{sets.data.map((set, index) => (
+						{sets.data.map((set: ResultSet, index: number) => (
 							<View
 								key={set.id}
 								style={[
@@ -516,7 +516,7 @@ const ResultDetail = ({ route, navigation }: Props) => {
 				<>
 					<Text style={styles.sectionTitle}>Coach feedback</Text>
 					<View style={styles.feedbackList}>
-						{feedback.data.map(item => (
+						{feedback.data.map((item: CoachFeedback) => (
 							<TrainingCard
 								key={item.id}
 								style={styles.feedbackCard}

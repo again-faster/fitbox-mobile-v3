@@ -595,7 +595,7 @@ const ProgressScreen = ({
 									message="Choose a longer time range or complete your next workout."
 								/>
 							) : (
-								results.data?.slice(0, 5).map((item) => (
+								results.data?.slice(0, 5).map((item: ProgressResult) => (
 									<TouchableOpacity
 										key={item.id}
 										style={styles.activity}

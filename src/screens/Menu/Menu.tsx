@@ -1,4 +1,5 @@
 import useAuth from '@/auth/hooks/useAuth';
+import React from 'react';
 import { ScrollView, Text } from '@/components/atoms';
 import useSwitchableUsers from '@/hooks/useSwitchableUsers';
 import { navigate, resetRoot } from '@/navigators/NavigationRef';
@@ -388,14 +389,13 @@ const Menu = ({ navigation }: MenuScreenProps) => {
 							key={i}
 							style={styles.menuOptionContainer}
 						>
-							<List.Subheader
-								style={[
+							{React.createElement(List.Subheader as React.ComponentType<any>, {
+								style: [
 									layout.fontMontserratRegular,
 									styles.sectionTitle,
-								]}
-							>
-								{op.title}
-							</List.Subheader>
+								],
+								children: op.title,
+							})}
 							{options}
 						</List.Section>
 					);

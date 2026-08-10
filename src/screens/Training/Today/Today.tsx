@@ -5,6 +5,7 @@ import type {
 	AthleteRM,
 	ProgramContext,
 	WellnessResponse,
+	WorkoutAssignment,
 } from '@/services/workoutStudio/types';
 import { getMemberWorkouts } from '@/services/workoutStudio/workouts';
 import { mmkvStorage } from '@/storage';
@@ -244,7 +245,11 @@ const useToday = () => {
 	const ids = useMemo(
 		() =>
 			Array.from(
-				new Set((assignments.data ?? []).map(a => a.workout_id)),
+				new Set(
+					(assignments.data ?? []).map(
+						(a: WorkoutAssignment) => a.workout_id,
+					),
+				),
 			).sort(),
 		[assignments.data],
 	);
@@ -589,7 +594,7 @@ const Today = () => {
 				</View>
 			);
 		}
-		return assignments.data?.map(a => {
+		return assignments.data?.map((a: WorkoutAssignment) => {
 			const programContext = programCtxMap.get(a.workout_id);
 
 			return (
@@ -891,7 +896,7 @@ const Today = () => {
 							showsHorizontalScrollIndicator={false}
 							contentContainerStyle={styles.prScroll}
 						>
-							{recentPRs.data?.map(pr => (
+							{recentPRs.data?.map((pr: AthleteRM) => (
 								<TouchableOpacity
 									key={pr.id}
 									style={[

@@ -98,7 +98,7 @@ const Wellness = ({ navigation }: Props) => {
 	});
 
 	const todayResponse = history.data?.find(
-		item => item.recorded_for === today,
+		(item: WellnessResponseSummary) => item.recorded_for === today,
 	);
 
 	const dimensions = useQuery({
@@ -206,7 +206,7 @@ const Wellness = ({ navigation }: Props) => {
 		if (!responseId || !dimensions.data)
 			throw new Error('Wellness response could not be created.');
 		await Promise.all(
-			dimensions.data.map(d =>
+			dimensions.data.map((d: WellnessDimension) =>
 				wsApi().post('wellness_dimension_responses', {
 					searchParams: { on_conflict: 'response_id,dimension_id' },
 					json: {
@@ -497,7 +497,7 @@ const Wellness = ({ navigation }: Props) => {
 				</Text>
 			) : null}
 
-			{dimensions.data?.map(d => (
+			{dimensions.data?.map((d: WellnessDimension) => (
 				<View key={d.id} style={styles.sliderRow}>
 					<View style={styles.sliderHeader}>
 						<Text style={styles.dimensionLabel}>{d.label}</Text>
@@ -567,7 +567,7 @@ const Wellness = ({ navigation }: Props) => {
 			{(history.data?.length ?? 0) > 0 ? (
 				<>
 					<Text style={styles.sectionHeader}>Recent check-ins</Text>
-					{history.data?.map(item => (
+					{history.data?.map((item: WellnessResponseSummary) => (
 						<View key={item.id} style={styles.historyRow}>
 							<View style={{ flex: 1 }}>
 								<Text style={styles.historyDate}>
@@ -598,7 +598,7 @@ const Wellness = ({ navigation }: Props) => {
 			{(trends.data?.length ?? 0) > 0 && (
 				<>
 					<Text style={styles.sectionHeader}>Your 7-day trend</Text>
-					{trends.data?.map(t => {
+					{trends.data?.map((t: WellnessTrend) => {
 						const recent = t.recent_avg ?? 0;
 						const baseline = t.baseline_avg ?? 0;
 						const delta = recent - baseline;

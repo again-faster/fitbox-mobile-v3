@@ -427,7 +427,7 @@ const WeeklyRecap = ({ navigation }: Props) => {
 								this period.
 							</Text>
 						) : (
-							snapshot.workouts.map((workout) => (
+							snapshot.workouts.map((workout: WeeklyRecapWorkout) => (
 								<TouchableOpacity
 									key={workout.id}
 									style={styles.activity}

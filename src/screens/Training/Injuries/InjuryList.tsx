@@ -64,9 +64,10 @@ const InjuryList = ({ navigation }: Props) => {
 	});
 
 	const injuries = query.data ?? [];
-	const active = injuries.filter(injury => injury.status === 'active');
+	const active = injuries.filter((injury: Injury) => injury.status === 'active');
 	const resolved = injuries.filter(
-		injury => injury.status === 'recovered' || injury.status === 'stopped',
+		(injury: Injury) =>
+			injury.status === 'recovered' || injury.status === 'stopped',
 	);
 	const sections: Section[] = [];
 	if (active.length > 0) sections.push({ title: 'Active', data: active });

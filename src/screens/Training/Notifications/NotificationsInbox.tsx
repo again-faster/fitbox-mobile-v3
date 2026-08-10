@@ -144,7 +144,9 @@ const NotificationsInbox = ({ navigation }: Props) => {
 	});
 
 	const notifications = query.data;
-	const unread = notifications?.filter((item) => !item.read_at).length ?? 0;
+	const unread =
+		notifications?.filter((item: MemberNotification) => !item.read_at)
+			.length ?? 0;
 	const state = notificationInboxViewState(
 		queryEnabled,
 		query.isLoading,

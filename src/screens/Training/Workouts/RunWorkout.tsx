@@ -427,7 +427,7 @@ const RunWorkout = ({ route, navigation }: Props) => {
 
 	const missingSectionScoreCount = () =>
 		workout?.workout_sections.filter(
-			section =>
+			(section: WorkoutSection) =>
 				section.section_mode === 'workout' &&
 				section.is_scored &&
 				!loggedSectionIds.includes(section.id),

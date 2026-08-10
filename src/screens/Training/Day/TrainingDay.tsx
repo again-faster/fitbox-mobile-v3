@@ -1,5 +1,6 @@
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import { getMemberWorkouts } from '@/services/workoutStudio/workouts';
+import type { WorkoutAssignment } from '@/services/workoutStudio/types';
 import { trainingTheme } from '@/theme/training';
 import type { TrainingStackScreenProps } from '@/types/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -97,7 +98,7 @@ const TrainingDay = ({
 			);
 		}
 
-		return assignments.data.map(assignment => (
+		return assignments.data.map((assignment: WorkoutAssignment) => (
 			<TouchableOpacity
 				key={assignment.id}
 				style={styles.workoutCard}
