@@ -227,13 +227,16 @@ export const normalizeReadinessSnapshot = (raw: unknown): ReadinessSnapshot => {
 		throw new Error("readiness contract");
 
 	const { data } = raw;
+	const asOfDate = data.as_of_date;
+	const windowStart = data.window_start;
+	const windowEnd = data.window_end;
 	if (
-		!isDateOnly(data.as_of_date) ||
-		!isDateOnly(data.window_start) ||
-		!isDateOnly(data.window_end) ||
-		data.window_start > data.window_end ||
-		data.as_of_date < data.window_start ||
-		data.as_of_date > data.window_end ||
+		!isDateOnly(asOfDate) ||
+		!isDateOnly(windowStart) ||
+		!isDateOnly(windowEnd) ||
+		windowStart > windowEnd ||
+		asOfDate < windowStart ||
+		asOfDate > windowEnd ||
 		!Array.isArray(data.metrics)
 	)
 		throw new Error("readiness contract");
@@ -246,9 +249,9 @@ export const normalizeReadinessSnapshot = (raw: unknown): ReadinessSnapshot => {
 				rawMetric.provider as ReadinessProvider,
 			) ||
 			!isDateOnly(rawMetric.metric_date) ||
-			rawMetric.metric_date < data.window_start ||
-			rawMetric.metric_date > data.window_end ||
-			rawMetric.metric_date > data.as_of_date
+			rawMetric.metric_date < windowStart ||
+			rawMetric.metric_date > windowEnd ||
+			rawMetric.metric_date > asOfDate
 		)
 			throw new Error("readiness contract");
 
@@ -264,9 +267,9 @@ export const normalizeReadinessSnapshot = (raw: unknown): ReadinessSnapshot => {
 	});
 
 	return {
-		asOfDate: data.as_of_date,
-		windowStart: data.window_start,
-		windowEnd: data.window_end,
+		asOfDate,
+		windowStart,
+		windowEnd,
 		hasConnection: toNullableBoolean(data.has_connection),
 		metrics,
 	};
