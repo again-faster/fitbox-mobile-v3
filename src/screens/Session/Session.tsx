@@ -119,8 +119,7 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 	const isAttending = useMemo(
 		() =>
 			!!session?.member_attendance?.some(
-				(e: SessionMemberAttendanceSchemaType) =>
-					e.user_id === loggedInUser?.id,
+				e => e.user_id === loggedInUser?.id,
 			),
 		[session, loggedInUser?.id],
 	);
