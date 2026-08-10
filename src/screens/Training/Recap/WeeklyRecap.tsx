@@ -12,6 +12,7 @@ import type { StackScreenProps } from "@react-navigation/stack";
 import { useQuery } from "@tanstack/react-query";
 import moment from "moment";
 import { useWorkoutStudio } from "@/context/WorkoutStudioProvider";
+import { MemberScreen } from "@/components/member";
 import { getStoredWSSession } from "@/services/workoutStudio/auth";
 import {
 	getMemberEngagement,
@@ -326,6 +327,7 @@ const WeeklyRecap = ({ navigation }: Props) => {
 		: `Weekly recap. ${copy.title}.`;
 
 	return (
+		<MemberScreen contentContainerStyle={styles.screenContent}>
 		<ScrollView
 			style={styles.screen}
 			contentContainerStyle={styles.container}
@@ -425,7 +427,7 @@ const WeeklyRecap = ({ navigation }: Props) => {
 								this period.
 							</Text>
 						) : (
-							snapshot.workouts.map((workout) => (
+							snapshot.workouts.map((workout: WeeklyRecapWorkout) => (
 								<TouchableOpacity
 									key={workout.id}
 									style={styles.activity}
@@ -444,7 +446,7 @@ const WeeklyRecap = ({ navigation }: Props) => {
 										<Ionicons
 											name="check"
 											size={16}
-											color="#FFFFFF"
+										color={trainingTheme.colors.surface}
 										/>
 									</View>
 									<View style={styles.copy}>
@@ -491,11 +493,13 @@ const WeeklyRecap = ({ navigation }: Props) => {
 				</>
 			)}
 		</ScrollView>
+		</MemberScreen>
 	);
 };
 
 const styles = StyleSheet.create({
 	screen: { backgroundColor: trainingTheme.colors.background },
+	screenContent: { paddingHorizontal: 0 },
 	container: { padding: 16, paddingBottom: 48, gap: 14 },
 	eyebrow: {
 		color: trainingTheme.colors.primary,

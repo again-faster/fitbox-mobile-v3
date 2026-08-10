@@ -11,8 +11,8 @@ import {
 	TouchableOpacity,
 	View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "react-native-vector-icons/MaterialCommunityIcons";
+import { MemberScreen } from "@/components/member";
 import { getStoredWSSession } from "@/services/workoutStudio/auth";
 import {
 	getMemberNotifications,
@@ -144,7 +144,9 @@ const NotificationsInbox = ({ navigation }: Props) => {
 	});
 
 	const notifications = query.data;
-	const unread = notifications?.filter((item) => !item.read_at).length ?? 0;
+	const unread =
+		notifications?.filter((item: MemberNotification) => !item.read_at)
+			.length ?? 0;
 	const state = notificationInboxViewState(
 		queryEnabled,
 		query.isLoading,
@@ -372,7 +374,7 @@ const NotificationsInbox = ({ navigation }: Props) => {
 	};
 
 	return (
-		<SafeAreaView style={styles.screen} edges={["top"]}>
+		<MemberScreen style={styles.screen} contentContainerStyle={styles.screenContent} edges={["top"]}>
 			{state !== "ready" ? (
 				renderState()
 			) : (
@@ -393,12 +395,13 @@ const NotificationsInbox = ({ navigation }: Props) => {
 					renderItem={renderNotification}
 				/>
 			)}
-		</SafeAreaView>
+		</MemberScreen>
 	);
 };
 
 const styles = StyleSheet.create({
 	screen: { flex: 1, backgroundColor: trainingTheme.colors.background },
+	screenContent: { paddingHorizontal: 0 },
 	listContent: { paddingBottom: trainingTheme.spacing.xxl },
 	pageHeader: {
 		flexDirection: "row",
@@ -607,7 +610,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: trainingTheme.spacing.xl,
 		marginTop: trainingTheme.spacing.xl,
 	},
-	retryText: { fontSize: 15, fontWeight: "800", color: "#FFFFFF" },
+	retryText: { fontSize: 15, fontWeight: "800", color: trainingTheme.colors.surface },
 });
 
 export default NotificationsInbox;

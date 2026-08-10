@@ -90,7 +90,7 @@ const Benchmarks = ({ navigation }: Props) => {
 	const filtered = useMemo(() => {
 		const needle = search.trim().toLowerCase();
 		return needle
-			? (benchmarks.data ?? []).filter(item =>
+			? (benchmarks.data ?? []).filter((item: Benchmark) =>
 					item.name.toLowerCase().includes(needle),
 				)
 			: (benchmarks.data ?? []);

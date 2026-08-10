@@ -1,4 +1,4 @@
-import { Text } from '@/components/atoms';
+import { MemberCard, MemberText } from '@/components/member';
 import type { ClassSessionSummary } from '@/services/workoutStudio/classSessionSummary';
 import { memberTheme } from '@/theme/member';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
@@ -12,93 +12,58 @@ const TodaySessionCard = ({ isLoading, summary }: TodaySessionCardProps) => {
 	if (!isLoading && !summary) return null;
 
 	return (
-		<View style={styles.card}>
-			<Text size="md" bold style={styles.title}>
+		<MemberCard style={styles.card}>
+			<MemberText role="sectionTitle" style={styles.title}>
 				Today’s session
-			</Text>
+			</MemberText>
 
 			{summary ? (
 				<>
-					<Text size="md" bold style={styles.workoutName}>
+					<MemberText role="sectionTitle" style={styles.workoutName}>
 						{summary.workoutName}
-					</Text>
+					</MemberText>
 					{summary.sections.map(section => {
-						const parts = [
-							...section.details,
-							...section.movements,
-						];
+						const parts = [...section.details, ...section.movements];
 						if (section.remainingMovementCount > 0) {
-							parts.push(
-								`+${section.remainingMovementCount} more`,
-							);
+							parts.push(`+${section.remainingMovementCount} more`);
 						}
 
 						return (
 							<View key={section.id} style={styles.section}>
-								<Text size="rg" bold style={styles.sectionName}>
+								<MemberText role="label" style={styles.sectionName}>
 									{section.name}
-								</Text>
-								<Text size="rg" style={styles.sectionSummary}>
+								</MemberText>
+								<MemberText role="body" muted style={styles.sectionSummary}>
 									{parts.join(' · ')}
-								</Text>
+								</MemberText>
 							</View>
 						);
 					})}
 				</>
 			) : (
 				<View style={styles.loadingRow}>
-					<ActivityIndicator
-						size="small"
-						color={memberTheme.colors.primary}
-					/>
-					<Text size="rg" style={styles.loadingText}>
+					<ActivityIndicator size="small" color={memberTheme.colors.primary} />
+					<MemberText role="body" muted style={styles.loadingText}>
 						Loading session…
-					</Text>
+					</MemberText>
 				</View>
 			)}
-		</View>
+		</MemberCard>
 	);
 };
 
 export default TodaySessionCard;
 
 const styles = StyleSheet.create({
-	card: {
-		marginBottom: memberTheme.spacing.md,
-		padding: memberTheme.spacing.lg,
-		borderRadius: memberTheme.radius.md,
-		borderWidth: StyleSheet.hairlineWidth,
-		borderColor: memberTheme.colors.border,
-		backgroundColor: memberTheme.colors.surface,
-		...memberTheme.shadow,
-	},
+	card: { marginBottom: memberTheme.spacing.md },
 	title: {
 		color: memberTheme.colors.primary,
-		fontSize: 15,
 		marginBottom: memberTheme.spacing.sm,
 	},
-	workoutName: {
-		color: memberTheme.colors.text,
-		lineHeight: 22,
-	},
-	section: {
-		marginTop: memberTheme.spacing.sm,
-	},
-	sectionName: {
-		color: memberTheme.colors.primaryInk,
-		lineHeight: 21,
-	},
-	sectionSummary: {
-		color: memberTheme.colors.textMuted,
-		lineHeight: 21,
-	},
-	loadingRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
-	},
-	loadingText: {
-		marginLeft: memberTheme.spacing.sm,
-		color: memberTheme.colors.textMuted,
-		lineHeight: 21,
-	},
+	workoutName: { color: memberTheme.colors.text, lineHeight: 22 },
+	section: { marginTop: memberTheme.spacing.sm },
+	sectionName: { color: memberTheme.colors.primaryInk, lineHeight: 21 },
+	sectionSummary: { lineHeight: 21 },
+	loadingRow: { flexDirection: 'row', alignItems: 'center' },
+	loadingText: { marginLeft: memberTheme.spacing.sm, lineHeight: 21 },
 });

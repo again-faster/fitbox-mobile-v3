@@ -1,4 +1,4 @@
-﻿import { useTheme } from '@/theme';
+import { memberTheme } from '@/theme/member';
 import type { TrainingStackParamList } from '@/types/navigation';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -9,7 +9,6 @@ import { useWSAuth } from './hooks/useWSAuth';
 type Nav = StackNavigationProp<TrainingStackParamList, 'TrainingRoot'>;
 
 const TrainingRoot = () => {
-	const { colors } = useTheme();
 	const nav = useNavigation<Nav>();
 	const { state } = useWSAuth();
 
@@ -50,8 +49,8 @@ const TrainingRoot = () => {
 	}, [state, nav]);
 
 	return (
-		<View style={[styles.container, { backgroundColor: '#F9FAFB' }]}>
-			<ActivityIndicator size="large" color={colors.brand} />
+		<View style={styles.container}>
+			<ActivityIndicator size="large" color={memberTheme.colors.primary} />
 		</View>
 	);
 };
@@ -61,6 +60,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: 'center',
 		alignItems: 'center',
+		backgroundColor: memberTheme.colors.background,
 	},
 });
 

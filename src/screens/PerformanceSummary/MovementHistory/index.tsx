@@ -6,14 +6,14 @@ import { PerformanceSummaryParamList } from '@/types/navigation';
 import { PastPerformanceResultType } from '@/types/schemas/leaderboards';
 import { Say } from '@/utils';
 import { ICatchError } from '@/utils/Say';
-import BottomSheet, { WINDOW_HEIGHT } from '@gorhom/bottom-sheet';
+import BottomSheet from '@gorhom/bottom-sheet';
 import { StackScreenProps } from '@react-navigation/stack';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Dimensions, StyleSheet, View } from 'react-native';
 import MovementHistoryBS from './components/MovementHistoryBS';
 
-const bottomSheetSpacing = WINDOW_HEIGHT * 0.3;
+const bottomSheetSpacing = Dimensions.get('window').height * 0.3;
 
 type MovementHistoryProps = StackScreenProps<
 	PerformanceSummaryParamList,

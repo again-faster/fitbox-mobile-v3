@@ -1,19 +1,14 @@
+import { MemberCard, MemberScreen, MemberText } from '@/components/member';
 import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
-import { trainingTheme } from '@/theme/training';
+import { memberTheme } from '@/theme/member';
 import type { TrainingStackParamList } from '@/types/navigation';
 import type { StackScreenProps } from '@react-navigation/stack';
-import {
-	ScrollView,
-	StyleSheet,
-	Text,
-	TouchableOpacity,
-	View,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { wellbeingPolicy } from '../features/wellnessFeaturePolicy';
 import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
 import { buildTrainingMoreGroups } from './trainingMoreItems';
-import { wellbeingPolicy } from '../features/wellnessFeaturePolicy';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingMore'>;
 type Route = keyof TrainingStackParamList;
@@ -36,189 +31,101 @@ const TrainingMore = ({ navigation }: Props) => {
 	const open = (route: Route) => navigation.navigate(route as never);
 
 	return (
-		<ScrollView
-			style={styles.screen}
-			contentContainerStyle={styles.container}
-		>
-			<View style={styles.header}>
-				<View style={styles.avatar}>
-					<Text style={styles.avatarText}>
-						{session?.user.full_name?.charAt(0).toUpperCase() ??
-							'M'}
-					</Text>
-				</View>
-				<View style={styles.headerCopy}>
-					<Text style={styles.eyebrow}>WORKOUT STUDIO</Text>
-					<Text style={styles.title}>
-						{session?.user.full_name ?? 'My Training'}
-					</Text>
-					<Text style={styles.subtitle}>
-						{session?.user.persona === 'solo'
-							? 'Solo athlete'
-							: 'Member'}{' '}
-						training experience
-					</Text>
-				</View>
-			</View>
-
-			{groups.map(group => (
-				<View key={group.title} style={styles.group}>
-					<Text style={styles.groupTitle}>{group.title}</Text>
-					<View style={styles.card}>
-						{group.items.map((item, index) => (
-							<TouchableOpacity
-								key={item.label}
-								accessibilityRole="button"
-								onPress={() => open(item.route)}
-								style={[
-									styles.row,
-									index < group.items.length - 1 &&
-										styles.rowBorder,
-								]}
-							>
-								<View style={styles.icon}>
-									<Ionicons
-										name={item.icon}
-										size={22}
-										color={trainingTheme.colors.primary}
-									/>
-								</View>
-								<View style={styles.copy}>
-									<Text style={styles.label}>
-										{item.label}
-									</Text>
-									<Text style={styles.description}>
-										{item.description}
-									</Text>
-								</View>
-								<Ionicons
-									name="chevron-right"
-									size={20}
-									color={trainingTheme.colors.textMuted}
-								/>
-							</TouchableOpacity>
-						))}
+		<MemberScreen contentContainerStyle={styles.screenContent}>
+			<ScrollView contentContainerStyle={styles.container}>
+				<MemberCard style={styles.header}>
+					<View style={styles.avatar}>
+						<MemberText role="display" style={styles.avatarText}>
+							{session?.user.full_name?.charAt(0).toUpperCase() ?? 'M'}
+						</MemberText>
 					</View>
-				</View>
-			))}
+					<View style={styles.headerCopy}>
+						<MemberText role="label" style={styles.eyebrow}>WORKOUT STUDIO</MemberText>
+						<MemberText role="screenTitle">{session?.user.full_name ?? 'My Training'}</MemberText>
+						<MemberText role="body" muted>
+							{session?.user.persona === 'solo' ? 'Solo athlete' : 'Member'} training experience
+						</MemberText>
+					</View>
+				</MemberCard>
 
-			<View style={styles.boundaryCard}>
-				<Ionicons
-					name="information-outline"
-					size={18}
-					color={trainingTheme.colors.textMuted}
-				/>
-				<Text style={styles.boundary}>
-					Fitbox account and billing services remain available from
-					the main app while Workout Studio integration continues.
-				</Text>
-			</View>
-		</ScrollView>
+				{groups.map(group => (
+					<View key={group.title} style={styles.group}>
+						<MemberText role="sectionTitle">{group.title}</MemberText>
+						<MemberCard elevated={false} style={styles.groupCard}>
+							{group.items.map((item, index) => (
+								<Pressable
+									key={item.label}
+									style={[styles.row, index < group.items.length - 1 && styles.rowBorder]}
+									onPress={() => open(item.route)}
+									accessibilityRole="button"
+									accessibilityLabel={item.label}
+								>
+									<View style={styles.icon}>
+										<Ionicons name={item.icon} size={22} color={memberTheme.colors.primary} />
+									</View>
+									<View style={styles.copy}>
+										<MemberText role="label">{item.label}</MemberText>
+										<MemberText role="meta" muted>{item.description}</MemberText>
+									</View>
+									<Ionicons name="chevron-right" size={20} color={memberTheme.colors.textMuted} />
+								</Pressable>
+							))}
+						</MemberCard>
+					</View>
+				))}
+
+				<MemberText role="meta" muted style={styles.boundary}>
+					Fitbox account and billing services remain available from the main app while Workout Studio integration continues.
+				</MemberText>
+			</ScrollView>
+		</MemberScreen>
 	);
 };
 
 const styles = StyleSheet.create({
-	screen: { backgroundColor: trainingTheme.colors.background },
+	screenContent: { paddingHorizontal: 0 },
 	container: {
-		padding: trainingTheme.spacing.lg,
+		padding: memberTheme.spacing.lg,
 		paddingBottom: 48,
-		gap: trainingTheme.spacing.xl,
+		gap: memberTheme.spacing.xl,
 	},
 	header: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		gap: trainingTheme.spacing.md,
-		padding: trainingTheme.spacing.lg,
-		borderRadius: trainingTheme.radius.lg,
-		borderWidth: 1,
-		borderColor: trainingTheme.colors.border,
-		backgroundColor: trainingTheme.colors.primarySoft,
-		...trainingTheme.shadow,
+		gap: memberTheme.spacing.md,
+		backgroundColor: memberTheme.colors.surfaceSoft,
 	},
 	avatar: {
 		width: 56,
 		height: 56,
-		borderRadius: 28,
+		borderRadius: memberTheme.radius.pill,
 		alignItems: 'center',
 		justifyContent: 'center',
-		backgroundColor: trainingTheme.colors.primary,
+		backgroundColor: memberTheme.colors.primary,
 	},
-	avatarText: { color: '#FFFFFF', fontSize: 22, fontWeight: '700' },
+	avatarText: { color: memberTheme.colors.surface },
 	headerCopy: { flex: 1 },
-	eyebrow: {
-		color: trainingTheme.colors.primary,
-		fontSize: 10,
-		fontWeight: '800',
-		letterSpacing: 0.9,
-		marginBottom: 3,
-	},
-	title: {
-		color: trainingTheme.colors.text,
-		fontSize: 22,
-		fontWeight: '700',
-	},
-	subtitle: {
-		color: trainingTheme.colors.textMuted,
-		fontSize: 13,
-		marginTop: 3,
-	},
-	group: { gap: trainingTheme.spacing.sm },
-	groupTitle: {
-		color: trainingTheme.colors.text,
-		fontSize: 17,
-		fontWeight: '700',
-		marginLeft: 3,
-	},
-	card: {
-		overflow: 'hidden',
-		borderRadius: trainingTheme.radius.lg,
-		borderWidth: 1,
-		borderColor: trainingTheme.colors.border,
-		backgroundColor: trainingTheme.colors.surface,
-		...trainingTheme.shadow,
-	},
+	eyebrow: { color: memberTheme.colors.primary, letterSpacing: 0.9 },
+	group: { gap: memberTheme.spacing.sm },
+	groupCard: { padding: 0, overflow: 'hidden' },
 	row: {
 		minHeight: 76,
 		flexDirection: 'row',
 		alignItems: 'center',
-		gap: trainingTheme.spacing.md,
-		paddingHorizontal: trainingTheme.spacing.md,
+		gap: memberTheme.spacing.md,
+		paddingHorizontal: memberTheme.spacing.md,
 	},
-	rowBorder: {
-		borderBottomWidth: StyleSheet.hairlineWidth,
-		borderBottomColor: trainingTheme.colors.border,
-	},
+	rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: memberTheme.colors.border },
 	icon: {
 		width: 44,
 		height: 44,
-		borderRadius: trainingTheme.radius.sm,
+		borderRadius: memberTheme.radius.sm,
 		alignItems: 'center',
 		justifyContent: 'center',
-		backgroundColor: trainingTheme.colors.primarySoft,
+		backgroundColor: memberTheme.colors.surfaceSoft,
 	},
 	copy: { flex: 1 },
-	label: {
-		color: trainingTheme.colors.text,
-		fontSize: 15,
-		fontWeight: '700',
-	},
-	description: {
-		color: trainingTheme.colors.textMuted,
-		fontSize: 12,
-		marginTop: 3,
-	},
-	boundaryCard: {
-		flexDirection: 'row',
-		alignItems: 'flex-start',
-		gap: trainingTheme.spacing.sm,
-		paddingHorizontal: trainingTheme.spacing.md,
-	},
-	boundary: {
-		flex: 1,
-		color: trainingTheme.colors.textMuted,
-		fontSize: 12,
-		lineHeight: 18,
-	},
+	boundary: { paddingHorizontal: memberTheme.spacing.md },
 });
 
 export default TrainingMore;

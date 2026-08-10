@@ -1,4 +1,4 @@
-import { Text } from '@/components/atoms';
+import { MemberText } from '@/components/member';
 import { config } from '@/theme/_config';
 import { memberTheme } from '@/theme/member';
 import { StyleSheet, View } from 'react-native';
@@ -31,14 +31,13 @@ const DashboardActionButton = ({
 				</View>
 
 				<View style={styles.tileTextContainer}>
-					<Text
-						size="md"
-						bold
+					<MemberText
+						role="label"
 						numberOfLines={stringHasOneWord ? 1 : 2}
 						style={styles.tileText}
 					>
 						{text}
-					</Text>
+					</MemberText>
 				</View>
 			</View>
 		</TouchableRipple>

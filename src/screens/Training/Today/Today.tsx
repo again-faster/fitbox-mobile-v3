@@ -5,6 +5,7 @@ import type {
 	AthleteRM,
 	ProgramContext,
 	WellnessResponse,
+	WorkoutAssignment,
 } from '@/services/workoutStudio/types';
 import { getMemberWorkouts } from '@/services/workoutStudio/workouts';
 import { mmkvStorage } from '@/storage';
@@ -25,8 +26,8 @@ import {
 	View,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCallback, useRef, useEffect, useMemo, useState } from 'react';
+import { MemberScreen } from '@/components/member';
 import { trainingTheme } from '@/theme/training';
 import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
@@ -244,7 +245,11 @@ const useToday = () => {
 	const ids = useMemo(
 		() =>
 			Array.from(
-				new Set((assignments.data ?? []).map(a => a.workout_id)),
+				new Set(
+					(assignments.data ?? []).map(
+						(a: WorkoutAssignment) => a.workout_id,
+					),
+				),
 			).sort(),
 		[assignments.data],
 	);
@@ -551,9 +556,9 @@ const Today = () => {
 		if (assignments.data?.length === 0) {
 			return (
 				<View
-					style={[styles.emptyCard, { backgroundColor: '#FFFFFF' }]}
+					style={[styles.emptyCard, { backgroundColor: trainingTheme.colors.surface }]}
 				>
-					<Text style={[styles.emptyText, { color: '#6B7280' }]}>
+					<Text style={[styles.emptyText, { color: trainingTheme.colors.textMuted }]}>
 						No workouts today
 					</Text>
 					<Text style={styles.emptySubtext}>
@@ -589,13 +594,13 @@ const Today = () => {
 				</View>
 			);
 		}
-		return assignments.data?.map(a => {
+		return assignments.data?.map((a: WorkoutAssignment) => {
 			const programContext = programCtxMap.get(a.workout_id);
 
 			return (
 				<TouchableOpacity
 					key={a.id}
-					style={[styles.workoutCard, { backgroundColor: '#FFFFFF' }]}
+					style={[styles.workoutCard, { backgroundColor: trainingTheme.colors.surface }]}
 					onPress={() =>
 						nav.navigate('TrainingWorkoutDetail', {
 							workoutId: a.workout_id,
@@ -607,7 +612,7 @@ const Today = () => {
 				>
 					<View style={styles.workoutCardLeft}>
 						<Text
-							style={[styles.workoutName, { color: '#111827' }]}
+							style={[styles.workoutName, { color: trainingTheme.colors.text }]}
 						>
 							{a.workouts.name}
 						</Text>
@@ -615,7 +620,7 @@ const Today = () => {
 							<Text
 								style={[
 									styles.workoutMeta,
-									{ color: '#6B7280' },
+									{ color: trainingTheme.colors.textMuted },
 								]}
 							>
 								~{a.workouts.estimated_duration_minutes} min
@@ -626,7 +631,7 @@ const Today = () => {
 								numberOfLines={1}
 								style={[
 									styles.programStrip,
-									{ color: '#6B7280' },
+									{ color: trainingTheme.colors.textMuted },
 								]}
 							>
 								{programContext.programName} · Week{' '}
@@ -638,14 +643,14 @@ const Today = () => {
 							</Text>
 						) : null}
 					</View>
-					<Ionicons name="chevron-right" size={20} color="#6B7280" />
+					<Ionicons name="chevron-right" size={20} color={trainingTheme.colors.textMuted} />
 				</TouchableOpacity>
 			);
 		});
 	};
 
 	return (
-		<SafeAreaView style={styles.safeArea} edges={['top']}>
+		<MemberScreen style={styles.safeArea} contentContainerStyle={styles.screenContent} edges={['top']}>
 			<ScrollView
 				style={styles.screen}
 				contentContainerStyle={styles.container}
@@ -745,7 +750,7 @@ const Today = () => {
 								<Ionicons
 									name="play"
 									size={22}
-									color="#FFFFFF"
+									color={trainingTheme.colors.surface}
 								/>
 							</View>
 							<View style={styles.cardText}>
@@ -811,7 +816,7 @@ const Today = () => {
 
 				{/* Wellness check-in card */}
 				{showWellnessPrompt ? (
-					<View style={[styles.card, { backgroundColor: '#FFFFFF' }]}>
+					<View style={[styles.card, { backgroundColor: trainingTheme.colors.surface }]}>
 						<TouchableOpacity
 							onPress={() => nav.navigate('TrainingWellness')}
 							accessibilityRole="button"
@@ -821,13 +826,13 @@ const Today = () => {
 								<Ionicons
 									name="heart-outline"
 									size={22}
-									color="#6B7280"
+									color={trainingTheme.colors.textMuted}
 								/>
 								<View style={styles.cardText}>
 									<Text
 										style={[
 											styles.cardTitle,
-											{ color: '#111827' },
+											{ color: trainingTheme.colors.text },
 										]}
 									>
 										Wellness check-in
@@ -835,7 +840,7 @@ const Today = () => {
 									<Text
 										style={[
 											styles.cardSub,
-											{ color: '#6B7280' },
+											{ color: trainingTheme.colors.textMuted },
 										]}
 									>
 										≈ 10 seconds
@@ -844,7 +849,7 @@ const Today = () => {
 								<Ionicons
 									name="chevron-right"
 									size={20}
-									color="#6B7280"
+									color={trainingTheme.colors.textMuted}
 								/>
 							</View>
 						</TouchableOpacity>
@@ -874,7 +879,7 @@ const Today = () => {
 						<Ionicons
 							name="check-circle"
 							size={16}
-							color="#43A047"
+							color={trainingTheme.colors.success}
 						/>
 						<Text style={styles.wellnessDoneText}>
 							Wellness check-in done
@@ -891,24 +896,24 @@ const Today = () => {
 							showsHorizontalScrollIndicator={false}
 							contentContainerStyle={styles.prScroll}
 						>
-							{recentPRs.data?.map(pr => (
+							{recentPRs.data?.map((pr: AthleteRM) => (
 								<TouchableOpacity
 									key={pr.id}
 									style={[
 										styles.prCard,
-										{ backgroundColor: '#FFFFFF' },
+										{ backgroundColor: trainingTheme.colors.surface },
 									]}
 									onPress={() => nav.navigate('TrainingPRs')}
 								>
 									<Ionicons
 										name="trophy-outline"
 										size={18}
-										color="#FFB300"
+									color={trainingTheme.colors.warning}
 									/>
 									<Text
 										style={[
 											styles.prName,
-											{ color: '#111827' },
+											{ color: trainingTheme.colors.text },
 										]}
 									>
 										{pr.movements.name}
@@ -933,7 +938,7 @@ const Today = () => {
 				{/* Coach notes — members only */}
 				{!isSolo && (coachNotes.data ?? 0) > 0 && (
 					<TouchableOpacity
-						style={[styles.card, { backgroundColor: '#FFFFFF' }]}
+						style={[styles.card, { backgroundColor: trainingTheme.colors.surface }]}
 						onPress={() => nav.navigate('TrainingCoachNotes')}
 					>
 						<View style={styles.cardRow}>
@@ -943,7 +948,7 @@ const Today = () => {
 								color={trainingTheme.colors.primary}
 							/>
 							<Text
-								style={[styles.cardTitle, { color: '#111827' }]}
+								style={[styles.cardTitle, { color: trainingTheme.colors.text }]}
 							>
 								{coachNotes.data} unread coach note
 								{(coachNotes.data ?? 0) > 1 ? 's' : ''}
@@ -951,7 +956,7 @@ const Today = () => {
 							<Ionicons
 								name="chevron-right"
 								size={20}
-								color="#6B7280"
+								color={trainingTheme.colors.textMuted}
 							/>
 						</View>
 					</TouchableOpacity>
@@ -960,7 +965,7 @@ const Today = () => {
 				{/* Build card */}
 				{(isSolo || hasCustomWorkouts) && (
 					<TouchableOpacity
-						style={[styles.card, { backgroundColor: '#FFFFFF' }]}
+						style={[styles.card, { backgroundColor: trainingTheme.colors.surface }]}
 						onPress={() => nav.navigate('TrainingBuildList')}
 					>
 						<View style={styles.cardRow}>
@@ -973,7 +978,7 @@ const Today = () => {
 								<Text
 									style={[
 										styles.cardTitle,
-										{ color: '#111827' },
+										{ color: trainingTheme.colors.text },
 									]}
 								>
 									My workouts
@@ -981,7 +986,7 @@ const Today = () => {
 								<Text
 									style={[
 										styles.cardSub,
-										{ color: '#6B7280' },
+										{ color: trainingTheme.colors.textMuted },
 									]}
 								>
 									Build and schedule personal workouts
@@ -990,7 +995,7 @@ const Today = () => {
 							<Ionicons
 								name="chevron-right"
 								size={20}
-								color="#6B7280"
+								color={trainingTheme.colors.textMuted}
 							/>
 						</View>
 					</TouchableOpacity>
@@ -1048,12 +1053,13 @@ const Today = () => {
 					</View>
 				</View>
 			</Modal>
-		</SafeAreaView>
+		</MemberScreen>
 	);
 };
 
 const styles = StyleSheet.create({
 	safeArea: { flex: 1, backgroundColor: trainingTheme.colors.background },
+	screenContent: { paddingHorizontal: 0 },
 	screen: { flex: 1, backgroundColor: trainingTheme.colors.background },
 	container: {
 		padding: trainingTheme.spacing.lg,
@@ -1123,7 +1129,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
-	badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+	badgeText: { color: trainingTheme.colors.surface, fontSize: 10, fontWeight: '700' },
 	sectionHeader: { fontSize: 17, fontWeight: '600', marginTop: 8 },
 	card: {
 		backgroundColor: trainingTheme.colors.surface,
@@ -1180,7 +1186,7 @@ const styles = StyleSheet.create({
 		fontSize: 15,
 		fontWeight: '600',
 	},
-	emptySubtext: { fontSize: 13, color: '#9CA3AF', textAlign: 'center' },
+	emptySubtext: { fontSize: 13, color: trainingTheme.colors.disabled, textAlign: 'center' },
 	link: {
 		color: trainingTheme.colors.primary,
 		fontSize: 14,
@@ -1273,7 +1279,7 @@ const styles = StyleSheet.create({
 	},
 	wellnessDoneText: {
 		fontSize: 13,
-		color: '#6B7280',
+		color: trainingTheme.colors.textMuted,
 	},
 	wellnessPromptActions: {
 		borderTopColor: trainingTheme.colors.border,
@@ -1304,7 +1310,7 @@ const styles = StyleSheet.create({
 		paddingTop: 12,
 	},
 	wellnessSheetHandle: {
-		backgroundColor: '#D1D5DB',
+		backgroundColor: trainingTheme.colors.disabled,
 		borderRadius: 2,
 		height: 4,
 		marginBottom: 22,
@@ -1342,7 +1348,7 @@ const styles = StyleSheet.create({
 		width: '100%',
 	},
 	wellnessSheetPrimaryText: {
-		color: '#FFFFFF',
+		color: trainingTheme.colors.surface,
 		fontSize: 16,
 		fontWeight: '700',
 	},
