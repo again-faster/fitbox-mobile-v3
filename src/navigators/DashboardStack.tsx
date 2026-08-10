@@ -8,6 +8,7 @@ import {
 } from '@/screens';
 import FailedInvoicesDetailsScreen from '@/screens/FailedInvoicesDetailsScreen/FailedInvoicesDetailsScreen';
 import FailedInvoicesScreen from '@/screens/FailedInvoicesScreen/FailedInvoicesScreen';
+import { MemberSurfaceGate } from '@/screens/Training/components/MemberFeatureGate';
 import { DashboardParamList } from '@/types/navigation';
 import { createStackNavigator } from '@react-navigation/stack';
 import { CommonHeaderOptions } from './utils/options';
@@ -16,6 +17,12 @@ const Stack = createStackNavigator<DashboardParamList>();
 const NavigateToDashboard = () => {
 	navigate('Dashboard');
 };
+
+const ClassBookingsScreen = () => (
+	<MemberSurfaceGate route="Bookings">
+		<BookingScreen />
+	</MemberSurfaceGate>
+);
 
 const DashboardStackNavigator = () => {
 	return (
@@ -46,7 +53,7 @@ const DashboardStackNavigator = () => {
 			/>
 			<Stack.Screen
 				name="Bookings"
-				component={BookingScreen}
+				component={ClassBookingsScreen}
 				options={{
 					title: 'My Bookings',
 				}}

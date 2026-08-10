@@ -7,6 +7,7 @@ import * as Sentry from '@sentry/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import DeviceInfo from 'react-native-device-info';
 import { Platform } from 'react-native';
+import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { configureFonts, Provider } from 'react-native-paper';
 import PushNotification from 'react-native-push-notification';
@@ -15,11 +16,13 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AuthProvider from './auth/AuthProvider/AuthProvider';
 import KeyboardVisibilityProvider from './context/KeyboardProvider';
 import SwitchableUserProvider from './context/SwitchableUser';
+import { WorkoutStudioProvider } from './context/WorkoutStudioProvider';
 import ApplicationNavigator from './navigators/Application';
 import { mmkvStorage } from './storage';
 import layout from './theme/layout';
 import './translations';
 import { NotificationsType } from './types/schemas/notifications';
+import { reconcileAppIntentSession } from './services/workoutStudio/auth';
 
 const version = DeviceInfo.getVersion();
 const build = DeviceInfo.getBuildNumber();
@@ -98,20 +101,26 @@ const customTheme = {
 
 // eslint-disable-next-line react/function-component-definition
 function App() {
+	useEffect(() => {
+		if (Platform.OS === 'ios') void reconcileAppIntentSession(true);
+	}, []);
+
 	return (
 		<GestureHandlerRootView style={layout.flex_1}>
 			<SafeAreaProvider>
 				<QueryClientProvider client={queryClient}>
 					<AuthProvider storage={mmkvStorage}>
-						<ThemeProvider storage={mmkvStorage}>
-							<Provider theme={customTheme}>
-								<KeyboardVisibilityProvider>
-									<SwitchableUserProvider>
-										<ApplicationNavigator />
-									</SwitchableUserProvider>
-								</KeyboardVisibilityProvider>
-							</Provider>
-						</ThemeProvider>
+						<WorkoutStudioProvider storage={mmkvStorage}>
+							<ThemeProvider storage={mmkvStorage}>
+								<Provider theme={customTheme}>
+									<KeyboardVisibilityProvider>
+										<SwitchableUserProvider>
+											<ApplicationNavigator />
+										</SwitchableUserProvider>
+									</KeyboardVisibilityProvider>
+								</Provider>
+							</ThemeProvider>
+						</WorkoutStudioProvider>
 					</AuthProvider>
 				</QueryClientProvider>
 			</SafeAreaProvider>

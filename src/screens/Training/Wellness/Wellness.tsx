@@ -29,8 +29,10 @@ import {
 	removeQueuedWellnessCheckin,
 	type QueuedWellnessCheckin,
 } from '@/services/workoutStudio/wellnessQueue';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import SkeletonCard from '../components/SkeletonCard';
 import { useTrainingConnectivity } from '../hooks/useTrainingConnectivity';
+import { wellbeingPolicy } from '../features/wellnessFeaturePolicy';
 
 type Props = TrainingStackScreenProps<'TrainingWellness'>;
 
@@ -52,6 +54,8 @@ const Wellness = ({ navigation }: Props) => {
 	const uid = session?.user.id;
 	const tenantId = session?.user.active_tenant_id;
 	const { isOffline } = useTrainingConnectivity();
+	const { features } = useWorkoutStudio();
+	const { showWellness: wellnessEnabled } = wellbeingPolicy(features);
 
 	const [scores, setScores] = useState<Record<string, number>>({});
 	const [queued, setQueued] = useState<QueuedWellnessCheckin[]>([]);
@@ -71,7 +75,7 @@ const Wellness = ({ navigation }: Props) => {
 					},
 				})
 				.json<{ id: string }[]>(),
-		enabled: !!uid && !!tenantId,
+		enabled: wellnessEnabled && !!uid && !!tenantId,
 	});
 
 	const hasConsent = (consent.data?.length ?? 0) > 0;
@@ -90,7 +94,7 @@ const Wellness = ({ navigation }: Props) => {
 					},
 				})
 				.json<WellnessResponseSummary[]>(),
-		enabled: !!uid && !!tenantId && hasConsent,
+		enabled: wellnessEnabled && !!uid && !!tenantId && hasConsent,
 	});
 
 	const todayResponse = history.data?.find(
@@ -108,7 +112,7 @@ const Wellness = ({ navigation }: Props) => {
 					},
 				})
 				.json<WellnessDimension[]>(),
-		enabled: !!tenantId && hasConsent,
+		enabled: wellnessEnabled && !!tenantId && hasConsent,
 	});
 
 	const trends = useQuery({
@@ -119,12 +123,13 @@ const Wellness = ({ navigation }: Props) => {
 				p_recent_days: 7,
 				p_baseline_days: 28,
 			}),
-		enabled: !!uid && !!tenantId && hasConsent,
+		enabled: wellnessEnabled && !!uid && !!tenantId && hasConsent,
 		staleTime: 300_000,
 	});
 
 	const grantConsent = useMutation({
 		mutationFn: async () => {
+			if (!wellnessEnabled) return;
 			const token = await getValidWSToken();
 			const url = `${Constant.WS_SUPABASE_URL}/rest/v1/member_wellness_consents`;
 			const resp = await fetch(url, {
@@ -159,6 +164,7 @@ const Wellness = ({ navigation }: Props) => {
 	});
 
 	const removeResponse = async (responseId: string) => {
+		if (!wellnessEnabled) return;
 		await wsApi().delete('wellness_dimension_responses', {
 			searchParams: { response_id: `eq.${responseId}` },
 		});
@@ -171,6 +177,7 @@ const Wellness = ({ navigation }: Props) => {
 		recordedFor: string,
 		values: Record<string, number>,
 	) => {
+		if (!wellnessEnabled) return;
 		const existing = await wsApi()
 			.get('wellness_responses', {
 				searchParams: {
@@ -217,6 +224,7 @@ const Wellness = ({ navigation }: Props) => {
 
 	const saveCheckin = useMutation({
 		mutationFn: async () => {
+			if (!wellnessEnabled) return 'disabled' as const;
 			const entry: QueuedWellnessCheckin = {
 				id: `${uid}:${tenantId}:${today}`,
 				userId: uid!,
@@ -261,6 +269,7 @@ const Wellness = ({ navigation }: Props) => {
 			}
 		},
 		onSuccess: result => {
+			if (result === 'disabled') return;
 			if (result === 'queued') {
 				Alert.alert(
 					'Saved offline',
@@ -302,6 +311,7 @@ const Wellness = ({ navigation }: Props) => {
 
 	useEffect(() => {
 		if (
+			!wellnessEnabled ||
 			isOffline ||
 			syncingQueue.current ||
 			!uid ||
@@ -317,7 +327,9 @@ const Wellness = ({ navigation }: Props) => {
 		void (async () => {
 			for (const item of pending) {
 				try {
+					if (!wellnessEnabled) break;
 					await writeCheckin(item.recordedFor, item.scores);
+					if (!wellnessEnabled) break;
 					await removeQueuedWellnessCheckin(item.id);
 				} catch {
 					break;
@@ -336,7 +348,7 @@ const Wellness = ({ navigation }: Props) => {
 		})().finally(() => {
 			syncingQueue.current = false;
 		});
-	}, [isOffline, queued, uid, tenantId, dimensions.data]);
+	}, [isOffline, queued, uid, tenantId, dimensions.data, wellnessEnabled]);
 
 	const deleteCheckin = useMutation({
 		mutationFn: removeResponse,
@@ -357,14 +369,16 @@ const Wellness = ({ navigation }: Props) => {
 	});
 
 	const withdrawConsent = useMutation({
-		mutationFn: () =>
-			wsApi().patch('member_wellness_consents', {
+		mutationFn: async () => {
+			if (!wellnessEnabled) return null;
+			return wsApi().patch('member_wellness_consents', {
 				searchParams: {
 					id: `eq.${consent.data?.[0]?.id}`,
 					user_id: `eq.${uid}`,
 				},
 				json: { revoked_at: new Date().toISOString() },
-			}),
+			});
+		},
 		onSuccess: () => {
 			void qc.invalidateQueries({
 				queryKey: ['ws-wellness-consent', uid, tenantId],

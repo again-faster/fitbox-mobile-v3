@@ -59,6 +59,7 @@ export type BookingErrorCode =
 	| 'conflict'
 	| 'cancellation_window'
 	| 'credit_unavailable'
+	| 'feature_disabled'
 	| 'server_misconfigured'
 	| 'internal';
 
@@ -72,6 +73,11 @@ export class BookingApiError extends Error {
 		this.name = 'BookingApiError';
 	}
 }
+
+export const isBookingFeatureDisabledError = (
+	error: unknown,
+): error is BookingApiError =>
+	error instanceof BookingApiError && error.code === 'feature_disabled';
 
 type Envelope<T> =
 	| { ok: true; data: T }

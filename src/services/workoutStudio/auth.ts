@@ -1,5 +1,10 @@
 import { mmkvStorage } from '@/storage';
 import { Constant } from '@/utils';
+import {
+	clearAppIntentCredentials,
+	readAppIntentSession,
+	syncAppIntentCredentials,
+} from '@/services/appIntents/credentials';
 import ky, { HTTPError } from 'ky';
 
 const KEYS = {
@@ -7,6 +12,8 @@ const KEYS = {
 	REFRESH_TOKEN: 'ws_refresh_token',
 	EXPIRES_AT: 'ws_expires_at',
 	USER: 'ws_user',
+	GYM_ID: 'ws_gym_id',
+	MEMBER_ID: 'ws_fitbox_member_id',
 } as const;
 
 export type WSPersona = 'member' | 'solo' | 'coach' | 'gym_admin';
@@ -27,6 +34,8 @@ export type WSSession = {
 	user: WSUser;
 };
 
+export type WSSessionResult = { session: WSSession } | { error: WSAuthError };
+
 export type WSAuthError =
 	| 'NOT_FOUND'
 	| 'NO_MEMBERSHIP'
@@ -35,6 +44,14 @@ export type WSAuthError =
 	| 'NETWORK_ERROR'
 	| 'UNKNOWN_GYM'
 	| 'PROVISION_FAILED';
+
+type PendingExchange = {
+	generation: number;
+	promise: Promise<WSSessionResult>;
+};
+
+const pendingExchanges = new Map<string, PendingExchange>();
+let persistenceGeneration = 0;
 
 export const getStoredWSSession = (): WSSession | null => {
 	const token = mmkvStorage.getString(KEYS.ACCESS_TOKEN);
@@ -50,29 +67,81 @@ export const getStoredWSSession = (): WSSession | null => {
 	};
 };
 
-export const saveWSSession = (session: WSSession) => {
+export const saveWSSession = (
+	session: WSSession,
+	gymId?: string | null,
+	memberId?: string | null,
+) => {
 	mmkvStorage.set(KEYS.ACCESS_TOKEN, session.access_token);
 	mmkvStorage.set(KEYS.REFRESH_TOKEN, session.refresh_token);
 	mmkvStorage.set(KEYS.EXPIRES_AT, session.expires_at);
 	mmkvStorage.set(KEYS.USER, JSON.stringify(session.user));
+	if (gymId !== undefined) {
+		if (gymId === null) mmkvStorage.delete(KEYS.GYM_ID);
+		else mmkvStorage.set(KEYS.GYM_ID, gymId);
+	}
+	if (memberId !== undefined) {
+		if (memberId === null) mmkvStorage.delete(KEYS.MEMBER_ID);
+		else mmkvStorage.set(KEYS.MEMBER_ID, memberId);
+	}
+	void syncAppIntentCredentials(session).catch(() => undefined);
 };
 
 export const clearWSSession = () => {
+	persistenceGeneration += 1;
+	pendingExchanges.clear();
 	Object.values(KEYS).forEach(k => mmkvStorage.delete(k));
+	void clearAppIntentCredentials().catch(() => undefined);
 };
 
 const isExpired = (expiresAt: number) => Date.now() / 1000 > expiresAt - 60;
+let lastAppIntentReconcileAt = 0;
 
-type ExchangeParams = {
+export const reconcileAppIntentSession = async (
+	force = false,
+): Promise<WSSession | null> => {
+	const stored = getStoredWSSession();
+	const now = Date.now();
+	if (
+		!force &&
+		stored &&
+		!isExpired(stored.expires_at) &&
+		now - lastAppIntentReconcileAt < 60_000
+	) {
+		return stored;
+	}
+	lastAppIntentReconcileAt = now;
+	const appIntentSession = await readAppIntentSession();
+	if (!appIntentSession || !stored) {
+		if (stored && !appIntentSession) {
+			void syncAppIntentCredentials(stored).catch(() => undefined);
+		}
+		return stored;
+	}
+
+	if (appIntentSession.expires_at <= stored.expires_at) return stored;
+	const reconciled: WSSession = {
+		...stored,
+		access_token: appIntentSession.access_token,
+		refresh_token: appIntentSession.refresh_token,
+		expires_at: appIntentSession.expires_at,
+	};
+	mmkvStorage.set(KEYS.ACCESS_TOKEN, reconciled.access_token);
+	mmkvStorage.set(KEYS.REFRESH_TOKEN, reconciled.refresh_token);
+	mmkvStorage.set(KEYS.EXPIRES_AT, reconciled.expires_at);
+	return reconciled;
+};
+
+export type ExchangeParams = {
 	email: string;
 	fitbox_gym_id?: string;
 	fitbox_member_id?: string;
 	full_name?: string;
 };
 
-export const exchangeForWSSession = async (
+const requestWSSession = async (
 	params: ExchangeParams,
-): Promise<{ session: WSSession } | { error: WSAuthError }> => {
+): Promise<WSSessionResult> => {
 	const attempt = () =>
 		ky
 			.post(Constant.WS_BRIDGE_URL, {
@@ -87,7 +156,6 @@ export const exchangeForWSSession = async (
 
 	try {
 		const session = await attempt();
-		saveWSSession(session);
 		return { session };
 	} catch (err) {
 		if (err instanceof HTTPError) {
@@ -112,7 +180,6 @@ export const exchangeForWSSession = async (
 				});
 				try {
 					const session = await attempt();
-					saveWSSession(session);
 					return { session };
 				} catch {
 					return { error: 'PROVISION_FAILED' };
@@ -121,6 +188,89 @@ export const exchangeForWSSession = async (
 		}
 		return { error: 'NETWORK_ERROR' };
 	}
+};
+
+const persistExchangeResult = (
+	result: WSSessionResult,
+	params: ExchangeParams,
+	generation: number,
+) => {
+	if ('session' in result && generation === persistenceGeneration) {
+		saveWSSession(
+			result.session,
+			params.fitbox_gym_id ?? null,
+			params.fitbox_member_id ?? null,
+		);
+	}
+};
+
+export const exchangeForWSSession = async (
+	params: ExchangeParams,
+): Promise<WSSessionResult> => {
+	const generation = persistenceGeneration + 1;
+	persistenceGeneration = generation;
+	const result = await requestWSSession(params);
+	persistExchangeResult(result, params, generation);
+	return result;
+};
+
+export const sessionCanBeReused = (
+	storedGymId: string | undefined,
+	requestedGymId: string | undefined,
+	storedMemberId?: string,
+	requestedMemberId?: string,
+) => storedGymId === requestedGymId && storedMemberId === requestedMemberId;
+
+export const ensureWSSession = (
+	params: ExchangeParams,
+): Promise<WSSessionResult> => {
+	const emailKey = params.email.trim().toLowerCase();
+	const key = JSON.stringify([
+		emailKey,
+		params.fitbox_gym_id ?? null,
+		params.fitbox_member_id ?? null,
+	]);
+	const generation = persistenceGeneration + 1;
+	persistenceGeneration = generation;
+
+	const stored = getStoredWSSession();
+	const storedGymId = mmkvStorage.getString(KEYS.GYM_ID);
+	const storedMemberId = mmkvStorage.getString(KEYS.MEMBER_ID);
+	if (
+		stored &&
+		stored.user.email.trim().toLowerCase() === emailKey &&
+		sessionCanBeReused(
+			storedGymId,
+			params.fitbox_gym_id,
+			storedMemberId,
+			params.fitbox_member_id,
+		)
+	) {
+		return Promise.resolve({ session: stored });
+	}
+
+	const pending = pendingExchanges.get(key);
+	if (pending) {
+		pending.generation = generation;
+		return pending.promise;
+	}
+
+	const entry: PendingExchange = {
+		generation,
+		promise: Promise.resolve({ error: 'NETWORK_ERROR' }),
+	};
+	entry.promise = requestWSSession(params)
+		.then(result => {
+			persistExchangeResult(result, params, entry.generation);
+			return result;
+		})
+		.finally(() => {
+			if (pendingExchanges.get(key) === entry) {
+				pendingExchanges.delete(key);
+			}
+		});
+	pendingExchanges.set(key, entry);
+	return entry.promise;
 };
 
 const refreshWSToken = async (refreshToken: string): Promise<WSSession> => {
@@ -156,7 +306,7 @@ const refreshWSToken = async (refreshToken: string): Promise<WSSession> => {
 };
 
 export const getValidWSToken = async (): Promise<string | null> => {
-	const session = getStoredWSSession();
+	const session = await reconcileAppIntentSession();
 	if (!session) return null;
 	if (!isExpired(session.expires_at)) return session.access_token;
 	try {

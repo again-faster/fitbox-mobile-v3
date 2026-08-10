@@ -1,11 +1,19 @@
 ﻿import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
+import { createSubmissionId } from '@/services/workoutStudio/scoreable';
+import {
+	calculateWorkoutVolumeKg,
+	completeWorkoutResult,
+	startWorkoutResult,
+} from '@/services/workoutStudio/workoutResults';
 import type {
 	BlockMovement,
+	ScalingLevel,
 	SectionBlock,
 	WorkoutSection,
 } from '@/services/workoutStudio/types';
 import { useWorkoutDetail } from '@/screens/Training/hooks/useWorkoutDetail';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { useTheme } from '@/theme';
 import type { TrainingStackParamList } from '@/types/navigation';
 import type { StackScreenProps } from '@react-navigation/stack';
@@ -23,6 +31,10 @@ import {
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { trainingTheme } from '@/theme/training';
 import { mmkvStorage } from '@/storage';
+import { queueWorkoutResultCleanup } from '@/services/workoutStudio/workoutResultCleanupQueue';
+import SectionScoreModal from './SectionScoreModal';
+import { workoutResultCapabilities } from './workoutResultCapabilities';
+import { createWorkoutResultStartCoordinator } from './workoutResultStartController';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingRunWorkout'>;
 
@@ -47,6 +59,8 @@ type WorkoutDraft = {
 	workoutResultId: string | null;
 	startedAt: number;
 	setStates: WorkoutState;
+	sessionSubmissionId?: string;
+	loggedSectionIds?: string[];
 };
 
 const DEFAULT_REST = 90;
@@ -111,11 +125,18 @@ const loadDraft = (
 
 const RunWorkout = ({ route, navigation }: Props) => {
 	const { colors } = useTheme();
+	const { isEnabled } = useWorkoutStudio();
+	const resultCapabilities = workoutResultCapabilities(isEnabled('results'));
+	const resultCapabilitiesRef = useRef(resultCapabilities);
+	resultCapabilitiesRef.current = resultCapabilities;
 	const { workoutId, assignmentId } = route.params;
+	const scalingLevel: ScalingLevel = route.params.scalingLevel ?? 'rx';
 	const session = getStoredWSSession();
 	const uid = session?.user.id;
 	const restoredDraft = useRef(
-		loadDraft(uid, workoutId, assignmentId),
+		resultCapabilities.canStart
+			? loadDraft(uid, workoutId, assignmentId)
+			: null,
 	).current;
 
 	const [workoutResultId, setWorkoutResultId] = useState<string | null>(
@@ -124,35 +145,88 @@ const RunWorkout = ({ route, navigation }: Props) => {
 	const [setStates, setSetStates] = useState<WorkoutState>(
 		restoredDraft?.setStates ?? {},
 	);
+	const [loggedSectionIds, setLoggedSectionIds] = useState<string[]>(
+		restoredDraft?.loggedSectionIds ?? [],
+	);
+	const [selectedScoreSection, setSelectedScoreSection] =
+		useState<WorkoutSection | null>(null);
 	const [restTimer, setRestTimer] = useState<number | null>(null);
 	const [isFinishing, setIsFinishing] = useState(false);
+	const [preparationFailed, setPreparationFailed] = useState(false);
 	const restInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 	const allowExitRef = useRef(false);
 	const startedAt = useRef(restoredDraft?.startedAt ?? Date.now());
+	const sessionSubmissionId = useRef(
+		restoredDraft?.sessionSubmissionId ?? createSubmissionId(),
+	).current;
 
 	const { data: workout, isLoading } = useWorkoutDetail(workoutId);
+	const tenantId = session?.user.active_tenant_id;
+	const startCoordinatorRef = useRef<ReturnType<
+		typeof createWorkoutResultStartCoordinator
+	> | null>(null);
+	if (!startCoordinatorRef.current) {
+		startCoordinatorRef.current = createWorkoutResultStartCoordinator({
+			accept: id => {
+				setWorkoutResultId(id);
+				setPreparationFailed(false);
+			},
+			cleanup: async id => {
+				await wsApi().delete(`workout_results?id=eq.${id}`);
+			},
+			retainCleanup: async id => {
+				if (!uid || !tenantId)
+					throw new Error('Missing workout cleanup identity.');
+				await queueWorkoutResultCleanup({
+					id: `${tenantId}:${uid}:${id}`,
+					workoutResultId: id,
+					userId: uid,
+					tenantId,
+					queuedAt: new Date().toISOString(),
+				});
+			},
+			failCurrent: () => setPreparationFailed(true),
+		});
+	}
 
 	useEffect(() => {
-		if (!uid || !workoutId || workoutResultId) return;
-		wsApi()
-			.post('workout_results', {
-				json: {
-					workout_id: workoutId,
-					assignment_id: assignmentId ?? null,
-					athlete_id: uid,
-					started_at: new Date().toISOString(),
-				},
-				headers: { Prefer: 'return=representation' },
-			})
-			.json<{ id: string }[]>()
-			.then(rows => {
-				if (rows[0]) setWorkoutResultId(rows[0].id);
-			})
-			.catch(() => {});
-	}, [uid, workoutId]);
+		let cleanup: (() => void) | undefined;
+		if (
+			!resultCapabilities.canStart ||
+			!uid ||
+			!tenantId ||
+			!workoutId ||
+			workoutResultId
+		) {
+			startCoordinatorRef.current?.invalidate();
+		} else {
+			const startedResult = startWorkoutResult({
+				workoutId,
+				assignmentId,
+				athleteId: uid,
+				tenantId,
+				clientSessionId: createSubmissionId(),
+				scalingLevel,
+				startedAt: new Date(startedAt.current).toISOString(),
+			});
+			void startCoordinatorRef.current?.start(startedResult);
+			cleanup = () => {
+				startCoordinatorRef.current?.invalidate();
+			};
+		}
+		return cleanup;
+	}, [
+		assignmentId,
+		resultCapabilities.canStart,
+		scalingLevel,
+		tenantId,
+		uid,
+		workoutId,
+		workoutResultId,
+	]);
 
 	useEffect(() => {
-		if (!uid) return;
+		if (!resultCapabilities.canStart || !uid) return;
 		const draft: WorkoutDraft = {
 			version: 1,
 			userId: uid,
@@ -162,6 +236,8 @@ const RunWorkout = ({ route, navigation }: Props) => {
 			workoutResultId,
 			startedAt: startedAt.current,
 			setStates,
+			sessionSubmissionId,
+			loggedSectionIds,
 		};
 		mmkvStorage.set(
 			draftKey(uid, workoutId, assignmentId),
@@ -173,6 +249,9 @@ const RunWorkout = ({ route, navigation }: Props) => {
 		assignmentId,
 		workoutResultId,
 		setStates,
+		loggedSectionIds,
+		resultCapabilities.canStart,
+		sessionSubmissionId,
 		route.params.workoutName,
 	]);
 
@@ -198,12 +277,20 @@ const RunWorkout = ({ route, navigation }: Props) => {
 						onPress: () => {
 							void (async () => {
 								try {
-									if (workoutResultId) {
+									if (
+										resultCapabilitiesRef.current
+											.canStart &&
+										workoutResultId
+									) {
 										await wsApi().delete(
 											`workout_results?id=eq.${workoutResultId}`,
 										);
 									}
-									if (uid) {
+									if (
+										resultCapabilitiesRef.current
+											.canStart &&
+										uid
+									) {
 										mmkvStorage.delete(
 											draftKey(
 												uid,
@@ -272,6 +359,7 @@ const RunWorkout = ({ route, navigation }: Props) => {
 	};
 
 	const markDone = async (bm: BlockMovement, setIdx: number) => {
+		if (!resultCapabilitiesRef.current.canStart) return;
 		const s = getSetStates(bm)[setIdx];
 		if (!s) return;
 
@@ -324,6 +412,9 @@ const RunWorkout = ({ route, navigation }: Props) => {
 			0,
 		);
 
+	const completedVolumeKg = () =>
+		calculateWorkoutVolumeKg(Object.values(setStates).flat());
+
 	const hasUnsyncedSets = () =>
 		Object.values(setStates).some(sets =>
 			sets.some(
@@ -334,8 +425,16 @@ const RunWorkout = ({ route, navigation }: Props) => {
 			),
 		);
 
+	const missingSectionScoreCount = () =>
+		workout?.workout_sections.filter(
+			section =>
+				section.section_mode === 'workout' &&
+				section.is_scored &&
+				!loggedSectionIds.includes(section.id),
+		).length ?? 0;
+
 	const finish = () => {
-		if (isFinishing) return;
+		if (!resultCapabilitiesRef.current.canFinish || isFinishing) return;
 		if (hasUnsyncedSets()) {
 			Alert.alert(
 				'Some sets are not saved yet',
@@ -343,61 +442,65 @@ const RunWorkout = ({ route, navigation }: Props) => {
 			);
 			return;
 		}
-		Alert.alert('Finish workout?', 'This will save your session.', [
-			{ text: 'Cancel', style: 'cancel' },
-			{
-				text: 'Finish',
-				onPress: () => {
-					void (async () => {
-						if (!workoutResultId) {
-							Alert.alert(
-								'Still preparing your workout',
-								'Wait a moment, then try finishing again.',
-							);
-							return;
-						}
-						setIsFinishing(true);
-						const durationSeconds = Math.max(
-							1,
-							Math.round((Date.now() - startedAt.current) / 1000),
-						);
-						try {
-							await wsApi()
-								.patch(
-									`workout_results?id=eq.${workoutResultId}`,
-									{
-										json: {
-											completed_at:
-												new Date().toISOString(),
-											duration_seconds: durationSeconds,
-										},
-									},
-								)
-								.json();
-							allowExitRef.current = true;
-							navigation.replace('TrainingWorkoutComplete', {
-								workoutResultId,
-								workoutName: route.params.workoutName,
-								durationSeconds,
-								completedSets: completedSetCount(),
-							});
-							if (uid) {
-								mmkvStorage.delete(
-									draftKey(uid, workoutId, assignmentId),
+		const missingScores = missingSectionScoreCount();
+		Alert.alert(
+			'Finish workout?',
+			missingScores > 0
+				? `${missingScores} scored section${missingScores === 1 ? ' has' : 's have'} no score yet. You can finish without logging them.`
+				: 'This will save your session.',
+			[
+				{ text: 'Cancel', style: 'cancel' },
+				{
+					text: 'Finish',
+					onPress: () => {
+						void (async () => {
+							if (!resultCapabilitiesRef.current.canFinish)
+								return;
+							if (!workoutResultId) {
+								Alert.alert(
+									'Still preparing your workout',
+									'Wait a moment, then try finishing again.',
 								);
+								return;
 							}
-						} catch {
-							Alert.alert(
-								'Workout not saved yet',
-								'Your workout is still open. Check your connection and try again.',
+							setIsFinishing(true);
+							const durationSeconds = Math.max(
+								1,
+								Math.round(
+									(Date.now() - startedAt.current) / 1000,
+								),
 							);
-						} finally {
-							setIsFinishing(false);
-						}
-					})();
+							try {
+								await completeWorkoutResult(workoutResultId, {
+									completedAt: new Date().toISOString(),
+									durationSeconds,
+									totalVolumeKg: completedVolumeKg(),
+								});
+								allowExitRef.current = true;
+								navigation.replace('TrainingWorkoutComplete', {
+									workoutResultId,
+									workoutName: route.params.workoutName,
+									durationSeconds,
+									completedSets: completedSetCount(),
+								});
+								if (uid) {
+									mmkvStorage.delete(
+										draftKey(uid, workoutId, assignmentId),
+									);
+								}
+							} catch {
+								Alert.alert(
+									'Workout not saved yet',
+									'Your workout is still open. Check your connection and try again.',
+								);
+							} finally {
+								setIsFinishing(false);
+							}
+						})();
+					},
 				},
-			},
-		]);
+			],
+		);
 	};
 
 	if (isLoading || !workout) {
@@ -426,7 +529,20 @@ const RunWorkout = ({ route, navigation }: Props) => {
 
 	return (
 		<View style={styles.screen}>
-			{restoredDraft ? (
+			{resultCapabilities.canStart && preparationFailed ? (
+				<View style={styles.syncErrorBanner} accessibilityRole="alert">
+					<Ionicons
+						name="cloud-alert-outline"
+						size={18}
+						color={trainingTheme.colors.danger}
+					/>
+					<Text style={styles.syncErrorText}>
+						Workout setup could not sync. Reopen this workout after
+						checking your connection.
+					</Text>
+				</View>
+			) : null}
+			{resultCapabilities.canStart && restoredDraft ? (
 				<View style={styles.recoveredBanner} accessibilityRole="alert">
 					<Ionicons
 						name="history"
@@ -438,13 +554,13 @@ const RunWorkout = ({ route, navigation }: Props) => {
 					</Text>
 				</View>
 			) : null}
-			{restTimer !== null && (
+			{resultCapabilities.canStart && restTimer !== null && (
 				<View style={styles.restBanner} accessibilityRole="timer">
 					<Text style={styles.restText}>Rest — {restTimer}s</Text>
 				</View>
 			)}
 			{/* eslint-disable-next-line no-nested-ternary */}
-			{failedSetCount > 0 ? (
+			{resultCapabilities.canStart && failedSetCount > 0 ? (
 				<View style={styles.syncErrorBanner} accessibilityRole="alert">
 					<Ionicons
 						name="cloud-alert-outline"
@@ -456,7 +572,7 @@ const RunWorkout = ({ route, navigation }: Props) => {
 						not saved. Tap the red icon to retry.
 					</Text>
 				</View>
-			) : pendingSetCount > 0 ? (
+			) : resultCapabilities.canStart && pendingSetCount > 0 ? (
 				<View style={styles.syncPendingBanner}>
 					<Ionicons
 						name="cloud-upload-outline"
@@ -483,247 +599,352 @@ const RunWorkout = ({ route, navigation }: Props) => {
 							>
 								{section.name}
 							</Text>
-							{section.section_blocks
-								?.sort(
-									(a: SectionBlock, b: SectionBlock) =>
-										a.position - b.position,
-								)
-								.map((block: SectionBlock) => (
-									<View
-										key={block.id}
-										style={[
-											styles.block,
-											{
-												backgroundColor:
-													trainingTheme.colors
-														.surface,
-											},
-										]}
-									>
-										{block.block_movements
-											?.sort(
-												(
-													a: BlockMovement,
-													b: BlockMovement,
-												) => a.position - b.position,
-											)
-											.map((bm: BlockMovement) => {
-												const states = getSetStates(bm);
-												return (
-													<View
-														key={bm.id}
-														style={styles.movement}
-													>
-														<Text
-															style={[
-																styles.movementName,
-																{
-																	color: trainingTheme
-																		.colors
-																		.text,
-																},
-															]}
+							{section.coach_notes ? (
+								<View
+									style={
+										section.section_mode === 'notes'
+											? styles.noteCard
+											: styles.coachNoteRow
+									}
+								>
+									<Text style={styles.coachNoteText}>
+										{section.coach_notes}
+									</Text>
+								</View>
+							) : null}
+							{section.section_mode === 'workout' &&
+								section.section_blocks
+									?.sort(
+										(a: SectionBlock, b: SectionBlock) =>
+											a.position - b.position,
+									)
+									.map((block: SectionBlock) => (
+										<View
+											key={block.id}
+											style={[
+												styles.block,
+												{
+													backgroundColor:
+														trainingTheme.colors
+															.surface,
+												},
+											]}
+										>
+											{block.block_movements
+												?.sort(
+													(
+														a: BlockMovement,
+														b: BlockMovement,
+													) =>
+														a.position - b.position,
+												)
+												.map((bm: BlockMovement) => {
+													const states =
+														getSetStates(bm);
+													return (
+														<View
+															key={bm.id}
+															style={
+																styles.movement
+															}
 														>
-															{bm.movements.name}
-														</Text>
-														{bm.sets && (
 															<Text
 																style={[
-																	styles.prescription,
+																	styles.movementName,
 																	{
 																		color: trainingTheme
 																			.colors
-																			.textMuted,
+																			.text,
 																	},
 																]}
 															>
-																{bm.sets} sets
-																{bm.reps_scheme
-																	? ` × ${bm.reps_scheme}`
-																	: ''}
-																{bm.weight_kg
-																	? ` @ ${bm.weight_kg}kg`
-																	: ''}
+																{
+																	bm.movements
+																		.name
+																}
 															</Text>
-														)}
-														{states.map(
-															(s, idx) => (
-																<View
-																	key={
-																		s.idempotency_key
-																	}
+															{bm.sets && (
+																<Text
 																	style={[
-																		styles.setRow,
-																		s.completed && {
-																			opacity: 0.5,
+																		styles.prescription,
+																		{
+																			color: trainingTheme
+																				.colors
+																				.textMuted,
 																		},
 																	]}
 																>
-																	<Text
-																		style={[
-																			styles.setLabel,
-																			{
-																				color: trainingTheme
-																					.colors
-																					.textMuted,
-																			},
-																		]}
-																	>
-																		{idx +
-																			1}
-																	</Text>
-																	<TextInput
-																		style={[
-																			styles.input,
-																			{
-																				borderColor:
-																					trainingTheme
-																						.colors
-																						.border,
-																				color: trainingTheme
-																					.colors
-																					.text,
-																			},
-																		]}
-																		keyboardType="numeric"
-																		placeholder="Reps"
-																		placeholderTextColor={
-																			trainingTheme
-																				.colors
-																				.textMuted
-																		}
-																		value={
-																			s.reps
-																		}
-																		editable={
-																			!s.completed
-																		}
-																		onChangeText={v =>
-																			updateSet(
-																				bm.id,
-																				idx,
-																				'reps',
-																				v,
-																			)
-																		}
-																	/>
-																	<TextInput
-																		style={[
-																			styles.input,
-																			{
-																				borderColor:
-																					trainingTheme
-																						.colors
-																						.border,
-																				color: trainingTheme
-																					.colors
-																					.text,
-																			},
-																		]}
-																		keyboardType="numeric"
-																		placeholder="kg"
-																		placeholderTextColor={
-																			trainingTheme
-																				.colors
-																				.textMuted
-																		}
-																		value={
-																			s.weight
-																		}
-																		editable={
-																			!s.completed
-																		}
-																		onChangeText={v =>
-																			updateSet(
-																				bm.id,
-																				idx,
-																				'weight',
-																				v,
-																			)
-																		}
-																	/>
-																	<TouchableOpacity
-																		style={[
-																			styles.doneBtn,
-																			{
-																				backgroundColor:
-																					syncColor(
-																						s,
-																					),
-																				borderColor:
-																					syncColor(
-																						s,
-																					),
-																			},
-																		]}
-																		accessibilityRole="button"
-																		accessibilityLabel={
-																			s.syncStatus ===
-																			'failed'
-																				? `Retry saving set ${idx + 1}`
-																				: `Complete set ${idx + 1}`
-																		}
-																		disabled={
-																			s.syncStatus ===
-																				'pending' ||
-																			s.syncStatus ===
-																				'synced'
-																		}
-																		onPress={() =>
-																			void markDone(
-																				bm,
-																				idx,
-																			)
-																		}
-																	>
-																		<Ionicons
-																			name={syncIcon(
-																				s,
-																			)}
-																			size={
-																				22
-																			}
-																			color={
-																				s.syncStatus ===
-																				'idle'
-																					? trainingTheme
+																	{bm.sets}{' '}
+																	sets
+																	{bm.reps_scheme
+																		? ` × ${bm.reps_scheme}`
+																		: ''}
+																	{bm.weight_kg
+																		? ` @ ${bm.weight_kg}kg`
+																		: ''}
+																</Text>
+															)}
+															{resultCapabilities.canStart
+																? states.map(
+																		(
+																			s,
+																			idx,
+																		) => (
+																			<View
+																				key={
+																					s.idempotency_key
+																				}
+																				style={[
+																					styles.setRow,
+																					s.completed && {
+																						opacity: 0.5,
+																					},
+																				]}
+																			>
+																				<Text
+																					style={[
+																						styles.setLabel,
+																						{
+																							color: trainingTheme
+																								.colors
+																								.textMuted,
+																						},
+																					]}
+																				>
+																					{idx +
+																						1}
+																				</Text>
+																				<TextInput
+																					style={[
+																						styles.input,
+																						{
+																							borderColor:
+																								trainingTheme
+																									.colors
+																									.border,
+																							color: trainingTheme
+																								.colors
+																								.text,
+																						},
+																					]}
+																					keyboardType="numeric"
+																					placeholder="Reps"
+																					placeholderTextColor={
+																						trainingTheme
 																							.colors
 																							.textMuted
-																					: trainingTheme
+																					}
+																					value={
+																						s.reps
+																					}
+																					editable={
+																						!s.completed
+																					}
+																					onChangeText={v =>
+																						updateSet(
+																							bm.id,
+																							idx,
+																							'reps',
+																							v,
+																						)
+																					}
+																				/>
+																				<TextInput
+																					style={[
+																						styles.input,
+																						{
+																							borderColor:
+																								trainingTheme
+																									.colors
+																									.border,
+																							color: trainingTheme
+																								.colors
+																								.text,
+																						},
+																					]}
+																					keyboardType="numeric"
+																					placeholder="kg"
+																					placeholderTextColor={
+																						trainingTheme
 																							.colors
-																							.onPrimary
-																			}
-																		/>
-																	</TouchableOpacity>
-																</View>
-															),
-														)}
-													</View>
-												);
-											})}
-									</View>
-								))}
+																							.textMuted
+																					}
+																					value={
+																						s.weight
+																					}
+																					editable={
+																						!s.completed
+																					}
+																					onChangeText={v =>
+																						updateSet(
+																							bm.id,
+																							idx,
+																							'weight',
+																							v,
+																						)
+																					}
+																				/>
+																				<TouchableOpacity
+																					style={[
+																						styles.doneBtn,
+																						{
+																							backgroundColor:
+																								syncColor(
+																									s,
+																								),
+																							borderColor:
+																								syncColor(
+																									s,
+																								),
+																						},
+																					]}
+																					accessibilityRole="button"
+																					accessibilityLabel={
+																						s.syncStatus ===
+																						'failed'
+																							? `Retry saving set ${idx + 1}`
+																							: `Complete set ${idx + 1}`
+																					}
+																					disabled={
+																						s.syncStatus ===
+																							'pending' ||
+																						s.syncStatus ===
+																							'synced'
+																					}
+																					onPress={() =>
+																						void markDone(
+																							bm,
+																							idx,
+																						)
+																					}
+																				>
+																					<Ionicons
+																						name={syncIcon(
+																							s,
+																						)}
+																						size={
+																							22
+																						}
+																						color={
+																							s.syncStatus ===
+																							'idle'
+																								? trainingTheme
+																										.colors
+																										.textMuted
+																								: trainingTheme
+																										.colors
+																										.onPrimary
+																						}
+																					/>
+																				</TouchableOpacity>
+																			</View>
+																		),
+																	)
+																: null}
+														</View>
+													);
+												})}
+										</View>
+									))}
+							{resultCapabilities.canLogSectionScore &&
+							section.section_mode === 'workout' &&
+							section.is_scored ? (
+								<TouchableOpacity
+									style={[
+										styles.scoreButton,
+										loggedSectionIds.includes(section.id) &&
+											styles.scoreButtonComplete,
+									]}
+									accessibilityRole="button"
+									disabled={loggedSectionIds.includes(
+										section.id,
+									)}
+									onPress={() =>
+										setSelectedScoreSection(section)
+									}
+								>
+									<Ionicons
+										name={
+											loggedSectionIds.includes(
+												section.id,
+											)
+												? 'check-circle-outline'
+												: 'chart-box-outline'
+										}
+										size={18}
+										color={
+											loggedSectionIds.includes(
+												section.id,
+											)
+												? trainingTheme.colors.success
+												: trainingTheme.colors.primary
+										}
+									/>
+									<Text
+										style={[
+											styles.scoreButtonText,
+											loggedSectionIds.includes(
+												section.id,
+											) && styles.scoreButtonTextComplete,
+										]}
+									>
+										{loggedSectionIds.includes(section.id)
+											? 'Score saved'
+											: 'Log section score'}
+									</Text>
+								</TouchableOpacity>
+							) : null}
 						</View>
 					))}
 			</ScrollView>
 
-			<View style={styles.footer}>
-				<TouchableOpacity
-					style={styles.finishBtn}
-					accessibilityRole="button"
-					accessibilityState={{ disabled: isFinishing }}
-					disabled={isFinishing}
-					onPress={finish}
-				>
-					{isFinishing ? (
-						<ActivityIndicator
-							color={trainingTheme.colors.onPrimary}
-						/>
-					) : (
-						<Text style={styles.finishBtnText}>Finish workout</Text>
-					)}
-				</TouchableOpacity>
-			</View>
+			{resultCapabilities.canLogSectionScore ? (
+				<SectionScoreModal
+					section={selectedScoreSection}
+					visible={selectedScoreSection !== null}
+					onClose={() => setSelectedScoreSection(null)}
+					onLogged={() => {
+						if (
+							!resultCapabilitiesRef.current.canLogSectionScore ||
+							!selectedScoreSection
+						)
+							return;
+						setLoggedSectionIds(current =>
+							current.includes(selectedScoreSection.id)
+								? current
+								: [...current, selectedScoreSection.id],
+						);
+					}}
+					sessionSubmissionId={sessionSubmissionId}
+					assignmentId={assignmentId}
+					scalingLevel={scalingLevel}
+					canLogScore={() =>
+						resultCapabilitiesRef.current.canLogSectionScore
+					}
+				/>
+			) : null}
+
+			{resultCapabilities.canFinish ? (
+				<View style={styles.footer}>
+					<TouchableOpacity
+						style={styles.finishBtn}
+						accessibilityRole="button"
+						accessibilityState={{ disabled: isFinishing }}
+						disabled={isFinishing}
+						onPress={finish}
+					>
+						{isFinishing ? (
+							<ActivityIndicator
+								color={trainingTheme.colors.onPrimary}
+							/>
+						) : (
+							<Text style={styles.finishBtnText}>
+								Finish workout
+							</Text>
+						)}
+					</TouchableOpacity>
+				</View>
+			) : null}
 		</View>
 	);
 };
@@ -797,6 +1018,19 @@ const styles = StyleSheet.create({
 		fontWeight: '700',
 		marginBottom: 8,
 	},
+	noteCard: {
+		borderColor: trainingTheme.colors.border,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderRadius: trainingTheme.radius.md,
+		backgroundColor: trainingTheme.colors.surface,
+		padding: trainingTheme.spacing.lg,
+	},
+	coachNoteRow: { marginBottom: trainingTheme.spacing.sm },
+	coachNoteText: {
+		color: trainingTheme.colors.textMuted,
+		fontSize: 13,
+		lineHeight: 19,
+	},
 	block: {
 		backgroundColor: trainingTheme.colors.surface,
 		borderColor: trainingTheme.colors.border,
@@ -833,6 +1067,27 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
+	scoreButton: {
+		minHeight: trainingTheme.touchTarget,
+		borderColor: trainingTheme.colors.primary,
+		borderWidth: 1,
+		borderRadius: trainingTheme.radius.sm,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
+		gap: trainingTheme.spacing.sm,
+		paddingHorizontal: trainingTheme.spacing.md,
+	},
+	scoreButtonComplete: {
+		borderColor: trainingTheme.colors.success,
+		backgroundColor: trainingTheme.colors.successSoft,
+	},
+	scoreButtonText: {
+		color: trainingTheme.colors.primary,
+		fontSize: 14,
+		fontWeight: '700',
+	},
+	scoreButtonTextComplete: { color: trainingTheme.colors.success },
 	footer: {
 		padding: 16,
 		paddingBottom: 32,

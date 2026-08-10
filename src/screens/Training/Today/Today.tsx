@@ -28,6 +28,7 @@ import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCallback, useRef, useEffect, useMemo, useState } from 'react';
 import { trainingTheme } from '@/theme/training';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
 import SkeletonCard from '../components/SkeletonCard';
 import ConsistencyCard from './components/ConsistencyCard';
@@ -35,8 +36,91 @@ import SectionHeading from '../components/SectionHeading';
 import OfflineBanner from '../components/OfflineBanner';
 import TrainingState from '../components/TrainingState';
 import { useTrainingConnectivity } from '../hooks/useTrainingConnectivity';
+import { shouldShowTodayProgressCard } from '../Progress/progressFeatures';
+import {
+	createLoadingReadinessResult,
+	getMemberReadiness,
+	type ProviderId,
+	type ReadinessMetric,
+	type ReadinessResult,
+} from '@/services/workoutStudio/readiness';
 
 type Nav = StackNavigationProp<TrainingStackParamList>;
+
+const providerNames: Record<ProviderId, string> = {
+	apple_health: 'Apple Health',
+	health_connect: 'Health Connect',
+	whoop: 'WHOOP',
+	garmin: 'Garmin',
+	fitbit: 'Fitbit',
+	strava: 'Strava',
+};
+
+const latestReadinessMetric = (
+	metrics: ReadinessMetric[],
+): ReadinessMetric | null =>
+	[...metrics].sort((left, right) =>
+		right.asOfDate.localeCompare(left.asOfDate),
+	)[0] ?? null;
+
+const formatReadinessMetric = (
+	value: number | null,
+	suffix = '',
+): string => (value === null ? 'Not available' : `${value}${suffix}`);
+
+export const readinessCopy = (result: ReadinessResult) => {
+	if (result.status === 'loading')
+		return {
+			title: 'Loading readiness',
+			detail: 'Checking your latest recovery signals.',
+			score: 'Not available',
+			band: 'Not available',
+			confidence: 'Not available',
+			freshness: 'Not available',
+			metric: null,
+		};
+	if (result.status === 'error')
+		return {
+			title: 'Readiness unavailable',
+			detail: result.error.message,
+			score: 'Not available',
+			band: 'Not available',
+			confidence: 'Not available',
+			freshness: 'Not available',
+			metric: null,
+		};
+
+	const metric = latestReadinessMetric(result.data.metrics);
+	return {
+		title:
+			result.status === 'ready'
+				? 'Readiness is ready'
+				: result.status === 'baseline'
+					? 'Building your baseline'
+					: 'No readiness data yet',
+		detail:
+			result.status === 'ready'
+				? 'A provider-native readiness score is available.'
+				: result.status === 'baseline'
+					? 'More connected data is needed before a readiness score is available.'
+					: 'Connect a supported provider to add recovery context.',
+		score: formatReadinessMetric(metric?.nativeReadinessScore ?? null),
+		band:
+			result.status === 'ready'
+				? 'Ready'
+				: result.status === 'baseline'
+					? 'Baseline'
+					: 'No data',
+		confidence:
+			result.status === 'ready'
+				? 'Measured'
+				: result.status === 'baseline'
+					? 'Building'
+					: 'Not available',
+		freshness: `As of ${result.asOfDate}`,
+		metric,
+	};
+};
 
 type ProgramRowEmbed = {
 	id: string;
@@ -256,6 +340,7 @@ const useToday = () => {
 
 const Today = () => {
 	const nav = useNavigation<Nav>();
+	const { features, isEnabled } = useWorkoutStudio();
 	const {
 		assignments,
 		wellness,
@@ -265,11 +350,28 @@ const Today = () => {
 		programCtxMap,
 	} = useToday();
 	const session = getStoredWSSession();
+	const readinessFeatureEnabled = isEnabled('wearables');
+	const readinessQuery = useQuery<ReadinessResult>({
+		queryKey: [
+			'ws-member-readiness-today',
+			session?.user.id,
+			session?.user.active_tenant_id,
+		],
+		queryFn: () =>
+			getMemberReadiness({
+				windowDays: 7,
+				featureEnabled: readinessFeatureEnabled,
+			}),
+		enabled:
+			readinessFeatureEnabled &&
+			!!session?.user.id &&
+			!!session?.user.active_tenant_id,
+		staleTime: 60_000,
+	});
+	const readinessResult = readinessFeatureEnabled
+		? (readinessQuery.data ?? createLoadingReadinessResult())
+		: null;
 	const persona = session?.user.persona;
-	const wearableConnected =
-		Platform.OS === 'ios' &&
-		mmkvStorage.getString('healthkit.authorized') === 'true';
-	const wearableLastSync = mmkvStorage.getString('healthkit.lastSyncedAt');
 	const activeWorkout = findActiveWorkout(session?.user.id);
 	const isSolo = persona === 'solo';
 	const { data: hasCustomWorkouts } = useCustomWorkouts();
@@ -324,7 +426,10 @@ const Today = () => {
 	}, []);
 
 	const isLoading = assignments.isLoading || wellness.isLoading;
-	const isRefreshing = assignments.isRefetching || wellness.isRefetching;
+	const isRefreshing =
+		assignments.isRefetching ||
+		wellness.isRefetching ||
+		readinessQuery.isRefetching;
 	const hasWellnessToday = (wellness.data?.length ?? 0) > 0;
 	const showWellnessPrompt =
 		!hasWellnessToday &&
@@ -359,11 +464,62 @@ const Today = () => {
 		nav.navigate('TrainingWellness');
 	};
 
+	const renderReadiness = () => {
+		if (!readinessResult) return null;
+		const summary = readinessCopy(readinessResult);
+		const native = summary.metric;
+		const nativeText = native
+			? `${providerNames[native.provider]} native · Sleep ${formatReadinessMetric(native.sleepMinutes, ' min')} · HRV ${formatReadinessMetric(native.hrvMs, ' ms')} · Resting HR ${formatReadinessMetric(native.restingHr, ' bpm')} · Recovery ${formatReadinessMetric(native.nativeRecoveryScore)} · Native readiness ${formatReadinessMetric(native.nativeReadinessScore)}`
+			: 'No provider-native metrics available';
+		return (
+			<TouchableOpacity
+				style={styles.readinessCard}
+				accessibilityRole="button"
+				accessibilityLabel={`Readiness. ${summary.title}. Score ${summary.score}. Band ${summary.band}. Confidence ${summary.confidence}. Freshness ${summary.freshness}. ${nativeText}`}
+				onPress={() => nav.navigate('TrainingWearables')}
+			>
+				<View style={styles.readinessIcon}>
+					<Ionicons
+						name="weather-sunset-up"
+						size={22}
+						color={trainingTheme.colors.primary}
+					/>
+				</View>
+				<View style={styles.cardText}>
+					<Text style={styles.progressTitle}>Readiness</Text>
+					<Text style={styles.progressSubtitle}>{summary.title}</Text>
+					<Text style={styles.readinessDetail}>{summary.detail}</Text>
+					<View style={styles.readinessStats}>
+						<Text style={styles.readinessMeta}>
+							Score {summary.score}
+						</Text>
+						<Text style={styles.readinessMeta}>
+							Band {summary.band}
+						</Text>
+						<Text style={styles.readinessMeta}>
+							Confidence {summary.confidence}
+						</Text>
+					</View>
+					<Text style={styles.readinessMeta}>
+						{summary.freshness}
+					</Text>
+					<Text style={styles.readinessMeta}>{nativeText}</Text>
+				</View>
+				<Ionicons
+					name="chevron-right"
+					size={21}
+					color={trainingTheme.colors.textMuted}
+				/>
+			</TouchableOpacity>
+		);
+	};
+
 	const refresh = () => {
 		void assignments.refetch();
 		void wellness.refetch();
 		void coachNotes.refetch();
 		void recentPRs.refetch();
+		if (readinessFeatureEnabled) void readinessQuery.refetch();
 	};
 
 	const renderTraining = () => {
@@ -622,57 +778,36 @@ const Today = () => {
 
 				<ConsistencyCard />
 
-				<TouchableOpacity
-					style={styles.progressCard}
-					accessibilityRole="button"
-					onPress={() => nav.navigate('TrainingProgress')}
-				>
-					<View style={styles.progressIcon}>
+				{shouldShowTodayProgressCard(features) && (
+					<TouchableOpacity
+						style={styles.progressCard}
+						accessibilityRole="button"
+						onPress={() => nav.navigate('TrainingProgress')}
+					>
+						<View style={styles.progressIcon}>
+							<Ionicons
+								name="chart-line"
+								size={22}
+								color={trainingTheme.colors.primary}
+							/>
+						</View>
+						<View style={styles.cardText}>
+							<Text style={styles.progressTitle}>
+								My Progress
+							</Text>
+							<Text style={styles.progressSubtitle}>
+								Results, PRs, maxes and benchmarks
+							</Text>
+						</View>
 						<Ionicons
-							name="chart-line"
-							size={22}
-							color={trainingTheme.colors.primary}
+							name="chevron-right"
+							size={21}
+							color={trainingTheme.colors.textMuted}
 						/>
-					</View>
-					<View style={styles.cardText}>
-						<Text style={styles.progressTitle}>My Progress</Text>
-						<Text style={styles.progressSubtitle}>
-							Results, PRs, maxes and benchmarks
-						</Text>
-					</View>
-					<Ionicons
-						name="chevron-right"
-						size={21}
-						color={trainingTheme.colors.textMuted}
-					/>
-				</TouchableOpacity>
+					</TouchableOpacity>
+				)}
 
-				<TouchableOpacity
-					style={styles.readinessCard}
-					accessibilityRole="button"
-					onPress={() => nav.navigate('TrainingWearables')}
-				>
-					<View style={styles.readinessIcon}>
-						<Ionicons
-							name="weather-sunset-up"
-							size={22}
-							color={trainingTheme.colors.primary}
-						/>
-					</View>
-					<View style={styles.cardText}>
-						<Text style={styles.progressTitle}>Readiness</Text>
-						<Text style={styles.progressSubtitle}>
-							{wearableConnected && wearableLastSync
-								? `Health data synced ${moment(wearableLastSync).fromNow()}`
-								: 'Connect a wearable to add recovery context'}
-						</Text>
-					</View>
-					<Ionicons
-						name="chevron-right"
-						size={21}
-						color={trainingTheme.colors.textMuted}
-					/>
-				</TouchableOpacity>
+				{renderReadiness()}
 
 				{/* Wellness check-in card */}
 				{showWellnessPrompt ? (
@@ -1100,7 +1235,7 @@ const styles = StyleSheet.create({
 		marginTop: 3,
 	},
 	readinessCard: {
-		minHeight: 76,
+		minHeight: 150,
 		flexDirection: 'row',
 		alignItems: 'center',
 		gap: 12,
@@ -1117,6 +1252,24 @@ const styles = StyleSheet.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		backgroundColor: trainingTheme.colors.primarySoft,
+	},
+	readinessDetail: {
+		color: trainingTheme.colors.textMuted,
+		fontSize: 12,
+		lineHeight: 17,
+		marginTop: 4,
+	},
+	readinessStats: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		gap: 8,
+		marginTop: 7,
+	},
+	readinessMeta: {
+		color: trainingTheme.colors.textMuted,
+		fontSize: 11,
+		lineHeight: 16,
+		marginTop: 3,
 	},
 	wellnessDoneText: {
 		fontSize: 13,

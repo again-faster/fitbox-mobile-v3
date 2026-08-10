@@ -270,11 +270,13 @@ export type TrainingStackParamList = {
 		workoutId: string;
 		assignmentId?: string;
 		programContext?: ProgramContext;
+		initialTab?: 'overview' | 'leaderboard';
 	};
 	TrainingRunWorkout: {
 		workoutId: string;
 		assignmentId?: string;
 		workoutName: string;
+		scalingLevel?: 'rx' | 'scaled' | 'foundations';
 	};
 	TrainingWorkoutComplete: {
 		workoutResultId: string;
@@ -284,6 +286,7 @@ export type TrainingStackParamList = {
 	};
 	TrainingResults: undefined;
 	TrainingResultDetail: { workoutResultId: string };
+	TrainingShareWorkout: { workoutResultId: string };
 	TrainingGymFeed: undefined;
 	TrainingWellness: undefined;
 	TrainingMaxes: undefined;

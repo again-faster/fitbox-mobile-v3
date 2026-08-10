@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		A1B2C3D4E5F60718293A4B5C /* FitboxAppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5D /* FitboxAppIntents.swift */; };
+		A1B2C3D4E5F60718293A4B60 /* FitboxWorkoutSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B61 /* FitboxWorkoutSummaryTests.swift */; };
+		A1B2C3D4E5F60718293A4B62 /* FitboxWorkoutSpeechFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B64 /* FitboxWorkoutSpeechFormatter.swift */; };
+		A1B2C3D4E5F60718293A4B63 /* FitboxWorkoutSpeechFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B64 /* FitboxWorkoutSpeechFormatter.swift */; };
 		00E356F31AD99517003FC87E /* fitboxTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* fitboxTests.m */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
@@ -35,6 +38,8 @@
 
 /* Begin PBXFileReference section */
 		A1B2C3D4E5F60718293A4B5D /* FitboxAppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FitboxAppIntents.swift; path = fitbox/FitboxAppIntents.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B61 /* FitboxWorkoutSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FitboxWorkoutSummaryTests.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B64 /* FitboxWorkoutSpeechFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FitboxWorkoutSpeechFormatter.swift; path = fitbox/FitboxWorkoutSpeechFormatter.swift; sourceTree = "<group>"; };
 		00E356EE1AD99517003FC87E /* fitboxTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = fitboxTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* fitboxTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = fitboxTests.m; sourceTree = "<group>"; };
@@ -84,6 +89,7 @@
 		00E356EF1AD99517003FC87E /* fitboxTests */ = {
 			isa = PBXGroup;
 			children = (
+				A1B2C3D4E5F60718293A4B61 /* FitboxWorkoutSummaryTests.swift */,
 				00E356F21AD99517003FC87E /* fitboxTests.m */,
 				00E356F01AD99517003FC87E /* Supporting Files */,
 			);
@@ -103,6 +109,7 @@
 			children = (
 				CB4E31812C4633D800F124A4 /* fitbox.entitlements */,
 				A1B2C3D4E5F60718293A4B5D /* FitboxAppIntents.swift */,
+				A1B2C3D4E5F60718293A4B64 /* FitboxWorkoutSpeechFormatter.swift */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -196,7 +203,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				00E356F51AD99517003FC87E /* PBXTargetDependency */,
 			);
 			name = fitboxTests;
 			productName = fitboxTests;
@@ -450,7 +456,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				00E356F31AD99517003FC87E /* fitboxTests.m in Sources */,
+				A1B2C3D4E5F60718293A4B60 /* FitboxWorkoutSummaryTests.swift in Sources */,
+				A1B2C3D4E5F60718293A4B63 /* FitboxWorkoutSpeechFormatter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -459,6 +466,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1B2C3D4E5F60718293A4B5C /* FitboxAppIntents.swift in Sources */,
+				A1B2C3D4E5F60718293A4B62 /* FitboxWorkoutSpeechFormatter.swift in Sources */,
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 			);
@@ -479,13 +487,12 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7354661C4ACA47FAF31B04DF /* Pods-fitbox-fitboxTests.debug.xcconfig */;
 			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
 				INFOPLIST_FILE = fitboxTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -498,7 +505,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/fitbox.app/fitbox";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -506,10 +513,9 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 4E3A00342BC9511B3BD5CFBE /* Pods-fitbox-fitboxTests.release.xcconfig */;
 			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
 				INFOPLIST_FILE = fitboxTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -522,7 +528,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/fitbox.app/fitbox";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
