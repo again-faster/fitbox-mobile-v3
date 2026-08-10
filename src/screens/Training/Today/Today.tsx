@@ -25,8 +25,8 @@ import {
 	View,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCallback, useRef, useEffect, useMemo, useState } from 'react';
+import { MemberScreen } from '@/components/member';
 import { trainingTheme } from '@/theme/training';
 import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
@@ -645,7 +645,7 @@ const Today = () => {
 	};
 
 	return (
-		<SafeAreaView style={styles.safeArea} edges={['top']}>
+		<MemberScreen style={styles.safeArea} contentContainerStyle={styles.screenContent} edges={['top']}>
 			<ScrollView
 				style={styles.screen}
 				contentContainerStyle={styles.container}
@@ -1048,12 +1048,13 @@ const Today = () => {
 					</View>
 				</View>
 			</Modal>
-		</SafeAreaView>
+		</MemberScreen>
 	);
 };
 
 const styles = StyleSheet.create({
 	safeArea: { flex: 1, backgroundColor: trainingTheme.colors.background },
+	screenContent: { paddingHorizontal: 0 },
 	screen: { flex: 1, backgroundColor: trainingTheme.colors.background },
 	container: {
 		padding: trainingTheme.spacing.lg,

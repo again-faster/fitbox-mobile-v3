@@ -1,5 +1,6 @@
 import { memberTheme } from '@/theme/member';
 import type { PropsWithChildren } from 'react';
+import type { Edges } from 'react-native-safe-area-context';
 import {
 	SafeAreaView,
 	StyleSheet,
@@ -12,10 +13,11 @@ type MemberScreenProps = PropsWithChildren<{
 	style?: StyleProp<ViewStyle>;
 	contentContainerStyle?: StyleProp<ViewStyle>;
 	testID?: string;
+	edges?: Edges;
 }>;
 
-const MemberScreen = ({ children, style, contentContainerStyle, testID }: MemberScreenProps) => (
-	<SafeAreaView testID={testID} style={[styles.screen, style]}>
+const MemberScreen = ({ children, style, contentContainerStyle, testID, edges }: MemberScreenProps) => (
+	<SafeAreaView testID={testID} edges={edges} style={[styles.screen, style]}>
 		<View style={[styles.content, contentContainerStyle]}>{children}</View>
 	</SafeAreaView>
 );

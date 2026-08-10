@@ -1,4 +1,5 @@
 import { mmkvStorage } from '@/storage';
+import { MemberScreen } from '@/components/member';
 import { trainingTheme } from '@/theme/training';
 import type { TrainingStackParamList } from '@/types/navigation';
 import type { StackScreenProps } from '@react-navigation/stack';
@@ -12,7 +13,6 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
@@ -375,7 +375,7 @@ const Wearables = ({ navigation }: Props) => {
 			: 'Health Connect not connected';
 
 	return (
-		<SafeAreaView style={styles.screen} edges={['top']}>
+		<MemberScreen style={styles.screen} contentContainerStyle={styles.screenContent} edges={['top']}>
 			<View style={styles.header}>
 				<TouchableOpacity
 					accessibilityRole="button"
@@ -509,12 +509,13 @@ const Wearables = ({ navigation }: Props) => {
 					connectionStatus={nativeConnectionStatus}
 				/>
 			</ScrollView>
-		</SafeAreaView>
+		</MemberScreen>
 	);
 };
 
 const styles = StyleSheet.create({
 	screen: { flex: 1, backgroundColor: trainingTheme.colors.background },
+	screenContent: { paddingHorizontal: 0 },
 	header: {
 		flexDirection: 'row',
 		alignItems: 'center',

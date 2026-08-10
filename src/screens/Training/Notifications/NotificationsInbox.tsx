@@ -11,8 +11,8 @@ import {
 	TouchableOpacity,
 	View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "react-native-vector-icons/MaterialCommunityIcons";
+import { MemberScreen } from "@/components/member";
 import { getStoredWSSession } from "@/services/workoutStudio/auth";
 import {
 	getMemberNotifications,
@@ -372,7 +372,7 @@ const NotificationsInbox = ({ navigation }: Props) => {
 	};
 
 	return (
-		<SafeAreaView style={styles.screen} edges={["top"]}>
+		<MemberScreen style={styles.screen} contentContainerStyle={styles.screenContent} edges={["top"]}>
 			{state !== "ready" ? (
 				renderState()
 			) : (
@@ -393,12 +393,13 @@ const NotificationsInbox = ({ navigation }: Props) => {
 					renderItem={renderNotification}
 				/>
 			)}
-		</SafeAreaView>
+		</MemberScreen>
 	);
 };
 
 const styles = StyleSheet.create({
 	screen: { flex: 1, backgroundColor: trainingTheme.colors.background },
+	screenContent: { paddingHorizontal: 0 },
 	listContent: { paddingBottom: trainingTheme.spacing.xxl },
 	pageHeader: {
 		flexDirection: "row",

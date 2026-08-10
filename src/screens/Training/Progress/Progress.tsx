@@ -13,6 +13,7 @@ import type { StackScreenProps } from "@react-navigation/stack";
 import { useQuery } from "@tanstack/react-query";
 import moment from "moment";
 import { useWorkoutStudio } from "@/context/WorkoutStudioProvider";
+import { MemberScreen } from "@/components/member";
 import { wsApi } from "@/services/workoutStudio/api";
 import { getStoredWSSession } from "@/services/workoutStudio/auth";
 import {
@@ -447,6 +448,7 @@ const ProgressScreen = ({
 		(hasAuthenticatedSession && content.needsRMQuery && prs.isError);
 
 	return (
+		<MemberScreen contentContainerStyle={styles.screenContent}>
 		<ScrollView
 			style={styles.screen}
 			contentContainerStyle={styles.container}
@@ -639,11 +641,13 @@ const ProgressScreen = ({
 				</>
 			)}
 		</ScrollView>
+		</MemberScreen>
 	);
 };
 
 const styles = StyleSheet.create({
 	screen: { backgroundColor: trainingTheme.colors.background },
+	screenContent: { paddingHorizontal: 0 },
 	container: { padding: 16, paddingBottom: 48, gap: 14 },
 	title: {
 		color: trainingTheme.colors.text,
