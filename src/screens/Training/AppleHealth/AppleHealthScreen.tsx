@@ -267,14 +267,14 @@ const AppleHealthScreen = ({ navigation }: Props) => {
 							{isSyncing ? (
 								<ActivityIndicator
 									size="small"
-									color="#FFFFFF"
+									color={trainingTheme.colors.surface}
 								/>
 							) : (
 								<>
 									<Ionicons
 										name="sync"
 										size={18}
-										color="#FFFFFF"
+										color={trainingTheme.colors.surface}
 									/>
 									<Text style={styles.syncButtonText}>
 										Sync now
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
 	syncButtonText: {
 		fontSize: 14,
 		fontWeight: '800',
-		color: '#FFFFFF',
+		color: trainingTheme.colors.surface,
 	},
 	sectionTitle: {
 		fontSize: 20,

@@ -446,7 +446,7 @@ const WeeklyRecap = ({ navigation }: Props) => {
 										<Ionicons
 											name="check"
 											size={16}
-											color="#FFFFFF"
+										color={trainingTheme.colors.surface}
 										/>
 									</View>
 									<View style={styles.copy}>

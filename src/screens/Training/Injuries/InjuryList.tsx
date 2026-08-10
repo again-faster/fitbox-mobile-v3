@@ -534,7 +534,7 @@ const styles = StyleSheet.create({
 	retryText: {
 		fontSize: 15,
 		fontWeight: '800',
-		color: '#FFFFFF',
+		color: trainingTheme.colors.surface,
 	},
 });
 

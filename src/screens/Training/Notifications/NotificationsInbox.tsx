@@ -608,7 +608,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: trainingTheme.spacing.xl,
 		marginTop: trainingTheme.spacing.xl,
 	},
-	retryText: { fontSize: 15, fontWeight: "800", color: "#FFFFFF" },
+	retryText: { fontSize: 15, fontWeight: "800", color: trainingTheme.colors.surface },
 });
 
 export default NotificationsInbox;

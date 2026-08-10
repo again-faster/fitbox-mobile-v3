@@ -329,7 +329,7 @@ const InjuryDailyUpdate = ({ navigation, route }: Props) => {
 					onPress={() => void handleSubmit()}
 					disabled={submitting}
 				>
-					<Ionicons name="check" size={21} color="#FFFFFF" />
+					<Ionicons name="check" size={21} color={trainingTheme.colors.surface} />
 					<Text style={styles.submitText}>
 						{submitting ? 'Saving…' : 'Save today’s update'}
 					</Text>
@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
 		gap: trainingTheme.spacing.sm,
 	},
 	submitButtonDisabled: { opacity: 0.55 },
-	submitText: { fontSize: 16, fontWeight: '800', color: '#FFFFFF' },
+	submitText: { fontSize: 16, fontWeight: '800', color: trainingTheme.colors.surface },
 	toast: {
 		position: 'absolute',
 		left: trainingTheme.spacing.lg,
