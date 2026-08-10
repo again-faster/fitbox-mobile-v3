@@ -1,5 +1,11 @@
 import { memberTheme } from '@/theme/member';
-import { Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import {
+	Pressable,
+	StyleSheet,
+	type GestureResponderEvent,
+	type StyleProp,
+	type ViewStyle,
+} from 'react-native';
 import MemberText from './MemberText';
 
 export type MemberButtonVariant = 'primary' | 'secondary' | 'outlined' | 'quiet' | 'danger';
@@ -9,7 +15,7 @@ type MemberButtonProps = {
 	variant?: MemberButtonVariant;
 	compact?: boolean;
 	disabled?: boolean;
-	onPress: () => void;
+	onPress: (event?: GestureResponderEvent) => void;
 	accessibilityLabel?: string;
 	style?: StyleProp<ViewStyle>;
 	testID?: string;

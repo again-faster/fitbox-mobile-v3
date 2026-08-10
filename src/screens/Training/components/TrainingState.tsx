@@ -1,7 +1,7 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { trainingTheme } from '@/theme/training';
-import PrimaryButton from './PrimaryButton';
+import { MemberButton, MemberText } from '@/components/member';
+import { memberTheme } from '@/theme/member';
 
 type Props = {
 	kind: 'empty' | 'error' | 'offline';
@@ -17,26 +17,16 @@ const iconFor = {
 	offline: 'wifi-off',
 } as const;
 
-const TrainingState = ({
-	kind,
-	title,
-	message,
-	actionLabel,
-	onAction,
-}: Props) => (
+const TrainingState = ({ kind, title, message, actionLabel, onAction }: Props) => (
 	<View style={styles.container} accessibilityRole="summary">
 		<View style={styles.iconCircle}>
-			<Ionicons
-				name={iconFor[kind]}
-				size={28}
-				color={trainingTheme.colors.textMuted}
-			/>
+			<Ionicons name={iconFor[kind]} size={28} color={memberTheme.colors.textMuted} />
 		</View>
-		<Text style={styles.title}>{title}</Text>
-		<Text style={styles.message}>{message}</Text>
+		<MemberText role="sectionTitle" style={styles.title}>{title}</MemberText>
+		<MemberText role="body" muted style={styles.message}>{message}</MemberText>
 		{actionLabel && onAction ? (
 			<View style={styles.action}>
-				<PrimaryButton label={actionLabel} onPress={onAction} />
+				<MemberButton label={actionLabel} onPress={onAction} />
 			</View>
 		) : null}
 	</View>
@@ -45,34 +35,26 @@ const TrainingState = ({
 const styles = StyleSheet.create({
 	container: {
 		alignItems: 'center',
-		padding: trainingTheme.spacing.xl,
-		gap: trainingTheme.spacing.sm,
+		padding: memberTheme.spacing.xl,
+		gap: memberTheme.spacing.sm,
 	},
 	iconCircle: {
 		width: 56,
 		height: 56,
-		borderRadius: trainingTheme.radius.pill,
-		backgroundColor: trainingTheme.colors.surfaceMuted,
+		borderRadius: memberTheme.radius.pill,
+		backgroundColor: memberTheme.colors.surfaceSoft,
 		alignItems: 'center',
 		justifyContent: 'center',
-		marginBottom: trainingTheme.spacing.xs,
+		marginBottom: memberTheme.spacing.xs,
 	},
 	title: {
-		color: trainingTheme.colors.text,
-		fontFamily: 'Inter-Variable',
-		fontSize: 18,
-		fontWeight: '700',
 		textAlign: 'center',
 	},
 	message: {
-		color: trainingTheme.colors.textMuted,
-		fontFamily: 'Inter-Variable',
-		fontSize: 14,
-		lineHeight: 21,
 		textAlign: 'center',
 		maxWidth: 320,
 	},
-	action: { minWidth: 180, marginTop: trainingTheme.spacing.md },
+	action: { minWidth: 180, marginTop: memberTheme.spacing.md },
 });
 
 export default TrainingState;
