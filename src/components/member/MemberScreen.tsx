@@ -1,8 +1,7 @@
 import { memberTheme } from '@/theme/member';
 import type { PropsWithChildren } from 'react';
-import type { Edges } from 'react-native-safe-area-context';
+import { SafeAreaView, type Edges } from 'react-native-safe-area-context';
 import {
-	SafeAreaView,
 	StyleSheet,
 	View,
 	type StyleProp,

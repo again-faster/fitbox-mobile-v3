@@ -19,7 +19,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { MemberScreen } from '@/components/member';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type Props = TrainingStackScreenProps<'TrainingInjuryLog'>;
@@ -116,7 +116,7 @@ const InjuryLog = ({ navigation }: Props) => {
 	};
 
 	return (
-		<SafeAreaView style={styles.screen} edges={['top']}>
+		<MemberScreen style={styles.screen} contentContainerStyle={{ paddingHorizontal: 0 }} edges={['top']}>
 			<View style={styles.header}>
 				<TouchableOpacity
 					accessibilityRole="button"
@@ -447,7 +447,7 @@ const InjuryLog = ({ navigation }: Props) => {
 					</View>
 				</View>
 			</Modal>
-		</SafeAreaView>
+		</MemberScreen>
 	);
 };
 
