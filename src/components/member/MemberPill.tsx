@@ -1,5 +1,6 @@
 import { memberTheme } from '@/theme/member';
-import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
+import MemberText from './MemberText';
 
 interface MemberPillProps {
 	label: string;
@@ -14,23 +15,22 @@ const MemberPill = ({
 	onPress,
 	accessibilityLabel,
 }: MemberPillProps) => (
-	<TouchableOpacity
+	<Pressable
 		style={[styles.pill, selected && styles.selected]}
 		onPress={onPress}
-		activeOpacity={0.8}
 		accessibilityRole="button"
 		accessibilityLabel={accessibilityLabel ?? label}
 		accessibilityState={{ selected }}
 	>
-		<Text style={[styles.label, selected && styles.selectedLabel]}>
+		<MemberText role="label" style={[styles.label, selected && styles.selectedLabel]}>
 			{label}
-		</Text>
-	</TouchableOpacity>
+		</MemberText>
+	</Pressable>
 );
 
 const styles = StyleSheet.create({
 	pill: {
-		minHeight: 42,
+		minHeight: memberTheme.controls.minTouchTarget,
 		paddingHorizontal: memberTheme.spacing.lg,
 		borderRadius: memberTheme.radius.pill,
 		alignItems: 'center',
@@ -41,9 +41,8 @@ const styles = StyleSheet.create({
 		backgroundColor: memberTheme.colors.ink,
 	},
 	label: {
+		...memberTheme.typography.label,
 		color: memberTheme.colors.primaryInk,
-		fontSize: 14,
-		fontWeight: '600',
 	},
 	selectedLabel: {
 		color: memberTheme.colors.surface,
