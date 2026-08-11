@@ -441,37 +441,45 @@ const ResultDetail = ({ route, navigation }: Props) => {
 			{hasSectionResults ? (
 				<>
 					<Text style={styles.sectionTitle}>Section scores</Text>
-					{sectionResults.data?.map((sectionResult: SectionResult) => (
-						<TrainingCard key={sectionResult.id}>
-							<View style={styles.sectionScoreHeading}>
-								<Text style={styles.sectionScoreName}>
-									{sectionResult.workout_sections.name}
-								</Text>
-								<Text style={styles.sectionScoreValue}>
-									{formatSectionScore(sectionResult)}
-								</Text>
-							</View>
-							{sectionResult.section_score_entries.map((entry: SectionScoreEntry) => (
-								<View
-									key={entry.id}
-									style={styles.sectionEntryRow}
-								>
-									<Text style={styles.sectionEntryLabel}>
-										{entry.segment_label ??
-											`Entry ${(entry.segment_index ?? 0) + 1}`}
+					{sectionResults.data?.map(
+						(sectionResult: SectionResult) => (
+							<TrainingCard key={sectionResult.id}>
+								<View style={styles.sectionScoreHeading}>
+									<Text style={styles.sectionScoreName}>
+										{sectionResult.workout_sections.name}
 									</Text>
-									<Text style={styles.sectionEntryValue}>
-										{formatSectionScore(entry)}
+									<Text style={styles.sectionScoreValue}>
+										{formatSectionScore(sectionResult)}
 									</Text>
 								</View>
-							))}
-							{sectionResult.notes ? (
-								<Text style={styles.sectionScoreNotes}>
-									{sectionResult.notes}
-								</Text>
-							) : null}
-						</TrainingCard>
-					))}
+								{sectionResult.section_score_entries.map(
+									(entry: SectionScoreEntry) => (
+										<View
+											key={entry.id}
+											style={styles.sectionEntryRow}
+										>
+											<Text
+												style={styles.sectionEntryLabel}
+											>
+												{entry.segment_label ??
+													`Entry ${(entry.segment_index ?? 0) + 1}`}
+											</Text>
+											<Text
+												style={styles.sectionEntryValue}
+											>
+												{formatSectionScore(entry)}
+											</Text>
+										</View>
+									),
+								)}
+								{sectionResult.notes ? (
+									<Text style={styles.sectionScoreNotes}>
+										{sectionResult.notes}
+									</Text>
+								) : null}
+							</TrainingCard>
+						),
+					)}
 				</>
 			) : null}
 

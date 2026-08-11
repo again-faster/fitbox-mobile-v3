@@ -152,7 +152,10 @@ const BookingsHub = () => {
 								!!type && type.service_kind === tab,
 						),
 				}))
-				.filter((row: BookingProvider & { offered: BookingService[] }) => row.offered.length > 0),
+				.filter(
+					(row: BookingProvider & { offered: BookingService[] }) =>
+						row.offered.length > 0,
+				),
 		[providerRows, typeMap, tab],
 	);
 	const loading = !tab

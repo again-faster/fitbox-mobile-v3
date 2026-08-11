@@ -3,7 +3,11 @@ import { resolveApiUrl } from './resolveApiUrl';
 describe('resolveApiUrl', () => {
 	it('uses the persisted API URL when it is configured', () => {
 		expect(
-			resolveApiUrl(' https://staging.fitbox.iq ', 'https://fitbox.iq', 'https://fitbox.iq'),
+			resolveApiUrl(
+				' https://staging.fitbox.iq ',
+				'https://fitbox.iq',
+				'https://fitbox.iq',
+			),
 		).toBe('https://staging.fitbox.iq');
 	});
 
@@ -14,6 +18,8 @@ describe('resolveApiUrl', () => {
 	});
 
 	it('falls back to production when both app configuration values are blank', () => {
-		expect(resolveApiUrl('', '', 'https://fitbox.iq')).toBe('https://fitbox.iq');
+		expect(resolveApiUrl('', '', 'https://fitbox.iq')).toBe(
+			'https://fitbox.iq',
+		);
 	});
 });

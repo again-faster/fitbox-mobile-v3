@@ -1,21 +1,21 @@
-jest.mock("react-native-vector-icons/MaterialCommunityIcons", () => "Icon");
-jest.mock("@/services/workoutStudio/recap", () => ({
+jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
+jest.mock('@/services/workoutStudio/recap', () => ({
 	getMemberEngagement: jest.fn(),
 	getWeeklyRecapSnapshot: jest.fn(),
 }));
-jest.mock("@/services/workoutStudio/readiness", () => ({
+jest.mock('@/services/workoutStudio/readiness', () => ({
 	createLoadingReadinessResult: jest.fn(() => ({
-		status: "loading",
+		status: 'loading',
 		data: null,
 		error: null,
 		asOfDate: null,
 	})),
 	getMemberReadiness: jest.fn(),
 }));
-jest.mock("@/services/workoutStudio/auth", () => ({
+jest.mock('@/services/workoutStudio/auth', () => ({
 	getStoredWSSession: jest.fn(),
 }));
-jest.mock("@/context/WorkoutStudioProvider", () => ({
+jest.mock('@/context/WorkoutStudioProvider', () => ({
 	useWorkoutStudio: jest.fn(() => ({
 		features: {
 			custom_workouts: true,
@@ -44,31 +44,31 @@ jest.mock("@/context/WorkoutStudioProvider", () => ({
 		isEnabled: jest.fn(() => true),
 	})),
 }));
-jest.mock("@tanstack/react-query", () => ({
+jest.mock('@tanstack/react-query', () => ({
 	useQuery: jest.fn(),
 }));
-jest.mock("../components/SkeletonCard", () => "SkeletonCard");
-jest.mock("../components/TrainingState", () => "TrainingState");
+jest.mock('../components/SkeletonCard', () => 'SkeletonCard');
+jest.mock('../components/TrainingState', () => 'TrainingState');
 
-import { createElement } from "react";
-import { render } from "@testing-library/react-native";
-import { useQuery } from "@tanstack/react-query";
-import type { StackScreenProps } from "@react-navigation/stack";
-import { useWorkoutStudio } from "@/context/WorkoutStudioProvider";
-import { ALL_MEMBER_FEATURES_DISABLED } from "@/services/workoutStudio/memberFeatures";
+import { createElement } from 'react';
+import { render } from '@testing-library/react-native';
+import { useQuery } from '@tanstack/react-query';
+import type { StackScreenProps } from '@react-navigation/stack';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
+import { ALL_MEMBER_FEATURES_DISABLED } from '@/services/workoutStudio/memberFeatures';
 import type {
 	EngagementSnapshot,
 	WeeklyRecapSnapshot,
-} from "@/services/workoutStudio/recap";
-import type { ReadinessResult } from "@/services/workoutStudio/readiness";
-import { getStoredWSSession } from "@/services/workoutStudio/auth";
-import type { TrainingStackParamList } from "@/types/navigation";
+} from '@/services/workoutStudio/recap';
+import type { ReadinessResult } from '@/services/workoutStudio/readiness';
+import { getStoredWSSession } from '@/services/workoutStudio/auth';
+import type { TrainingStackParamList } from '@/types/navigation';
 import WeeklyRecap, {
 	hasMemberRecapSession,
 	shouldEnableWeeklyRecapQuery,
 	weeklyRecapViewState,
 	weeklyRecapStateCopy,
-} from "./WeeklyRecap";
+} from './WeeklyRecap';
 
 const mockedUseQuery = jest.mocked(useQuery);
 const mockedGetStoredWSSession = jest.mocked(getStoredWSSession);
@@ -76,40 +76,40 @@ const mockedUseWorkoutStudio = jest.mocked(useWorkoutStudio);
 
 const memberSession = {
 	user: {
-		id: "member-1",
-		persona: "member" as const,
-		active_tenant_id: "tenant-1",
+		id: 'member-1',
+		persona: 'member' as const,
+		active_tenant_id: 'tenant-1',
 	},
 };
 
 const weeklyRecapRoute: StackScreenProps<
 	TrainingStackParamList,
-	"TrainingWeeklyRecap"
->["route"] = {
-	key: "WeeklyRecapTest",
-	name: "TrainingWeeklyRecap",
+	'TrainingWeeklyRecap'
+>['route'] = {
+	key: 'WeeklyRecapTest',
+	name: 'TrainingWeeklyRecap',
 	params: undefined,
 };
 
 const snapshot: WeeklyRecapSnapshot = {
-	asOfDate: "2026-08-09",
-	windowStart: "2026-08-03",
-	windowEnd: "2026-08-09",
+	asOfDate: '2026-08-09',
+	windowStart: '2026-08-03',
+	windowEnd: '2026-08-09',
 	completedWorkouts: 3,
 	completedMinutes: null,
 	totalVolumeKg: 1250,
 	personalRecords: 1,
 	activeDays: 3,
 	workouts: [
-		{ id: "result-1", name: "Strength", completedAt: "2026-08-08" },
-		{ id: "result-2", name: null, completedAt: null },
+		{ id: 'result-1', name: 'Strength', completedAt: '2026-08-08' },
+		{ id: 'result-2', name: null, completedAt: null },
 	],
 };
 
 const engagement: EngagementSnapshot = {
-	asOfDate: "2026-08-09",
-	windowStart: "2026-07-13",
-	windowEnd: "2026-08-09",
+	asOfDate: '2026-08-09',
+	windowStart: '2026-07-13',
+	windowEnd: '2026-08-09',
 	activeDays: 4,
 	currentStreakDays: null,
 	longestStreakDays: 6,
@@ -118,16 +118,16 @@ const engagement: EngagementSnapshot = {
 };
 
 const readiness: ReadinessResult = {
-	status: "ready",
+	status: 'ready',
 	data: {
-		asOfDate: "2026-08-09",
-		windowStart: "2026-08-03",
-		windowEnd: "2026-08-09",
+		asOfDate: '2026-08-09',
+		windowStart: '2026-08-03',
+		windowEnd: '2026-08-09',
 		hasConnection: true,
 		metrics: [],
 	},
 	error: null,
-	asOfDate: "2026-08-09",
+	asOfDate: '2026-08-09',
 };
 
 const queryResult = (data: unknown) => ({
@@ -138,28 +138,28 @@ const queryResult = (data: unknown) => ({
 	refetch: jest.fn(),
 });
 
-describe("Weekly Recap screen", () => {
+describe('Weekly Recap screen', () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
 		mockedGetStoredWSSession.mockReturnValue(memberSession as never);
-		mockedUseQuery.mockImplementation((options) => {
+		mockedUseQuery.mockImplementation(options => {
 			const key = options.queryKey as readonly unknown[];
-			if (key[0] === "ws-member-weekly-recap")
+			if (key[0] === 'ws-member-weekly-recap')
 				return queryResult(snapshot) as never;
-			if (key[0] === "ws-member-engagement")
+			if (key[0] === 'ws-member-engagement')
 				return queryResult(engagement) as never;
 			return queryResult(readiness) as never;
 		});
 	});
 
-	it("requires an authenticated member session and enabled recap feature", () => {
+	it('requires an authenticated member session and enabled recap feature', () => {
 		expect(hasMemberRecapSession(null)).toBe(false);
 		expect(
 			hasMemberRecapSession({
 				user: {
-					id: "solo-1",
-					persona: "solo",
-					active_tenant_id: "tenant-1",
+					id: 'solo-1',
+					persona: 'solo',
+					active_tenant_id: 'tenant-1',
 				},
 			} as never),
 		).toBe(false);
@@ -172,7 +172,7 @@ describe("Weekly Recap screen", () => {
 		);
 	});
 
-	it("does not enable recap or readiness queries without a member session", () => {
+	it('does not enable recap or readiness queries without a member session', () => {
 		mockedGetStoredWSSession.mockReturnValue(null);
 
 		render(
@@ -187,9 +187,9 @@ describe("Weekly Recap screen", () => {
 		).toEqual([false, false, false]);
 	});
 
-	it.each(["loading", "error", "empty", "ready"] as const)(
-		"keeps the %s state explicit",
-		(state) => {
+	it.each(['loading', 'error', 'empty', 'ready'] as const)(
+		'keeps the %s state explicit',
+		state => {
 			const copy = weeklyRecapStateCopy(state);
 			expect(copy.state).toBe(state);
 			expect(copy.title).toBeTruthy();
@@ -197,23 +197,23 @@ describe("Weekly Recap screen", () => {
 		},
 	);
 
-	it("maps query conditions to loading, error, empty, and ready states", () => {
+	it('maps query conditions to loading, error, empty, and ready states', () => {
 		expect(weeklyRecapViewState(false, false, false, undefined)).toBe(
-			"empty",
+			'empty',
 		);
 		expect(weeklyRecapViewState(true, true, false, undefined)).toBe(
-			"loading",
+			'loading',
 		);
 		expect(weeklyRecapViewState(true, false, true, undefined)).toBe(
-			"error",
+			'error',
 		);
-		expect(weeklyRecapViewState(true, false, false, null)).toBe("empty");
+		expect(weeklyRecapViewState(true, false, false, null)).toBe('empty');
 		expect(weeklyRecapViewState(true, false, false, snapshot)).toBe(
-			"ready",
+			'ready',
 		);
 	});
 
-	it("renders server date context, nullable metrics, safe workout fallback, and accessible recap copy", () => {
+	it('renders server date context, nullable metrics, safe workout fallback, and accessible recap copy', () => {
 		const screen = render(
 			createElement(WeeklyRecap, {
 				navigation: { navigate: jest.fn() } as never,
@@ -223,9 +223,9 @@ describe("Weekly Recap screen", () => {
 
 		expect(screen.getByText(/Week of 3 Aug.*9 Aug/)).toBeTruthy();
 		expect(screen.getByText(/As of 9 Aug 2026/)).toBeTruthy();
-		expect(screen.getByText("Strength")).toBeTruthy();
-		expect(screen.getByText("Workout")).toBeTruthy();
-		expect(screen.getAllByText("Not available").length).toBeGreaterThan(0);
+		expect(screen.getByText('Strength')).toBeTruthy();
+		expect(screen.getByText('Workout')).toBeTruthy();
+		expect(screen.getAllByText('Not available').length).toBeGreaterThan(0);
 		expect(screen.queryByText(/^0$/)).toBeNull();
 		expect(
 			screen.getByLabelText(/Weekly recap.*3 workouts.*As of 9 Aug 2026/),
@@ -235,13 +235,13 @@ describe("Weekly Recap screen", () => {
 		).toBeTruthy();
 	});
 
-	it("hides engagement metrics whose member flags are disabled", () => {
+	it('hides engagement metrics whose member flags are disabled', () => {
 		mockedUseWorkoutStudio.mockReturnValue({
 			features: {
 				...ALL_MEMBER_FEATURES_DISABLED,
 				digest: true,
 			},
-			isEnabled: jest.fn((feature) => feature === "digest"),
+			isEnabled: jest.fn(feature => feature === 'digest'),
 		} as never);
 
 		const screen = render(
@@ -251,10 +251,10 @@ describe("Weekly Recap screen", () => {
 			}),
 		);
 
-		expect(screen.getAllByText("Active days").length).toBeGreaterThan(0);
-		expect(screen.queryByText("Current streak")).toBeNull();
-		expect(screen.queryByText("Longest streak")).toBeNull();
-		expect(screen.queryByText("Goals completed")).toBeNull();
-		expect(screen.queryByText("Badges earned")).toBeNull();
+		expect(screen.getAllByText('Active days').length).toBeGreaterThan(0);
+		expect(screen.queryByText('Current streak')).toBeNull();
+		expect(screen.queryByText('Longest streak')).toBeNull();
+		expect(screen.queryByText('Goals completed')).toBeNull();
+		expect(screen.queryByText('Badges earned')).toBeNull();
 	});
 });

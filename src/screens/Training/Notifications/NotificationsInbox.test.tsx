@@ -1,32 +1,32 @@
-jest.mock("react-native-vector-icons/MaterialCommunityIcons", () => "Icon");
-jest.mock("@/services/workoutStudio/notifications", () => ({
+jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
+jest.mock('@/services/workoutStudio/notifications', () => ({
 	getMemberNotifications: jest.fn(),
 	markAllNotificationsRead: jest.fn(),
 	markNotificationRead: jest.fn(),
 }));
-jest.mock("@/services/workoutStudio/auth", () => ({
+jest.mock('@/services/workoutStudio/auth', () => ({
 	getStoredWSSession: jest.fn(),
 }));
-jest.mock("@tanstack/react-query", () => ({
+jest.mock('@tanstack/react-query', () => ({
 	useMutation: jest.fn(),
 	useQuery: jest.fn(),
 	useQueryClient: jest.fn(),
 }));
 
-import { createElement } from "react";
-import { fireEvent, render } from "@testing-library/react-native";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { StackScreenProps } from "@react-navigation/stack";
-import { getStoredWSSession } from "@/services/workoutStudio/auth";
-import type { MemberNotification } from "@/services/workoutStudio/notifications";
-import type { TrainingStackParamList } from "@/types/navigation";
+import { createElement } from 'react';
+import { fireEvent, render } from '@testing-library/react-native';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { StackScreenProps } from '@react-navigation/stack';
+import { getStoredWSSession } from '@/services/workoutStudio/auth';
+import type { MemberNotification } from '@/services/workoutStudio/notifications';
+import type { TrainingStackParamList } from '@/types/navigation';
 import NotificationsInbox, {
 	hasMemberNotificationSession,
 	notificationInboxStateCopy,
 	notificationInboxViewState,
 	notificationAccessibilityLabel,
 	shouldEnableNotificationQuery,
-} from "./NotificationsInbox";
+} from './NotificationsInbox';
 
 const mockedUseMutation = jest.mocked(useMutation);
 const mockedUseQuery = jest.mocked(useQuery);
@@ -35,53 +35,53 @@ const mockedGetStoredWSSession = jest.mocked(getStoredWSSession);
 
 const memberSession = {
 	user: {
-		id: "member-1",
-		persona: "member" as const,
-		active_tenant_id: "tenant-1",
+		id: 'member-1',
+		persona: 'member' as const,
+		active_tenant_id: 'tenant-1',
 	},
 };
 
 const notificationsRoute: StackScreenProps<
 	TrainingStackParamList,
-	"TrainingNotifications"
->["route"] = {
-	key: "NotificationsTest",
-	name: "TrainingNotifications",
+	'TrainingNotifications'
+>['route'] = {
+	key: 'NotificationsTest',
+	name: 'TrainingNotifications',
 	params: undefined,
 };
 
 const notifications: MemberNotification[] = [
 	{
-		id: "notification-1",
-		title: "New workout",
-		body: "A new workout is ready.",
-		kind: "assignment",
-		entity_id: "workout-1",
-		link: "https://internal.example/workout-1",
+		id: 'notification-1',
+		title: 'New workout',
+		body: 'A new workout is ready.',
+		kind: 'assignment',
+		entity_id: 'workout-1',
+		link: 'https://internal.example/workout-1',
 		read_at: null,
-		created_at: "2026-08-09T00:00:00.000Z",
+		created_at: '2026-08-09T00:00:00.000Z',
 	},
 	{
-		id: "notification-2",
-		title: "Coach follow-up",
-		body: "Your coach left a note.",
-		kind: "coach_note",
+		id: 'notification-2',
+		title: 'Coach follow-up',
+		body: 'Your coach left a note.',
+		kind: 'coach_note',
 		entity_id: null,
 		link: null,
-		read_at: "2026-08-08T00:00:00.000Z",
-		created_at: "2026-08-08T00:00:00.000Z",
+		read_at: '2026-08-08T00:00:00.000Z',
+		created_at: '2026-08-08T00:00:00.000Z',
 	},
 ];
 
 const weeklyRecapNotification: MemberNotification = {
-	id: "notification-recap-1",
-	title: "Your weekly recap is ready",
-	body: "See how your training week came together.",
-	kind: "weekly_recap",
+	id: 'notification-recap-1',
+	title: 'Your weekly recap is ready',
+	body: 'See how your training week came together.',
+	kind: 'weekly_recap',
 	entity_id: null,
 	link: null,
 	read_at: null,
-	created_at: "2026-08-10T00:00:00.000Z",
+	created_at: '2026-08-10T00:00:00.000Z',
 };
 
 const markReadMutation = {
@@ -103,7 +103,7 @@ const queryResult = (data: MemberNotification[] = notifications) => ({
 	refetch: jest.fn(),
 });
 
-describe("Notifications Inbox", () => {
+describe('Notifications Inbox', () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
 		mockedGetStoredWSSession.mockReturnValue(memberSession as never);
@@ -116,14 +116,14 @@ describe("Notifications Inbox", () => {
 		} as never);
 	});
 
-	it("requires an authenticated member session for the inbox query", () => {
+	it('requires an authenticated member session for the inbox query', () => {
 		expect(hasMemberNotificationSession(null)).toBe(false);
 		expect(
 			hasMemberNotificationSession({
 				user: {
-					id: "solo-1",
-					persona: "solo",
-					active_tenant_id: "tenant-1",
+					id: 'solo-1',
+					persona: 'solo',
+					active_tenant_id: 'tenant-1',
 				},
 			} as never),
 		).toBe(false);
@@ -134,9 +134,9 @@ describe("Notifications Inbox", () => {
 		);
 	});
 
-	it.each(["loading", "error", "empty", "ready"] as const)(
-		"keeps the %s state explicit and privacy-safe",
-		(state) => {
+	it.each(['loading', 'error', 'empty', 'ready'] as const)(
+		'keeps the %s state explicit and privacy-safe',
+		state => {
 			const copy = notificationInboxStateCopy(state);
 			expect(copy.state).toBe(state);
 			expect(copy.title).toBeTruthy();
@@ -145,25 +145,25 @@ describe("Notifications Inbox", () => {
 		},
 	);
 
-	it("maps query conditions to typed inbox states", () => {
+	it('maps query conditions to typed inbox states', () => {
 		expect(notificationInboxViewState(false, false, false, [])).toBe(
-			"empty",
+			'empty',
 		);
 		expect(notificationInboxViewState(true, true, false, undefined)).toBe(
-			"loading",
+			'loading',
 		);
 		expect(notificationInboxViewState(true, false, true, undefined)).toBe(
-			"error",
+			'error',
 		);
 		expect(notificationInboxViewState(true, false, false, [])).toBe(
-			"empty",
+			'empty',
 		);
 		expect(
 			notificationInboxViewState(true, false, false, notifications),
-		).toBe("ready");
+		).toBe('ready');
 	});
 
-	it("renders unread and read presentation without exposing links or ids", () => {
+	it('renders unread and read presentation without exposing links or ids', () => {
 		const screen = render(
 			createElement(NotificationsInbox, {
 				navigation: { navigate: jest.fn(), goBack: jest.fn() } as never,
@@ -171,10 +171,10 @@ describe("Notifications Inbox", () => {
 			}),
 		);
 
-		expect(screen.getByText("YOUR UPDATES")).toBeTruthy();
-		expect(screen.getByText("1 unread notification")).toBeTruthy();
-		expect(screen.getByText("New workout")).toBeTruthy();
-		expect(screen.getByText("Coach follow-up")).toBeTruthy();
+		expect(screen.getByText('YOUR UPDATES')).toBeTruthy();
+		expect(screen.getByText('1 unread notification')).toBeTruthy();
+		expect(screen.getByText('New workout')).toBeTruthy();
+		expect(screen.getByText('Coach follow-up')).toBeTruthy();
 		expect(
 			screen.getByLabelText(
 				/Unread notification.*New workout.*A new workout/,
@@ -189,7 +189,7 @@ describe("Notifications Inbox", () => {
 		);
 	});
 
-	it("marks only unread items and supports mark-all safely", () => {
+	it('marks only unread items and supports mark-all safely', () => {
 		const screen = render(
 			createElement(NotificationsInbox, {
 				navigation: { navigate: jest.fn(), goBack: jest.fn() } as never,
@@ -200,13 +200,13 @@ describe("Notifications Inbox", () => {
 		fireEvent.press(
 			screen.getByLabelText(/Unread notification.*New workout/),
 		);
-		expect(markReadMutation.mutate).toHaveBeenCalledWith("notification-1");
+		expect(markReadMutation.mutate).toHaveBeenCalledWith('notification-1');
 
-		fireEvent.press(screen.getByLabelText("Mark all notifications read"));
+		fireEvent.press(screen.getByLabelText('Mark all notifications read'));
 		expect(markAllMutation.mutate).toHaveBeenCalledTimes(1);
 	});
 
-	it("opens the weekly recap from a server-generated notification", () => {
+	it('opens the weekly recap from a server-generated notification', () => {
 		const navigation = { navigate: jest.fn(), goBack: jest.fn() };
 		mockedUseQuery.mockReturnValue(
 			queryResult([weeklyRecapNotification]) as never,
@@ -222,10 +222,10 @@ describe("Notifications Inbox", () => {
 		fireEvent.press(
 			screen.getByLabelText(/Unread notification.*weekly recap/i),
 		);
-		expect(navigation.navigate).toHaveBeenCalledWith("TrainingWeeklyRecap");
+		expect(navigation.navigate).toHaveBeenCalledWith('TrainingWeeklyRecap');
 	});
 
-	it("does not enable or invoke notification access when signed out", () => {
+	it('does not enable or invoke notification access when signed out', () => {
 		mockedGetStoredWSSession.mockReturnValue(null);
 
 		const screen = render(
@@ -236,7 +236,7 @@ describe("Notifications Inbox", () => {
 		);
 
 		expect(mockedUseQuery.mock.calls[0]?.[0].enabled).toBe(false);
-		expect(screen.getByText("Notifications unavailable")).toBeTruthy();
+		expect(screen.getByText('Notifications unavailable')).toBeTruthy();
 		expect(markReadMutation.mutate).not.toHaveBeenCalled();
 		expect(markAllMutation.mutate).not.toHaveBeenCalled();
 	});

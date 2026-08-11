@@ -58,6 +58,9 @@ module.exports = {
 		'no-tabs': 'off',
 		'no-void': 'off',
 		'react/jsx-props-no-spreading': 'off',
+		// `role` is a member typography prop in the React Native design system,
+		// not an HTML ARIA role.
+		'jsx-a11y/aria-role': 'off',
 		'import/prefer-default-export': 'off',
 		'import/no-extraneous-dependencies': [
 			'error',
@@ -108,6 +111,15 @@ module.exports = {
 		],
 	},
 	overrides: [
+		{
+			files: ['**/*.test.ts', '**/*.test.tsx'],
+			rules: {
+				'import/first': 'off',
+				'no-await-in-loop': 'off',
+				'no-restricted-syntax': 'off',
+				'@typescript-eslint/no-unsafe-assignment': 'off',
+			},
+		},
 		{
 			files: [
 				'src/screens/Training/**/*',

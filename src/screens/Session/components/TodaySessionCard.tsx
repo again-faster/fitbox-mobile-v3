@@ -23,17 +23,29 @@ const TodaySessionCard = ({ isLoading, summary }: TodaySessionCardProps) => {
 						{summary.workoutName}
 					</MemberText>
 					{summary.sections.map(section => {
-						const parts = [...section.details, ...section.movements];
+						const parts = [
+							...section.details,
+							...section.movements,
+						];
 						if (section.remainingMovementCount > 0) {
-							parts.push(`+${section.remainingMovementCount} more`);
+							parts.push(
+								`+${section.remainingMovementCount} more`,
+							);
 						}
 
 						return (
 							<View key={section.id} style={styles.section}>
-								<MemberText role="label" style={styles.sectionName}>
+								<MemberText
+									role="label"
+									style={styles.sectionName}
+								>
 									{section.name}
 								</MemberText>
-								<MemberText role="body" muted style={styles.sectionSummary}>
+								<MemberText
+									role="body"
+									muted
+									style={styles.sectionSummary}
+								>
 									{parts.join(' · ')}
 								</MemberText>
 							</View>
@@ -42,7 +54,10 @@ const TodaySessionCard = ({ isLoading, summary }: TodaySessionCardProps) => {
 				</>
 			) : (
 				<View style={styles.loadingRow}>
-					<ActivityIndicator size="small" color={memberTheme.colors.primary} />
+					<ActivityIndicator
+						size="small"
+						color={memberTheme.colors.primary}
+					/>
 					<MemberText role="body" muted style={styles.loadingText}>
 						Loading session…
 					</MemberText>

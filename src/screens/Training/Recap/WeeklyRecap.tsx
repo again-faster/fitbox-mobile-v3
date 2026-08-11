@@ -6,41 +6,41 @@ import {
 	Text,
 	TouchableOpacity,
 	View,
-} from "react-native";
-import Ionicons from "react-native-vector-icons/MaterialCommunityIcons";
-import type { StackScreenProps } from "@react-navigation/stack";
-import { useQuery } from "@tanstack/react-query";
-import moment from "moment";
-import { useWorkoutStudio } from "@/context/WorkoutStudioProvider";
-import { MemberScreen } from "@/components/member";
-import { getStoredWSSession } from "@/services/workoutStudio/auth";
-import type { MemberFeatureMap } from "@/services/workoutStudio/memberFeatures";
+} from 'react-native';
+import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
+import type { StackScreenProps } from '@react-navigation/stack';
+import { useQuery } from '@tanstack/react-query';
+import moment from 'moment';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
+import { MemberScreen } from '@/components/member';
+import { getStoredWSSession } from '@/services/workoutStudio/auth';
+import type { MemberFeatureMap } from '@/services/workoutStudio/memberFeatures';
 import {
 	getMemberEngagement,
 	getWeeklyRecapSnapshot,
 	type EngagementSnapshot,
 	type WeeklyRecapSnapshot,
 	type WeeklyRecapWorkout,
-} from "@/services/workoutStudio/recap";
+} from '@/services/workoutStudio/recap';
 import {
 	createLoadingReadinessResult,
 	getMemberReadiness,
 	type ProviderId,
 	type ReadinessResult,
-} from "@/services/workoutStudio/readiness";
-import type { TrainingStackParamList } from "@/types/navigation";
-import { trainingTheme } from "@/theme/training";
-import SkeletonCard from "../components/SkeletonCard";
-import TrainingState from "../components/TrainingState";
+} from '@/services/workoutStudio/readiness';
+import type { TrainingStackParamList } from '@/types/navigation';
+import { trainingTheme } from '@/theme/training';
+import SkeletonCard from '../components/SkeletonCard';
+import TrainingState from '../components/TrainingState';
 import {
 	buildEngagementMetricKeys,
 	type EngagementMetricKey,
-} from "./engagementFeaturePolicy";
+} from './engagementFeaturePolicy';
 
-type Props = StackScreenProps<TrainingStackParamList, "TrainingWeeklyRecap">;
+type Props = StackScreenProps<TrainingStackParamList, 'TrainingWeeklyRecap'>;
 type RecapSession = ReturnType<typeof getStoredWSSession>;
 
-export type WeeklyRecapState = "loading" | "error" | "empty" | "ready";
+export type WeeklyRecapState = 'loading' | 'error' | 'empty' | 'ready';
 
 export type WeeklyRecapStateCopy = {
 	state: WeeklyRecapState;
@@ -49,7 +49,7 @@ export type WeeklyRecapStateCopy = {
 };
 
 export const hasMemberRecapSession = (session: RecapSession): boolean =>
-	session?.user.persona === "member" &&
+	session?.user.persona === 'member' &&
 	!!session.user.id &&
 	!!session.user.active_tenant_id;
 
@@ -61,42 +61,42 @@ export const shouldEnableWeeklyRecapQuery = (
 export const weeklyRecapStateCopy = (
 	state: WeeklyRecapState,
 ): WeeklyRecapStateCopy => {
-	if (state === "loading")
+	if (state === 'loading')
 		return {
 			state,
-			title: "Loading your weekly recap",
-			detail: "Fetching the latest training summary.",
+			title: 'Loading your weekly recap',
+			detail: 'Fetching the latest training summary.',
 		};
-	if (state === "error")
+	if (state === 'error')
 		return {
 			state,
-			title: "Weekly recap unavailable",
-			detail: "We could not load your recap. Try again shortly.",
+			title: 'Weekly recap unavailable',
+			detail: 'We could not load your recap. Try again shortly.',
 		};
-	if (state === "empty")
+	if (state === 'empty')
 		return {
 			state,
-			title: "No recap available yet",
-			detail: "Your weekly summary will appear when recap data is available.",
+			title: 'No recap available yet',
+			detail: 'Your weekly summary will appear when recap data is available.',
 		};
 	return {
 		state,
-		title: "Your week at a glance",
-		detail: "A summary of the training data available for this week.",
+		title: 'Your week at a glance',
+		detail: 'A summary of the training data available for this week.',
 	};
 };
 
 const providerNames: Record<ProviderId, string> = {
-	apple_health: "Apple Health",
-	health_connect: "Health Connect",
-	whoop: "WHOOP",
-	garmin: "Garmin",
-	fitbit: "Fitbit",
-	strava: "Strava",
+	apple_health: 'Apple Health',
+	health_connect: 'Health Connect',
+	whoop: 'WHOOP',
+	garmin: 'Garmin',
+	fitbit: 'Fitbit',
+	strava: 'Strava',
 };
 
 type WeeklyRecapReadinessCopy = {
-	status: ReadinessResult["status"];
+	status: ReadinessResult['status'];
 	title: string;
 	detail: string;
 	asOfDate: string | null;
@@ -104,21 +104,21 @@ type WeeklyRecapReadinessCopy = {
 };
 
 const formatServerDate = (value: string | null): string => {
-	if (!value) return "Date not available";
-	const date = moment.utc(value, "YYYY-MM-DD", true);
-	return date.isValid() ? date.format("D MMM YYYY") : "Date not available";
+	if (!value) return 'Date not available';
+	const date = moment.utc(value, 'YYYY-MM-DD', true);
+	return date.isValid() ? date.format('D MMM YYYY') : 'Date not available';
 };
 
 const formatServerRange = (snapshot: WeeklyRecapSnapshot): string =>
 	`Week of ${formatServerDate(snapshot.windowStart)} – ${formatServerDate(snapshot.windowEnd)}`;
 
-const formatMetric = (value: number | null, suffix = ""): string =>
-	typeof value === "number" && Number.isFinite(value)
+const formatMetric = (value: number | null, suffix = ''): string =>
+	typeof value === 'number' && Number.isFinite(value)
 		? `${value}${suffix}`
-		: "Not available";
+		: 'Not available';
 
 const workoutName = (workout: WeeklyRecapWorkout): string =>
-	workout.name?.trim() || "Workout";
+	workout.name?.trim() || 'Workout';
 
 const workoutDate = (workout: WeeklyRecapWorkout): string =>
 	formatServerDate(workout.completedAt);
@@ -129,19 +129,19 @@ const workoutAccessibilityLabel = (workout: WeeklyRecapWorkout): string =>
 export const weeklyRecapReadinessCopy = (
 	result: ReadinessResult,
 ): WeeklyRecapReadinessCopy => {
-	if (result.status === "loading")
+	if (result.status === 'loading')
 		return {
 			status: result.status,
-			title: "Loading readiness context",
-			detail: "Checking the readiness information available for this period.",
+			title: 'Loading readiness context',
+			detail: 'Checking the readiness information available for this period.',
 			asOfDate: null,
 			providers: [],
 		};
-	if (result.status === "error")
+	if (result.status === 'error')
 		return {
 			status: result.status,
-			title: "Readiness context unavailable",
-			detail: "Readiness information could not be loaded.",
+			title: 'Readiness context unavailable',
+			detail: 'Readiness information could not be loaded.',
 			asOfDate: null,
 			providers: [],
 		};
@@ -150,31 +150,31 @@ export const weeklyRecapReadinessCopy = (
 		? Array.from(
 				new Set(
 					result.data.metrics.map(
-						(metric) => providerNames[metric.provider],
+						metric => providerNames[metric.provider],
 					),
 				),
 			)
 		: [];
-	if (result.status === "empty")
+	if (result.status === 'empty')
 		return {
 			status: result.status,
-			title: "No readiness context yet",
-			detail: "No readiness information is available for this period.",
+			title: 'No readiness context yet',
+			detail: 'No readiness information is available for this period.',
 			asOfDate: result.asOfDate,
 			providers,
 		};
-	if (result.status === "baseline")
+	if (result.status === 'baseline')
 		return {
 			status: result.status,
-			title: "Readiness baseline building",
-			detail: "More connected data is needed before readiness context is established.",
+			title: 'Readiness baseline building',
+			detail: 'More connected data is needed before readiness context is established.',
 			asOfDate: result.asOfDate,
 			providers,
 		};
 	return {
 		status: result.status,
-		title: "Readiness context available",
-		detail: "Readiness context is shown separately from your workout recap.",
+		title: 'Readiness context available',
+		detail: 'Readiness context is shown separately from your workout recap.',
 		asOfDate: result.asOfDate,
 		providers,
 	};
@@ -186,11 +186,11 @@ export const weeklyRecapViewState = (
 	isError: boolean,
 	snapshot: WeeklyRecapSnapshot | null | undefined,
 ): WeeklyRecapState => {
-	if (!enabled) return "empty";
-	if (isLoading) return "loading";
-	if (isError) return "error";
-	if (!snapshot) return "empty";
-	return "ready";
+	if (!enabled) return 'empty';
+	if (isLoading) return 'loading';
+	if (isError) return 'error';
+	if (!snapshot) return 'empty';
+	return 'ready';
 };
 
 const Metric = ({ label, value }: { label: string; value: string }) => (
@@ -212,10 +212,16 @@ const EngagementCard = ({
 	<View
 		style={styles.card}
 		accessibilityRole="summary"
-		accessibilityLabel={engagementAccessibilityLabel(engagement, isError, features)}
+		accessibilityLabel={engagementAccessibilityLabel(
+			engagement,
+			isError,
+			features,
+		)}
 	>
 		<Text style={styles.sectionTitle}>Engagement</Text>
-		{engagement && !isError && buildEngagementMetricKeys(features).length > 0 ? (
+		{engagement &&
+		!isError &&
+		buildEngagementMetricKeys(features).length > 0 ? (
 			<View style={styles.grid}>
 				{buildEngagementMetricKeys(features).map(key => (
 					<Metric
@@ -235,11 +241,11 @@ const EngagementCard = ({
 
 const engagementMetricLabel = (key: EngagementMetricKey): string => {
 	const labels: Record<EngagementMetricKey, string> = {
-		activeDays: "Active days",
-		currentStreakDays: "Current streak",
-		longestStreakDays: "Longest streak",
-		goalsCompleted: "Goals completed",
-		badgesEarned: "Badges earned",
+		activeDays: 'Active days',
+		currentStreakDays: 'Current streak',
+		longestStreakDays: 'Longest streak',
+		goalsCompleted: 'Goals completed',
+		badgesEarned: 'Badges earned',
 	};
 	return labels[key];
 };
@@ -255,7 +261,7 @@ const engagementMetricValue = (
 		goalsCompleted: engagement.goalsCompleted,
 		badgesEarned: engagement.badgesEarned,
 	};
-	const suffix = key.endsWith("StreakDays") ? " days" : "";
+	const suffix = key.endsWith('StreakDays') ? ' days' : '';
 	return formatMetric(values[key], suffix);
 };
 
@@ -266,21 +272,24 @@ const engagementAccessibilityLabel = (
 ): string => {
 	const keys = buildEngagementMetricKeys(features);
 	if (!engagement || isError || keys.length === 0)
-		return "Engagement unavailable. The engagement summary is not available.";
+		return 'Engagement unavailable. The engagement summary is not available.';
 	return `Engagement. ${keys
-		.map(key => `${engagementMetricLabel(key)} ${engagementMetricValue(engagement, key)}`)
-		.join(". ")}.`;
+		.map(
+			key =>
+				`${engagementMetricLabel(key)} ${engagementMetricValue(engagement, key)}`,
+		)
+		.join('. ')}.`;
 };
 
 const ReadinessCard = ({ result }: { result: ReadinessResult }) => {
 	const copy = weeklyRecapReadinessCopy(result);
 	const asOf = copy.asOfDate
 		? `As of ${formatServerDate(copy.asOfDate)}`
-		: "As of date not available";
+		: 'As of date not available';
 	const providers =
 		copy.providers.length > 0
-			? `Provider signals: ${copy.providers.join(", ")}`
-			: "Provider signals not available";
+			? `Provider signals: ${copy.providers.join(', ')}`
+			: 'Provider signals not available';
 
 	return (
 		<View
@@ -300,8 +309,8 @@ const ReadinessCard = ({ result }: { result: ReadinessResult }) => {
 const WeeklyRecap = ({ navigation }: Props) => {
 	const { features, isEnabled } = useWorkoutStudio();
 	const session = getStoredWSSession();
-	const digestEnabled = isEnabled("digest");
-	const readinessFeatureEnabled = isEnabled("wearables");
+	const digestEnabled = isEnabled('digest');
+	const readinessFeatureEnabled = isEnabled('wearables');
 	const recapQueryEnabled = shouldEnableWeeklyRecapQuery(
 		digestEnabled,
 		session,
@@ -311,19 +320,19 @@ const WeeklyRecap = ({ navigation }: Props) => {
 	const tenantId = session?.user.active_tenant_id;
 
 	const recapQuery = useQuery<WeeklyRecapSnapshot | null>({
-		queryKey: ["ws-member-weekly-recap", uid, tenantId],
+		queryKey: ['ws-member-weekly-recap', uid, tenantId],
 		queryFn: () => getWeeklyRecapSnapshot(),
 		enabled: recapQueryEnabled,
 		staleTime: 120_000,
 	});
 	const engagementQuery = useQuery<EngagementSnapshot | null>({
-		queryKey: ["ws-member-engagement", uid, tenantId],
+		queryKey: ['ws-member-engagement', uid, tenantId],
 		queryFn: () => getMemberEngagement(),
 		enabled: recapQueryEnabled,
 		staleTime: 120_000,
 	});
 	const readinessQuery = useQuery<ReadinessResult>({
-		queryKey: ["ws-member-readiness-weekly-recap", uid, tenantId],
+		queryKey: ['ws-member-readiness-weekly-recap', uid, tenantId],
 		queryFn: () =>
 			getMemberReadiness({
 				windowDays: 31,
@@ -357,172 +366,193 @@ const WeeklyRecap = ({ navigation }: Props) => {
 
 	return (
 		<MemberScreen contentContainerStyle={styles.screenContent}>
-		<ScrollView
-			style={styles.screen}
-			contentContainerStyle={styles.container}
-			refreshControl={
-				<RefreshControl
-					refreshing={
-						(recapQueryEnabled && recapQuery.isRefetching) ||
-						(recapQueryEnabled && engagementQuery.isRefetching) ||
-						(readinessQueryEnabled && readinessQuery.isRefetching)
-					}
-					onRefresh={refresh}
-					tintColor={trainingTheme.colors.primary}
-				/>
-			}
-		>
-			<View>
-				<Text style={styles.eyebrow}>WEEKLY RECAP</Text>
-				<Text style={styles.title}>
-					{snapshot
-						? formatServerRange(snapshot)
-						: "Your training week"}
-				</Text>
-				<Text style={styles.subtitle}>
-					{snapshot
-						? `Server summary as of ${formatServerDate(snapshot.asOfDate)}.`
-						: copy.detail}
-				</Text>
-			</View>
+			<ScrollView
+				style={styles.screen}
+				contentContainerStyle={styles.container}
+				refreshControl={
+					<RefreshControl
+						refreshing={
+							(recapQueryEnabled && recapQuery.isRefetching) ||
+							(recapQueryEnabled &&
+								engagementQuery.isRefetching) ||
+							(readinessQueryEnabled &&
+								readinessQuery.isRefetching)
+						}
+						onRefresh={refresh}
+						tintColor={trainingTheme.colors.primary}
+					/>
+				}
+			>
+				<View>
+					<Text style={styles.eyebrow}>WEEKLY RECAP</Text>
+					<Text style={styles.title}>
+						{snapshot
+							? formatServerRange(snapshot)
+							: 'Your training week'}
+					</Text>
+					<Text style={styles.subtitle}>
+						{snapshot
+							? `Server summary as of ${formatServerDate(snapshot.asOfDate)}.`
+							: copy.detail}
+					</Text>
+				</View>
 
-			{state === "loading" ? (
-				<>
-					<SkeletonCard />
-					<SkeletonCard />
-				</>
-			) : state === "error" ? (
-				<TrainingState
-					kind="error"
-					title={copy.title}
-					message={copy.detail}
-					actionLabel="Try again"
-					onAction={refresh}
-				/>
-			) : state === "empty" || !snapshot ? (
-				<TrainingState
-					kind="empty"
-					title={copy.title}
-					message={copy.detail}
-					actionLabel={
-						recapQueryEnabled ? "Refresh recap" : undefined
-					}
-					onAction={recapQueryEnabled ? refresh : undefined}
-				/>
-			) : (
-				<>
-					<View
-						style={styles.hero}
-						accessibilityRole="summary"
-						accessibilityLabel={summaryLabel}
-					>
-						<View style={styles.heroIcon}>
-							<Ionicons
-								name="calendar-check-outline"
-								size={27}
-								color={trainingTheme.colors.primary}
+				{state === 'loading' ? (
+					<>
+						<SkeletonCard />
+						<SkeletonCard />
+					</>
+				) : state === 'error' ? (
+					<TrainingState
+						kind="error"
+						title={copy.title}
+						message={copy.detail}
+						actionLabel="Try again"
+						onAction={refresh}
+					/>
+				) : state === 'empty' || !snapshot ? (
+					<TrainingState
+						kind="empty"
+						title={copy.title}
+						message={copy.detail}
+						actionLabel={
+							recapQueryEnabled ? 'Refresh recap' : undefined
+						}
+						onAction={recapQueryEnabled ? refresh : undefined}
+					/>
+				) : (
+					<>
+						<View
+							style={styles.hero}
+							accessibilityRole="summary"
+							accessibilityLabel={summaryLabel}
+						>
+							<View style={styles.heroIcon}>
+								<Ionicons
+									name="calendar-check-outline"
+									size={27}
+									color={trainingTheme.colors.primary}
+								/>
+							</View>
+							<Text style={styles.heroValue}>
+								{formatMetric(snapshot.completedWorkouts)}
+							</Text>
+							<Text style={styles.heroLabel}>
+								Workouts completed
+							</Text>
+						</View>
+
+						<View style={styles.grid}>
+							<Metric
+								label="Minutes"
+								value={formatMetric(snapshot.completedMinutes)}
+							/>
+							<Metric
+								label="Kg volume"
+								value={formatMetric(snapshot.totalVolumeKg)}
+							/>
+							<Metric
+								label="Personal records"
+								value={formatMetric(snapshot.personalRecords)}
+							/>
+							<Metric
+								label="Active days"
+								value={formatMetric(snapshot.activeDays)}
 							/>
 						</View>
-						<Text style={styles.heroValue}>
-							{formatMetric(snapshot.completedWorkouts)}
-						</Text>
-						<Text style={styles.heroLabel}>Workouts completed</Text>
-					</View>
 
-					<View style={styles.grid}>
-						<Metric
-							label="Minutes"
-							value={formatMetric(snapshot.completedMinutes)}
-						/>
-						<Metric
-							label="Kg volume"
-							value={formatMetric(snapshot.totalVolumeKg)}
-						/>
-						<Metric
-							label="Personal records"
-							value={formatMetric(snapshot.personalRecords)}
-						/>
-						<Metric
-							label="Active days"
-							value={formatMetric(snapshot.activeDays)}
-						/>
-					</View>
+						<View style={styles.card}>
+							<Text style={styles.sectionTitle}>This week</Text>
+							{snapshot.workouts.length === 0 ? (
+								<Text style={styles.cardDetail}>
+									No individual workout details are available
+									for this period.
+								</Text>
+							) : (
+								snapshot.workouts.map(
+									(workout: WeeklyRecapWorkout) => (
+										<TouchableOpacity
+											key={workout.id}
+											style={styles.activity}
+											accessibilityRole="button"
+											accessibilityLabel={workoutAccessibilityLabel(
+												workout,
+											)}
+											onPress={() =>
+												navigation.navigate(
+													'TrainingResultDetail',
+													{
+														workoutResultId:
+															workout.id,
+													},
+												)
+											}
+										>
+											<View style={styles.check}>
+												<Ionicons
+													name="check"
+													size={16}
+													color={
+														trainingTheme.colors
+															.surface
+													}
+												/>
+											</View>
+											<View style={styles.copy}>
+												<Text
+													style={styles.activityName}
+												>
+													{workoutName(workout)}
+												</Text>
+												<Text
+													style={styles.activityMeta}
+												>
+													{workoutDate(workout)}
+												</Text>
+											</View>
+											<Ionicons
+												name="chevron-right"
+												size={20}
+												color={
+													trainingTheme.colors
+														.textMuted
+												}
+											/>
+										</TouchableOpacity>
+									),
+								)
+							)}
+						</View>
 
-					<View style={styles.card}>
-						<Text style={styles.sectionTitle}>This week</Text>
-						{snapshot.workouts.length === 0 ? (
-							<Text style={styles.cardDetail}>
-								No individual workout details are available for
-								this period.
-							</Text>
-						) : (
-							snapshot.workouts.map((workout: WeeklyRecapWorkout) => (
-								<TouchableOpacity
-									key={workout.id}
-									style={styles.activity}
-									accessibilityRole="button"
-									accessibilityLabel={workoutAccessibilityLabel(
-										workout,
-									)}
-									onPress={() =>
-										navigation.navigate(
-											"TrainingResultDetail",
-											{ workoutResultId: workout.id },
-										)
-									}
-								>
-									<View style={styles.check}>
-										<Ionicons
-											name="check"
-											size={16}
-										color={trainingTheme.colors.surface}
-										/>
-									</View>
-									<View style={styles.copy}>
-										<Text style={styles.activityName}>
-											{workoutName(workout)}
-										</Text>
-										<Text style={styles.activityMeta}>
-											{workoutDate(workout)}
-										</Text>
-									</View>
-									<Ionicons
-										name="chevron-right"
-										size={20}
-										color={trainingTheme.colors.textMuted}
-									/>
-								</TouchableOpacity>
-							))
+						<EngagementCard
+							engagement={engagementQuery.data}
+							isError={engagementQuery.isError}
+							features={features}
+						/>
+						{readinessResult && (
+							<ReadinessCard result={readinessResult} />
 						)}
-					</View>
 
-					<EngagementCard
-						engagement={engagementQuery.data}
-						isError={engagementQuery.isError}
-						features={features}
-					/>
-					{readinessResult && (
-						<ReadinessCard result={readinessResult} />
-					)}
-
-					<TouchableOpacity
-						style={styles.progressLink}
-						accessibilityRole="button"
-						accessibilityLabel="View all progress"
-						onPress={() => navigation.navigate("TrainingProgress")}
-					>
-						<Text style={styles.progressLabel}>
-							View all progress
-						</Text>
-						<Ionicons
-							name="arrow-right"
-							size={19}
-							color={trainingTheme.colors.primary}
-						/>
-					</TouchableOpacity>
-				</>
-			)}
-		</ScrollView>
+						<TouchableOpacity
+							style={styles.progressLink}
+							accessibilityRole="button"
+							accessibilityLabel="View all progress"
+							onPress={() =>
+								navigation.navigate('TrainingProgress')
+							}
+						>
+							<Text style={styles.progressLabel}>
+								View all progress
+							</Text>
+							<Ionicons
+								name="arrow-right"
+								size={19}
+								color={trainingTheme.colors.primary}
+							/>
+						</TouchableOpacity>
+					</>
+				)}
+			</ScrollView>
 		</MemberScreen>
 	);
 };
@@ -534,13 +564,13 @@ const styles = StyleSheet.create({
 	eyebrow: {
 		color: trainingTheme.colors.primary,
 		fontSize: 12,
-		fontWeight: "700",
+		fontWeight: '700',
 		letterSpacing: 1,
 	},
 	title: {
 		color: trainingTheme.colors.text,
 		fontSize: 27,
-		fontWeight: "700",
+		fontWeight: '700',
 		marginTop: 3,
 	},
 	subtitle: {
@@ -550,7 +580,7 @@ const styles = StyleSheet.create({
 		marginTop: 3,
 	},
 	hero: {
-		alignItems: "center",
+		alignItems: 'center',
 		padding: 22,
 		borderRadius: 20,
 		backgroundColor: trainingTheme.colors.surface,
@@ -561,14 +591,14 @@ const styles = StyleSheet.create({
 		width: 50,
 		height: 50,
 		borderRadius: 25,
-		alignItems: "center",
-		justifyContent: "center",
+		alignItems: 'center',
+		justifyContent: 'center',
 		backgroundColor: trainingTheme.colors.primarySoft,
 	},
 	heroValue: {
 		color: trainingTheme.colors.text,
 		fontSize: 34,
-		fontWeight: "800",
+		fontWeight: '800',
 		marginTop: 8,
 	},
 	heroLabel: {
@@ -576,11 +606,11 @@ const styles = StyleSheet.create({
 		fontSize: 13,
 		marginTop: 2,
 	},
-	grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+	grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
 	stat: {
-		width: "48%",
+		width: '48%',
 		minHeight: 90,
-		justifyContent: "center",
+		justifyContent: 'center',
 		padding: 14,
 		borderRadius: 16,
 		backgroundColor: trainingTheme.colors.surface,
@@ -590,7 +620,7 @@ const styles = StyleSheet.create({
 	statValue: {
 		color: trainingTheme.colors.text,
 		fontSize: 21,
-		fontWeight: "700",
+		fontWeight: '700',
 	},
 	statLabel: {
 		color: trainingTheme.colors.textMuted,
@@ -608,12 +638,12 @@ const styles = StyleSheet.create({
 	sectionTitle: {
 		color: trainingTheme.colors.text,
 		fontSize: 17,
-		fontWeight: "700",
+		fontWeight: '700',
 	},
 	cardTitle: {
 		color: trainingTheme.colors.text,
 		fontSize: 14,
-		fontWeight: "700",
+		fontWeight: '700',
 	},
 	cardDetail: {
 		color: trainingTheme.colors.textMuted,
@@ -627,8 +657,8 @@ const styles = StyleSheet.create({
 	},
 	activity: {
 		minHeight: 62,
-		flexDirection: "row",
-		alignItems: "center",
+		flexDirection: 'row',
+		alignItems: 'center',
 		gap: 10,
 		borderTopWidth: StyleSheet.hairlineWidth,
 		borderTopColor: trainingTheme.colors.border,
@@ -638,15 +668,15 @@ const styles = StyleSheet.create({
 		width: 30,
 		height: 30,
 		borderRadius: 15,
-		alignItems: "center",
-		justifyContent: "center",
+		alignItems: 'center',
+		justifyContent: 'center',
 		backgroundColor: trainingTheme.colors.primary,
 	},
 	copy: { flex: 1 },
 	activityName: {
 		color: trainingTheme.colors.text,
 		fontSize: 14,
-		fontWeight: "700",
+		fontWeight: '700',
 	},
 	activityMeta: {
 		color: trainingTheme.colors.textMuted,
@@ -655,15 +685,15 @@ const styles = StyleSheet.create({
 	},
 	progressLink: {
 		minHeight: 48,
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "center",
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
 		gap: 8,
 	},
 	progressLabel: {
 		color: trainingTheme.colors.primary,
 		fontSize: 14,
-		fontWeight: "700",
+		fontWeight: '700',
 	},
 });
 

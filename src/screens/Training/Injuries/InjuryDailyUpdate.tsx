@@ -175,7 +175,11 @@ const InjuryDailyUpdate = ({ navigation, route }: Props) => {
 	};
 
 	return (
-		<MemberScreen style={styles.screen} contentContainerStyle={{ paddingHorizontal: 0 }} edges={['top']}>
+		<MemberScreen
+			style={styles.screen}
+			contentContainerStyle={{ paddingHorizontal: 0 }}
+			edges={['top']}
+		>
 			<View style={styles.header}>
 				<TouchableOpacity
 					accessibilityRole="button"
@@ -329,7 +333,11 @@ const InjuryDailyUpdate = ({ navigation, route }: Props) => {
 					onPress={() => void handleSubmit()}
 					disabled={submitting}
 				>
-					<Ionicons name="check" size={21} color={trainingTheme.colors.surface} />
+					<Ionicons
+						name="check"
+						size={21}
+						color={trainingTheme.colors.surface}
+					/>
 					<Text style={styles.submitText}>
 						{submitting ? 'Saving…' : 'Save today’s update'}
 					</Text>
@@ -568,7 +576,11 @@ const styles = StyleSheet.create({
 		gap: trainingTheme.spacing.sm,
 	},
 	submitButtonDisabled: { opacity: 0.55 },
-	submitText: { fontSize: 16, fontWeight: '800', color: trainingTheme.colors.surface },
+	submitText: {
+		fontSize: 16,
+		fontWeight: '800',
+		color: trainingTheme.colors.surface,
+	},
 	toast: {
 		position: 'absolute',
 		left: trainingTheme.spacing.lg,
