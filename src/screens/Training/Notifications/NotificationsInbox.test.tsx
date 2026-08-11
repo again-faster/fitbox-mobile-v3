@@ -73,6 +73,17 @@ const notifications: MemberNotification[] = [
 	},
 ];
 
+const weeklyRecapNotification: MemberNotification = {
+	id: "notification-recap-1",
+	title: "Your weekly recap is ready",
+	body: "See how your training week came together.",
+	kind: "weekly_recap",
+	entity_id: null,
+	link: null,
+	read_at: null,
+	created_at: "2026-08-10T00:00:00.000Z",
+};
+
 const markReadMutation = {
 	mutate: jest.fn(),
 	isPending: false,
@@ -193,6 +204,25 @@ describe("Notifications Inbox", () => {
 
 		fireEvent.press(screen.getByLabelText("Mark all notifications read"));
 		expect(markAllMutation.mutate).toHaveBeenCalledTimes(1);
+	});
+
+	it("opens the weekly recap from a server-generated notification", () => {
+		const navigation = { navigate: jest.fn(), goBack: jest.fn() };
+		mockedUseQuery.mockReturnValue(
+			queryResult([weeklyRecapNotification]) as never,
+		);
+
+		const screen = render(
+			createElement(NotificationsInbox, {
+				navigation: navigation as never,
+				route: notificationsRoute,
+			}),
+		);
+
+		fireEvent.press(
+			screen.getByLabelText(/Unread notification.*weekly recap/i),
+		);
+		expect(navigation.navigate).toHaveBeenCalledWith("TrainingWeeklyRecap");
 	});
 
 	it("does not enable or invoke notification access when signed out", () => {

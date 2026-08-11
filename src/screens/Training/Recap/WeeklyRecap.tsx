@@ -14,6 +14,7 @@ import moment from "moment";
 import { useWorkoutStudio } from "@/context/WorkoutStudioProvider";
 import { MemberScreen } from "@/components/member";
 import { getStoredWSSession } from "@/services/workoutStudio/auth";
+import type { MemberFeatureMap } from "@/services/workoutStudio/memberFeatures";
 import {
 	getMemberEngagement,
 	getWeeklyRecapSnapshot,
@@ -31,6 +32,10 @@ import type { TrainingStackParamList } from "@/types/navigation";
 import { trainingTheme } from "@/theme/training";
 import SkeletonCard from "../components/SkeletonCard";
 import TrainingState from "../components/TrainingState";
+import {
+	buildEngagementMetricKeys,
+	type EngagementMetricKey,
+} from "./engagementFeaturePolicy";
 
 type Props = StackScreenProps<TrainingStackParamList, "TrainingWeeklyRecap">;
 type RecapSession = ReturnType<typeof getStoredWSSession>;
@@ -198,42 +203,27 @@ const Metric = ({ label, value }: { label: string; value: string }) => (
 const EngagementCard = ({
 	engagement,
 	isError,
+	features,
 }: {
 	engagement: EngagementSnapshot | null | undefined;
 	isError: boolean;
+	features: MemberFeatureMap;
 }) => (
 	<View
 		style={styles.card}
 		accessibilityRole="summary"
-		accessibilityLabel={
-			engagement && !isError
-				? `Engagement. Active days ${formatMetric(engagement.activeDays)}. Current streak ${formatMetric(engagement.currentStreakDays)} days. Longest streak ${formatMetric(engagement.longestStreakDays)} days.`
-				: "Engagement unavailable. The engagement summary is not available."
-		}
+		accessibilityLabel={engagementAccessibilityLabel(engagement, isError, features)}
 	>
 		<Text style={styles.sectionTitle}>Engagement</Text>
-		{engagement && !isError ? (
+		{engagement && !isError && buildEngagementMetricKeys(features).length > 0 ? (
 			<View style={styles.grid}>
-				<Metric
-					label="Active days"
-					value={formatMetric(engagement.activeDays)}
-				/>
-				<Metric
-					label="Current streak"
-					value={formatMetric(engagement.currentStreakDays, " days")}
-				/>
-				<Metric
-					label="Longest streak"
-					value={formatMetric(engagement.longestStreakDays, " days")}
-				/>
-				<Metric
-					label="Goals completed"
-					value={formatMetric(engagement.goalsCompleted)}
-				/>
-				<Metric
-					label="Badges earned"
-					value={formatMetric(engagement.badgesEarned)}
-				/>
+				{buildEngagementMetricKeys(features).map(key => (
+					<Metric
+						key={key}
+						label={engagementMetricLabel(key)}
+						value={engagementMetricValue(engagement, key)}
+					/>
+				))}
 			</View>
 		) : (
 			<Text style={styles.cardDetail}>
@@ -242,6 +232,45 @@ const EngagementCard = ({
 		)}
 	</View>
 );
+
+const engagementMetricLabel = (key: EngagementMetricKey): string => {
+	const labels: Record<EngagementMetricKey, string> = {
+		activeDays: "Active days",
+		currentStreakDays: "Current streak",
+		longestStreakDays: "Longest streak",
+		goalsCompleted: "Goals completed",
+		badgesEarned: "Badges earned",
+	};
+	return labels[key];
+};
+
+const engagementMetricValue = (
+	engagement: EngagementSnapshot,
+	key: EngagementMetricKey,
+): string => {
+	const values: Record<EngagementMetricKey, number | null> = {
+		activeDays: engagement.activeDays,
+		currentStreakDays: engagement.currentStreakDays,
+		longestStreakDays: engagement.longestStreakDays,
+		goalsCompleted: engagement.goalsCompleted,
+		badgesEarned: engagement.badgesEarned,
+	};
+	const suffix = key.endsWith("StreakDays") ? " days" : "";
+	return formatMetric(values[key], suffix);
+};
+
+const engagementAccessibilityLabel = (
+	engagement: EngagementSnapshot | null | undefined,
+	isError: boolean,
+	features: MemberFeatureMap,
+): string => {
+	const keys = buildEngagementMetricKeys(features);
+	if (!engagement || isError || keys.length === 0)
+		return "Engagement unavailable. The engagement summary is not available.";
+	return `Engagement. ${keys
+		.map(key => `${engagementMetricLabel(key)} ${engagementMetricValue(engagement, key)}`)
+		.join(". ")}.`;
+};
 
 const ReadinessCard = ({ result }: { result: ReadinessResult }) => {
 	const copy = weeklyRecapReadinessCopy(result);
@@ -269,7 +298,7 @@ const ReadinessCard = ({ result }: { result: ReadinessResult }) => {
 };
 
 const WeeklyRecap = ({ navigation }: Props) => {
-	const { isEnabled } = useWorkoutStudio();
+	const { features, isEnabled } = useWorkoutStudio();
 	const session = getStoredWSSession();
 	const digestEnabled = isEnabled("digest");
 	const readinessFeatureEnabled = isEnabled("wearables");
@@ -470,6 +499,7 @@ const WeeklyRecap = ({ navigation }: Props) => {
 					<EngagementCard
 						engagement={engagementQuery.data}
 						isError={engagementQuery.isError}
+						features={features}
 					/>
 					{readinessResult && (
 						<ReadinessCard result={readinessResult} />

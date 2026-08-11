@@ -35,6 +35,7 @@ const NOTIFICATION_KINDS: Notification["kind"][] = [
 	"coach_note",
 	"reaction",
 	"wellness_followup",
+	"weekly_recap",
 ];
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
