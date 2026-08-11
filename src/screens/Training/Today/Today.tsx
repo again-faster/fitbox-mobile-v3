@@ -1,6 +1,13 @@
 import { syncNow } from '@/services/healthKit';
 import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
+import {
+	createLoadingReadinessResult,
+	getMemberReadiness,
+	type ProviderId,
+	type ReadinessMetric,
+	type ReadinessResult,
+} from '@/services/workoutStudio/readiness';
 import type {
 	AthleteRM,
 	ProgramContext,
@@ -38,13 +45,6 @@ import OfflineBanner from '../components/OfflineBanner';
 import TrainingState from '../components/TrainingState';
 import { useTrainingConnectivity } from '../hooks/useTrainingConnectivity';
 import { shouldShowTodayProgressCard } from '../Progress/progressFeatures';
-import {
-	createLoadingReadinessResult,
-	getMemberReadiness,
-	type ProviderId,
-	type ReadinessMetric,
-	type ReadinessResult,
-} from '@/services/workoutStudio/readiness';
 
 type Nav = StackNavigationProp<TrainingStackParamList>;
 
