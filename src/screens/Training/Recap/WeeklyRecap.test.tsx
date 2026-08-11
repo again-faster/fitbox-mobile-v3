@@ -17,6 +17,30 @@ jest.mock("@/services/workoutStudio/auth", () => ({
 }));
 jest.mock("@/context/WorkoutStudioProvider", () => ({
 	useWorkoutStudio: jest.fn(() => ({
+		features: {
+			custom_workouts: true,
+			results: true,
+			my_maxes: true,
+			prs: true,
+			progress: true,
+			benchmarks: true,
+			training_profile: true,
+			challenges: true,
+			digest: true,
+			badges: true,
+			adaptive_goals: true,
+			feed: true,
+			streaks: true,
+			wellness: true,
+			pain_reports: true,
+			wearables: true,
+			bookings: true,
+			my_bookings: true,
+			marketplace: true,
+			subscriptions: true,
+			coach_notes: true,
+			classes: true,
+		},
 		isEnabled: jest.fn(() => true),
 	})),
 }));
@@ -30,6 +54,8 @@ import { createElement } from "react";
 import { render } from "@testing-library/react-native";
 import { useQuery } from "@tanstack/react-query";
 import type { StackScreenProps } from "@react-navigation/stack";
+import { useWorkoutStudio } from "@/context/WorkoutStudioProvider";
+import { ALL_MEMBER_FEATURES_DISABLED } from "@/services/workoutStudio/memberFeatures";
 import type {
 	EngagementSnapshot,
 	WeeklyRecapSnapshot,
@@ -46,6 +72,7 @@ import WeeklyRecap, {
 
 const mockedUseQuery = jest.mocked(useQuery);
 const mockedGetStoredWSSession = jest.mocked(getStoredWSSession);
+const mockedUseWorkoutStudio = jest.mocked(useWorkoutStudio);
 
 const memberSession = {
 	user: {
@@ -206,5 +233,28 @@ describe("Weekly Recap screen", () => {
 		expect(
 			screen.getByLabelText(/Strength.*Completed 8 Aug 2026/),
 		).toBeTruthy();
+	});
+
+	it("hides engagement metrics whose member flags are disabled", () => {
+		mockedUseWorkoutStudio.mockReturnValue({
+			features: {
+				...ALL_MEMBER_FEATURES_DISABLED,
+				digest: true,
+			},
+			isEnabled: jest.fn((feature) => feature === "digest"),
+		} as never);
+
+		const screen = render(
+			createElement(WeeklyRecap, {
+				navigation: { navigate: jest.fn() } as never,
+				route: weeklyRecapRoute,
+			}),
+		);
+
+		expect(screen.getAllByText("Active days").length).toBeGreaterThan(0);
+		expect(screen.queryByText("Current streak")).toBeNull();
+		expect(screen.queryByText("Longest streak")).toBeNull();
+		expect(screen.queryByText("Goals completed")).toBeNull();
+		expect(screen.queryByText("Badges earned")).toBeNull();
 	});
 });

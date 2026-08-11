@@ -6,6 +6,7 @@ import {
 	getMemberNotifications,
 	markAllNotificationsRead,
 	markNotificationRead,
+	normalizeNotifications,
 	normalizeNotificationPreferences,
 	registerNotificationDevice,
 	setMemberNotificationPreferences,
@@ -206,6 +207,34 @@ describe("member notification service", () => {
 		expect(() => normalizeNotificationPreferences({ ok: false })).toThrow(
 			"notification preferences contract",
 		);
+	});
+
+	it("accepts server-generated weekly recap notifications", () => {
+		expect(
+			normalizeNotifications([
+				{
+					id: "recap-notification-1",
+					title: "Your weekly recap is ready",
+					body: "See how your training week came together.",
+					kind: "weekly_recap",
+					entity_id: null,
+					link: null,
+					read_at: null,
+					created_at: "2026-08-10T00:00:00.000Z",
+				},
+			]),
+		).toEqual([
+			{
+				id: "recap-notification-1",
+				title: "Your weekly recap is ready",
+				body: "See how your training week came together.",
+				kind: "weekly_recap",
+				entity_id: null,
+				link: null,
+				read_at: null,
+				created_at: "2026-08-10T00:00:00.000Z",
+			},
+		]);
 	});
 
 	it("returns safe empty results and no-ops when the feature or endpoint is unavailable", async () => {

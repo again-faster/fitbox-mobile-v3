@@ -164,7 +164,12 @@ export type Notification = {
 	id: string;
 	title: string;
 	body: string;
-	kind: 'assignment' | 'coach_note' | 'reaction' | 'wellness_followup';
+	kind:
+		| 'assignment'
+		| 'coach_note'
+		| 'reaction'
+		| 'wellness_followup'
+		| 'weekly_recap';
 	entity_id: string | null;
 	link: string | null;
 	read_at: string | null;

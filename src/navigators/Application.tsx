@@ -97,6 +97,7 @@ import TrainingStackNavigator from './TrainingStack';
 import { navigationRef } from './NavigationRef';
 import HeaderCloseButton from './components/HeaderCloseButton';
 import { CommonHeaderOptions, TabHeaderOptions } from './utils/options';
+import { shouldCheckMinimumVersion } from './updatePolicy';
 
 const linking: LinkingOptions<ApplicationStackParamList> = {
 	prefixes: ['appfitbox://', 'https://fitbox.iq', 'http://fitbox.iq'],
@@ -584,7 +585,9 @@ const ApplicationNavigator = () => {
 			setShowUpdateDialog(res?.isNeeded);
 		};
 
-		void checkIfUpdateNeeded();
+		if (shouldCheckMinimumVersion(__DEV__)) {
+			void checkIfUpdateNeeded();
+		}
 	}, []);
 
 	return (

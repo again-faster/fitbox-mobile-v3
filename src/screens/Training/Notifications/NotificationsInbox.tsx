@@ -91,6 +91,7 @@ const KIND_ICON: Record<MemberNotification["kind"], string> = {
 	coach_note: "message-text-outline",
 	reaction: "heart-outline",
 	wellness_followup: "heart-pulse",
+	weekly_recap: "calendar-check-outline",
 };
 
 const formatNotificationDate = (createdAt: string): string => {
@@ -171,6 +172,8 @@ const NotificationsInbox = ({ navigation }: Props) => {
 			});
 		} else if (notification.kind === "coach_note") {
 			navigation.navigate("TrainingCoachNotes");
+		} else if (notification.kind === "weekly_recap") {
+			navigation.navigate("TrainingWeeklyRecap");
 		}
 	};
 
@@ -220,7 +223,9 @@ const NotificationsInbox = ({ navigation }: Props) => {
 						</Text>
 					</View>
 				</View>
-				{(item.kind === "assignment" || item.kind === "coach_note") && (
+				{(item.kind === "assignment" ||
+					item.kind === "coach_note" ||
+					item.kind === "weekly_recap") && (
 					<Ionicons
 						name="chevron-right"
 						size={20}
