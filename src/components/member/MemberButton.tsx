@@ -8,7 +8,12 @@ import {
 } from 'react-native';
 import MemberText from './MemberText';
 
-export type MemberButtonVariant = 'primary' | 'secondary' | 'outlined' | 'quiet' | 'danger';
+export type MemberButtonVariant =
+	| 'primary'
+	| 'secondary'
+	| 'outlined'
+	| 'quiet'
+	| 'danger';
 
 type MemberButtonProps = {
 	label: string;

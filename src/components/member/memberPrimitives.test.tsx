@@ -10,18 +10,24 @@ import MemberText from './MemberText';
 
 describe('member UI primitives', () => {
 	it('renders semantic typography from the canonical roles', () => {
-		const { getByText } = render(<MemberText role="screenTitle">Training</MemberText>);
-
-		expect(StyleSheet.flatten(getByText('Training').props.style)).toMatchObject(
-			memberTheme.typography.screenTitle,
+		const { getByText } = render(
+			<MemberText role="screenTitle">Training</MemberText>,
 		);
+
+		expect(
+			StyleSheet.flatten(getByText('Training').props.style),
+		).toMatchObject(memberTheme.typography.screenTitle);
 	});
 
 	it('renders a primary member button with the minimum touch target', () => {
-		const { getByRole } = render(<MemberButton label="Save" onPress={jest.fn()} />);
+		const { getByRole } = render(
+			<MemberButton label="Save" onPress={jest.fn()} />,
+		);
 		const button = getByRole('button', { name: 'Save' });
 
-		expect(button.props.accessibilityState).toMatchObject({ disabled: false });
+		expect(button.props.accessibilityState).toMatchObject({
+			disabled: false,
+		});
 		expect(StyleSheet.flatten(button.props.style)).toMatchObject({
 			minHeight: memberTheme.controls.primaryHeight,
 			backgroundColor: memberTheme.colors.primary,
@@ -31,30 +37,46 @@ describe('member UI primitives', () => {
 	it('supports outlined and disabled button states', () => {
 		const onPress = jest.fn();
 		const { getByRole } = render(
-			<MemberButton label="Delete" variant="danger" disabled onPress={onPress} />,
+			<MemberButton
+				label="Delete"
+				variant="danger"
+				disabled
+				onPress={onPress}
+			/>,
 		);
 		const button = getByRole('button', { name: 'Delete' });
 
-		expect(button.props.accessibilityState).toMatchObject({ disabled: true });
+		expect(button.props.accessibilityState).toMatchObject({
+			disabled: true,
+		});
 		fireEvent.press(button);
 		expect(onPress).not.toHaveBeenCalled();
 	});
 
 	it('exposes member screen gutters and content container styling', () => {
 		const { getByTestId } = render(
-			<MemberScreen testID="member-screen" contentContainerStyle={{ paddingTop: 8 }}>
+			<MemberScreen
+				testID="member-screen"
+				contentContainerStyle={{ paddingTop: 8 }}
+			>
 				<MemberText>Content</MemberText>
 			</MemberScreen>,
 		);
 
-		expect(StyleSheet.flatten(getByTestId('member-screen').props.style)).toMatchObject({
+		expect(
+			StyleSheet.flatten(getByTestId('member-screen').props.style),
+		).toMatchObject({
 			backgroundColor: memberTheme.colors.background,
 		});
 	});
 
 	it('renders an accessible section action with the minimum touch target', () => {
 		const { getByRole } = render(
-			<MemberSection title="Progress" actionLabel="View all" onActionPress={jest.fn()} />,
+			<MemberSection
+				title="Progress"
+				actionLabel="View all"
+				onActionPress={jest.fn()}
+			/>,
 		);
 		const action = getByRole('button', { name: 'View all' });
 
@@ -64,7 +86,9 @@ describe('member UI primitives', () => {
 	});
 
 	it('maps status pills to semantic colors and accessible labels', () => {
-		const { getByLabelText } = render(<MemberStatusPill label="Ready" status="success" />);
+		const { getByLabelText } = render(
+			<MemberStatusPill label="Ready" status="success" />,
+		);
 		const pill = getByLabelText('Ready');
 
 		expect(StyleSheet.flatten(pill.props.style)).toMatchObject({

@@ -16,7 +16,12 @@ type MemberTextProps = Omit<ComponentProps<typeof RNText>, 'role'> & {
 	muted?: boolean;
 };
 
-const MemberText = ({ role = 'body', muted = false, style, ...props }: MemberTextProps) => (
+const MemberText = ({
+	role = 'body',
+	muted = false,
+	style,
+	...props
+}: MemberTextProps) => (
 	<RNText
 		{...props}
 		style={[styles.base, styles[role], muted && styles.muted, style]}

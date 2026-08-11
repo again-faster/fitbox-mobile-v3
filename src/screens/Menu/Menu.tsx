@@ -20,6 +20,13 @@ import SimpleToast from 'react-native-simple-toast';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
+type MenuSubheaderProps = Omit<
+	React.ComponentProps<typeof List.Subheader>,
+	'children'
+> & {
+	children?: React.ReactNode;
+};
+
 const menuOptions = [
 	{
 		title: 'Account',
@@ -389,13 +396,16 @@ const Menu = ({ navigation }: MenuScreenProps) => {
 							key={i}
 							style={styles.menuOptionContainer}
 						>
-							{React.createElement(List.Subheader as React.ComponentType<any>, {
-								style: [
-									layout.fontMontserratRegular,
-									styles.sectionTitle,
-								],
-								children: op.title,
-							})}
+							{React.createElement(
+								List.Subheader as React.ComponentType<MenuSubheaderProps>,
+								{
+									style: [
+										layout.fontMontserratRegular,
+										styles.sectionTitle,
+									],
+								},
+								op.title,
+							)}
 							{options}
 						</List.Section>
 					);

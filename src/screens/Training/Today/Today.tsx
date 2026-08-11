@@ -64,10 +64,8 @@ const latestReadinessMetric = (
 		right.asOfDate.localeCompare(left.asOfDate),
 	)[0] ?? null;
 
-const formatReadinessMetric = (
-	value: number | null,
-	suffix = '',
-): string => (value === null ? 'Not available' : `${value}${suffix}`);
+const formatReadinessMetric = (value: number | null, suffix = ''): string =>
+	value === null ? 'Not available' : `${value}${suffix}`;
 
 export const readinessCopy = (result: ReadinessResult) => {
 	if (result.status === 'loading')
@@ -92,32 +90,34 @@ export const readinessCopy = (result: ReadinessResult) => {
 		};
 
 	const metric = latestReadinessMetric(result.data.metrics);
+	const stateCopy = {
+		ready: {
+			title: 'Readiness is ready',
+			detail: 'A provider-native readiness score is available.',
+			band: 'Ready',
+			confidence: 'Measured',
+		},
+		baseline: {
+			title: 'Building your baseline',
+			detail: 'More connected data is needed before a readiness score is available.',
+			band: 'Baseline',
+			confidence: 'Building',
+		},
+		empty: {
+			title: 'No readiness data yet',
+			detail: 'Connect a supported provider to add recovery context.',
+			band: 'No data',
+			confidence: 'Not available',
+		},
+	} as const;
+	const copy = stateCopy[result.status];
+
 	return {
-		title:
-			result.status === 'ready'
-				? 'Readiness is ready'
-				: result.status === 'baseline'
-					? 'Building your baseline'
-					: 'No readiness data yet',
-		detail:
-			result.status === 'ready'
-				? 'A provider-native readiness score is available.'
-				: result.status === 'baseline'
-					? 'More connected data is needed before a readiness score is available.'
-					: 'Connect a supported provider to add recovery context.',
+		title: copy.title,
+		detail: copy.detail,
 		score: formatReadinessMetric(metric?.nativeReadinessScore ?? null),
-		band:
-			result.status === 'ready'
-				? 'Ready'
-				: result.status === 'baseline'
-					? 'Baseline'
-					: 'No data',
-		confidence:
-			result.status === 'ready'
-				? 'Measured'
-				: result.status === 'baseline'
-					? 'Building'
-					: 'Not available',
+		band: copy.band,
+		confidence: copy.confidence,
 		freshness: `As of ${result.asOfDate}`,
 		metric,
 	};
@@ -556,9 +556,17 @@ const Today = () => {
 		if (assignments.data?.length === 0) {
 			return (
 				<View
-					style={[styles.emptyCard, { backgroundColor: trainingTheme.colors.surface }]}
+					style={[
+						styles.emptyCard,
+						{ backgroundColor: trainingTheme.colors.surface },
+					]}
 				>
-					<Text style={[styles.emptyText, { color: trainingTheme.colors.textMuted }]}>
+					<Text
+						style={[
+							styles.emptyText,
+							{ color: trainingTheme.colors.textMuted },
+						]}
+					>
 						No workouts today
 					</Text>
 					<Text style={styles.emptySubtext}>
@@ -600,7 +608,10 @@ const Today = () => {
 			return (
 				<TouchableOpacity
 					key={a.id}
-					style={[styles.workoutCard, { backgroundColor: trainingTheme.colors.surface }]}
+					style={[
+						styles.workoutCard,
+						{ backgroundColor: trainingTheme.colors.surface },
+					]}
 					onPress={() =>
 						nav.navigate('TrainingWorkoutDetail', {
 							workoutId: a.workout_id,
@@ -612,7 +623,10 @@ const Today = () => {
 				>
 					<View style={styles.workoutCardLeft}>
 						<Text
-							style={[styles.workoutName, { color: trainingTheme.colors.text }]}
+							style={[
+								styles.workoutName,
+								{ color: trainingTheme.colors.text },
+							]}
 						>
 							{a.workouts.name}
 						</Text>
@@ -643,14 +657,22 @@ const Today = () => {
 							</Text>
 						) : null}
 					</View>
-					<Ionicons name="chevron-right" size={20} color={trainingTheme.colors.textMuted} />
+					<Ionicons
+						name="chevron-right"
+						size={20}
+						color={trainingTheme.colors.textMuted}
+					/>
 				</TouchableOpacity>
 			);
 		});
 	};
 
 	return (
-		<MemberScreen style={styles.safeArea} contentContainerStyle={styles.screenContent} edges={['top']}>
+		<MemberScreen
+			style={styles.safeArea}
+			contentContainerStyle={styles.screenContent}
+			edges={['top']}
+		>
 			<ScrollView
 				style={styles.screen}
 				contentContainerStyle={styles.container}
@@ -816,7 +838,12 @@ const Today = () => {
 
 				{/* Wellness check-in card */}
 				{showWellnessPrompt ? (
-					<View style={[styles.card, { backgroundColor: trainingTheme.colors.surface }]}>
+					<View
+						style={[
+							styles.card,
+							{ backgroundColor: trainingTheme.colors.surface },
+						]}
+					>
 						<TouchableOpacity
 							onPress={() => nav.navigate('TrainingWellness')}
 							accessibilityRole="button"
@@ -832,7 +859,10 @@ const Today = () => {
 									<Text
 										style={[
 											styles.cardTitle,
-											{ color: trainingTheme.colors.text },
+											{
+												color: trainingTheme.colors
+													.text,
+											},
 										]}
 									>
 										Wellness check-in
@@ -840,7 +870,10 @@ const Today = () => {
 									<Text
 										style={[
 											styles.cardSub,
-											{ color: trainingTheme.colors.textMuted },
+											{
+												color: trainingTheme.colors
+													.textMuted,
+											},
 										]}
 									>
 										≈ 10 seconds
@@ -901,19 +934,25 @@ const Today = () => {
 									key={pr.id}
 									style={[
 										styles.prCard,
-										{ backgroundColor: trainingTheme.colors.surface },
+										{
+											backgroundColor:
+												trainingTheme.colors.surface,
+										},
 									]}
 									onPress={() => nav.navigate('TrainingPRs')}
 								>
 									<Ionicons
 										name="trophy-outline"
 										size={18}
-									color={trainingTheme.colors.warning}
+										color={trainingTheme.colors.warning}
 									/>
 									<Text
 										style={[
 											styles.prName,
-											{ color: trainingTheme.colors.text },
+											{
+												color: trainingTheme.colors
+													.text,
+											},
 										]}
 									>
 										{pr.movements.name}
@@ -938,7 +977,10 @@ const Today = () => {
 				{/* Coach notes — members only */}
 				{!isSolo && (coachNotes.data ?? 0) > 0 && (
 					<TouchableOpacity
-						style={[styles.card, { backgroundColor: trainingTheme.colors.surface }]}
+						style={[
+							styles.card,
+							{ backgroundColor: trainingTheme.colors.surface },
+						]}
 						onPress={() => nav.navigate('TrainingCoachNotes')}
 					>
 						<View style={styles.cardRow}>
@@ -948,7 +990,10 @@ const Today = () => {
 								color={trainingTheme.colors.primary}
 							/>
 							<Text
-								style={[styles.cardTitle, { color: trainingTheme.colors.text }]}
+								style={[
+									styles.cardTitle,
+									{ color: trainingTheme.colors.text },
+								]}
 							>
 								{coachNotes.data} unread coach note
 								{(coachNotes.data ?? 0) > 1 ? 's' : ''}
@@ -965,7 +1010,10 @@ const Today = () => {
 				{/* Build card */}
 				{(isSolo || hasCustomWorkouts) && (
 					<TouchableOpacity
-						style={[styles.card, { backgroundColor: trainingTheme.colors.surface }]}
+						style={[
+							styles.card,
+							{ backgroundColor: trainingTheme.colors.surface },
+						]}
 						onPress={() => nav.navigate('TrainingBuildList')}
 					>
 						<View style={styles.cardRow}>
@@ -986,7 +1034,10 @@ const Today = () => {
 								<Text
 									style={[
 										styles.cardSub,
-										{ color: trainingTheme.colors.textMuted },
+										{
+											color: trainingTheme.colors
+												.textMuted,
+										},
 									]}
 								>
 									Build and schedule personal workouts
@@ -1129,7 +1180,11 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
-	badgeText: { color: trainingTheme.colors.surface, fontSize: 10, fontWeight: '700' },
+	badgeText: {
+		color: trainingTheme.colors.surface,
+		fontSize: 10,
+		fontWeight: '700',
+	},
 	sectionHeader: { fontSize: 17, fontWeight: '600', marginTop: 8 },
 	card: {
 		backgroundColor: trainingTheme.colors.surface,
@@ -1186,7 +1241,11 @@ const styles = StyleSheet.create({
 		fontSize: 15,
 		fontWeight: '600',
 	},
-	emptySubtext: { fontSize: 13, color: trainingTheme.colors.disabled, textAlign: 'center' },
+	emptySubtext: {
+		fontSize: 13,
+		color: trainingTheme.colors.disabled,
+		textAlign: 'center',
+	},
 	link: {
 		color: trainingTheme.colors.primary,
 		fontSize: 14,

@@ -8,7 +8,9 @@ import TrainingCard from './TrainingCard';
 
 describe('Training shared visual contract', () => {
 	it('delegates primary actions to the member button contract', () => {
-		const { getByRole } = render(<PrimaryButton label="Start" onPress={jest.fn()} />);
+		const { getByRole } = render(
+			<PrimaryButton label="Start" onPress={jest.fn()} />,
+		);
 		const button = getByRole('button', { name: 'Start' });
 
 		expect(StyleSheet.flatten(button.props.style)).toMatchObject({
@@ -19,7 +21,11 @@ describe('Training shared visual contract', () => {
 
 	it('delegates section headings and actions to member primitives', () => {
 		const { getByRole } = render(
-			<SectionHeading title="Today's training" action="View all" onActionPress={jest.fn()} />,
+			<SectionHeading
+				title="Today's training"
+				action="View all"
+				onActionPress={jest.fn()}
+			/>,
 		);
 
 		expect(getByRole('button', { name: 'View all' })).toBeTruthy();

@@ -99,7 +99,7 @@ export const wearablesReadinessCopy = (
 			score: 'Not available',
 			band: 'Not available',
 			confidence: 'Not available',
-		freshness: 'Not available',
+			freshness: 'Not available',
 			metric: null,
 			metrics: [],
 		};
@@ -128,16 +128,13 @@ export const wearablesReadinessCopy = (
 	);
 	const metric = scoreMetric ?? recoveryMetric ?? usefulMetrics[0] ?? null;
 	const hasReadinessScore =
-	metric !== null && metric.nativeReadinessScore !== null;
+		metric !== null && metric.nativeReadinessScore !== null;
 	const hasRecoveryScore =
-	metric !== null && metric.nativeRecoveryScore !== null;
-	const displayStatus = hasReadinessScore
-		? result.status
-		: hasRecoveryScore
-			? 'recovery'
-			: result.status === 'ready'
-				? 'baseline'
-				: result.status;
+		metric !== null && metric.nativeRecoveryScore !== null;
+	let displayStatus: ReadinessCopy['status'] = result.status;
+	if (hasRecoveryScore) displayStatus = 'recovery';
+	if (!hasReadinessScore && !hasRecoveryScore && result.status === 'ready')
+		displayStatus = 'baseline';
 	const stateCopy = {
 		ready: {
 			statusLabel: 'Ready',
@@ -149,8 +146,7 @@ export const wearablesReadinessCopy = (
 		baseline: {
 			statusLabel: 'Baseline',
 			title: 'Building your baseline',
-			detail:
-				'More connected data is needed before a readiness score is available.',
+			detail: 'More connected data is needed before a readiness score is available.',
 			band: 'Baseline',
 			confidence: 'Building',
 		},
@@ -164,8 +160,7 @@ export const wearablesReadinessCopy = (
 		recovery: {
 			statusLabel: 'Recovery available',
 			title: 'Recovery data available',
-			detail:
-				'Recovery data is available, but a readiness score is not available yet.',
+			detail: 'Recovery data is available, but a readiness score is not available yet.',
 			band: 'Recovery available',
 			confidence: 'Score not available',
 		},
@@ -211,7 +206,9 @@ export const WearablesReadinessSummary = ({
 				<Text style={styles.providerDescription}>{copy.title}</Text>
 				<Text style={styles.readinessDetail}>{copy.detail}</Text>
 				<View style={styles.readinessStats}>
-					<Text style={styles.readinessMeta}>Status {copy.statusLabel}</Text>
+					<Text style={styles.readinessMeta}>
+						Status {copy.statusLabel}
+					</Text>
 					<Text style={styles.readinessMeta}>Score {copy.score}</Text>
 					<Text style={styles.readinessMeta}>Band {copy.band}</Text>
 					<Text style={styles.readinessMeta}>
@@ -254,7 +251,9 @@ export const ProviderNativeStatus = ({
 					size={22}
 					color={trainingTheme.colors.primary}
 				/>
-				<Text style={styles.nativeStatusTitle}>Provider-native status</Text>
+				<Text style={styles.nativeStatusTitle}>
+					Provider-native status
+				</Text>
 			</View>
 			<Text style={styles.nativeStatusText}>{connectionStatus}</Text>
 			<Text style={styles.nativeStatusText}>{metricText}</Text>
@@ -367,15 +366,19 @@ const Wearables = ({ navigation }: Props) => {
 		? wearablesReadinessCopy(readinessResult)
 		: null;
 	const readinessMetrics = readinessCopy?.metrics ?? [];
-	const nativeConnectionStatus =
-		Platform.OS === 'ios'
-			? appleConnected
-				? 'Apple Health connected'
-				: 'Apple Health not connected'
-			: 'Health Connect not connected';
+	let nativeConnectionStatus = 'Health Connect not connected';
+	if (Platform.OS === 'ios') {
+		nativeConnectionStatus = appleConnected
+			? 'Apple Health connected'
+			: 'Apple Health not connected';
+	}
 
 	return (
-		<MemberScreen style={styles.screen} contentContainerStyle={styles.screenContent} edges={['top']}>
+		<MemberScreen
+			style={styles.screen}
+			contentContainerStyle={styles.screenContent}
+			edges={['top']}
+		>
 			<View style={styles.header}>
 				<TouchableOpacity
 					accessibilityRole="button"

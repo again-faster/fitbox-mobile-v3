@@ -7,7 +7,13 @@ import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useQuery } from '@tanstack/react-query';
 import moment from 'moment';
-import { FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+	FlatList,
+	RefreshControl,
+	StyleSheet,
+	TouchableOpacity,
+	View,
+} from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { trainingTheme } from '@/theme/training';
 import SkeletonCard from '../components/SkeletonCard';
@@ -59,7 +65,13 @@ const Results = () => {
 						</View>
 					) : (
 						<View style={styles.empty}>
-							<MemberText role="body" muted style={styles.emptyText}>No workout results yet</MemberText>
+							<MemberText
+								role="body"
+								muted
+								style={styles.emptyText}
+							>
+								No workout results yet
+							</MemberText>
 						</View>
 					)
 				}
@@ -68,29 +80,45 @@ const Results = () => {
 						style={styles.cardPressable}
 						accessibilityRole="button"
 						accessibilityLabel={`Open result for ${item.workouts.name}`}
-						onPress={() => navigation.navigate('TrainingResultDetail', { workoutResultId: item.id })}
+						onPress={() =>
+							navigation.navigate('TrainingResultDetail', {
+								workoutResultId: item.id,
+							})
+						}
 					>
 						<MemberCard elevated={false}>
 							<View style={styles.cardHeading}>
 								<View style={styles.cardCopy}>
-									<MemberText role="sectionTitle">{item.workouts.name}</MemberText>
+									<MemberText role="sectionTitle">
+										{item.workouts.name}
+									</MemberText>
 									<MemberText role="meta" muted>
-										{moment(item.completed_at).format('ddd, MMM D [·] h:mm A')}
+										{moment(item.completed_at).format(
+											'ddd, MMM D [·] h:mm A',
+										)}
 									</MemberText>
 									<View style={styles.statsRow}>
 										{item.duration_seconds != null ? (
 											<MemberText role="meta" muted>
-												{Math.round(item.duration_seconds / 60)} min
+												{Math.round(
+													item.duration_seconds / 60,
+												)}{' '}
+												min
 											</MemberText>
 										) : null}
 										{item.total_volume_kg != null ? (
 											<MemberText role="meta" muted>
-												{item.total_volume_kg.toLocaleString()} kg volume
+												{item.total_volume_kg.toLocaleString()}{' '}
+												kg volume
 											</MemberText>
 										) : null}
 									</View>
 								</View>
-								<Ionicons name="chevron-right" size={21} color={trainingTheme.colors.primary} />
+								<Ionicons
+									name="chevron-right"
+									size={21}
+									color={trainingTheme.colors.primary}
+								/>
 							</View>
 						</MemberCard>
 					</TouchableOpacity>
@@ -106,9 +134,17 @@ const styles = StyleSheet.create({
 	container: { padding: trainingTheme.spacing.lg, paddingBottom: 40 },
 	loading: { padding: trainingTheme.spacing.lg },
 	cardPressable: { marginBottom: trainingTheme.spacing.sm },
-	cardHeading: { flexDirection: 'row', alignItems: 'center', gap: trainingTheme.spacing.md },
+	cardHeading: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		gap: trainingTheme.spacing.md,
+	},
 	cardCopy: { flex: 1 },
-	statsRow: { flexDirection: 'row', gap: trainingTheme.spacing.md, marginTop: trainingTheme.spacing.xs },
+	statsRow: {
+		flexDirection: 'row',
+		gap: trainingTheme.spacing.md,
+		marginTop: trainingTheme.spacing.xs,
+	},
 	empty: { alignItems: 'center', padding: trainingTheme.spacing.xxl },
 	emptyText: { textAlign: 'center' },
 });
