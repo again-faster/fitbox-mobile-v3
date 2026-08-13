@@ -182,7 +182,7 @@ const Menu = ({ navigation }: MenuScreenProps) => {
 		clearStates();
 
 		// clear workout list
-		void queryClient.invalidateQueries({ queryKey: ['getWorkouts'] });
+		void queryClient.invalidateQueries({ queryKey: ['workouts'] });
 	};
 
 	const onClick = (id: string) => {

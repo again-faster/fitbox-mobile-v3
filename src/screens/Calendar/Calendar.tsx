@@ -136,7 +136,6 @@ const Calendar = () => {
 	const [isInitialLoading, setIsInitialLoading] = useState(true);
 	const [isInitialLoadingComplete, setIsInitialLoadingComplete] =
 		useState(false);
-	const [isLoading, setIsLoading] = useState(true);
 	const calendarWeekRef = useRef<CalendarWeekRef>(null);
 
 	const [showAnimation, setShowAnimation] = useState(false);
@@ -459,7 +458,7 @@ const Calendar = () => {
 
 	const memoizedClasses = useMemo(() => {
 		const formattedClasses: (string | ClassItemData)[] = [];
-		setIsLoading(true);
+
 		// Define filter criteria
 		const criteria: FilterCriteria = {
 			selectedClassIds: classFilters
@@ -490,7 +489,6 @@ const Calendar = () => {
 				formattedClasses.push({ isLoading: false } as ClassItemData);
 			}
 		});
-		setIsLoading(false);
 		return formattedClasses;
 	}, [classes, classFilters, venueFilters, currentDate]);
 
@@ -515,7 +513,6 @@ const Calendar = () => {
 
 	const isLoadingCurrentDate =
 		memoizedClasses.some(e => typeof e === 'object' && e.isLoading) ||
-		isLoading ||
 		memoizedClasses.length === 0;
 
 	const showTodayButton = currentDate !== today;

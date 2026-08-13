@@ -1,7 +1,7 @@
 import { Row, Text } from '@/components/atoms';
 import { FlatList, Loader } from '@/components/molecules';
-import useSwitchableUsers from '@/hooks/useSwitchableUsers';
 import { resetRoot } from '@/navigators/NavigationRef';
+import queryClient from '@/query/queryClient';
 import {
 	getUserGymInfo,
 	getUserGyms,
@@ -42,78 +42,73 @@ const SwitchGym = () => {
 		},
 	});
 
-	const { getSwitchableUsers } = useSwitchableUsers();
-
 	const user = loggedInUser as LoginResponseSchemaType;
 
-	const onSelectGym = useCallback((id: number) => {
-		setSwitching(true);
+	const onSelectGym = useCallback(
+		async (id: number) => {
+			setSwitching(true);
 
-		// update default_team_id using updateProfileData method
-		updateUserProfile({ default_team_id: id })
-			.then(res => {
-				if (!res.error) {
-					void getUserGymInfo().then(gymInfoRes => {
-						if (!gymInfoRes.error) {
-							setLoggedInUser({
-								...user,
-								user_data: {
-									...user.user_data,
-									is_staff: res.user_data.is_staff as boolean,
-									waiver_accepted:
-										gymInfoRes.user_data.waiver_accepted,
-									has_payment_details:
-										user.user_data.has_payment_details ===
-										'skipped'
-											? 'skipped'
-											: gymInfoRes.user_data
-													.has_payment_details,
-									has_waived_subscriptions:
-										gymInfoRes.user_data
-											.has_waived_subscriptions,
-									show_subscription_form:
-										!gymInfoRes.user_data
-											.has_paid_subscriptions &&
-										!gymInfoRes.user_data
-											.has_waived_subscriptions,
-									has_previous_subscriptions:
-										gymInfoRes.user_data
-											.has_previous_subscriptions,
-								},
-							});
-
-							// clear calendar state
-							clearClasses();
-
-							// clear global state
-							clearStates();
-
-							// clear filter state
-							clearFilters();
-
-							if (res.user_data.is_new) {
-								setAppState('fromAcceptInvite', true);
-							}
-
-							// reset navigation to home
-							resetRoot();
-						} else {
-							Say.err(gymInfoRes.message);
-						}
-					});
-				} else {
-					// Or return error
+			try {
+				const res = await updateUserProfile({ default_team_id: id });
+				if (res.error) {
 					Say.err(res.message);
+					return;
 				}
-			})
-			.catch(() => {
+
+				const gymInfoRes = await getUserGymInfo();
+				if (gymInfoRes.error) {
+					Say.err(gymInfoRes.message);
+					return;
+				}
+
+				// Cached responses belong to the previous gym. Clear them
+				// before rebuilding global state and resetting navigation.
+				queryClient.clear();
+
+				setLoggedInUser({
+					...user,
+					user_data: {
+						...user.user_data,
+						is_staff: res.user_data.is_staff as boolean,
+						waiver_accepted: gymInfoRes.user_data.waiver_accepted,
+						has_payment_details:
+							user.user_data.has_payment_details === 'skipped'
+								? 'skipped'
+								: gymInfoRes.user_data.has_payment_details,
+						has_waived_subscriptions:
+							gymInfoRes.user_data.has_waived_subscriptions,
+						show_subscription_form:
+							!gymInfoRes.user_data.has_paid_subscriptions &&
+							!gymInfoRes.user_data.has_waived_subscriptions,
+						has_previous_subscriptions:
+							gymInfoRes.user_data.has_previous_subscriptions,
+					},
+				});
+
+				clearClasses();
+				clearStates();
+				clearFilters();
+
+				if (res.user_data.is_new) {
+					setAppState('fromAcceptInvite', true);
+				}
+
+				resetRoot();
+			} catch {
 				Say.err('Something went wrong');
-			})
-			.finally(() => {
+			} finally {
 				setSwitching(false);
-				getSwitchableUsers();
-			});
-	}, []);
+			}
+		},
+		[
+			clearClasses,
+			clearFilters,
+			clearStates,
+			setAppState,
+			setLoggedInUser,
+			user,
+		],
+	);
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const renderItem = useCallback(({ item }: any) => {
@@ -122,14 +117,14 @@ const SwitchGym = () => {
 		return (
 			<SelectGymItem
 				id={id}
-				onPress={() => onSelectGym(id)}
+				onPress={() => void onSelectGym(id)}
 				image={logo}
 				selected={teamId === id}
 				text={name}
 				isNew={status === 'pending'}
 			/>
 		);
-	}, []);
+	}, [onSelectGym, teamId]);
 
 	const renderAddGymFooter = () => {
 		// TODO: linting error for navigation to signup
