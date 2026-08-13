@@ -4,7 +4,7 @@ import { ThemeProvider } from '@/theme';
 import NotificationService from '@/utils/NotificationService';
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import * as Sentry from '@sentry/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import DeviceInfo from 'react-native-device-info';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { configureFonts, Provider } from 'react-native-paper';
@@ -15,6 +15,7 @@ import AuthProvider from './auth/AuthProvider/AuthProvider';
 import KeyboardVisibilityProvider from './context/KeyboardProvider';
 import SwitchableUserProvider from './context/SwitchableUser';
 import ApplicationNavigator from './navigators/Application';
+import queryClient from './query/queryClient';
 import { mmkvStorage } from './storage';
 import layout from './theme/layout';
 import './translations';
@@ -39,8 +40,6 @@ Sentry.init({
 	// uncomment the line below to enable Spotlight (https://spotlightjs.com)
 	// enableSpotlight: __DEV__,
 });
-
-const queryClient = new QueryClient();
 
 /**
  * Adding this here as per documentation

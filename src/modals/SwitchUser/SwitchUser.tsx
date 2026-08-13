@@ -1,6 +1,9 @@
 import useAuth from '@/auth/hooks/useAuth';
 import { RowSelectItem } from '@/components/molecules';
 import { goBack, resetRoot } from '@/navigators/NavigationRef';
+import { QUERY_STALE_TIME } from '@/query/cachePolicy';
+import queryClient from '@/query/queryClient';
+import queryKeys from '@/query/queryKeys';
 import { getChildInfo, getParentInfo, switchAccount } from '@/services/users';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
@@ -29,10 +32,20 @@ const SwitchUser = () => {
 	useEffect(() => {
 		void (async () => {
 			const isParent = user?.user_data.is_parent;
+			const userId = user?.id;
+			if (!userId) {
+				setIsLoading(false);
+				return;
+			}
+
 			try {
-				const res: GetChildInfoType | GetParentInfoType = isParent
-					? await getChildInfo()
-					: await getParentInfo();
+				const res = await queryClient.fetchQuery({
+					queryKey: queryKeys.switchableUsers(userId, !!isParent),
+					queryFn: (): Promise<
+						GetChildInfoType | GetParentInfoType
+					> => (isParent ? getChildInfo() : getParentInfo()),
+					staleTime: QUERY_STALE_TIME.STANDARD,
+				});
 
 				if (isParent) {
 					const childRes = res as GetChildInfoType;
@@ -67,7 +80,7 @@ const SwitchUser = () => {
 				setIsLoading(false);
 			}
 		})();
-	}, []);
+	}, [user?.id, user?.user_data.is_parent]);
 
 	const handleSwitch = async (id: number) => {
 		setIsLoading(true);

@@ -1,4 +1,5 @@
 import { Button, Text } from '@/components/atoms';
+import queryKeys from '@/query/queryKeys';
 import {
 	attendSession,
 	cancelWaitlist,
@@ -84,6 +85,15 @@ const BookButton = ({
 		void queryClient.invalidateQueries({
 			queryKey: ['sessionGetScheduleDetail'],
 		});
+		const userId = loggedInUser?.user_data.user_id;
+		if (userId) {
+			void queryClient.invalidateQueries({
+				queryKey: queryKeys.upcomingBookings(
+					userId,
+					useStore.getState().teamId,
+				),
+			});
+		}
 
 		const setDate = moment(startDate).format(Constant.DEFAULT_DATE_FORMAT);
 
@@ -174,6 +184,7 @@ const BookButton = ({
 					}
 				} else {
 					setAttending(!isAttending);
+					reloadSessionDetail();
 				}
 
 				// TODO: Implement for booking users if staff
@@ -240,7 +251,6 @@ const BookButton = ({
 					);
 				}
 
-				reloadSessionDetail();
 			})
 			.catch(() => {
 				// console.log('@err', err);

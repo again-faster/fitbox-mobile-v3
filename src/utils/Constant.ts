@@ -123,7 +123,7 @@ const MOVEMENT_PARAMS = [
 const RESPONSE_TIMEOUT = {
 	DEV: 70000,
 	STG: 70000,
-	PROD: 30000,
+	PROD: 60000,
 };
 
 // Transaction Fees in subscription details
