@@ -49,13 +49,13 @@ import { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
 import { ClassFilter, VenueFilter } from '@/zustand/interface/SessionInterface';
 import messaging, { firebase } from '@react-native-firebase/messaging';
-import * as Sentry from '@sentry/react-native';
 import {
 	NavigationProp,
 	useFocusEffect,
 	useIsFocused,
 	useNavigation,
 } from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import { isArray, isEmpty } from 'lodash';
 import moment from 'moment-timezone';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -413,8 +413,7 @@ const Dashboard = () => {
 		force = false,
 	) => {
 		try {
-			const userId =
-				useStore.getState().loggedInUser?.user_data.user_id;
+			const userId = useStore.getState().loggedInUser?.user_data.user_id;
 			if (!userId) return;
 
 			const res = await queryClient.fetchQuery({
@@ -527,7 +526,7 @@ const Dashboard = () => {
 		try {
 			const userId = useStore.getState().loggedInUser?.user_data.user_id;
 			if (!userId) return;
-			const teamId = useStore.getState().teamId;
+			const { teamId } = useStore.getState();
 
 			const res = await queryClient.fetchQuery({
 				queryKey: queryKeys.failedPayments(userId, teamId),
@@ -535,7 +534,7 @@ const Dashboard = () => {
 				staleTime: force
 					? 0
 					: query => {
-							const data = query.state.data;
+							const { data } = query.state;
 							if (!data || data.invoices.length > 0) return 0;
 
 							return getEmptyFailedPaymentsStaleTime(
@@ -810,7 +809,7 @@ const Dashboard = () => {
 	const fetchAttendanceReport = async (force = false) => {
 		const userId = useStore.getState().loggedInUser?.user_data.user_id;
 		if (!userId) return;
-		const teamId = useStore.getState().teamId;
+		const { teamId } = useStore.getState();
 
 		setAttendanceReportIsLoading(true);
 		try {
@@ -904,7 +903,7 @@ const Dashboard = () => {
 		};
 
 		try {
-			const teamId = useStore.getState().teamId;
+			const { teamId } = useStore.getState();
 			const res = await queryClient.fetchQuery({
 				queryKey: queryKeys.classFilters(teamId),
 				queryFn: getClassFilters,
@@ -1353,10 +1352,7 @@ const Dashboard = () => {
 						fallback={<></>}
 						key={currentNotificationIndex}
 						onError={error =>
-							reportDashboardError(
-								'announcement-render',
-								error,
-							)
+							reportDashboardError('announcement-render', error)
 						}
 					>
 						<LoginNotification

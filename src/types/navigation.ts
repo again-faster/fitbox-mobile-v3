@@ -40,6 +40,12 @@ export type ShopParams = {
 	orderKey: string;
 };
 
+export type OtherPaymentOptionsParams = {
+	paymentURL: string;
+	onSuccessCallback?: () => void;
+	fromPaymentInformation?: boolean;
+};
+
 export type ApplicationStackParamList = {
 	Example: undefined;
 	Main: undefined;
@@ -81,6 +87,7 @@ export type ApplicationStackParamList = {
 	Shop: ShopParams;
 	PaymentInformation: undefined;
 	Menu: undefined;
+	OtherPaymentOptions: OtherPaymentOptionsParams;
 };
 export type ApplicationScreenProps =
 	StackScreenProps<ApplicationStackParamList>;
@@ -181,6 +188,7 @@ export type MenuStackParamList = {
 	PerformanceSummary: undefined;
 	SwitchUser: undefined;
 	SwitchGym: undefined;
+	OtherPaymentOptions: OtherPaymentOptionsParams;
 };
 export type MenuStackNavigatorProps = StackScreenProps<MenuStackParamList>;
 
