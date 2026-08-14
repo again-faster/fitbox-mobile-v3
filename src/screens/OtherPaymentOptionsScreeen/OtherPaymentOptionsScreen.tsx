@@ -18,10 +18,10 @@ const OtherPaymentOptionsScreen = ({
 	const hasSucceeded = useRef(false);
 
 	const SCRIPT = `
-	const meta = document.createElement('meta');
-	meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0');
-	meta.setAttribute('name', 'viewport');
-	document.head.appendChild(meta);
+		const meta = document.createElement('meta');
+		meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0');
+		meta.setAttribute('name', 'viewport');
+		document.head.appendChild(meta);
 	`;
 
 	const onSuccess = () => {
@@ -45,6 +45,10 @@ const OtherPaymentOptionsScreen = ({
 						scalesPageToFit
 						source={{ uri: paymentURL }}
 						injectedJavaScript={SCRIPT}
+						cacheEnabled={false}
+						cacheMode="LOAD_NO_CACHE"
+						incognito
+						userAgent="Mozilla/5.0 (Linux; Android 15; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36"
 						onLoadStart={() => setPaymentIsLoading(true)}
 						onLoad={event => {
 							const { url } = event.nativeEvent;
