@@ -196,7 +196,7 @@ const PaymentInformation = ({
 
 			const queryParams: QueryParamsTypes = {
 				cs: res.clientSecret || '',
-				pmt: JSON.stringify(res.paymentMethodType),
+				pmt: JSON.stringify(['nz_bank_account']),
 				uid: user?.user_data.user_id as number,
 			};
 			const url = `${currentApi}/payments?${Object.keys(queryParams)
