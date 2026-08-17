@@ -76,8 +76,15 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 def ndkHostTag() {
     if (Os.isFamily(Os.FAMILY_MAC)) {
-        return Os.isArch("aarch64") ? "darwin-arm64" : "darwin-x86_64"
+        def arm64Dir = file("${android.ndkDirectory}/toolchains/llvm/prebuilt/darwin-arm64")
+        def x86Dir = file("${android.ndkDirectory}/toolchains/llvm/prebuilt/darwin-x86_64")
+
+        if (arm64Dir.exists()) return "darwin-arm64"
+        if (x86Dir.exists()) return "darwin-x86_64"
+
+        throw new GradleException("No compatible NDK host directory found")
     }
+
     if (Os.isFamily(Os.FAMILY_WINDOWS)) return "windows-x86_64"
     return "linux-x86_64"
 }
@@ -157,8 +164,8 @@ android {
         applicationId "com.wa.fitbox"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 146
-        versionName "4.7.2"
+        versionCode 148
+        versionName "4.8.0"
         vectorDrawables.useSupportLibrary = true
         // manifestPlaceholders = [
         //     appAuthRedirectScheme: 'com.wa.fitbox.auth'

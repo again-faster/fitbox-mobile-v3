@@ -178,4 +178,5 @@ export default {
 	BETA_ACTIVE,
 	MIN_VERSION_URL,
 	APP_URL,
+	PAYMENT_URL: `${process.env.PAYMENT_URL}payments`,
 };

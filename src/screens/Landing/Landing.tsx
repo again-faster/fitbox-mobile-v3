@@ -93,27 +93,6 @@ const LandingScreen = ({ navigation }: ApplicationScreenProps) => {
 
 	return (
 		<View style={[styles.main, layoutStyles.main]}>
-			{enableEnvPicker && (
-				<View
-					style={[
-						styles.changeEnvButton,
-						layoutStyles.changeEnvButton,
-					]}
-				>
-					<Button
-						title={currentApi
-							.replace('https://', '')
-							.replace('.fitbox', '')
-							.replace('.iq', '')
-							.replace('fitbox', 'PRODUCTION')
-							.toUpperCase()}
-						variant="darkgray"
-						onPress={onRotateEnv}
-						sm
-					/>
-				</View>
-			)}
-
 			<View style={[styles.container, layoutStyles.container]}>
 				<ImageVariant
 					source={LogoImage as ImageSourcePropType}
@@ -136,6 +115,27 @@ const LandingScreen = ({ navigation }: ApplicationScreenProps) => {
 					<Spacer size="rg" />
 				</View>
 			</View>
+
+			{enableEnvPicker && (
+				<View
+					style={[
+						styles.changeEnvButton,
+						layoutStyles.changeEnvButton,
+					]}
+				>
+					<Button
+						title={currentApi
+							.replace('https://', '')
+							.replace('.fitbox', '')
+							.replace('.iq', '')
+							.replace('fitbox', 'PRODUCTION')
+							.toUpperCase()}
+						variant="darkgray"
+						onPress={onRotateEnv}
+						sm
+					/>
+				</View>
+			)}
 
 			<Modal
 				visible={optionsVisibility}

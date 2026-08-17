@@ -18,6 +18,7 @@ import {
 	Landing,
 	Login,
 	MyDetails,
+	OtherPaymentOptionsScreen,
 	PDFViewerScreen,
 	PaymentInformation,
 	ResetPassword,
@@ -620,6 +621,15 @@ const ApplicationNavigator = () => {
 									...TabHeaderOptions,
 									headerBackTitleVisible: false,
 									title: 'Payment Setup',
+								}}
+							/>
+							<Stack.Screen
+								name="OtherPaymentOptions"
+								component={OtherPaymentOptionsScreen}
+								options={{
+									...TabHeaderOptions,
+									headerBackTitleVisible: false,
+									title: 'Add/Update Payment Details',
 								}}
 							/>
 							<Stack.Screen

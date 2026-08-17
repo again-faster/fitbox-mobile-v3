@@ -6,6 +6,7 @@ import {
 	Menu,
 	MyDetails,
 	NotificationScreen,
+	OtherPaymentOptionsScreen,
 	PDFViewerScreen,
 	PaymentInformation,
 	PaymentUpdate,
@@ -98,6 +99,14 @@ const MenuStackNavigator = () => {
 				component={NotificationScreen}
 				options={{
 					title: 'Notification Setting',
+				}}
+			/>
+			<Stack.Screen
+				name="OtherPaymentOptions"
+				component={OtherPaymentOptionsScreen}
+				options={{
+					// headerBackTitleVisible: false,
+					title: 'Add/Update Payment Details',
 				}}
 			/>
 		</Stack.Navigator>
