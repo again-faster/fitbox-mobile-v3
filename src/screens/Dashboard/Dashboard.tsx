@@ -49,6 +49,7 @@ import { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
 import { ClassFilter, VenueFilter } from '@/zustand/interface/SessionInterface';
 import messaging, { firebase } from '@react-native-firebase/messaging';
+import * as Sentry from '@sentry/react-native';
 import {
 	NavigationProp,
 	useFocusEffect,
