@@ -9,10 +9,7 @@ describe('shouldCheckMinimumVersion', () => {
 
 	it('skips the production update gate for the iOS preview release', () => {
 		expect(
-			shouldCheckMinimumVersion(
-				false,
-				'com.againfaster.fitbox.preview',
-			),
+			shouldCheckMinimumVersion(false, 'com.againfaster.fitbox.preview'),
 		).toBe(false);
 	});
 
