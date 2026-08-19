@@ -1,8 +1,8 @@
-import { MemberCard, MemberScreen, MemberText } from '@/components/member';
+import { MemberCard, MemberScreen } from '@/components/member';
 import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { memberTheme } from '@/theme/member';
 import type { TrainingStackScreenProps } from '@/types/navigation';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import TrainingTabShell from '../Tabs/TrainingTabShell';
 import { wellbeingPolicy } from '../features/wellnessFeaturePolicy';
@@ -52,20 +52,25 @@ const WellnessHub = ({ navigation }: Props) => {
 						/>
 					</View>
 					<View style={styles.heroCopy}>
-						<MemberText role="sectionTitle">Wellbeing</MemberText>
-						<MemberText role="body" muted>
+						<Text style={styles.heroTitle}>Wellbeing</Text>
+						<Text style={styles.heroBody}>
 							Choose how you want to care for your body today.
-						</MemberText>
+						</Text>
 					</View>
 				</MemberCard>
 
 				<View style={styles.actionGroup}>
-					<MemberText role="sectionTitle">Your wellbeing tools</MemberText>
+					<Text style={styles.sectionTitle}>
+						Your wellbeing tools
+					</Text>
 					<MemberCard elevated={false} style={styles.actionCard}>
 						{actions.map((action, index) => (
 							<Pressable
 								key={action.label}
-								style={[styles.actionRow, index > 0 && styles.actionBorder]}
+								style={[
+									styles.actionRow,
+									index > 0 && styles.actionBorder,
+								]}
 								onPress={action.onPress}
 								accessibilityRole="button"
 								accessibilityLabel={action.label}
@@ -78,10 +83,12 @@ const WellnessHub = ({ navigation }: Props) => {
 									/>
 								</View>
 								<View style={styles.actionCopy}>
-									<MemberText role="label">{action.label}</MemberText>
-									<MemberText role="meta" muted>
+									<Text style={styles.actionLabel}>
+										{action.label}
+									</Text>
+									<Text style={styles.actionMeta}>
 										{action.description}
-									</MemberText>
+									</Text>
 								</View>
 								<Ionicons
 									name="chevron-right"
@@ -119,6 +126,18 @@ const styles = StyleSheet.create({
 		backgroundColor: memberTheme.colors.surface,
 	},
 	heroCopy: { flex: 1, gap: memberTheme.spacing.xs },
+	heroTitle: {
+		...memberTheme.typography.sectionTitle,
+		color: memberTheme.colors.text,
+	},
+	heroBody: {
+		...memberTheme.typography.body,
+		color: memberTheme.colors.textMuted,
+	},
+	sectionTitle: {
+		...memberTheme.typography.sectionTitle,
+		color: memberTheme.colors.text,
+	},
 	actionGroup: { gap: memberTheme.spacing.sm },
 	actionCard: { padding: 0, overflow: 'hidden' },
 	actionRow: {
@@ -141,6 +160,14 @@ const styles = StyleSheet.create({
 		backgroundColor: memberTheme.colors.surfaceSoft,
 	},
 	actionCopy: { flex: 1, gap: memberTheme.spacing.xs },
+	actionLabel: {
+		...memberTheme.typography.label,
+		color: memberTheme.colors.text,
+	},
+	actionMeta: {
+		...memberTheme.typography.meta,
+		color: memberTheme.colors.textMuted,
+	},
 });
 
 export default WellnessHub;

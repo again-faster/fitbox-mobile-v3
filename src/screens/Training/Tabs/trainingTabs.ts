@@ -51,6 +51,8 @@ export const tabRouteForKey = (
 			return 'TrainingWellnessHub';
 		case 'more':
 			return 'TrainingMore';
+		default:
+			throw new Error(`Unknown training tab: ${key}`);
 	}
 };
 

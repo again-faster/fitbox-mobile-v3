@@ -2,16 +2,10 @@ import { useEffect } from 'react';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { TrainingStackParamList } from '@/types/navigation';
 import TrainingTabBar from './TrainingTabBar';
-import {
-	fallbackTrainingTab,
-	type TrainingTabKey,
-} from './trainingTabs';
+import { fallbackTrainingTab, type TrainingTabKey } from './trainingTabs';
 import { useTrainingTabAvailability } from './useTrainingTabAvailability';
 
-type Navigation = Pick<
-	StackNavigationProp<TrainingStackParamList>,
-	'replace'
->;
+type Navigation = Pick<StackNavigationProp<TrainingStackParamList>, 'replace'>;
 
 type Props = {
 	selectedTab: TrainingTabKey;

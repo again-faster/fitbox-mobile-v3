@@ -99,25 +99,46 @@ describe('buildTrainingMoreGroups', () => {
 
 	it('removes items promoted into visible tabs', () => {
 		const groups = buildTrainingMoreGroups(
-			{ ...ALL_MEMBER_FEATURES_DISABLED, progress: true, wellness: true, pain_reports: true, wearables: true },
+			{
+				...ALL_MEMBER_FEATURES_DISABLED,
+				progress: true,
+				wellness: true,
+				pain_reports: true,
+				wearables: true,
+			},
 			false,
 		);
-		const labels = filterTrainingMoreGroups(
-			groups,
-			['today', 'progress', 'readiness', 'wellness'],
-		)
+		const labels = filterTrainingMoreGroups(groups, [
+			'today',
+			'progress',
+			'readiness',
+			'wellness',
+		])
 			.flatMap(group => group.items)
 			.map(item => item.label);
 
 		expect(labels).not.toEqual(
-			expect.arrayContaining(['My Progress', 'Wellness', 'Pain & Injuries', 'Wearables']),
+			expect.arrayContaining([
+				'My Progress',
+				'Wellness',
+				'Pain & Injuries',
+				'Wearables',
+			]),
 		);
-		expect(countTrainingMoreItems(groups, ['today', 'progress'])).toBeGreaterThan(0);
+		expect(
+			countTrainingMoreItems(groups, ['today', 'progress']),
+		).toBeGreaterThan(0);
 	});
 
 	it('keeps optional items in More when their tabs are not promoted', () => {
 		const groups = buildTrainingMoreGroups(
-			{ ...ALL_MEMBER_FEATURES_DISABLED, progress: true, wellness: true, pain_reports: true, wearables: true },
+			{
+				...ALL_MEMBER_FEATURES_DISABLED,
+				progress: true,
+				wellness: true,
+				pain_reports: true,
+				wearables: true,
+			},
 			false,
 		);
 		const labels = filterTrainingMoreGroups(groups, ['today'])
@@ -125,7 +146,12 @@ describe('buildTrainingMoreGroups', () => {
 			.map(item => item.label);
 
 		expect(labels).toEqual(
-			expect.arrayContaining(['My Progress', 'Wellness', 'Pain & Injuries', 'Wearables']),
+			expect.arrayContaining([
+				'My Progress',
+				'Wellness',
+				'Pain & Injuries',
+				'Wearables',
+			]),
 		);
 	});
 });

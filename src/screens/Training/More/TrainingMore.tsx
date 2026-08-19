@@ -33,7 +33,10 @@ const TrainingMore = ({ navigation }: Props) => {
 		},
 		hasCustomWorkouts === true,
 	);
-	const groups = filterTrainingMoreGroups(allGroups, availability.visibleTabs);
+	const groups = filterTrainingMoreGroups(
+		allGroups,
+		availability.visibleTabs,
+	);
 
 	const open = (route: Route) => navigation.navigate(route as never);
 
@@ -44,38 +47,64 @@ const TrainingMore = ({ navigation }: Props) => {
 				<MemberCard style={styles.header}>
 					<View style={styles.avatar}>
 						<MemberText role="display" style={styles.avatarText}>
-							{session?.user.full_name?.charAt(0).toUpperCase() ?? 'M'}
+							{session?.user.full_name?.charAt(0).toUpperCase() ??
+								'M'}
 						</MemberText>
 					</View>
 					<View style={styles.headerCopy}>
-						<MemberText role="label" style={styles.eyebrow}>WORKOUT STUDIO</MemberText>
-						<MemberText role="screenTitle">{session?.user.full_name ?? 'My Training'}</MemberText>
+						<MemberText role="label" style={styles.eyebrow}>
+							WORKOUT STUDIO
+						</MemberText>
+						<MemberText role="screenTitle">
+							{session?.user.full_name ?? 'My Training'}
+						</MemberText>
 						<MemberText role="body" muted>
-							{session?.user.persona === 'solo' ? 'Solo athlete' : 'Member'} training experience
+							{session?.user.persona === 'solo'
+								? 'Solo athlete'
+								: 'Member'}{' '}
+							training experience
 						</MemberText>
 					</View>
 				</MemberCard>
 
 				{groups.map(group => (
 					<View key={group.title} style={styles.group}>
-						<MemberText role="sectionTitle">{group.title}</MemberText>
+						<MemberText role="sectionTitle">
+							{group.title}
+						</MemberText>
 						<MemberCard elevated={false} style={styles.groupCard}>
 							{group.items.map((item, index) => (
 								<Pressable
 									key={item.label}
-									style={[styles.row, index < group.items.length - 1 && styles.rowBorder]}
+									style={[
+										styles.row,
+										index < group.items.length - 1 &&
+											styles.rowBorder,
+									]}
 									onPress={() => open(item.route)}
 									accessibilityRole="button"
 									accessibilityLabel={item.label}
 								>
 									<View style={styles.icon}>
-										<Ionicons name={item.icon} size={22} color={memberTheme.colors.primary} />
+										<Ionicons
+											name={item.icon}
+											size={22}
+											color={memberTheme.colors.primary}
+										/>
 									</View>
 									<View style={styles.copy}>
-										<MemberText role="label">{item.label}</MemberText>
-										<MemberText role="meta" muted>{item.description}</MemberText>
+										<MemberText role="label">
+											{item.label}
+										</MemberText>
+										<MemberText role="meta" muted>
+											{item.description}
+										</MemberText>
 									</View>
-									<Ionicons name="chevron-right" size={20} color={memberTheme.colors.textMuted} />
+									<Ionicons
+										name="chevron-right"
+										size={20}
+										color={memberTheme.colors.textMuted}
+									/>
 								</Pressable>
 							))}
 						</MemberCard>
@@ -83,7 +112,8 @@ const TrainingMore = ({ navigation }: Props) => {
 				))}
 
 				<MemberText role="meta" muted style={styles.boundary}>
-					Fitbox account and billing services remain available from the main app while Workout Studio integration continues.
+					Fitbox account and billing services remain available from
+					the main app while Workout Studio integration continues.
 				</MemberText>
 			</ScrollView>
 		</MemberScreen>
@@ -123,7 +153,10 @@ const styles = StyleSheet.create({
 		gap: memberTheme.spacing.md,
 		paddingHorizontal: memberTheme.spacing.md,
 	},
-	rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: memberTheme.colors.border },
+	rowBorder: {
+		borderBottomWidth: StyleSheet.hairlineWidth,
+		borderBottomColor: memberTheme.colors.border,
+	},
 	icon: {
 		width: 44,
 		height: 44,

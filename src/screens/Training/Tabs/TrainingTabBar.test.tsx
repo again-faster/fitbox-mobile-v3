@@ -18,9 +18,11 @@ describe('TrainingTabBar', () => {
 		);
 
 		expect(getByRole('tab', { name: 'Today' })).toBeTruthy();
-		expect(getByRole('tab', { name: 'Progress' })).toHaveAccessibilityState({
-			selected: true,
-		});
+		expect(getByRole('tab', { name: 'Progress' })).toHaveAccessibilityState(
+			{
+				selected: true,
+			},
+		);
 		expect(queryByRole('tab', { name: 'Readiness' })).toBeNull();
 	});
 

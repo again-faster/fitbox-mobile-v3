@@ -26,6 +26,10 @@ import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useEffect, useMemo, useRef } from 'react';
 import { MemberScreen } from '@/components/member';
 import { trainingTheme } from '@/theme/training';
+import {
+	type ReadinessMetric,
+	type ReadinessResult,
+} from '@/services/workoutStudio/readiness';
 import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
 import SkeletonCard from '../components/SkeletonCard';
 import ConsistencyCard from './components/ConsistencyCard';
@@ -33,10 +37,6 @@ import SectionHeading from '../components/SectionHeading';
 import OfflineBanner from '../components/OfflineBanner';
 import TrainingState from '../components/TrainingState';
 import { useTrainingConnectivity } from '../hooks/useTrainingConnectivity';
-import {
-	type ReadinessMetric,
-	type ReadinessResult,
-} from '@/services/workoutStudio/readiness';
 import TrainingTabShell from '../Tabs/TrainingTabShell';
 
 type Nav = StackNavigationProp<TrainingStackParamList>;
@@ -48,10 +48,8 @@ const latestReadinessMetric = (
 		right.asOfDate.localeCompare(left.asOfDate),
 	)[0] ?? null;
 
-const formatReadinessMetric = (
-	value: number | null,
-	suffix = '',
-): string => (value === null ? 'Not available' : `${value}${suffix}`);
+const formatReadinessMetric = (value: number | null, suffix = ''): string =>
+	value === null ? 'Not available' : `${value}${suffix}`;
 
 export const readinessCopy = (result: ReadinessResult) => {
 	if (result.status === 'loading')
@@ -291,12 +289,7 @@ const useToday = () => {
 
 const Today = () => {
 	const nav = useNavigation<Nav>();
-	const {
-		assignments,
-		coachNotes,
-		firstName,
-		programCtxMap,
-	} = useToday();
+	const { assignments, coachNotes, firstName, programCtxMap } = useToday();
 	const session = getStoredWSSession();
 	const persona = session?.user.persona;
 	const activeWorkout = findActiveWorkout(session?.user.id);
@@ -423,9 +416,17 @@ const Today = () => {
 		if (assignments.data?.length === 0) {
 			return (
 				<View
-					style={[styles.emptyCard, { backgroundColor: trainingTheme.colors.surface }]}
+					style={[
+						styles.emptyCard,
+						{ backgroundColor: trainingTheme.colors.surface },
+					]}
 				>
-					<Text style={[styles.emptyText, { color: trainingTheme.colors.textMuted }]}>
+					<Text
+						style={[
+							styles.emptyText,
+							{ color: trainingTheme.colors.textMuted },
+						]}
+					>
 						No workouts today
 					</Text>
 					<Text style={styles.emptySubtext}>
@@ -467,7 +468,10 @@ const Today = () => {
 			return (
 				<TouchableOpacity
 					key={a.id}
-					style={[styles.workoutCard, { backgroundColor: trainingTheme.colors.surface }]}
+					style={[
+						styles.workoutCard,
+						{ backgroundColor: trainingTheme.colors.surface },
+					]}
 					onPress={() =>
 						nav.navigate('TrainingWorkoutDetail', {
 							workoutId: a.workout_id,
@@ -479,7 +483,10 @@ const Today = () => {
 				>
 					<View style={styles.workoutCardLeft}>
 						<Text
-							style={[styles.workoutName, { color: trainingTheme.colors.text }]}
+							style={[
+								styles.workoutName,
+								{ color: trainingTheme.colors.text },
+							]}
 						>
 							{a.workouts.name}
 						</Text>
@@ -510,14 +517,22 @@ const Today = () => {
 							</Text>
 						) : null}
 					</View>
-					<Ionicons name="chevron-right" size={20} color={trainingTheme.colors.textMuted} />
+					<Ionicons
+						name="chevron-right"
+						size={20}
+						color={trainingTheme.colors.textMuted}
+					/>
 				</TouchableOpacity>
 			);
 		});
 	};
 
 	return (
-		<MemberScreen style={styles.safeArea} contentContainerStyle={styles.screenContent} edges={['top']}>
+		<MemberScreen
+			style={styles.safeArea}
+			contentContainerStyle={styles.screenContent}
+			edges={['top']}
+		>
 			<TrainingTabShell selectedTab="today" navigation={nav} />
 			<ScrollView
 				style={styles.screen}
@@ -970,7 +985,11 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
-	badgeText: { color: trainingTheme.colors.surface, fontSize: 10, fontWeight: '700' },
+	badgeText: {
+		color: trainingTheme.colors.surface,
+		fontSize: 10,
+		fontWeight: '700',
+	},
 	sectionHeader: { fontSize: 17, fontWeight: '600', marginTop: 8 },
 	card: {
 		backgroundColor: trainingTheme.colors.surface,
@@ -1027,7 +1046,11 @@ const styles = StyleSheet.create({
 		fontSize: 15,
 		fontWeight: '600',
 	},
-	emptySubtext: { fontSize: 13, color: trainingTheme.colors.disabled, textAlign: 'center' },
+	emptySubtext: {
+		fontSize: 13,
+		color: trainingTheme.colors.disabled,
+		textAlign: 'center',
+	},
 	link: {
 		color: trainingTheme.colors.primary,
 		fontSize: 14,

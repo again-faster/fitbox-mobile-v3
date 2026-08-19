@@ -81,17 +81,25 @@ describe('visibleTrainingTabs', () => {
 
 	it('shows More only when secondary items remain', () => {
 		expect(
-			visibleTrainingTabs({ ...emptyAvailability, secondaryItemCount: 0 }),
+			visibleTrainingTabs({
+				...emptyAvailability,
+				secondaryItemCount: 0,
+			}),
 		).toEqual(['today']);
 		expect(
-			visibleTrainingTabs({ ...emptyAvailability, secondaryItemCount: 2 }),
+			visibleTrainingTabs({
+				...emptyAvailability,
+				secondaryItemCount: 2,
+			}),
 		).toEqual(['today', 'more']);
 	});
 });
 
 describe('fallbackTrainingTab', () => {
 	it('returns Today when the selected tab is no longer visible', () => {
-		expect(fallbackTrainingTab('progress', ['today', 'more'])).toBe('today');
+		expect(fallbackTrainingTab('progress', ['today', 'more'])).toBe(
+			'today',
+		);
 	});
 
 	it('preserves a selected visible tab', () => {

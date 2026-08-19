@@ -49,8 +49,8 @@ const progressPresence = (
 	presence: TabPresence,
 ) =>
 	!presence.optionalQueryFailed &&
-	((features.progress || features.results) && presence.progressRows > 0 ||
-		(features.prs || features.my_maxes) && presence.rmRows > 0 ||
+	(((features.progress || features.results) && presence.progressRows > 0) ||
+		((features.prs || features.my_maxes) && presence.rmRows > 0) ||
 		(features.benchmarks && presence.benchmarkRows > 0) ||
 		(features.digest && presence.recapAvailable));
 
@@ -113,7 +113,8 @@ export const useTrainingTabAvailability = (): TrainingTabAvailability => {
 		'results',
 		'workout_results',
 		{ athlete_id: `eq.${uid}`, completed_at: 'not.is.null' },
-		hasSession && (features.progress || features.results || features.benchmarks),
+		hasSession &&
+			(features.progress || features.results || features.benchmarks),
 	);
 	const rms = usePresenceCount(
 		'rms',
@@ -128,7 +129,11 @@ export const useTrainingTabAvailability = (): TrainingTabAvailability => {
 		hasSession && features.benchmarks,
 	);
 	const readiness = useQuery<ReadinessResult>({
-		queryKey: ['ws-training-tab-readiness', uid, session?.user.active_tenant_id],
+		queryKey: [
+			'ws-training-tab-readiness',
+			uid,
+			session?.user.active_tenant_id,
+		],
 		queryFn: () =>
 			getMemberReadiness({ windowDays: 31, featureEnabled: true }),
 		enabled: hasSession && features.wearables,
@@ -155,12 +160,22 @@ export const useTrainingTabAvailability = (): TrainingTabAvailability => {
 	}, [features, hasCustomWorkouts, wellbeing]);
 
 	const enabledQueries = [
-		{ enabled: hasSession && (features.progress || features.results || features.benchmarks), query: results },
-		{ enabled: hasSession && (features.prs || features.my_maxes), query: rms },
+		{
+			enabled:
+				hasSession &&
+				(features.progress || features.results || features.benchmarks),
+			query: results,
+		},
+		{
+			enabled: hasSession && (features.prs || features.my_maxes),
+			query: rms,
+		},
 		{ enabled: hasSession && features.benchmarks, query: benchmarks },
 		{ enabled: hasSession && features.wearables, query: readiness },
 		{ enabled: hasSession && features.digest, query: recap },
-	].filter(item => item.enabled).map(item => item.query);
+	]
+		.filter(item => item.enabled)
+		.map(item => item.query);
 	const loading = enabledQueries.some(query => query.isLoading);
 	const optionalQueryFailed = enabledQueries.some(query => query.isError);
 	const presence: TabPresence = {

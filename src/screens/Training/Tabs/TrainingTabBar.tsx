@@ -1,16 +1,16 @@
 import type { StackNavigationProp } from '@react-navigation/stack';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+	ScrollView,
+	StyleSheet,
+	Text,
+	TouchableOpacity,
+	View,
+} from 'react-native';
 import { trainingTheme } from '@/theme/training';
 import type { TrainingStackParamList } from '@/types/navigation';
-import {
-	tabRouteForKey,
-	type TrainingTabKey,
-} from './trainingTabs';
+import { tabRouteForKey, type TrainingTabKey } from './trainingTabs';
 
-type Navigation = Pick<
-	StackNavigationProp<TrainingStackParamList>,
-	'replace'
->;
+type Navigation = Pick<StackNavigationProp<TrainingStackParamList>, 'replace'>;
 
 type Props = {
 	visibleTabs: readonly TrainingTabKey[];
@@ -26,11 +26,7 @@ const TAB_LABELS: Record<TrainingTabKey, string> = {
 	more: 'More',
 };
 
-const TrainingTabBar = ({
-	visibleTabs,
-	selectedTab,
-	navigation,
-}: Props) => {
+const TrainingTabBar = ({ visibleTabs, selectedTab, navigation }: Props) => {
 	if (visibleTabs.length <= 1) return null;
 
 	return (
@@ -53,7 +49,12 @@ const TrainingTabBar = ({
 							}
 							style={[styles.tab, selected && styles.selectedTab]}
 						>
-							<Text style={[styles.label, selected && styles.selectedLabel]}>
+							<Text
+								style={[
+									styles.label,
+									selected && styles.selectedLabel,
+								]}
+							>
 								{TAB_LABELS[tab]}
 							</Text>
 						</TouchableOpacity>
