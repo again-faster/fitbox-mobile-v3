@@ -585,7 +585,7 @@ const ApplicationNavigator = () => {
 			setShowUpdateDialog(res?.isNeeded);
 		};
 
-		if (shouldCheckMinimumVersion(__DEV__)) {
+		if (shouldCheckMinimumVersion(__DEV__, DeviceInfo.getBundleId())) {
 			void checkIfUpdateNeeded();
 		}
 	}, []);
