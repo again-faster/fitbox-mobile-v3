@@ -48,7 +48,7 @@ export const tabRouteForKey = (
 		case 'readiness':
 			return 'TrainingWearables';
 		case 'wellness':
-			return 'TrainingWellness';
+			return 'TrainingWellnessHub';
 		case 'more':
 			return 'TrainingMore';
 	}

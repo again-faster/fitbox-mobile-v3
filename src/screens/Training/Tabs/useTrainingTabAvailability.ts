@@ -12,7 +12,10 @@ import { wsApi } from '@/services/workoutStudio/api';
 import { shouldShowProgressHub } from '../features/memberFeatureRoutes';
 import { wellbeingPolicy } from '../features/wellnessFeaturePolicy';
 import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
-import { buildTrainingMoreGroups } from '../More/trainingMoreItems';
+import {
+	buildTrainingMoreGroups,
+	countTrainingMoreItems,
+} from '../More/trainingMoreItems';
 import {
 	visibleTrainingTabs,
 	type TrainingTabAvailabilityInput,
@@ -66,9 +69,8 @@ export const buildTrainingTabAvailability = (
 			: readiness.status,
 		wellnessFeature: features.wellness,
 		painReportsFeature: features.pain_reports,
-		healthActionAvailable:
-			!presence.optionalQueryFailed && presence.healthActionAvailable,
-		secondaryItemCount: presence.optionalQueryFailed ? 0 : secondaryItemCount,
+		healthActionAvailable: presence.healthActionAvailable,
+		secondaryItemCount,
 	};
 	return {
 		status: 'ready',
@@ -139,7 +141,7 @@ export const useTrainingTabAvailability = (): TrainingTabAvailability => {
 		staleTime: 120_000,
 	});
 
-	const secondaryItemCount = useMemo(() => {
+	const moreGroups = useMemo(() => {
 		const groups = buildTrainingMoreGroups(
 			{
 				...features,
@@ -149,16 +151,8 @@ export const useTrainingTabAvailability = (): TrainingTabAvailability => {
 			},
 			hasCustomWorkouts === true,
 		);
-		const hiddenFromMore = new Set([
-			'My Progress',
-			'Wellness',
-			'Pain & Injuries',
-			...(readiness.data?.status === 'ready' ? ['Wearables'] : []),
-		]);
-		return groups
-			.flatMap(group => group.items)
-			.filter(item => !hiddenFromMore.has(item.label)).length;
-	}, [features, hasCustomWorkouts, wellbeing, readiness.data?.status]);
+		return groups;
+	}, [features, hasCustomWorkouts, wellbeing]);
 
 	const enabledQueries = [
 		{ enabled: hasSession && (features.progress || features.results || features.benchmarks), query: results },
@@ -177,6 +171,16 @@ export const useTrainingTabAvailability = (): TrainingTabAvailability => {
 		healthActionAvailable: features.wellness || features.pain_reports,
 		optionalQueryFailed,
 	};
+	const baseAvailability = buildTrainingTabAvailability(
+		features,
+		presence,
+		readiness.data ?? createLoadingReadinessResult(),
+		0,
+	);
+	const secondaryItemCount = countTrainingMoreItems(
+		moreGroups,
+		baseAvailability.visibleTabs,
+	);
 	const availability = buildTrainingTabAvailability(
 		features,
 		presence,

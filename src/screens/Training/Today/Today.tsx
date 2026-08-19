@@ -2,21 +2,18 @@ import { syncNow } from '@/services/healthKit';
 import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import type {
-	AthleteRM,
 	ProgramContext,
-	WellnessResponse,
 	WorkoutAssignment,
 } from '@/services/workoutStudio/types';
 import { getMemberWorkouts } from '@/services/workoutStudio/workouts';
 import { mmkvStorage } from '@/storage';
 import type { TrainingStackParamList } from '@/types/navigation';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useQuery } from '@tanstack/react-query';
 import moment from 'moment';
 import {
 	AppState,
-	Modal,
 	Platform,
 	RefreshControl,
 	ScrollView,
@@ -26,10 +23,9 @@ import {
 	View,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useCallback, useRef, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { MemberScreen } from '@/components/member';
 import { trainingTheme } from '@/theme/training';
-import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
 import SkeletonCard from '../components/SkeletonCard';
 import ConsistencyCard from './components/ConsistencyCard';
@@ -37,25 +33,13 @@ import SectionHeading from '../components/SectionHeading';
 import OfflineBanner from '../components/OfflineBanner';
 import TrainingState from '../components/TrainingState';
 import { useTrainingConnectivity } from '../hooks/useTrainingConnectivity';
-import { shouldShowTodayProgressCard } from '../Progress/progressFeatures';
 import {
-	createLoadingReadinessResult,
-	getMemberReadiness,
-	type ProviderId,
 	type ReadinessMetric,
 	type ReadinessResult,
 } from '@/services/workoutStudio/readiness';
+import TrainingTabShell from '../Tabs/TrainingTabShell';
 
 type Nav = StackNavigationProp<TrainingStackParamList>;
-
-const providerNames: Record<ProviderId, string> = {
-	apple_health: 'Apple Health',
-	health_connect: 'Health Connect',
-	whoop: 'WHOOP',
-	garmin: 'Garmin',
-	fitbit: 'Fitbit',
-	strava: 'Strava',
-};
 
 const latestReadinessMetric = (
 	metrics: ReadinessMetric[],
@@ -225,9 +209,6 @@ const greeting = () => {
 };
 
 const todayStr = moment().format('YYYY-MM-DD');
-const fourteenAgo = moment().subtract(14, 'days').format('YYYY-MM-DD');
-const wellnessPromptsEnabledKey = 'training.wellnessPromptsEnabled';
-const wellnessPromptDismissedDateKey = 'training.wellnessPromptDismissedDate';
 
 const useToday = () => {
 	const session = getStoredWSSession();
@@ -276,22 +257,6 @@ const useToday = () => {
 		[programDayCtx.data],
 	);
 
-	const wellness = useQuery({
-		queryKey: ['ws-wellness-today', uid],
-		queryFn: () =>
-			wsApi()
-				.get('wellness_responses', {
-					searchParams: {
-						select: 'id',
-						user_id: `eq.${uid}`,
-						recorded_for: `eq.${todayStr}`,
-					},
-				})
-				.json<WellnessResponse[]>(),
-		enabled: !!uid,
-		staleTime: 60_000,
-	});
-
 	const coachNotes = useQuery({
 		queryKey: ['ws-coach-notes-unread', uid],
 		queryFn: () =>
@@ -316,28 +281,9 @@ const useToday = () => {
 		staleTime: 60_000,
 	});
 
-	const recentPRs = useQuery({
-		queryKey: ['ws-recent-prs', uid],
-		queryFn: () =>
-			wsApi()
-				.get('athlete_rms', {
-					searchParams: {
-						select: 'id,rep_max,weight_kg,achieved_on,movements(name)',
-						athlete_id: `eq.${uid}`,
-						achieved_on: `gte.${fourteenAgo}`,
-						order: 'achieved_on.desc',
-					},
-				})
-				.json<AthleteRM[]>(),
-		enabled: !!uid,
-		staleTime: 300_000,
-	});
-
 	return {
 		assignments,
-		wellness,
 		coachNotes,
-		recentPRs,
 		firstName,
 		programCtxMap,
 	};
@@ -345,61 +291,19 @@ const useToday = () => {
 
 const Today = () => {
 	const nav = useNavigation<Nav>();
-	const { features, isEnabled } = useWorkoutStudio();
 	const {
 		assignments,
-		wellness,
 		coachNotes,
-		recentPRs,
 		firstName,
 		programCtxMap,
 	} = useToday();
 	const session = getStoredWSSession();
-	const readinessFeatureEnabled = isEnabled('wearables');
-	const readinessQuery = useQuery<ReadinessResult>({
-		queryKey: [
-			'ws-member-readiness-today',
-			session?.user.id,
-			session?.user.active_tenant_id,
-		],
-		queryFn: () =>
-			getMemberReadiness({
-				windowDays: 7,
-				featureEnabled: readinessFeatureEnabled,
-			}),
-		enabled:
-			readinessFeatureEnabled &&
-			!!session?.user.id &&
-			!!session?.user.active_tenant_id,
-		staleTime: 60_000,
-	});
-	const readinessResult = readinessFeatureEnabled
-		? (readinessQuery.data ?? createLoadingReadinessResult())
-		: null;
 	const persona = session?.user.persona;
 	const activeWorkout = findActiveWorkout(session?.user.id);
 	const isSolo = persona === 'solo';
 	const { data: hasCustomWorkouts } = useCustomWorkouts();
 	const { isOffline, refresh: refreshConnectivity } =
 		useTrainingConnectivity();
-	const [wellnessPromptsEnabled, setWellnessPromptsEnabled] = useState(
-		() => mmkvStorage.getString(wellnessPromptsEnabledKey) !== 'false',
-	);
-	const [wellnessPromptDismissedDate, setWellnessPromptDismissedDate] =
-		useState(() => mmkvStorage.getString(wellnessPromptDismissedDateKey));
-	const [wellnessPromptVisible, setWellnessPromptVisible] = useState(false);
-	const wellnessPromptPresentedDate = useRef<string | null>(null);
-
-	useFocusEffect(
-		useCallback(() => {
-			setWellnessPromptsEnabled(
-				mmkvStorage.getString(wellnessPromptsEnabledKey) !== 'false',
-			);
-			setWellnessPromptDismissedDate(
-				mmkvStorage.getString(wellnessPromptDismissedDateKey),
-			);
-		}, []),
-	);
 
 	const appStateRef = useRef(AppState.currentState);
 
@@ -430,45 +334,10 @@ const Today = () => {
 		};
 	}, []);
 
-	const isLoading = assignments.isLoading || wellness.isLoading;
-	const isRefreshing =
-		assignments.isRefetching ||
-		wellness.isRefetching ||
-		readinessQuery.isRefetching;
-	const hasWellnessToday = (wellness.data?.length ?? 0) > 0;
-	const showWellnessPrompt =
-		!hasWellnessToday &&
-		wellnessPromptsEnabled &&
-		wellnessPromptDismissedDate !== todayStr;
+	const isLoading = assignments.isLoading;
+	const isRefreshing = assignments.isRefetching;
 
-	useEffect(() => {
-		if (
-			!wellness.isLoading &&
-			showWellnessPrompt &&
-			wellnessPromptPresentedDate.current !== todayStr
-		) {
-			wellnessPromptPresentedDate.current = todayStr;
-			setWellnessPromptVisible(true);
-		}
-	}, [showWellnessPrompt, wellness.isLoading]);
-
-	const dismissWellnessPromptToday = () => {
-		mmkvStorage.set(wellnessPromptDismissedDateKey, todayStr);
-		setWellnessPromptDismissedDate(todayStr);
-		setWellnessPromptVisible(false);
-	};
-
-	const turnOffWellnessPrompts = () => {
-		mmkvStorage.set(wellnessPromptsEnabledKey, 'false');
-		setWellnessPromptsEnabled(false);
-		setWellnessPromptVisible(false);
-	};
-
-	const startWellnessCheckIn = () => {
-		setWellnessPromptVisible(false);
-		nav.navigate('TrainingWellness');
-	};
-
+	/*
 	const renderReadiness = () => {
 		if (!readinessResult) return null;
 		const summary = readinessCopy(readinessResult);
@@ -518,13 +387,11 @@ const Today = () => {
 			</TouchableOpacity>
 		);
 	};
+	*/
 
 	const refresh = () => {
 		void assignments.refetch();
-		void wellness.refetch();
 		void coachNotes.refetch();
-		void recentPRs.refetch();
-		if (readinessFeatureEnabled) void readinessQuery.refetch();
 	};
 
 	const renderTraining = () => {
@@ -651,6 +518,7 @@ const Today = () => {
 
 	return (
 		<MemberScreen style={styles.safeArea} contentContainerStyle={styles.screenContent} edges={['top']}>
+			<TrainingTabShell selectedTab="today" navigation={nav} />
 			<ScrollView
 				style={styles.screen}
 				contentContainerStyle={styles.container}
@@ -783,38 +651,7 @@ const Today = () => {
 
 				<ConsistencyCard />
 
-				{shouldShowTodayProgressCard(features) && (
-					<TouchableOpacity
-						style={styles.progressCard}
-						accessibilityRole="button"
-						onPress={() => nav.navigate('TrainingProgress')}
-					>
-						<View style={styles.progressIcon}>
-							<Ionicons
-								name="chart-line"
-								size={22}
-								color={trainingTheme.colors.primary}
-							/>
-						</View>
-						<View style={styles.cardText}>
-							<Text style={styles.progressTitle}>
-								My Progress
-							</Text>
-							<Text style={styles.progressSubtitle}>
-								Results, PRs, maxes and benchmarks
-							</Text>
-						</View>
-						<Ionicons
-							name="chevron-right"
-							size={21}
-							color={trainingTheme.colors.textMuted}
-						/>
-					</TouchableOpacity>
-				)}
-
-				{renderReadiness()}
-
-				{/* Wellness check-in card */}
+				{/* Optional wellness prompts now live in the Wellness tab.
 				{showWellnessPrompt ? (
 					<View style={[styles.card, { backgroundColor: trainingTheme.colors.surface }]}>
 						<TouchableOpacity
@@ -872,8 +709,9 @@ const Today = () => {
 							</TouchableOpacity>
 						</View>
 					</View>
-				) : null}
+				) : null} */}
 
+				{/*
 				{!showWellnessPrompt && hasWellnessToday ? (
 					<View style={styles.wellnessDoneRow}>
 						<Ionicons
@@ -885,9 +723,10 @@ const Today = () => {
 							Wellness check-in done
 						</Text>
 					</View>
-				) : null}
+				) : null} */}
 
-				{/* Recent PRs */}
+				{/* Progress details now live in the Progress tab. */}
+				{/*
 				{(recentPRs.data?.length ?? 0) > 0 && (
 					<>
 						<SectionHeading title="Recent PRs" action="View all" />
@@ -933,9 +772,10 @@ const Today = () => {
 							))}
 						</ScrollView>
 					</>
-				)}
+				)} */}
 
 				{/* Coach notes — members only */}
+				{/* Secondary items now live in the More tab.
 				{!isSolo && (coachNotes.data ?? 0) > 0 && (
 					<TouchableOpacity
 						style={[styles.card, { backgroundColor: trainingTheme.colors.surface }]}
@@ -960,9 +800,9 @@ const Today = () => {
 							/>
 						</View>
 					</TouchableOpacity>
-				)}
+				)} */}
 
-				{/* Build card */}
+				{/* Build card now lives in the More tab.
 				{(isSolo || hasCustomWorkouts) && (
 					<TouchableOpacity
 						style={[styles.card, { backgroundColor: trainingTheme.colors.surface }]}
@@ -999,8 +839,9 @@ const Today = () => {
 							/>
 						</View>
 					</TouchableOpacity>
-				)}
+				)} */}
 			</ScrollView>
+			{/* Wellness prompts now live in the Wellness tab.
 			<Modal
 				visible={wellnessPromptVisible && showWellnessPrompt}
 				transparent
@@ -1052,7 +893,7 @@ const Today = () => {
 						</TouchableOpacity>
 					</View>
 				</View>
-			</Modal>
+			</Modal> */}
 		</MemberScreen>
 	);
 };

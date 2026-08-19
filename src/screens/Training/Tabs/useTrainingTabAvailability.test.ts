@@ -63,7 +63,7 @@ describe('buildTrainingTabAvailability', () => {
 		expect(result.visibleTabs).toEqual(['today', 'wellness']);
 	});
 
-	it('keeps Today when an optional query fails', () => {
+	it('keeps Today and independent More content when an optional query fails', () => {
 		const presence: TabPresence = {
 			...createEmptyTabPresence(),
 			optionalQueryFailed: true,
@@ -72,9 +72,9 @@ describe('buildTrainingTabAvailability', () => {
 			ALL_MEMBER_FEATURES_ENABLED,
 			presence,
 			errorReadiness,
-			0,
+			2,
 		);
 
-		expect(result.visibleTabs).toEqual(['today']);
+		expect(result.visibleTabs).toEqual(['today', 'more']);
 	});
 });

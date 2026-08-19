@@ -27,6 +27,7 @@ import type { TrainingStackParamList } from "@/types/navigation";
 import { trainingTheme } from "@/theme/training";
 import SkeletonCard from "../components/SkeletonCard";
 import TrainingState from "../components/TrainingState";
+import TrainingTabShell from "../Tabs/TrainingTabShell";
 import {
 	buildProgressContent,
 	shouldRenderProgressScreen,
@@ -449,7 +450,8 @@ const ProgressScreen = ({
 
 	return (
 		<MemberScreen contentContainerStyle={styles.screenContent}>
-		<ScrollView
+			<TrainingTabShell selectedTab="progress" navigation={navigation} />
+			<ScrollView
 			style={styles.screen}
 			contentContainerStyle={styles.container}
 			refreshControl={

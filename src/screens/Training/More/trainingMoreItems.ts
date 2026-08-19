@@ -1,5 +1,6 @@
 import type { MemberFeatureMap } from '@/services/workoutStudio/memberFeatures';
 import type { TrainingStackParamList } from '@/types/navigation';
+import type { TrainingTabKey } from '../Tabs/trainingTabs';
 import {
 	shouldShowBookingsHub,
 	shouldShowProgressHub,
@@ -16,6 +17,38 @@ export type TrainingMoreGroup = {
 	title: string;
 	items: TrainingMoreItem[];
 };
+
+const promotedLabelsByTab: Record<TrainingTabKey, readonly string[]> = {
+	today: [],
+	progress: ['My Progress'],
+	readiness: ['Wearables'],
+	wellness: ['Wellness', 'Pain & Injuries'],
+	more: [],
+};
+
+export const filterTrainingMoreGroups = (
+	groups: TrainingMoreGroup[],
+	visibleTabs: readonly TrainingTabKey[],
+): TrainingMoreGroup[] => {
+	const promotedLabels = new Set(
+		visibleTabs.flatMap(tab => promotedLabelsByTab[tab]),
+	);
+	return groups
+		.map(group => ({
+			...group,
+			items: group.items.filter(item => !promotedLabels.has(item.label)),
+		}))
+		.filter(group => group.items.length > 0);
+};
+
+export const countTrainingMoreItems = (
+	groups: TrainingMoreGroup[],
+	visibleTabs: readonly TrainingTabKey[],
+) =>
+	filterTrainingMoreGroups(groups, visibleTabs).reduce(
+		(total, group) => total + group.items.length,
+		0,
+	);
 
 const definedItems = (
 	items: Array<TrainingMoreItem | false>,

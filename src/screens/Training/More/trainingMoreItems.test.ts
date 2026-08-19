@@ -2,7 +2,11 @@ import {
 	ALL_MEMBER_FEATURES_DISABLED,
 	type MemberFeature,
 } from '@/services/workoutStudio/memberFeatures';
-import { buildTrainingMoreGroups } from './trainingMoreItems';
+import {
+	buildTrainingMoreGroups,
+	countTrainingMoreItems,
+	filterTrainingMoreGroups,
+} from './trainingMoreItems';
 
 const labelsFor = (
 	features = ALL_MEMBER_FEATURES_DISABLED,
@@ -91,5 +95,37 @@ describe('buildTrainingMoreGroups', () => {
 			.find(entry => entry.label === 'Custom Workouts');
 
 		expect(item).toMatchObject({ route: 'TrainingBuildList' });
+	});
+
+	it('removes items promoted into visible tabs', () => {
+		const groups = buildTrainingMoreGroups(
+			{ ...ALL_MEMBER_FEATURES_DISABLED, progress: true, wellness: true, pain_reports: true, wearables: true },
+			false,
+		);
+		const labels = filterTrainingMoreGroups(
+			groups,
+			['today', 'progress', 'readiness', 'wellness'],
+		)
+			.flatMap(group => group.items)
+			.map(item => item.label);
+
+		expect(labels).not.toEqual(
+			expect.arrayContaining(['My Progress', 'Wellness', 'Pain & Injuries', 'Wearables']),
+		);
+		expect(countTrainingMoreItems(groups, ['today', 'progress'])).toBeGreaterThan(0);
+	});
+
+	it('keeps optional items in More when their tabs are not promoted', () => {
+		const groups = buildTrainingMoreGroups(
+			{ ...ALL_MEMBER_FEATURES_DISABLED, progress: true, wellness: true, pain_reports: true, wearables: true },
+			false,
+		);
+		const labels = filterTrainingMoreGroups(groups, ['today'])
+			.flatMap(group => group.items)
+			.map(item => item.label);
+
+		expect(labels).toEqual(
+			expect.arrayContaining(['My Progress', 'Wellness', 'Pain & Injuries', 'Wearables']),
+		);
 	});
 });

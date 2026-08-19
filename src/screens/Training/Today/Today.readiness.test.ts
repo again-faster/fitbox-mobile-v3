@@ -169,19 +169,20 @@ describe("Today readiness state presentation", () => {
 		},
 	);
 
-	it("renders the readiness summary values and provider-native metrics", () => {
+	it("keeps readiness details out of the Today tab", () => {
 		const screen = render(createElement(Today));
 
-		expect(screen.getByLabelText(/Score 81/)).toBeTruthy();
-		expect(screen.getByText("Score 81")).toBeTruthy();
-		expect(screen.getByText("Band Ready")).toBeTruthy();
-		expect(screen.getByText("Confidence Measured")).toBeTruthy();
-		expect(screen.getByText("As of 2026-08-09")).toBeTruthy();
+		expect(screen.queryByText("Score 81")).toBeNull();
+		expect(screen.queryByText("Band Ready")).toBeNull();
+		expect(screen.queryByText("Confidence Measured")).toBeNull();
+		expect(screen.queryByText("As of 2026-08-09")).toBeNull();
+		/*
 		expect(
 			screen.getByText(
 				/Apple Health native · Sleep Not available · HRV Not available/,
 			),
 		).toBeTruthy();
+		*/
 		expect(screen.queryByText(/undefined/)).toBeNull();
 	});
 });

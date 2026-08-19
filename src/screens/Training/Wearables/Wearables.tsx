@@ -24,6 +24,7 @@ import {
 	type ReadinessResult,
 } from '@/services/workoutStudio/readiness';
 import TrainingState from '../components/TrainingState';
+import TrainingTabShell from '../Tabs/TrainingTabShell';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingWearables'>;
 type ProviderProps = {
@@ -376,6 +377,7 @@ const Wearables = ({ navigation }: Props) => {
 
 	return (
 		<MemberScreen style={styles.screen} contentContainerStyle={styles.screenContent} edges={['top']}>
+			<TrainingTabShell selectedTab="readiness" navigation={navigation} />
 			<View style={styles.header}>
 				<TouchableOpacity
 					accessibilityRole="button"

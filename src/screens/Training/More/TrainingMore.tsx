@@ -8,7 +8,12 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { wellbeingPolicy } from '../features/wellnessFeaturePolicy';
 import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
-import { buildTrainingMoreGroups } from './trainingMoreItems';
+import { useTrainingTabAvailability } from '../Tabs/useTrainingTabAvailability';
+import TrainingTabShell from '../Tabs/TrainingTabShell';
+import {
+	buildTrainingMoreGroups,
+	filterTrainingMoreGroups,
+} from './trainingMoreItems';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingMore'>;
 type Route = keyof TrainingStackParamList;
@@ -17,8 +22,9 @@ const TrainingMore = ({ navigation }: Props) => {
 	const session = getStoredWSSession();
 	const { data: hasCustomWorkouts } = useCustomWorkouts();
 	const { features } = useWorkoutStudio();
+	const availability = useTrainingTabAvailability();
 	const wellbeing = wellbeingPolicy(features);
-	const groups = buildTrainingMoreGroups(
+	const allGroups = buildTrainingMoreGroups(
 		{
 			...features,
 			wellness: wellbeing.showWellness,
@@ -27,11 +33,13 @@ const TrainingMore = ({ navigation }: Props) => {
 		},
 		hasCustomWorkouts === true,
 	);
+	const groups = filterTrainingMoreGroups(allGroups, availability.visibleTabs);
 
 	const open = (route: Route) => navigation.navigate(route as never);
 
 	return (
 		<MemberScreen contentContainerStyle={styles.screenContent}>
+			<TrainingTabShell selectedTab="more" navigation={navigation} />
 			<ScrollView contentContainerStyle={styles.container}>
 				<MemberCard style={styles.header}>
 					<View style={styles.avatar}>

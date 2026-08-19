@@ -33,6 +33,7 @@ import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import SkeletonCard from '../components/SkeletonCard';
 import { useTrainingConnectivity } from '../hooks/useTrainingConnectivity';
 import { wellbeingPolicy } from '../features/wellnessFeaturePolicy';
+import TrainingTabShell from '../Tabs/TrainingTabShell';
 
 type Props = TrainingStackScreenProps<'TrainingWellness'>;
 
@@ -432,10 +433,9 @@ const Wellness = ({ navigation }: Props) => {
 
 	if (!hasConsent) {
 		return (
-			<ScrollView
-				style={styles.screen}
-				contentContainerStyle={styles.container}
-			>
+			<View style={styles.screen}>
+				<TrainingTabShell selectedTab="wellness" navigation={navigation} />
+				<ScrollView contentContainerStyle={styles.container}>
 				<Text style={styles.title}>Wellness check-ins</Text>
 				<View style={styles.consentBox}>
 					<Text style={styles.consentText}>{CONSENT_TEXT}</Text>
@@ -451,15 +451,15 @@ const Wellness = ({ navigation }: Props) => {
 							: 'I agree — activate wellness'}
 					</Text>
 				</TouchableOpacity>
-			</ScrollView>
+				</ScrollView>
+			</View>
 		);
 	}
 
 	return (
-		<ScrollView
-			style={styles.screen}
-			contentContainerStyle={styles.container}
-		>
+		<View style={styles.screen}>
+			<TrainingTabShell selectedTab="wellness" navigation={navigation} />
+			<ScrollView contentContainerStyle={styles.container}>
 			<View style={styles.hero}>
 				<Text style={styles.eyebrow}>DAILY WELLNESS</Text>
 				<Text style={styles.heroTitle}>
@@ -655,7 +655,8 @@ const Wellness = ({ navigation }: Props) => {
 						: 'Withdraw wellness consent'}
 				</Text>
 			</TouchableOpacity>
-		</ScrollView>
+			</ScrollView>
+		</View>
 	);
 };
 

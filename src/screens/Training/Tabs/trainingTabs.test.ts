@@ -102,11 +102,11 @@ describe('fallbackTrainingTab', () => {
 });
 
 describe('tabRouteForKey', () => {
-	it('maps each primary tab to its existing stack destination', () => {
+	it('maps each primary tab to its stack destination', () => {
 		expect(tabRouteForKey('today')).toBe('TrainingToday');
 		expect(tabRouteForKey('progress')).toBe('TrainingProgress');
 		expect(tabRouteForKey('readiness')).toBe('TrainingWearables');
-		expect(tabRouteForKey('wellness')).toBe('TrainingWellness');
+		expect(tabRouteForKey('wellness')).toBe('TrainingWellnessHub');
 		expect(tabRouteForKey('more')).toBe('TrainingMore');
 	});
 });
