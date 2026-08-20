@@ -1,5 +1,25 @@
 import type { MemberFeatureMap } from '@/services/workoutStudio/memberFeatures';
 
+export type AutoWellnessPromptInput = {
+	wellnessEnabled: boolean;
+	hasWellnessToday: boolean;
+	promptsEnabled: boolean;
+	dismissedDate: string | null;
+	today: string;
+};
+
+export const shouldAutoPromptWellness = ({
+	wellnessEnabled,
+	hasWellnessToday,
+	promptsEnabled,
+	dismissedDate,
+	today,
+}: AutoWellnessPromptInput) =>
+	wellnessEnabled &&
+	!hasWellnessToday &&
+	promptsEnabled &&
+	dismissedDate !== today;
+
 export const shouldShowTodayWellness = (features: MemberFeatureMap) =>
 	features.wellness;
 

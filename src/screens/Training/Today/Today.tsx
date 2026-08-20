@@ -3,17 +3,19 @@ import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import type {
 	ProgramContext,
+	WellnessResponse,
 	WorkoutAssignment,
 } from '@/services/workoutStudio/types';
 import { getMemberWorkouts } from '@/services/workoutStudio/workouts';
 import { mmkvStorage } from '@/storage';
 import type { TrainingStackParamList } from '@/types/navigation';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useQuery } from '@tanstack/react-query';
 import moment from 'moment';
 import {
 	AppState,
+	Modal,
 	Platform,
 	RefreshControl,
 	ScrollView,
@@ -23,8 +25,9 @@ import {
 	View,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MemberScreen } from '@/components/member';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { trainingTheme } from '@/theme/training';
 import {
 	type ReadinessMetric,
@@ -38,6 +41,7 @@ import OfflineBanner from '../components/OfflineBanner';
 import TrainingState from '../components/TrainingState';
 import { useTrainingConnectivity } from '../hooks/useTrainingConnectivity';
 import TrainingTabShell from '../Tabs/TrainingTabShell';
+import { shouldAutoPromptWellness } from './todayFeaturePolicy';
 
 type Nav = StackNavigationProp<TrainingStackParamList>;
 
@@ -205,8 +209,10 @@ const greeting = () => {
 };
 
 const todayStr = moment().format('YYYY-MM-DD');
+const wellnessPromptsEnabledKey = 'training.wellnessPromptsEnabled';
+const wellnessPromptDismissedDateKey = 'training.wellnessPromptDismissedDate';
 
-const useToday = () => {
+const useToday = (wellnessEnabled: boolean) => {
 	const session = getStoredWSSession();
 	const uid = session?.user.id;
 	const tenantId = session?.user.active_tenant_id;
@@ -253,6 +259,22 @@ const useToday = () => {
 		[programDayCtx.data],
 	);
 
+	const wellness = useQuery<WellnessResponse[]>({
+		queryKey: ['ws-wellness-today', uid],
+		queryFn: () =>
+			wsApi()
+				.get('wellness_responses', {
+					searchParams: {
+						select: 'id,recorded_for,user_id',
+						user_id: `eq.${uid}`,
+						recorded_for: `eq.${todayStr}`,
+					},
+				})
+				.json<WellnessResponse[]>(),
+		enabled: wellnessEnabled && !!uid,
+		staleTime: 60_000,
+	});
+
 	const coachNotes = useQuery({
 		queryKey: ['ws-coach-notes-unread', uid],
 		queryFn: () =>
@@ -279,6 +301,7 @@ const useToday = () => {
 
 	return {
 		assignments,
+		wellness,
 		coachNotes,
 		firstName,
 		programCtxMap,
@@ -287,7 +310,15 @@ const useToday = () => {
 
 const Today = () => {
 	const nav = useNavigation<Nav>();
-	const { assignments, coachNotes, firstName, programCtxMap } = useToday();
+	const { isEnabled } = useWorkoutStudio();
+	const wellnessEnabled = isEnabled('wellness');
+	const {
+		assignments,
+		wellness,
+		coachNotes,
+		firstName,
+		programCtxMap,
+	} = useToday(wellnessEnabled);
 	const session = getStoredWSSession();
 	const persona = session?.user.persona;
 	const activeWorkout = findActiveWorkout(session?.user.id);
@@ -295,6 +326,26 @@ const Today = () => {
 	const { data: hasCustomWorkouts } = useCustomWorkouts();
 	const { isOffline, refresh: refreshConnectivity } =
 		useTrainingConnectivity();
+	const [wellnessPromptsEnabled, setWellnessPromptsEnabled] = useState(
+		() => mmkvStorage.getString(wellnessPromptsEnabledKey) !== 'false',
+	);
+	const [wellnessPromptDismissedDate, setWellnessPromptDismissedDate] =
+		useState<string | null>(
+			() => mmkvStorage.getString(wellnessPromptDismissedDateKey) ?? null,
+		);
+	const [wellnessPromptVisible, setWellnessPromptVisible] = useState(false);
+	const wellnessPromptPresentedDate = useRef<string | null>(null);
+
+	useFocusEffect(
+		useCallback(() => {
+			setWellnessPromptsEnabled(
+				mmkvStorage.getString(wellnessPromptsEnabledKey) !== 'false',
+			);
+			setWellnessPromptDismissedDate(
+				mmkvStorage.getString(wellnessPromptDismissedDateKey) ?? null,
+			);
+		}, []),
+	);
 
 	const appStateRef = useRef(AppState.currentState);
 
@@ -325,7 +376,47 @@ const Today = () => {
 		};
 	}, []);
 
-	const { isLoading, isRefetching: isRefreshing } = assignments;
+	const hasWellnessToday = (wellness.data?.length ?? 0) > 0;
+	const showWellnessPrompt = shouldAutoPromptWellness({
+		wellnessEnabled,
+		hasWellnessToday,
+		promptsEnabled: wellnessPromptsEnabled,
+		dismissedDate: wellnessPromptDismissedDate,
+		today: todayStr,
+	});
+
+	useEffect(() => {
+		if (
+			!wellness.isLoading &&
+			showWellnessPrompt &&
+			wellnessPromptPresentedDate.current !== todayStr
+		) {
+			wellnessPromptPresentedDate.current = todayStr;
+			setWellnessPromptVisible(true);
+		}
+	}, [showWellnessPrompt, wellness.isLoading]);
+
+	const dismissWellnessPromptToday = () => {
+		mmkvStorage.set(wellnessPromptDismissedDateKey, todayStr);
+		setWellnessPromptDismissedDate(todayStr);
+		setWellnessPromptVisible(false);
+	};
+
+	const turnOffWellnessPrompts = () => {
+		mmkvStorage.set(wellnessPromptsEnabledKey, 'false');
+		setWellnessPromptsEnabled(false);
+		setWellnessPromptVisible(false);
+	};
+
+	const startWellnessCheckIn = () => {
+		setWellnessPromptVisible(false);
+		nav.navigate('TrainingWellness');
+	};
+
+	const isLoading = assignments.isLoading || (wellnessEnabled && wellness.isLoading);
+	const isRefreshing =
+		assignments.isRefetching ||
+		(wellnessEnabled && wellness.isRefetching);
 
 	/*
 	const renderReadiness = () => {
@@ -381,6 +472,7 @@ const Today = () => {
 
 	const refresh = () => {
 		void assignments.refetch();
+		if (wellnessEnabled) void wellness.refetch();
 		void coachNotes.refetch();
 	};
 
@@ -853,6 +945,61 @@ const Today = () => {
 					</TouchableOpacity>
 				)} */}
 			</ScrollView>
+			<Modal
+				visible={wellnessPromptVisible && showWellnessPrompt}
+				transparent
+				animationType="slide"
+				onRequestClose={dismissWellnessPromptToday}
+			>
+				<View style={styles.wellnessModalBackdrop}>
+					<View style={styles.wellnessSheet}>
+						<View style={styles.wellnessSheetHandle} />
+						<View style={styles.wellnessSheetIcon}>
+							<Ionicons
+								name="heart-pulse"
+								size={28}
+								color={trainingTheme.colors.primary}
+							/>
+						</View>
+						<Text style={styles.wellnessSheetTitle}>
+							How are you feeling today?
+						</Text>
+						<Text style={styles.wellnessSheetBody}>
+							A 10-second check-in helps personalise your training and gives
+							your coach useful recovery context.
+						</Text>
+						<TouchableOpacity
+							style={styles.wellnessSheetPrimary}
+							onPress={startWellnessCheckIn}
+							accessibilityRole="button"
+							accessibilityLabel="Check in now"
+						>
+							<Text style={styles.wellnessSheetPrimaryText}>
+								Check in now
+							</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={styles.wellnessSheetSecondary}
+							onPress={dismissWellnessPromptToday}
+							accessibilityRole="button"
+							accessibilityLabel="Not today"
+						>
+							<Text style={styles.wellnessSheetSecondaryText}>
+								Not today
+							</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							onPress={turnOffWellnessPrompts}
+							accessibilityRole="button"
+							accessibilityLabel="Don't remind me daily"
+						>
+							<Text style={styles.wellnessSheetOptOut}>
+								Don&apos;t remind me daily
+							</Text>
+						</TouchableOpacity>
+					</View>
+				</View>
+			</Modal>
 			{/* Wellness prompts now live in the Wellness tab.
 			<Modal
 				visible={wellnessPromptVisible && showWellnessPrompt}
