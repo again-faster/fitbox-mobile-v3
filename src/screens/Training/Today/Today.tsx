@@ -1,18 +1,18 @@
-import { syncNow } from '@/services/healthKit';
-import { wsApi } from '@/services/workoutStudio/api';
-import { getStoredWSSession } from '@/services/workoutStudio/auth';
+import { syncNow } from "@/services/healthKit";
+import { wsApi } from "@/services/workoutStudio/api";
+import { getStoredWSSession } from "@/services/workoutStudio/auth";
 import type {
 	ProgramContext,
 	WellnessResponse,
 	WorkoutAssignment,
-} from '@/services/workoutStudio/types';
-import { getMemberWorkouts } from '@/services/workoutStudio/workouts';
-import { mmkvStorage } from '@/storage';
-import type { TrainingStackParamList } from '@/types/navigation';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
-import { useQuery } from '@tanstack/react-query';
-import moment from 'moment';
+} from "@/services/workoutStudio/types";
+import { getMemberWorkouts } from "@/services/workoutStudio/workouts";
+import { mmkvStorage } from "@/storage";
+import type { TrainingStackParamList } from "@/types/navigation";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import type { StackNavigationProp } from "@react-navigation/stack";
+import { useQuery } from "@tanstack/react-query";
+import moment from "moment";
 import {
 	AppState,
 	Modal,
@@ -23,25 +23,25 @@ import {
 	Text,
 	TouchableOpacity,
 	View,
-} from 'react-native';
-import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { MemberScreen } from '@/components/member';
-import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
-import { trainingTheme } from '@/theme/training';
+} from "react-native";
+import Ionicons from "react-native-vector-icons/MaterialCommunityIcons";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { MemberScreen } from "@/components/member";
+import { useWorkoutStudio } from "@/context/WorkoutStudioProvider";
+import { trainingTheme } from "@/theme/training";
 import {
 	type ReadinessMetric,
 	type ReadinessResult,
-} from '@/services/workoutStudio/readiness';
-import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
-import SkeletonCard from '../components/SkeletonCard';
-import ConsistencyCard from './components/ConsistencyCard';
-import SectionHeading from '../components/SectionHeading';
-import OfflineBanner from '../components/OfflineBanner';
-import TrainingState from '../components/TrainingState';
-import { useTrainingConnectivity } from '../hooks/useTrainingConnectivity';
-import TrainingTabShell from '../Tabs/TrainingTabShell';
-import { shouldAutoPromptWellness } from './todayFeaturePolicy';
+} from "@/services/workoutStudio/readiness";
+import { useCustomWorkouts } from "../hooks/useCustomWorkouts";
+import SkeletonCard from "../components/SkeletonCard";
+import ConsistencyCard from "./components/ConsistencyCard";
+import SectionHeading from "../components/SectionHeading";
+import OfflineBanner from "../components/OfflineBanner";
+import TrainingState from "../components/TrainingState";
+import { useTrainingConnectivity } from "../hooks/useTrainingConnectivity";
+import TrainingTabShell from "../Tabs/TrainingTabShell";
+import { shouldAutoPromptWellness } from "./todayFeaturePolicy";
 
 type Nav = StackNavigationProp<TrainingStackParamList>;
 
@@ -52,50 +52,50 @@ const latestReadinessMetric = (
 		right.asOfDate.localeCompare(left.asOfDate),
 	)[0] ?? null;
 
-const formatReadinessMetric = (value: number | null, suffix = ''): string =>
-	value === null ? 'Not available' : `${value}${suffix}`;
+const formatReadinessMetric = (value: number | null, suffix = ""): string =>
+	value === null ? "Not available" : `${value}${suffix}`;
 
 export const readinessCopy = (result: ReadinessResult) => {
-	if (result.status === 'loading')
+	if (result.status === "loading")
 		return {
-			title: 'Loading readiness',
-			detail: 'Checking your latest recovery signals.',
-			score: 'Not available',
-			band: 'Not available',
-			confidence: 'Not available',
-			freshness: 'Not available',
+			title: "Loading readiness",
+			detail: "Checking your latest recovery signals.",
+			score: "Not available",
+			band: "Not available",
+			confidence: "Not available",
+			freshness: "Not available",
 			metric: null,
 		};
-	if (result.status === 'error')
+	if (result.status === "error")
 		return {
-			title: 'Readiness unavailable',
+			title: "Readiness unavailable",
 			detail: result.error.message,
-			score: 'Not available',
-			band: 'Not available',
-			confidence: 'Not available',
-			freshness: 'Not available',
+			score: "Not available",
+			band: "Not available",
+			confidence: "Not available",
+			freshness: "Not available",
 			metric: null,
 		};
 
 	const metric = latestReadinessMetric(result.data.metrics);
 	const statusCopy = {
 		ready: {
-			title: 'Readiness is ready',
-			detail: 'A provider-native readiness score is available.',
-			band: 'Ready',
-			confidence: 'Measured',
+			title: "Readiness is ready",
+			detail: "A provider-native readiness score is available.",
+			band: "Ready",
+			confidence: "Measured",
 		},
 		baseline: {
-			title: 'Building your baseline',
-			detail: 'More connected data is needed before a readiness score is available.',
-			band: 'Baseline',
-			confidence: 'Building',
+			title: "Building your baseline",
+			detail: "More connected data is needed before a readiness score is available.",
+			band: "Baseline",
+			confidence: "Building",
 		},
 		empty: {
-			title: 'No readiness data yet',
-			detail: 'Connect a supported provider to add recovery context.',
-			band: 'No data',
-			confidence: 'Not available',
+			title: "No readiness data yet",
+			detail: "Connect a supported provider to add recovery context.",
+			band: "No data",
+			confidence: "Not available",
 		},
 	}[result.status];
 
@@ -145,11 +145,11 @@ const findActiveWorkout = (userId?: string): ActiveWorkoutDraft | null => {
 	const prefix = `ws:active-workout:${userId}:`;
 	const drafts = mmkvStorage
 		.getAllKeys()
-		.filter(key => key.startsWith(prefix))
-		.map(key => {
+		.filter((key) => key.startsWith(prefix))
+		.map((key) => {
 			try {
 				return JSON.parse(
-					mmkvStorage.getString(key) ?? '',
+					mmkvStorage.getString(key) ?? "",
 				) as ActiveWorkoutDraft;
 			} catch {
 				return null;
@@ -159,9 +159,9 @@ const findActiveWorkout = (userId?: string): ActiveWorkoutDraft | null => {
 			(value): value is ActiveWorkoutDraft =>
 				value?.version === 1 &&
 				value.userId === userId &&
-				typeof value.workoutId === 'string' &&
-				typeof value.workoutName === 'string' &&
-				typeof value.startedAt === 'number',
+				typeof value.workoutId === "string" &&
+				typeof value.workoutName === "string" &&
+				typeof value.startedAt === "number",
 		)
 		.sort((a, b) => b.startedAt - a.startedAt);
 	return drafts[0] ?? null;
@@ -183,7 +183,7 @@ function buildProgramCtxMap(
 		if (wn !== 0) return wn;
 		return (dayA?.day_index ?? 0) - (dayB?.day_index ?? 0);
 	});
-	sorted.forEach(row => {
+	sorted.forEach((row) => {
 		if (map.has(row.workout_id)) return;
 		const pd = normalizeOne(row.day);
 		if (!pd) return;
@@ -203,23 +203,23 @@ function buildProgramCtxMap(
 
 const greeting = () => {
 	const h = new Date().getHours();
-	if (h < 12) return 'Good morning';
-	if (h < 17) return 'Good afternoon';
-	return 'Good evening';
+	if (h < 12) return "Good morning";
+	if (h < 17) return "Good afternoon";
+	return "Good evening";
 };
 
-const todayStr = moment().format('YYYY-MM-DD');
-const wellnessPromptsEnabledKey = 'training.wellnessPromptsEnabled';
-const wellnessPromptDismissedDateKey = 'training.wellnessPromptDismissedDate';
+const todayStr = moment().format("YYYY-MM-DD");
+const wellnessPromptsEnabledKey = "training.wellnessPromptsEnabled";
+const wellnessPromptDismissedDateKey = "training.wellnessPromptDismissedDate";
 
 const useToday = (wellnessEnabled: boolean) => {
 	const session = getStoredWSSession();
 	const uid = session?.user.id;
 	const tenantId = session?.user.active_tenant_id;
-	const firstName = session?.user.full_name?.split(' ')[0] ?? '';
+	const firstName = session?.user.full_name?.split(" ")[0] ?? "";
 
 	const assignments = useQuery({
-		queryKey: ['ws-assignments-today', uid, tenantId],
+		queryKey: ["ws-assignments-today", uid, tenantId],
 		queryFn: () => getMemberWorkouts(tenantId!, todayStr, todayStr),
 		enabled: !!uid && !!tenantId,
 		staleTime: 60_000,
@@ -236,19 +236,19 @@ const useToday = (wellnessEnabled: boolean) => {
 			).sort(),
 		[assignments.data],
 	);
-	const workoutIdsKey = ids.join(',');
+	const workoutIdsKey = ids.join(",");
 
 	const programDayCtx = useQuery({
-		queryKey: ['ws-program-ctx-today', workoutIdsKey],
+		queryKey: ["ws-program-ctx-today", workoutIdsKey],
 		enabled: (assignments.data?.length ?? 0) > 0,
 		staleTime: 300_000,
 		queryFn: () =>
 			wsApi()
-				.get('program_day_workouts', {
+				.get("program_day_workouts", {
 					searchParams: {
-						select: 'workout_id,sort_order,day:program_days(day_index,label,week:program_weeks(week_number,program:programs(id,name,total_weeks,duration_weeks)))',
-						workout_id: `in.(${ids.join(',')})`,
-						limit: '50',
+						select: "workout_id,sort_order,day:program_days(day_index,label,week:program_weeks(week_number,program:programs(id,name,total_weeks,duration_weeks)))",
+						workout_id: `in.(${ids.join(",")})`,
+						limit: "50",
 					},
 				})
 				.json<ProgramDayWorkoutRow[]>(),
@@ -260,12 +260,12 @@ const useToday = (wellnessEnabled: boolean) => {
 	);
 
 	const wellness = useQuery<WellnessResponse[]>({
-		queryKey: ['ws-wellness-today', uid],
+		queryKey: ["ws-wellness-today", uid],
 		queryFn: () =>
 			wsApi()
-				.get('wellness_responses', {
+				.get("wellness_responses", {
 					searchParams: {
-						select: 'id,recorded_for,user_id',
+						select: "id,recorded_for,user_id",
 						user_id: `eq.${uid}`,
 						recorded_for: `eq.${todayStr}`,
 					},
@@ -276,21 +276,21 @@ const useToday = (wellnessEnabled: boolean) => {
 	});
 
 	const coachNotes = useQuery({
-		queryKey: ['ws-coach-notes-unread', uid],
+		queryKey: ["ws-coach-notes-unread", uid],
 		queryFn: () =>
 			wsApi()
-				.get('section_athlete_notes', {
+				.get("section_athlete_notes", {
 					searchParams: {
-						select: 'id',
+						select: "id",
 						athlete_id: `eq.${uid}`,
-						read_at: 'is.null',
+						read_at: "is.null",
 					},
-					headers: { Prefer: 'count=exact', Range: '0-0' },
+					headers: { Prefer: "count=exact", Range: "0-0" },
 				})
-				.then(r => {
-					const contentRange = r.headers.get('content-range') ?? '';
+				.then((r) => {
+					const contentRange = r.headers.get("content-range") ?? "";
 					const total = parseInt(
-						contentRange.split('/')[1] ?? '0',
+						contentRange.split("/")[1] ?? "0",
 						10,
 					);
 					return total;
@@ -311,23 +311,18 @@ const useToday = (wellnessEnabled: boolean) => {
 const Today = () => {
 	const nav = useNavigation<Nav>();
 	const { isEnabled } = useWorkoutStudio();
-	const wellnessEnabled = isEnabled('wellness');
-	const {
-		assignments,
-		wellness,
-		coachNotes,
-		firstName,
-		programCtxMap,
-	} = useToday(wellnessEnabled);
+	const wellnessEnabled = isEnabled("wellness");
+	const { assignments, wellness, coachNotes, firstName, programCtxMap } =
+		useToday(wellnessEnabled);
 	const session = getStoredWSSession();
 	const persona = session?.user.persona;
 	const activeWorkout = findActiveWorkout(session?.user.id);
-	const isSolo = persona === 'solo';
+	const isSolo = persona === "solo";
 	const { data: hasCustomWorkouts } = useCustomWorkouts();
 	const { isOffline, refresh: refreshConnectivity } =
 		useTrainingConnectivity();
 	const [wellnessPromptsEnabled, setWellnessPromptsEnabled] = useState(
-		() => mmkvStorage.getString(wellnessPromptsEnabledKey) !== 'false',
+		() => mmkvStorage.getString(wellnessPromptsEnabledKey) !== "false",
 	);
 	const [wellnessPromptDismissedDate, setWellnessPromptDismissedDate] =
 		useState<string | null>(
@@ -339,7 +334,7 @@ const Today = () => {
 	useFocusEffect(
 		useCallback(() => {
 			setWellnessPromptsEnabled(
-				mmkvStorage.getString(wellnessPromptsEnabledKey) !== 'false',
+				mmkvStorage.getString(wellnessPromptsEnabledKey) !== "false",
 			);
 			setWellnessPromptDismissedDate(
 				mmkvStorage.getString(wellnessPromptDismissedDateKey) ?? null,
@@ -350,26 +345,29 @@ const Today = () => {
 	const appStateRef = useRef(AppState.currentState);
 
 	useEffect(() => {
-		if (Platform.OS !== 'ios') return undefined;
+		if (Platform.OS !== "ios") return undefined;
 
-		const subscription = AppState.addEventListener('change', nextState => {
-			const prevState = appStateRef.current;
-			appStateRef.current = nextState;
+		const subscription = AppState.addEventListener(
+			"change",
+			(nextState) => {
+				const prevState = appStateRef.current;
+				appStateRef.current = nextState;
 
-			const isForegrounding =
-				(prevState === 'background' || prevState === 'inactive') &&
-				nextState === 'active';
+				const isForegrounding =
+					(prevState === "background" || prevState === "inactive") &&
+					nextState === "active";
 
-			if (
-				isForegrounding &&
-				mmkvStorage.getString('healthkit.authorized') === 'true'
-			) {
-				syncNow().catch(e => {
-					// eslint-disable-next-line no-console
-					console.error('[HealthSync] foreground sync error', e);
-				});
-			}
-		});
+				if (
+					isForegrounding &&
+					mmkvStorage.getString("healthkit.authorized") === "true"
+				) {
+					syncNow().catch((e) => {
+						// eslint-disable-next-line no-console
+						console.error("[HealthSync] foreground sync error", e);
+					});
+				}
+			},
+		);
 
 		return () => {
 			subscription.remove();
@@ -403,20 +401,20 @@ const Today = () => {
 	};
 
 	const turnOffWellnessPrompts = () => {
-		mmkvStorage.set(wellnessPromptsEnabledKey, 'false');
+		mmkvStorage.set(wellnessPromptsEnabledKey, "false");
 		setWellnessPromptsEnabled(false);
 		setWellnessPromptVisible(false);
 	};
 
 	const startWellnessCheckIn = () => {
 		setWellnessPromptVisible(false);
-		nav.navigate('TrainingWellness');
+		nav.navigate("TrainingWellness");
 	};
 
-	const isLoading = assignments.isLoading || (wellnessEnabled && wellness.isLoading);
+	const isLoading =
+		assignments.isLoading || (wellnessEnabled && wellness.isLoading);
 	const isRefreshing =
-		assignments.isRefetching ||
-		(wellnessEnabled && wellness.isRefetching);
+		assignments.isRefetching || (wellnessEnabled && wellness.isRefetching);
 
 	/*
 	const renderReadiness = () => {
@@ -489,12 +487,12 @@ const Today = () => {
 			return (
 				<View style={styles.stateCard}>
 					<TrainingState
-						kind={isOffline ? 'offline' : 'error'}
+						kind={isOffline ? "offline" : "error"}
 						title="Today's training couldn't load"
 						message={
 							isOffline
-								? 'Reconnect to load your latest assigned workouts.'
-								: 'Your other Training information is still available.'
+								? "Reconnect to load your latest assigned workouts."
+								: "Your other Training information is still available."
 						}
 						actionLabel="Try again"
 						onAction={() => void assignments.refetch()}
@@ -523,7 +521,7 @@ const Today = () => {
 					</Text>
 					{isSolo || hasCustomWorkouts ? (
 						<TouchableOpacity
-							onPress={() => nav.navigate('TrainingBuildList')}
+							onPress={() => nav.navigate("TrainingBuildList")}
 						>
 							<Text
 								style={[
@@ -536,7 +534,7 @@ const Today = () => {
 						</TouchableOpacity>
 					) : (
 						<TouchableOpacity
-							onPress={() => nav.navigate('TrainingWorkouts')}
+							onPress={() => nav.navigate("TrainingWorkouts")}
 						>
 							<Text
 								style={[
@@ -562,10 +560,10 @@ const Today = () => {
 						{ backgroundColor: trainingTheme.colors.surface },
 					]}
 					onPress={() =>
-						nav.navigate('TrainingWorkoutDetail', {
+						nav.navigate("TrainingWorkoutDetail", {
 							workoutId: a.workout_id,
 							assignmentId:
-								a.source?.type === 'class' ? undefined : a.id,
+								a.source?.type === "class" ? undefined : a.id,
 							programContext,
 						})
 					}
@@ -597,11 +595,11 @@ const Today = () => {
 									{ color: trainingTheme.colors.textMuted },
 								]}
 							>
-								{programContext.programName} · Week{' '}
+								{programContext.programName} · Week{" "}
 								{programContext.weekNumber}
 								{programContext.totalWeeks
 									? ` of ${programContext.totalWeeks}`
-									: ''}{' '}
+									: ""}{" "}
 								· Day {programContext.dayIndex}
 							</Text>
 						) : null}
@@ -620,7 +618,7 @@ const Today = () => {
 		<MemberScreen
 			style={styles.safeArea}
 			contentContainerStyle={styles.screenContent}
-			edges={['top']}
+			edges={["top"]}
 		>
 			<TrainingTabShell selectedTab="today" navigation={nav} />
 			<ScrollView
@@ -654,12 +652,12 @@ const Today = () => {
 							{greeting()}, {firstName}
 						</Text>
 						<Text style={styles.date}>
-							{moment().format('dddd, MMMM D')}
+							{moment().format("dddd, MMMM D")}
 						</Text>
 					</View>
 					<View style={styles.greetingActions}>
 						<TouchableOpacity
-							onPress={() => nav.navigate('TrainingMore')}
+							onPress={() => nav.navigate("TrainingMore")}
 							style={styles.moreButton}
 							accessibilityRole="button"
 							accessibilityLabel="Open more training options"
@@ -673,7 +671,7 @@ const Today = () => {
 						</TouchableOpacity>
 						<TouchableOpacity
 							onPress={() =>
-								nav.navigate('TrainingNotifications')
+								nav.navigate("TrainingNotifications")
 							}
 							style={styles.bellWrap}
 							accessibilityRole="button"
@@ -710,7 +708,7 @@ const Today = () => {
 							accessibilityRole="button"
 							accessibilityLabel={`Continue ${activeWorkout.workoutName}`}
 							onPress={() =>
-								nav.navigate('TrainingRunWorkout', {
+								nav.navigate("TrainingRunWorkout", {
 									workoutId: activeWorkout.workoutId,
 									assignmentId:
 										activeWorkout.assignmentId ?? undefined,
@@ -965,8 +963,8 @@ const Today = () => {
 							How are you feeling today?
 						</Text>
 						<Text style={styles.wellnessSheetBody}>
-							A 10-second check-in helps personalise your training and gives
-							your coach useful recovery context.
+							A 10-second check-in helps personalise your training
+							and gives your coach useful recovery context.
 						</Text>
 						<TouchableOpacity
 							style={styles.wellnessSheetPrimary}
@@ -1067,9 +1065,9 @@ const styles = StyleSheet.create({
 		gap: trainingTheme.spacing.md,
 	},
 	greetingRow: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
 		marginBottom: 4,
 	},
 	greetingCopy: {
@@ -1078,26 +1076,26 @@ const styles = StyleSheet.create({
 	},
 	greeting: {
 		color: trainingTheme.colors.text,
-		fontFamily: 'Inter-Variable',
+		fontFamily: "Inter-Variable",
 		fontSize: 26,
-		fontWeight: '700',
+		fontWeight: "700",
 		letterSpacing: -0.6,
 	},
 	date: {
 		color: trainingTheme.colors.textMuted,
-		fontFamily: 'Inter-Variable',
+		fontFamily: "Inter-Variable",
 		fontSize: 14,
 		marginTop: 3,
 	},
-	headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-	greetingActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+	headerActions: { flexDirection: "row", alignItems: "center", gap: 8 },
+	greetingActions: { flexDirection: "row", alignItems: "center", gap: 8 },
 	moreButton: {
 		height: trainingTheme.touchTarget,
 		paddingHorizontal: 12,
 		borderRadius: trainingTheme.radius.pill,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'center',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "center",
 		gap: 5,
 		backgroundColor: trainingTheme.colors.surface,
 		borderColor: trainingTheme.colors.border,
@@ -1106,35 +1104,35 @@ const styles = StyleSheet.create({
 	moreText: {
 		color: trainingTheme.colors.text,
 		fontSize: 12,
-		fontWeight: '600',
+		fontWeight: "600",
 	},
 	bellWrap: {
-		position: 'relative',
+		position: "relative",
 		width: trainingTheme.touchTarget,
 		height: trainingTheme.touchTarget,
 		borderRadius: trainingTheme.radius.pill,
 		backgroundColor: trainingTheme.colors.surface,
 		borderColor: trainingTheme.colors.border,
 		borderWidth: StyleSheet.hairlineWidth,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	badge: {
-		position: 'absolute',
+		position: "absolute",
 		top: 0,
 		right: 0,
 		minWidth: 16,
 		height: 16,
 		borderRadius: 8,
-		justifyContent: 'center',
-		alignItems: 'center',
+		justifyContent: "center",
+		alignItems: "center",
 	},
 	badgeText: {
 		color: trainingTheme.colors.surface,
 		fontSize: 10,
-		fontWeight: '700',
+		fontWeight: "700",
 	},
-	sectionHeader: { fontSize: 17, fontWeight: '600', marginTop: 8 },
+	sectionHeader: { fontSize: 17, fontWeight: "600", marginTop: 8 },
 	card: {
 		backgroundColor: trainingTheme.colors.surface,
 		borderColor: trainingTheme.colors.border,
@@ -1142,9 +1140,9 @@ const styles = StyleSheet.create({
 		borderRadius: trainingTheme.radius.md,
 		padding: trainingTheme.spacing.lg,
 	},
-	cardRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+	cardRow: { flexDirection: "row", alignItems: "center", gap: 12 },
 	cardText: { flex: 1 },
-	cardTitle: { fontSize: 15, fontWeight: '600' },
+	cardTitle: { fontSize: 15, fontWeight: "600" },
 	cardSub: { fontSize: 13, marginTop: 2 },
 	workoutCard: {
 		minHeight: 96,
@@ -1155,16 +1153,16 @@ const styles = StyleSheet.create({
 		borderLeftWidth: 4,
 		borderRadius: trainingTheme.radius.md,
 		padding: trainingTheme.spacing.lg,
-		flexDirection: 'row',
-		alignItems: 'center',
-		justifyContent: 'space-between',
+		flexDirection: "row",
+		alignItems: "center",
+		justifyContent: "space-between",
 	},
 	workoutCardLeft: { flex: 1 },
 	workoutName: {
 		color: trainingTheme.colors.text,
-		fontFamily: 'Inter-Variable',
+		fontFamily: "Inter-Variable",
 		fontSize: 17,
-		fontWeight: '700',
+		fontWeight: "700",
 	},
 	workoutMeta: {
 		color: trainingTheme.colors.textMuted,
@@ -1182,23 +1180,23 @@ const styles = StyleSheet.create({
 		borderWidth: StyleSheet.hairlineWidth,
 		borderRadius: trainingTheme.radius.md,
 		padding: trainingTheme.spacing.xl,
-		alignItems: 'center',
+		alignItems: "center",
 		gap: trainingTheme.spacing.sm,
 	},
 	emptyText: {
 		color: trainingTheme.colors.text,
 		fontSize: 15,
-		fontWeight: '600',
+		fontWeight: "600",
 	},
 	emptySubtext: {
 		fontSize: 13,
 		color: trainingTheme.colors.disabled,
-		textAlign: 'center',
+		textAlign: "center",
 	},
 	link: {
 		color: trainingTheme.colors.primary,
 		fontSize: 14,
-		fontWeight: '700',
+		fontWeight: "700",
 	},
 	prScroll: { gap: 10, paddingBottom: 4 },
 	prCard: {
@@ -1210,19 +1208,19 @@ const styles = StyleSheet.create({
 		width: 152,
 		gap: 6,
 	},
-	prName: { fontSize: 13, fontWeight: '600' },
-	prWeight: { fontSize: 15, fontWeight: '700' },
+	prName: { fontSize: 13, fontWeight: "600" },
+	prWeight: { fontSize: 15, fontWeight: "700" },
 	wellnessDoneRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: 6,
 		paddingHorizontal: 4,
 		paddingVertical: 2,
 	},
 	progressCard: {
 		minHeight: 76,
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: 12,
 		padding: 14,
 		borderRadius: 16,
@@ -1234,14 +1232,14 @@ const styles = StyleSheet.create({
 		width: 42,
 		height: 42,
 		borderRadius: 21,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		backgroundColor: trainingTheme.colors.primarySoft,
 	},
 	progressTitle: {
 		color: trainingTheme.colors.text,
 		fontSize: 16,
-		fontWeight: '700',
+		fontWeight: "700",
 	},
 	progressSubtitle: {
 		color: trainingTheme.colors.textMuted,
@@ -1250,8 +1248,8 @@ const styles = StyleSheet.create({
 	},
 	readinessCard: {
 		minHeight: 150,
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: 12,
 		padding: 14,
 		borderRadius: 16,
@@ -1263,8 +1261,8 @@ const styles = StyleSheet.create({
 		width: 42,
 		height: 42,
 		borderRadius: 21,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		backgroundColor: trainingTheme.colors.primarySoft,
 	},
 	readinessDetail: {
@@ -1274,8 +1272,8 @@ const styles = StyleSheet.create({
 		marginTop: 4,
 	},
 	readinessStats: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
+		flexDirection: "row",
+		flexWrap: "wrap",
 		gap: 8,
 		marginTop: 7,
 	},
@@ -1292,8 +1290,8 @@ const styles = StyleSheet.create({
 	wellnessPromptActions: {
 		borderTopColor: trainingTheme.colors.border,
 		borderTopWidth: StyleSheet.hairlineWidth,
-		flexDirection: 'row',
-		justifyContent: 'flex-end',
+		flexDirection: "row",
+		justifyContent: "flex-end",
 		gap: 20,
 		marginTop: trainingTheme.spacing.md,
 		paddingTop: trainingTheme.spacing.md,
@@ -1301,15 +1299,15 @@ const styles = StyleSheet.create({
 	wellnessPromptAction: {
 		color: trainingTheme.colors.textMuted,
 		fontSize: 13,
-		fontWeight: '600',
+		fontWeight: "600",
 	},
 	wellnessModalBackdrop: {
-		backgroundColor: 'rgba(17, 24, 39, 0.48)',
+		backgroundColor: "rgba(17, 24, 39, 0.48)",
 		flex: 1,
-		justifyContent: 'flex-end',
+		justifyContent: "flex-end",
 	},
 	wellnessSheet: {
-		alignItems: 'center',
+		alignItems: "center",
 		backgroundColor: trainingTheme.colors.surface,
 		borderTopLeftRadius: 28,
 		borderTopRightRadius: 28,
@@ -1325,19 +1323,19 @@ const styles = StyleSheet.create({
 		width: 42,
 	},
 	wellnessSheetIcon: {
-		alignItems: 'center',
+		alignItems: "center",
 		backgroundColor: trainingTheme.colors.primarySoft,
 		borderRadius: 28,
 		height: 56,
-		justifyContent: 'center',
+		justifyContent: "center",
 		marginBottom: 16,
 		width: 56,
 	},
 	wellnessSheetTitle: {
 		color: trainingTheme.colors.text,
 		fontSize: 22,
-		fontWeight: '700',
-		textAlign: 'center',
+		fontWeight: "700",
+		textAlign: "center",
 	},
 	wellnessSheetBody: {
 		color: trainingTheme.colors.textMuted,
@@ -1345,30 +1343,30 @@ const styles = StyleSheet.create({
 		lineHeight: 21,
 		marginBottom: 22,
 		marginTop: 8,
-		textAlign: 'center',
+		textAlign: "center",
 	},
 	wellnessSheetPrimary: {
-		alignItems: 'center',
+		alignItems: "center",
 		backgroundColor: trainingTheme.colors.primary,
 		borderRadius: 14,
-		justifyContent: 'center',
+		justifyContent: "center",
 		minHeight: 52,
-		width: '100%',
+		width: "100%",
 	},
 	wellnessSheetPrimaryText: {
 		color: trainingTheme.colors.surface,
 		fontSize: 16,
-		fontWeight: '700',
+		fontWeight: "700",
 	},
 	wellnessSheetSecondary: {
-		alignItems: 'center',
+		alignItems: "center",
 		paddingVertical: 15,
-		width: '100%',
+		width: "100%",
 	},
 	wellnessSheetSecondaryText: {
 		color: trainingTheme.colors.text,
 		fontSize: 15,
-		fontWeight: '600',
+		fontWeight: "600",
 	},
 	wellnessSheetOptOut: {
 		color: trainingTheme.colors.textMuted,
@@ -1388,8 +1386,8 @@ const styles = StyleSheet.create({
 		borderWidth: StyleSheet.hairlineWidth,
 		borderRadius: trainingTheme.radius.md,
 		padding: trainingTheme.spacing.md,
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: trainingTheme.spacing.md,
 	},
 	continueIcon: {
@@ -1397,26 +1395,26 @@ const styles = StyleSheet.create({
 		height: 46,
 		borderRadius: trainingTheme.radius.pill,
 		backgroundColor: trainingTheme.colors.primary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	continueEyebrow: {
 		color: trainingTheme.colors.primary,
-		fontFamily: 'Inter-Variable',
+		fontFamily: "Inter-Variable",
 		fontSize: 10,
-		fontWeight: '800',
+		fontWeight: "800",
 		letterSpacing: 0.8,
 	},
 	continueTitle: {
 		color: trainingTheme.colors.text,
-		fontFamily: 'Inter-Variable',
+		fontFamily: "Inter-Variable",
 		fontSize: 16,
-		fontWeight: '700',
+		fontWeight: "700",
 		marginTop: 2,
 	},
 	continueMeta: {
 		color: trainingTheme.colors.textMuted,
-		fontFamily: 'Inter-Variable',
+		fontFamily: "Inter-Variable",
 		fontSize: 12,
 		marginTop: 2,
 	},

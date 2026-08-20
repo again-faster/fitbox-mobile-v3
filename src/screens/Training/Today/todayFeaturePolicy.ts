@@ -1,4 +1,4 @@
-import type { MemberFeatureMap } from '@/services/workoutStudio/memberFeatures';
+import type { MemberFeatureMap } from "@/services/workoutStudio/memberFeatures";
 
 export type AutoWellnessPromptInput = {
 	wellnessEnabled: boolean;
