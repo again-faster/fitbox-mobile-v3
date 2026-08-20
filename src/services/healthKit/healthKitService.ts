@@ -98,7 +98,13 @@ const toDateStr = (iso: string): string => iso.slice(0, 10);
 
 const sampleId = (
 	prefix: string,
-	sample: { startDate: string; endDate?: string; value: unknown; uuid?: string; id?: string },
+	sample: {
+		startDate: string;
+		endDate?: string;
+		value: unknown;
+		uuid?: string;
+		id?: string;
+	},
 	index: number,
 ): string =>
 	sample.uuid ??
@@ -228,23 +234,22 @@ export const syncNow = async (): Promise<void> => {
 
 		// Sleep: cast to SleepSample[] since the runtime value is a string category
 		const sleepCasted = sleepRaw as unknown as SleepSample[];
-		const sleepByDay = sleepCasted.reduce<Record<string, { minutes: number; recorded_at: string }>>(
-			(acc, sample) => {
-				if (sample.value !== 'ASLEEP') return acc;
-				const date = toDateStr(sample.startDate);
-				const startMs = new Date(sample.startDate).getTime();
-				const endMs = new Date(sample.endDate).getTime();
-				const minutes = (endMs - startMs) / 60000;
-				return {
-					...acc,
-					[date]: {
-						minutes: (acc[date]?.minutes ?? 0) + minutes,
-						recorded_at: sample.endDate,
-					},
-				};
-			},
-			{},
-		);
+		const sleepByDay = sleepCasted.reduce<
+			Record<string, { minutes: number; recorded_at: string }>
+		>((acc, sample) => {
+			if (sample.value !== 'ASLEEP') return acc;
+			const date = toDateStr(sample.startDate);
+			const startMs = new Date(sample.startDate).getTime();
+			const endMs = new Date(sample.endDate).getTime();
+			const minutes = (endMs - startMs) / 60000;
+			return {
+				...acc,
+				[date]: {
+					minutes: (acc[date]?.minutes ?? 0) + minutes,
+					recorded_at: sample.endDate,
+				},
+			};
+		}, {});
 		const sleepMetrics: MetricPayload[] = Object.entries(sleepByDay).map(
 			([date, aggregate]) => ({
 				provider_sample_id: `sleep:${date}`,
@@ -256,19 +261,18 @@ export const syncNow = async (): Promise<void> => {
 		);
 
 		// Active energy: aggregate daily sum
-		const energyByDay = energyRaw.reduce<Record<string, { value: number; recorded_at: string }>>(
-			(acc, sample) => {
-				const date = toDateStr(sample.startDate);
-				return {
-					...acc,
-					[date]: {
-						value: (acc[date]?.value ?? 0) + sample.value,
-						recorded_at: sample.startDate,
-					},
-				};
-			},
-			{},
-		);
+		const energyByDay = energyRaw.reduce<
+			Record<string, { value: number; recorded_at: string }>
+		>((acc, sample) => {
+			const date = toDateStr(sample.startDate);
+			return {
+				...acc,
+				[date]: {
+					value: (acc[date]?.value ?? 0) + sample.value,
+					recorded_at: sample.startDate,
+				},
+			};
+		}, {});
 		const energyMetrics: MetricPayload[] = Object.entries(energyByDay).map(
 			([date, aggregate]) => ({
 				provider_sample_id: `energy:${date}`,
@@ -332,13 +336,24 @@ export const syncNow = async (): Promise<void> => {
 
 		await metricChunks.reduce<Promise<void>>(async (prev, chunk, index) => {
 			await prev;
-			await postBatch(`healthkit:${startDate}:${endDate}:metrics:${index}`, chunk, []);
+			await postBatch(
+				`healthkit:${startDate}:${endDate}:metrics:${index}`,
+				chunk,
+				[],
+			);
 		}, Promise.resolve());
 
-		await workoutChunks.reduce<Promise<void>>(async (prev, chunk, index) => {
-			await prev;
-			await postBatch(`healthkit:${startDate}:${endDate}:workouts:${index}`, [], chunk);
-		}, Promise.resolve());
+		await workoutChunks.reduce<Promise<void>>(
+			async (prev, chunk, index) => {
+				await prev;
+				await postBatch(
+					`healthkit:${startDate}:${endDate}:workouts:${index}`,
+					[],
+					chunk,
+				);
+			},
+			Promise.resolve(),
+		);
 
 		mmkvStorage.set(STORAGE_KEY, endDate);
 	} catch (err) {

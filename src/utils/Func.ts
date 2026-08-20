@@ -280,6 +280,7 @@ const isVersionOutdated = (
 };
 
 const getRandomAnimation = () => {
+	/* eslint-disable @typescript-eslint/no-require-imports */
 	const animations = [
 		require('../theme/animations/balloons.json'),
 		require('../theme/animations/fistbump.json'),
@@ -288,6 +289,7 @@ const getRandomAnimation = () => {
 		require('../theme/animations/lift.json'),
 		require('../theme/animations/stars.json'),
 	];
+	/* eslint-enable @typescript-eslint/no-require-imports */
 
 	const randomIndex = Math.floor(Math.random() * animations.length);
 	return {

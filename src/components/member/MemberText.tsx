@@ -12,14 +12,19 @@ export type MemberTextRole =
 	| 'button';
 
 type MemberTextProps = Omit<ComponentProps<typeof RNText>, 'role'> & {
-	role?: MemberTextRole;
+	variant?: MemberTextRole;
 	muted?: boolean;
 };
 
-const MemberText = ({ role = 'body', muted = false, style, ...props }: MemberTextProps) => (
+const MemberText = ({
+	variant = 'body',
+	muted = false,
+	style,
+	...props
+}: MemberTextProps) => (
 	<RNText
 		{...props}
-		style={[styles.base, styles[role], muted && styles.muted, style]}
+		style={[styles.base, styles[variant], muted && styles.muted, style]}
 	/>
 );
 

@@ -10,11 +10,25 @@ interface MemberCardProps extends PropsWithChildren {
 	elevated?: boolean;
 }
 
-const MemberCard = ({ children, title, subtitle, style, elevated = true }: MemberCardProps) => (
+const MemberCard = ({
+	children,
+	title,
+	subtitle,
+	style,
+	elevated = true,
+}: MemberCardProps) => (
 	<View style={[styles.card, elevated && memberTheme.shadow, style]}>
-		{title ? <MemberText role="sectionTitle">{title}</MemberText> : null}
-		{subtitle ? <MemberText role="meta" muted>{subtitle}</MemberText> : null}
-		{title || subtitle ? <View style={styles.content}>{children}</View> : children}
+		{title ? <MemberText variant="sectionTitle">{title}</MemberText> : null}
+		{subtitle ? (
+			<MemberText variant="meta" muted>
+				{subtitle}
+			</MemberText>
+		) : null}
+		{title || subtitle ? (
+			<View style={styles.content}>{children}</View>
+		) : (
+			children
+		)}
 	</View>
 );
 

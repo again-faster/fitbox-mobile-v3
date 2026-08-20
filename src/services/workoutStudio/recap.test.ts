@@ -1,18 +1,18 @@
-import { wsRpc } from "./api";
-import { getStoredWSSession } from "./auth";
-import { WSApiError } from "./errors";
+import { wsRpc } from './api';
+import { getStoredWSSession } from './auth';
+import { WSApiError } from './errors';
 import {
 	getMemberEngagement,
 	getWeeklyRecapSnapshot,
 	normalizeEngagementSnapshot,
 	normalizeWeeklyRecapSnapshot,
-} from "./recap";
+} from './recap';
 
-jest.mock("./api", () => ({
+jest.mock('./api', () => ({
 	wsRpc: jest.fn(),
 }));
 
-jest.mock("./auth", () => ({
+jest.mock('./auth', () => ({
 	getStoredWSSession: jest.fn(),
 }));
 
@@ -21,25 +21,25 @@ const mockedGetStoredWSSession = jest.mocked(getStoredWSSession);
 
 const memberSession = {
 	user: {
-		id: "member-1",
-		persona: "member" as const,
-		active_tenant_id: "tenant-1",
+		id: 'member-1',
+		persona: 'member' as const,
+		active_tenant_id: 'tenant-1',
 	},
 };
 
-describe("member recap service", () => {
+describe('member recap service', () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
 		mockedGetStoredWSSession.mockReturnValue(memberSession as never);
 	});
 
-	it("loads a weekly recap snapshot using a server-owned fourteen-day window", async () => {
+	it('loads a weekly recap snapshot using a server-owned fourteen-day window', async () => {
 		mockedWsRpc.mockResolvedValue({
 			ok: true,
 			data: {
-				as_of_date: "2026-08-09",
-				window_start: "2026-07-27",
-				window_end: "2026-08-09",
+				as_of_date: '2026-08-09',
+				window_start: '2026-07-27',
+				window_end: '2026-08-09',
 				completed_workouts: 3,
 				completed_minutes: null,
 				total_volume_kg: 1250,
@@ -52,25 +52,25 @@ describe("member recap service", () => {
 		const snapshot = await getWeeklyRecapSnapshot();
 
 		expect(mockedWsRpc).toHaveBeenCalledWith(
-			"member_weekly_recap_snapshot",
+			'member_weekly_recap_snapshot',
 			{ p_window_days: 14 },
 		);
 		expect(snapshot).toMatchObject({
-			asOfDate: "2026-08-09",
-			windowStart: "2026-07-27",
+			asOfDate: '2026-08-09',
+			windowStart: '2026-07-27',
 			completedWorkouts: 3,
 			completedMinutes: null,
 			totalVolumeKg: 1250,
 		});
 	});
 
-	it("loads engagement separately without mixing provider metrics into recap data", async () => {
+	it('loads engagement separately without mixing provider metrics into recap data', async () => {
 		mockedWsRpc.mockResolvedValue({
 			ok: true,
 			data: {
-				as_of_date: "2026-08-09",
-				window_start: "2026-07-13",
-				window_end: "2026-08-09",
+				as_of_date: '2026-08-09',
+				window_start: '2026-07-13',
+				window_end: '2026-08-09',
 				active_days: 4,
 				current_streak_days: null,
 				longest_streak_days: 6,
@@ -81,13 +81,13 @@ describe("member recap service", () => {
 
 		const engagement = await getMemberEngagement({ windowDays: 28 });
 
-		expect(mockedWsRpc).toHaveBeenCalledWith("member_engagement_snapshot", {
+		expect(mockedWsRpc).toHaveBeenCalledWith('member_engagement_snapshot', {
 			p_window_days: 28,
 		});
 		expect(engagement).toEqual({
-			asOfDate: "2026-08-09",
-			windowStart: "2026-07-13",
-			windowEnd: "2026-08-09",
+			asOfDate: '2026-08-09',
+			windowStart: '2026-07-13',
+			windowEnd: '2026-08-09',
 			activeDays: 4,
 			currentStreakDays: null,
 			longestStreakDays: 6,
@@ -96,25 +96,25 @@ describe("member recap service", () => {
 		});
 	});
 
-	it("rejects unauthenticated recap and engagement access before querying", async () => {
+	it('rejects unauthenticated recap and engagement access before querying', async () => {
 		mockedGetStoredWSSession.mockReturnValue(null);
 
 		await expect(getWeeklyRecapSnapshot()).rejects.toMatchObject({
-			kind: "unauthorized",
+			kind: 'unauthorized',
 		});
 		await expect(getMemberEngagement()).rejects.toMatchObject({
-			kind: "unauthorized",
+			kind: 'unauthorized',
 		});
 		expect(mockedWsRpc).not.toHaveBeenCalled();
 	});
 
-	it("preserves null recap and engagement metrics during normalization", () => {
+	it('preserves null recap and engagement metrics during normalization', () => {
 		const recap = normalizeWeeklyRecapSnapshot({
 			ok: true,
 			data: {
-				as_of_date: "2026-08-09",
-				window_start: "2026-07-27",
-				window_end: "2026-08-09",
+				as_of_date: '2026-08-09',
+				window_start: '2026-07-27',
+				window_end: '2026-08-09',
 				completed_workouts: null,
 				completed_minutes: null,
 				total_volume_kg: null,
@@ -126,9 +126,9 @@ describe("member recap service", () => {
 		const engagement = normalizeEngagementSnapshot({
 			ok: true,
 			data: {
-				as_of_date: "2026-08-09",
-				window_start: "2026-07-13",
-				window_end: "2026-08-09",
+				as_of_date: '2026-08-09',
+				window_start: '2026-07-13',
+				window_end: '2026-08-09',
 				active_days: null,
 				current_streak_days: null,
 				longest_streak_days: null,
@@ -143,13 +143,13 @@ describe("member recap service", () => {
 		expect(engagement.badgesEarned).toBeNull();
 	});
 
-	it("fails with a typed contract error when server dates are absent", () => {
+	it('fails with a typed contract error when server dates are absent', () => {
 		expect(() =>
 			normalizeWeeklyRecapSnapshot({
 				ok: true,
 				data: {
-					as_of_date: "2026-08-09",
-					window_end: "2026-08-09",
+					as_of_date: '2026-08-09',
+					window_end: '2026-08-09',
 					completed_workouts: null,
 					completed_minutes: null,
 					total_volume_kg: null,
@@ -158,17 +158,17 @@ describe("member recap service", () => {
 					workouts: [],
 				},
 			}),
-		).toThrow("recap contract");
+		).toThrow('recap contract');
 	});
 
-	it("returns no recap when the feature is disabled or the endpoint is unavailable", async () => {
+	it('returns no recap when the feature is disabled or the endpoint is unavailable', async () => {
 		await expect(
 			getWeeklyRecapSnapshot({ enabled: false }),
 		).resolves.toBeNull();
 		expect(mockedWsRpc).not.toHaveBeenCalled();
 
 		mockedWsRpc.mockRejectedValue(
-			new WSApiError("server", "Recap is unavailable.", 503),
+			new WSApiError('server', 'Recap is unavailable.', 503),
 		);
 		await expect(getWeeklyRecapSnapshot()).resolves.toBeNull();
 	});

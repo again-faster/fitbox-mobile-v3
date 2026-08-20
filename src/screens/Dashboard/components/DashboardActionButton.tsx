@@ -32,7 +32,7 @@ const DashboardActionButton = ({
 
 				<View style={styles.tileTextContainer}>
 					<MemberText
-						role="label"
+						variant="label"
 						numberOfLines={stringHasOneWord ? 1 : 2}
 						style={styles.tileText}
 					>

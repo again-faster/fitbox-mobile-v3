@@ -50,7 +50,10 @@ const TrainingRoot = () => {
 
 	return (
 		<View style={styles.container}>
-			<ActivityIndicator size="large" color={memberTheme.colors.primary} />
+			<ActivityIndicator
+				size="large"
+				color={memberTheme.colors.primary}
+			/>
 		</View>
 	);
 };

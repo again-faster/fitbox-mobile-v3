@@ -46,19 +46,19 @@ const TrainingMore = ({ navigation }: Props) => {
 			<ScrollView contentContainerStyle={styles.container}>
 				<MemberCard style={styles.header}>
 					<View style={styles.avatar}>
-						<MemberText role="display" style={styles.avatarText}>
+						<MemberText variant="display" style={styles.avatarText}>
 							{session?.user.full_name?.charAt(0).toUpperCase() ??
 								'M'}
 						</MemberText>
 					</View>
 					<View style={styles.headerCopy}>
-						<MemberText role="label" style={styles.eyebrow}>
+						<MemberText variant="label" style={styles.eyebrow}>
 							WORKOUT STUDIO
 						</MemberText>
-						<MemberText role="screenTitle">
+						<MemberText variant="screenTitle">
 							{session?.user.full_name ?? 'My Training'}
 						</MemberText>
-						<MemberText role="body" muted>
+						<MemberText variant="body" muted>
 							{session?.user.persona === 'solo'
 								? 'Solo athlete'
 								: 'Member'}{' '}
@@ -69,7 +69,7 @@ const TrainingMore = ({ navigation }: Props) => {
 
 				{groups.map(group => (
 					<View key={group.title} style={styles.group}>
-						<MemberText role="sectionTitle">
+						<MemberText variant="sectionTitle">
 							{group.title}
 						</MemberText>
 						<MemberCard elevated={false} style={styles.groupCard}>
@@ -93,10 +93,10 @@ const TrainingMore = ({ navigation }: Props) => {
 										/>
 									</View>
 									<View style={styles.copy}>
-										<MemberText role="label">
+										<MemberText variant="label">
 											{item.label}
 										</MemberText>
-										<MemberText role="meta" muted>
+										<MemberText variant="meta" muted>
 											{item.description}
 										</MemberText>
 									</View>
@@ -111,7 +111,7 @@ const TrainingMore = ({ navigation }: Props) => {
 					</View>
 				))}
 
-				<MemberText role="meta" muted style={styles.boundary}>
+				<MemberText variant="meta" muted style={styles.boundary}>
 					Fitbox account and billing services remain available from
 					the main app while Workout Studio integration continues.
 				</MemberText>

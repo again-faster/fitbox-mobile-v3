@@ -2,7 +2,12 @@ import { memberTheme } from '@/theme/member';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import MemberText from './MemberText';
 
-export type MemberStatus = 'default' | 'success' | 'warning' | 'danger' | 'info';
+export type MemberStatus =
+	| 'default'
+	| 'success'
+	| 'warning'
+	| 'danger'
+	| 'info';
 
 type MemberStatusPillProps = {
 	label: string;
@@ -23,7 +28,7 @@ const MemberStatusPill = ({
 		accessibilityRole="text"
 		accessibilityLabel={accessibilityLabel ?? label}
 	>
-		<MemberText role="label" style={styles[`${status}Label`]}>
+		<MemberText variant="label" style={styles[`${status}Label`]}>
 			{label}
 		</MemberText>
 	</View>

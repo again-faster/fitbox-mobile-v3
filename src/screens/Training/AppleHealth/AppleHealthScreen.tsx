@@ -144,7 +144,11 @@ const AppleHealthScreen = ({ navigation }: Props) => {
 
 	if (Platform.OS !== 'ios') {
 		return (
-			<MemberScreen style={styles.screen} contentContainerStyle={styles.screenContent} edges={['top']}>
+			<MemberScreen
+				style={styles.screen}
+				contentContainerStyle={styles.screenContent}
+				edges={['top']}
+			>
 				<AppleHealthHeader onBack={() => navigation.goBack()} />
 				<View style={styles.unavailableContent}>
 					<View style={styles.unavailableCard}>
@@ -186,7 +190,11 @@ const AppleHealthScreen = ({ navigation }: Props) => {
 	}
 
 	return (
-		<MemberScreen style={styles.screen} contentContainerStyle={styles.screenContent} edges={['top']}>
+		<MemberScreen
+			style={styles.screen}
+			contentContainerStyle={styles.screenContent}
+			edges={['top']}
+		>
 			<AppleHealthHeader onBack={() => navigation.goBack()} />
 			<ScrollView
 				contentContainerStyle={styles.content}

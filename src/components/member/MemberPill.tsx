@@ -22,7 +22,10 @@ const MemberPill = ({
 		accessibilityLabel={accessibilityLabel ?? label}
 		accessibilityState={{ selected }}
 	>
-		<MemberText role="label" style={[styles.label, selected && styles.selectedLabel]}>
+		<MemberText
+			variant="label"
+			style={[styles.label, selected && styles.selectedLabel]}
+		>
 			{label}
 		</MemberText>
 	</Pressable>

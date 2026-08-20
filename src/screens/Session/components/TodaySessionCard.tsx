@@ -13,27 +13,42 @@ const TodaySessionCard = ({ isLoading, summary }: TodaySessionCardProps) => {
 
 	return (
 		<MemberCard style={styles.card}>
-			<MemberText role="sectionTitle" style={styles.title}>
+			<MemberText variant="sectionTitle" style={styles.title}>
 				Today’s session
 			</MemberText>
 
 			{summary ? (
 				<>
-					<MemberText role="sectionTitle" style={styles.workoutName}>
+					<MemberText
+						variant="sectionTitle"
+						style={styles.workoutName}
+					>
 						{summary.workoutName}
 					</MemberText>
 					{summary.sections.map(section => {
-						const parts = [...section.details, ...section.movements];
+						const parts = [
+							...section.details,
+							...section.movements,
+						];
 						if (section.remainingMovementCount > 0) {
-							parts.push(`+${section.remainingMovementCount} more`);
+							parts.push(
+								`+${section.remainingMovementCount} more`,
+							);
 						}
 
 						return (
 							<View key={section.id} style={styles.section}>
-								<MemberText role="label" style={styles.sectionName}>
+								<MemberText
+									variant="label"
+									style={styles.sectionName}
+								>
 									{section.name}
 								</MemberText>
-								<MemberText role="body" muted style={styles.sectionSummary}>
+								<MemberText
+									variant="body"
+									muted
+									style={styles.sectionSummary}
+								>
 									{parts.join(' · ')}
 								</MemberText>
 							</View>
@@ -42,8 +57,11 @@ const TodaySessionCard = ({ isLoading, summary }: TodaySessionCardProps) => {
 				</>
 			) : (
 				<View style={styles.loadingRow}>
-					<ActivityIndicator size="small" color={memberTheme.colors.primary} />
-					<MemberText role="body" muted style={styles.loadingText}>
+					<ActivityIndicator
+						size="small"
+						color={memberTheme.colors.primary}
+					/>
+					<MemberText variant="body" muted style={styles.loadingText}>
 						Loading session…
 					</MemberText>
 				</View>

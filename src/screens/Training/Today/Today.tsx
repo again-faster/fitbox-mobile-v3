@@ -74,32 +74,30 @@ export const readinessCopy = (result: ReadinessResult) => {
 		};
 
 	const metric = latestReadinessMetric(result.data.metrics);
+	const statusCopy = {
+		ready: {
+			title: 'Readiness is ready',
+			detail: 'A provider-native readiness score is available.',
+			band: 'Ready',
+			confidence: 'Measured',
+		},
+		baseline: {
+			title: 'Building your baseline',
+			detail: 'More connected data is needed before a readiness score is available.',
+			band: 'Baseline',
+			confidence: 'Building',
+		},
+		empty: {
+			title: 'No readiness data yet',
+			detail: 'Connect a supported provider to add recovery context.',
+			band: 'No data',
+			confidence: 'Not available',
+		},
+	}[result.status];
+
 	return {
-		title:
-			result.status === 'ready'
-				? 'Readiness is ready'
-				: result.status === 'baseline'
-					? 'Building your baseline'
-					: 'No readiness data yet',
-		detail:
-			result.status === 'ready'
-				? 'A provider-native readiness score is available.'
-				: result.status === 'baseline'
-					? 'More connected data is needed before a readiness score is available.'
-					: 'Connect a supported provider to add recovery context.',
+		...statusCopy,
 		score: formatReadinessMetric(metric?.nativeReadinessScore ?? null),
-		band:
-			result.status === 'ready'
-				? 'Ready'
-				: result.status === 'baseline'
-					? 'Baseline'
-					: 'No data',
-		confidence:
-			result.status === 'ready'
-				? 'Measured'
-				: result.status === 'baseline'
-					? 'Building'
-					: 'Not available',
 		freshness: `As of ${result.asOfDate}`,
 		metric,
 	};

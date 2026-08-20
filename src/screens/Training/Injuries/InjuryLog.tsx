@@ -116,7 +116,11 @@ const InjuryLog = ({ navigation }: Props) => {
 	};
 
 	return (
-		<MemberScreen style={styles.screen} contentContainerStyle={{ paddingHorizontal: 0 }} edges={['top']}>
+		<MemberScreen
+			style={styles.screen}
+			contentContainerStyle={{ paddingHorizontal: 0 }}
+			edges={['top']}
+		>
 			<View style={styles.header}>
 				<TouchableOpacity
 					accessibilityRole="button"
@@ -693,7 +697,11 @@ const styles = StyleSheet.create({
 		gap: trainingTheme.spacing.sm,
 	},
 	submitButtonDisabled: { backgroundColor: trainingTheme.colors.primarySoft },
-	submitText: { fontSize: 16, fontWeight: '800', color: trainingTheme.colors.surface },
+	submitText: {
+		fontSize: 16,
+		fontWeight: '800',
+		color: trainingTheme.colors.surface,
+	},
 	submitTextDisabled: { color: trainingTheme.colors.textMuted },
 	submitHint: {
 		fontSize: 12,

@@ -105,7 +105,10 @@ const SessionActionButtons = ({
 	}, [islocked, isAttending, isWaitlist, spotsLeft, waitlistEnabled]);
 
 	return !subscribed ? (
-		<MemberText role="body" style={[styles.warningTxt, styles.container]}>
+		<MemberText
+			variant="body"
+			style={[styles.warningTxt, styles.container]}
+		>
 			This class is not included in your membership. Please speak with
 			your gym to upgrade.
 		</MemberText>

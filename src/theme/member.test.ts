@@ -24,27 +24,43 @@ describe('member visual tokens', () => {
 	});
 
 	it('defines semantic status colors', () => {
-		expect(memberTheme.colors).toMatchObject({
-			info: expect.any(String),
-			infoSoft: expect.any(String),
-			disabled: expect.any(String),
-			disabledSoft: expect.any(String),
-			successSoft: expect.any(String),
-			warningSoft: expect.any(String),
-			dangerSoft: expect.any(String),
+		const semanticStatusColors = [
+			'info',
+			'infoSoft',
+			'disabled',
+			'disabledSoft',
+			'successSoft',
+			'warningSoft',
+			'dangerSoft',
+		] as const;
+
+		semanticStatusColors.forEach(color => {
+			expect(typeof memberTheme.colors[color]).toBe('string');
 		});
 	});
 
 	it('derives training aliases from member tokens by reference', () => {
 		expect(trainingTheme.colors.primary).toBe(memberTheme.colors.primary);
-		expect(trainingTheme.colors.background).toBe(memberTheme.colors.background);
+		expect(trainingTheme.colors.background).toBe(
+			memberTheme.colors.background,
+		);
 		expect(trainingTheme.spacing).toBe(memberTheme.spacing);
 		expect(trainingTheme.radius).toBe(memberTheme.radius);
 		expect(trainingTheme.shadow).toBe(memberTheme.shadow);
-		expect(trainingTheme.colors.primarySoft).toBe(memberTheme.colors.surfaceSoft);
-		expect(trainingTheme.colors.surfaceMuted).toBe(memberTheme.colors.surfaceSoft);
-		expect(trainingTheme.colors.successSoft).toBe(memberTheme.colors.successSoft);
-		expect(trainingTheme.colors.warningSoft).toBe(memberTheme.colors.warningSoft);
-		expect(trainingTheme.colors.dangerSoft).toBe(memberTheme.colors.dangerSoft);
+		expect(trainingTheme.colors.primarySoft).toBe(
+			memberTheme.colors.surfaceSoft,
+		);
+		expect(trainingTheme.colors.surfaceMuted).toBe(
+			memberTheme.colors.surfaceSoft,
+		);
+		expect(trainingTheme.colors.successSoft).toBe(
+			memberTheme.colors.successSoft,
+		);
+		expect(trainingTheme.colors.warningSoft).toBe(
+			memberTheme.colors.warningSoft,
+		);
+		expect(trainingTheme.colors.dangerSoft).toBe(
+			memberTheme.colors.dangerSoft,
+		);
 	});
 });

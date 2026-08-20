@@ -389,13 +389,14 @@ const Menu = ({ navigation }: MenuScreenProps) => {
 							key={i}
 							style={styles.menuOptionContainer}
 						>
-							{React.createElement(List.Subheader as React.ComponentType<any>, {
-								style: [
+							<List.Subheader
+								style={[
 									layout.fontMontserratRegular,
 									styles.sectionTitle,
-								],
-								children: op.title,
-							})}
+								]}
+							>
+								{op.title}
+							</List.Subheader>
 							{options}
 						</List.Section>
 					);

@@ -13,8 +13,14 @@ const OfflineBanner = ({
 	message = "You're offline. Some Training information may be out of date.",
 }: Props) => (
 	<View style={styles.banner} accessibilityRole="alert">
-		<Ionicons name="wifi-off" size={18} color={memberTheme.colors.warning} />
-		<MemberText role="meta" style={styles.message}>{message}</MemberText>
+		<Ionicons
+			name="wifi-off"
+			size={18}
+			color={memberTheme.colors.warning}
+		/>
+		<MemberText variant="meta" style={styles.message}>
+			{message}
+		</MemberText>
 		{onRetry ? (
 			<MemberButton
 				label="Retry"

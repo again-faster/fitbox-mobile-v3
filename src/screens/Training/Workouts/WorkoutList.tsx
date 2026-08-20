@@ -53,7 +53,11 @@ const WorkoutList = () => {
 	}, [data]);
 
 	return (
-		<MemberScreen style={styles.screen} contentContainerStyle={styles.screenContent} edges={['top']}>
+		<MemberScreen
+			style={styles.screen}
+			contentContainerStyle={styles.screenContent}
+			edges={['top']}
+		>
 			<View style={styles.header}>
 				<TouchableOpacity
 					accessibilityRole="button"

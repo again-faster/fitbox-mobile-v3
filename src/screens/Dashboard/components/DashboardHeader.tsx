@@ -37,7 +37,12 @@ const DashboardHeader = ({ banner = '', logo = '' }: DashboardHeaderProps) => {
 			{children}
 		</ImageBackground>
 	) : (
-		<View style={[styles.container, { backgroundColor: memberTheme.colors.primary }]}>
+		<View
+			style={[
+				styles.container,
+				{ backgroundColor: memberTheme.colors.primary },
+			]}
+		>
 			{children}
 		</View>
 	);

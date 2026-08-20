@@ -615,136 +615,157 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 					{detail?.workout_sections &&
 						detail.workout_sections.length > 0 && (
 							<View style={styles.sectionsCard}>
-								{detail.workout_sections.map((s: WorkoutSection) => (
-									<View key={s.id} style={styles.sectionRow}>
-										<View style={styles.sectionHeaderRow}>
-											<Text
-												style={[
-													styles.sectionName,
-													{
-														color: trainingTheme
-															.colors.text,
-													},
-												]}
+								{detail.workout_sections.map(
+									(s: WorkoutSection) => (
+										<View
+											key={s.id}
+											style={styles.sectionRow}
+										>
+											<View
+												style={styles.sectionHeaderRow}
 											>
-												{s.name}
-											</Text>
-											{sectionScoringSummary(s) ? (
-												<View
-													style={styles.sectionBadge}
+												<Text
+													style={[
+														styles.sectionName,
+														{
+															color: trainingTheme
+																.colors.text,
+														},
+													]}
+												>
+													{s.name}
+												</Text>
+												{sectionScoringSummary(s) ? (
+													<View
+														style={
+															styles.sectionBadge
+														}
+													>
+														<Text
+															style={
+																styles.sectionBadgeText
+															}
+														>
+															{sectionScoringSummary(
+																s,
+															)}
+														</Text>
+													</View>
+												) : null}
+											</View>
+											{s.coach_notes ? (
+												<Text
+													style={styles.sectionNotes}
+												>
+													{s.coach_notes}
+												</Text>
+											) : null}
+											{s.section_mode === 'workout' &&
+												s.section_blocks?.map(
+													(b: SectionBlock) => (
+														<View
+															key={b.id}
+															style={
+																styles.blockRow
+															}
+														>
+															{b.label ? (
+																<Text
+																	style={[
+																		styles.blockLabel,
+																		{
+																			color: trainingTheme
+																				.colors
+																				.textMuted,
+																		},
+																	]}
+																>
+																	{b.label}
+																</Text>
+															) : null}
+															{b.block_movements?.map(
+																(
+																	bm: BlockMovement,
+																) => {
+																	const parts =
+																		movementPrescriptionParts(
+																			bm,
+																		);
+																	return (
+																		<TouchableOpacity
+																			key={
+																				bm.id
+																			}
+																			activeOpacity={
+																				0.7
+																			}
+																			onPress={() =>
+																				setSelectedMovement(
+																					{
+																						id: bm
+																							.movements
+																							.id,
+																						name: bm
+																							.movements
+																							.name,
+																					},
+																				)
+																			}
+																		>
+																			<Text
+																				style={[
+																					styles.movementText,
+																					{
+																						color: trainingTheme
+																							.colors
+																							.text,
+																						textDecorationLine:
+																							'underline',
+																					},
+																				]}
+																			>
+																				{
+																					bm
+																						.movements
+																						.name
+																				}
+																				{parts.length >
+																				0
+																					? `  ${parts.join(' · ')}`
+																					: ''}
+																			</Text>
+																		</TouchableOpacity>
+																	);
+																},
+															)}
+														</View>
+													),
+												)}
+											{resultCapabilities.canLogSectionScore &&
+											s.section_mode === 'workout' &&
+											s.is_scored ? (
+												<TouchableOpacity
+													style={
+														styles.sectionScoreButton
+													}
+													onPress={() =>
+														setSelectedScoreSection(
+															s,
+														)
+													}
 												>
 													<Text
 														style={
-															styles.sectionBadgeText
+															styles.sectionScoreButtonText
 														}
 													>
-														{sectionScoringSummary(
-															s,
-														)}
+														Log score
 													</Text>
-												</View>
+												</TouchableOpacity>
 											) : null}
 										</View>
-										{s.coach_notes ? (
-											<Text style={styles.sectionNotes}>
-												{s.coach_notes}
-											</Text>
-										) : null}
-											{s.section_mode === 'workout' &&
-												s.section_blocks?.map((b: SectionBlock) => (
-												<View
-													key={b.id}
-													style={styles.blockRow}
-												>
-													{b.label ? (
-														<Text
-															style={[
-																styles.blockLabel,
-																{
-																	color: trainingTheme
-																		.colors
-																		.textMuted,
-																},
-															]}
-														>
-															{b.label}
-														</Text>
-													) : null}
-														{b.block_movements?.map(
-																(bm: BlockMovement) => {
-															const parts =
-																movementPrescriptionParts(
-																	bm,
-																);
-															return (
-																<TouchableOpacity
-																	key={bm.id}
-																	activeOpacity={
-																		0.7
-																	}
-																	onPress={() =>
-																		setSelectedMovement(
-																			{
-																				id: bm
-																					.movements
-																					.id,
-																				name: bm
-																					.movements
-																					.name,
-																			},
-																		)
-																	}
-																>
-																	<Text
-																		style={[
-																			styles.movementText,
-																			{
-																				color: trainingTheme
-																					.colors
-																					.text,
-																				textDecorationLine:
-																					'underline',
-																			},
-																		]}
-																	>
-																		{
-																			bm
-																				.movements
-																				.name
-																		}
-																		{parts.length >
-																		0
-																			? `  ${parts.join(' · ')}`
-																			: ''}
-																	</Text>
-																</TouchableOpacity>
-															);
-														},
-													)}
-												</View>
-											))}
-										{resultCapabilities.canLogSectionScore &&
-										s.section_mode === 'workout' &&
-										s.is_scored ? (
-											<TouchableOpacity
-												style={
-													styles.sectionScoreButton
-												}
-												onPress={() =>
-													setSelectedScoreSection(s)
-												}
-											>
-												<Text
-													style={
-														styles.sectionScoreButtonText
-													}
-												>
-													Log score
-												</Text>
-											</TouchableOpacity>
-										) : null}
-									</View>
-								))}
+									),
+								)}
 							</View>
 						)}
 
@@ -1094,33 +1115,35 @@ const WorkoutDetailScreen = ({ route, navigation }: Props) => {
 								styles.leaderboardSectionTabs
 							}
 						>
-							{leaderboardSections.map((section: WorkoutSection) => (
-								<TouchableOpacity
-									key={section.id}
-									onPress={() =>
-										setSelectedLeaderboardSectionId(
-											section.id,
-										)
-									}
-									style={[
-										styles.leaderboardSectionTab,
-										selectedLeaderboardSection?.id ===
-											section.id &&
-											styles.leaderboardSectionTabActive,
-									]}
-								>
-									<Text
+							{leaderboardSections.map(
+								(section: WorkoutSection) => (
+									<TouchableOpacity
+										key={section.id}
+										onPress={() =>
+											setSelectedLeaderboardSectionId(
+												section.id,
+											)
+										}
 										style={[
-											styles.leaderboardSectionTabText,
+											styles.leaderboardSectionTab,
 											selectedLeaderboardSection?.id ===
 												section.id &&
-												styles.leaderboardSectionTabTextActive,
+												styles.leaderboardSectionTabActive,
 										]}
 									>
-										{section.name}
-									</Text>
-								</TouchableOpacity>
-							))}
+										<Text
+											style={[
+												styles.leaderboardSectionTabText,
+												selectedLeaderboardSection?.id ===
+													section.id &&
+													styles.leaderboardSectionTabTextActive,
+											]}
+										>
+											{section.name}
+										</Text>
+									</TouchableOpacity>
+								),
+							)}
 						</ScrollView>
 					) : null}
 					<WorkoutLeaderboard

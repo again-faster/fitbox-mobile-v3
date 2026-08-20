@@ -8,7 +8,12 @@ import {
 } from 'react-native';
 import MemberText from './MemberText';
 
-export type MemberButtonVariant = 'primary' | 'secondary' | 'outlined' | 'quiet' | 'danger';
+export type MemberButtonVariant =
+	| 'primary'
+	| 'secondary'
+	| 'outlined'
+	| 'quiet'
+	| 'danger';
 
 type MemberButtonProps = {
 	label: string;
@@ -46,7 +51,7 @@ const MemberButton = ({
 		accessibilityLabel={accessibilityLabel ?? label}
 		accessibilityState={{ disabled }}
 	>
-		<MemberText role="button" style={styles[`${variant}Label`]}>
+		<MemberText variant="button" style={styles[`${variant}Label`]}>
 			{label}
 		</MemberText>
 	</Pressable>

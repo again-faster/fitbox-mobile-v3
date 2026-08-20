@@ -53,8 +53,7 @@ const resultFor = (status: ReadinessResult['status']): ReadinessResult => {
 		};
 	return {
 		status,
-		data:
-			status === 'empty' ? { ...snapshot, metrics: [] } : snapshot,
+		data: status === 'empty' ? { ...snapshot, metrics: [] } : snapshot,
 		error: null,
 		asOfDate: snapshot.asOfDate,
 	};
@@ -182,6 +181,10 @@ describe('Wearables readiness presentation', () => {
 		).toBeTruthy();
 		expect(native.getByText('Apple Health connected')).toBeTruthy();
 		expect(native.getByText(/Native readiness 81/)).toBeTruthy();
-		expect(native.getByLabelText(/Provider-native status.*Native readiness 81/)).toBeTruthy();
+		expect(
+			native.getByLabelText(
+				/Provider-native status.*Native readiness 81/,
+			),
+		).toBeTruthy();
 	});
 });

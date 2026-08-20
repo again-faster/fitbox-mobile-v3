@@ -17,13 +17,27 @@ const iconFor = {
 	offline: 'wifi-off',
 } as const;
 
-const TrainingState = ({ kind, title, message, actionLabel, onAction }: Props) => (
+const TrainingState = ({
+	kind,
+	title,
+	message,
+	actionLabel,
+	onAction,
+}: Props) => (
 	<View style={styles.container} accessibilityRole="summary">
 		<View style={styles.iconCircle}>
-			<Ionicons name={iconFor[kind]} size={28} color={memberTheme.colors.textMuted} />
+			<Ionicons
+				name={iconFor[kind]}
+				size={28}
+				color={memberTheme.colors.textMuted}
+			/>
 		</View>
-		<MemberText role="sectionTitle" style={styles.title}>{title}</MemberText>
-		<MemberText role="body" muted style={styles.message}>{message}</MemberText>
+		<MemberText variant="sectionTitle" style={styles.title}>
+			{title}
+		</MemberText>
+		<MemberText variant="body" muted style={styles.message}>
+			{message}
+		</MemberText>
 		{actionLabel && onAction ? (
 			<View style={styles.action}>
 				<MemberButton label={actionLabel} onPress={onAction} />

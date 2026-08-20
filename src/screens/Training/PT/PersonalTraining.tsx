@@ -108,7 +108,9 @@ const PersonalTraining = ({ route }: Props) => {
 	});
 	const ids = useMemo(
 		() =>
-			(participants.data ?? []).map((item: Participant) => item.appointment_id),
+			(participants.data ?? []).map(
+				(item: Participant) => item.appointment_id,
+			),
 		[participants.data],
 	);
 	const appointments = useQuery({

@@ -28,11 +28,26 @@ const SEVERITY_COLORS: Record<
 	number,
 	{ background: string; foreground: string }
 > = {
-	1: { background: trainingTheme.colors.successSoft, foreground: trainingTheme.colors.success },
-	2: { background: trainingTheme.colors.successSoft, foreground: trainingTheme.colors.success },
-	3: { background: trainingTheme.colors.warningSoft, foreground: trainingTheme.colors.warning },
-	4: { background: trainingTheme.colors.warningSoft, foreground: trainingTheme.colors.warning },
-	5: { background: trainingTheme.colors.dangerSoft, foreground: trainingTheme.colors.danger },
+	1: {
+		background: trainingTheme.colors.successSoft,
+		foreground: trainingTheme.colors.success,
+	},
+	2: {
+		background: trainingTheme.colors.successSoft,
+		foreground: trainingTheme.colors.success,
+	},
+	3: {
+		background: trainingTheme.colors.warningSoft,
+		foreground: trainingTheme.colors.warning,
+	},
+	4: {
+		background: trainingTheme.colors.warningSoft,
+		foreground: trainingTheme.colors.warning,
+	},
+	5: {
+		background: trainingTheme.colors.dangerSoft,
+		foreground: trainingTheme.colors.danger,
+	},
 };
 
 const titleCase = (value: string) =>
@@ -64,7 +79,9 @@ const InjuryList = ({ navigation }: Props) => {
 	});
 
 	const injuries = query.data ?? [];
-	const active = injuries.filter((injury: Injury) => injury.status === 'active');
+	const active = injuries.filter(
+		(injury: Injury) => injury.status === 'active',
+	);
 	const resolved = injuries.filter(
 		(injury: Injury) =>
 			injury.status === 'recovered' || injury.status === 'stopped',
@@ -224,7 +241,11 @@ const InjuryList = ({ navigation }: Props) => {
 	};
 
 	return (
-		<MemberScreen style={styles.screen} contentContainerStyle={{ paddingHorizontal: 0 }} edges={['top']}>
+		<MemberScreen
+			style={styles.screen}
+			contentContainerStyle={{ paddingHorizontal: 0 }}
+			edges={['top']}
+		>
 			{query.isLoading && (
 				<>
 					{header}

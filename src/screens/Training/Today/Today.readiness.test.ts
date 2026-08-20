@@ -1,68 +1,68 @@
-jest.mock("@/services/healthKit", () => ({ syncNow: jest.fn() }));
-jest.mock("@/services/workoutStudio/api", () => ({ wsApi: jest.fn() }));
-jest.mock("@/services/workoutStudio/auth", () => ({
+jest.mock('@/services/healthKit', () => ({ syncNow: jest.fn() }));
+jest.mock('@/services/workoutStudio/api', () => ({ wsApi: jest.fn() }));
+jest.mock('@/services/workoutStudio/auth', () => ({
 	getStoredWSSession: jest.fn(() => null),
 }));
-jest.mock("@/services/workoutStudio/workouts", () => ({
+jest.mock('@/services/workoutStudio/workouts', () => ({
 	getMemberWorkouts: jest.fn(),
 }));
-jest.mock("@/storage", () => ({
+jest.mock('@/storage', () => ({
 	mmkvStorage: {
 		getString: jest.fn(),
 		set: jest.fn(),
 		getAllKeys: jest.fn(() => []),
 	},
 }));
-jest.mock("@react-navigation/native", () => ({
+jest.mock('@react-navigation/native', () => ({
 	useFocusEffect: jest.fn(),
 	useNavigation: jest.fn(() => ({ navigate: jest.fn() })),
 }));
-jest.mock("@tanstack/react-query", () => ({ useQuery: jest.fn() }));
-jest.mock("@/context/WorkoutStudioProvider", () => ({
+jest.mock('@tanstack/react-query', () => ({ useQuery: jest.fn() }));
+jest.mock('@/context/WorkoutStudioProvider', () => ({
 	useWorkoutStudio: jest.fn(() => ({
 		features: { wearables: true },
 		isEnabled: jest.fn(() => true),
 	})),
 }));
-jest.mock("../hooks/useCustomWorkouts", () => ({
+jest.mock('../hooks/useCustomWorkouts', () => ({
 	useCustomWorkouts: jest.fn(() => ({ data: false })),
 }));
-jest.mock("../hooks/useTrainingConnectivity", () => ({
+jest.mock('../hooks/useTrainingConnectivity', () => ({
 	useTrainingConnectivity: jest.fn(() => ({
 		isOffline: false,
 		refresh: jest.fn(),
 	})),
 }));
-jest.mock("../Progress/progressFeatures", () => ({
+jest.mock('../Progress/progressFeatures', () => ({
 	shouldShowTodayProgressCard: jest.fn(() => false),
 }));
-jest.mock("../components/SkeletonCard", () => "SkeletonCard");
-jest.mock("../components/SectionHeading", () => "SectionHeading");
-jest.mock("../components/OfflineBanner", () => "OfflineBanner");
-jest.mock("../components/TrainingState", () => "TrainingState");
-jest.mock("./components/ConsistencyCard", () => "ConsistencyCard");
-jest.mock("react-native-vector-icons/MaterialCommunityIcons", () => "Icon");
-jest.mock("react-native-safe-area-context", () => ({
-	SafeAreaView: "SafeAreaView",
+jest.mock('../components/SkeletonCard', () => 'SkeletonCard');
+jest.mock('../components/SectionHeading', () => 'SectionHeading');
+jest.mock('../components/OfflineBanner', () => 'OfflineBanner');
+jest.mock('../components/TrainingState', () => 'TrainingState');
+jest.mock('./components/ConsistencyCard', () => 'ConsistencyCard');
+jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
+jest.mock('react-native-safe-area-context', () => ({
+	SafeAreaView: 'SafeAreaView',
 }));
 
-import type { ReadinessResult } from "@/services/workoutStudio/readiness";
-import { useQuery } from "@tanstack/react-query";
-import { createElement } from "react";
-import { render } from "@testing-library/react-native";
-import Today, { readinessCopy } from "./Today";
+import type { ReadinessResult } from '@/services/workoutStudio/readiness';
+import { useQuery } from '@tanstack/react-query';
+import { createElement } from 'react';
+import { render } from '@testing-library/react-native';
+import Today, { readinessCopy } from './Today';
 
 const mockedUseQuery = jest.mocked(useQuery);
 
 const snapshot = {
-	asOfDate: "2026-08-09",
-	windowStart: "2026-08-06",
-	windowEnd: "2026-08-09",
+	asOfDate: '2026-08-09',
+	windowStart: '2026-08-06',
+	windowEnd: '2026-08-09',
 	hasConnection: null,
 	metrics: [
 		{
-			provider: "apple_health" as const,
-			asOfDate: "2026-08-09",
+			provider: 'apple_health' as const,
+			asOfDate: '2026-08-09',
 			sleepMinutes: null,
 			hrvMs: null,
 			restingHr: null,
@@ -72,15 +72,15 @@ const snapshot = {
 	],
 };
 
-describe("Today readiness state presentation", () => {
+describe('Today readiness state presentation', () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
-		mockedUseQuery.mockImplementation((options) => {
+		mockedUseQuery.mockImplementation(options => {
 			const key = options.queryKey as readonly unknown[];
-			if (key[0] === "ws-member-readiness-today") {
+			if (key[0] === 'ws-member-readiness-today') {
 				return {
 					data: {
-						status: "ready",
+						status: 'ready',
 						data: {
 							...snapshot,
 							hasConnection: true,
@@ -112,70 +112,70 @@ describe("Today readiness state presentation", () => {
 
 	it.each([
 		[
-			"loading",
-			{ status: "loading", data: null, error: null, asOfDate: null },
+			'loading',
+			{ status: 'loading', data: null, error: null, asOfDate: null },
 		],
 		[
-			"ready",
+			'ready',
 			{
-				status: "ready",
+				status: 'ready',
 				data: snapshot,
 				error: null,
 				asOfDate: snapshot.asOfDate,
 			},
 		],
 		[
-			"empty",
+			'empty',
 			{
-				status: "empty",
+				status: 'empty',
 				data: { ...snapshot, metrics: [] },
 				error: null,
 				asOfDate: snapshot.asOfDate,
 			},
 		],
 		[
-			"baseline",
+			'baseline',
 			{
-				status: "baseline",
+				status: 'baseline',
 				data: snapshot,
 				error: null,
 				asOfDate: snapshot.asOfDate,
 			},
 		],
 		[
-			"error",
+			'error',
 			{
-				status: "error",
+				status: 'error',
 				data: null,
 				error: {
-					code: "server",
-					kind: "server",
-					message: "Readiness is temporarily unavailable.",
+					code: 'server',
+					kind: 'server',
+					message: 'Readiness is temporarily unavailable.',
 				},
 				asOfDate: null,
 			},
 		],
 	] as const)(
-		"renders the %s state without zero fallbacks",
+		'renders the %s state without zero fallbacks',
 		(_name, result) => {
 			const copy = readinessCopy(result as ReadinessResult);
-			expect(copy.score).not.toBe("0");
-			if (result.status === "baseline") {
-				expect(copy.band).toBe("Baseline");
-				expect(copy.confidence).toBe("Building");
+			expect(copy.score).not.toBe('0');
+			if (result.status === 'baseline') {
+				expect(copy.band).toBe('Baseline');
+				expect(copy.confidence).toBe('Building');
 			}
-			if (result.status === "error")
+			if (result.status === 'error')
 				expect(copy.detail).toBe(result.error.message);
 		},
 	);
 
-	it("keeps readiness details out of the Today tab", () => {
+	it('keeps readiness details out of the Today tab', () => {
 		const screen = render(createElement(Today));
 
-		expect(screen.queryByText("Score 81")).toBeNull();
-		expect(screen.queryByText("Band Ready")).toBeNull();
-		expect(screen.queryByText("Confidence Measured")).toBeNull();
-		expect(screen.queryByText("As of 2026-08-09")).toBeNull();
+		expect(screen.queryByText('Score 81')).toBeNull();
+		expect(screen.queryByText('Band Ready')).toBeNull();
+		expect(screen.queryByText('Confidence Measured')).toBeNull();
+		expect(screen.queryByText('As of 2026-08-09')).toBeNull();
 		/*
 		expect(
 			screen.getByText(

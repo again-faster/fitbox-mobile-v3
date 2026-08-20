@@ -143,17 +143,28 @@ const NotificationScreen = () => {
 					/>
 				</View>
 				<View style={layout.flex_1}>
-					<MemberText role="sectionTitle" style={styles.headerTitle}>
+					<MemberText
+						variant="sectionTitle"
+						style={styles.headerTitle}
+					>
 						Stay in the loop
 					</MemberText>
 					{!state?.enabled && (
-						<MemberText role="body" muted style={styles.headerText}>
+						<MemberText
+							variant="body"
+							muted
+							style={styles.headerText}
+						>
 							Notifications are currently turned off. Please
 							enable them to receive important gym updates.
 						</MemberText>
 					)}
 					{state?.enabled && (
-						<MemberText role="body" muted style={styles.headerText}>
+						<MemberText
+							variant="body"
+							muted
+							style={styles.headerText}
+						>
 							Choose which updates you want to receive.
 						</MemberText>
 					)}
