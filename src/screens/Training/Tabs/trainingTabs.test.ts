@@ -1,5 +1,6 @@
 import {
 	fallbackTrainingTab,
+	visibleTabsDuringLoading,
 	tabRouteForKey,
 	visibleTrainingTabs,
 	type TrainingTabAvailabilityInput,
@@ -106,6 +107,20 @@ describe('fallbackTrainingTab', () => {
 		expect(fallbackTrainingTab('progress', ['today', 'progress'])).toBe(
 			'progress',
 		);
+	});
+});
+
+describe('visibleTabsDuringLoading', () => {
+	it('keeps the selected tab visible while availability queries refresh', () => {
+		expect(
+			visibleTabsDuringLoading(['today', 'more'], 'progress'),
+		).toEqual(['today', 'more', 'progress']);
+	});
+
+	it('does not duplicate a tab that is already visible', () => {
+		expect(
+			visibleTabsDuringLoading(['today', 'progress'], 'progress'),
+		).toEqual(['today', 'progress']);
 	});
 });
 

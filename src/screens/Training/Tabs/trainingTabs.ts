@@ -60,3 +60,13 @@ export const fallbackTrainingTab = (
 	selected: TrainingTabKey,
 	visibleTabs: readonly TrainingTabKey[],
 ): TrainingTabKey => (visibleTabs.includes(selected) ? selected : 'today');
+
+export const visibleTabsDuringLoading = (
+	visibleTabs: readonly TrainingTabKey[],
+	selectedTab: TrainingTabKey,
+): TrainingTabKey[] => {
+	const tabs = [...visibleTabs];
+	if (tabs.length === 0) tabs.push('today');
+	if (!tabs.includes(selectedTab)) tabs.push(selectedTab);
+	return tabs;
+};

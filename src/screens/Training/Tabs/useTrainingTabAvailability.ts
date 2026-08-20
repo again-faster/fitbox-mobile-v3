@@ -205,6 +205,9 @@ export const useTrainingTabAvailability = (): TrainingTabAvailability => {
 
 	return {
 		status: loading ? 'loading' : availability.status,
-		visibleTabs: loading ? ['today'] : availability.visibleTabs,
+		// Keep the last computed feature/content decisions visible while the
+		// presence queries refresh. TrainingTabShell preserves the selected tab
+		// during this window so the navigation rail does not disappear.
+		visibleTabs: availability.visibleTabs,
 	};
 };

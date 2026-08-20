@@ -78,9 +78,8 @@ import { Constant, Func } from '@/utils';
 import useStore from '@/zustand/Store';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import LottieView from 'lottie-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-	Animated,
 	Dimensions,
 	Platform,
 	StyleSheet,
@@ -96,6 +95,7 @@ import MenuStackNavigator from './MenuStack';
 import TrainingStackNavigator from './TrainingStack';
 import { navigationRef } from './NavigationRef';
 import HeaderCloseButton from './components/HeaderCloseButton';
+import MainTabIcon from './components/MainTabIcon';
 import { CommonHeaderOptions, TabHeaderOptions } from './utils/options';
 import { shouldCheckMinimumVersion } from './updatePolicy';
 
@@ -152,74 +152,6 @@ const icons: Record<keyof MainTabParamList, string> = {
 	TrainingStack: 'dumbbell',
 };
 
-const AnimatedCartIcon = ({
-	name,
-	size,
-	color,
-}: {
-	name: string;
-	size: number;
-	color: string;
-}) => {
-	const anim = useRef(new Animated.Value(0)).current;
-
-	useEffect(() => {
-		const wiggle = Animated.loop(
-			Animated.sequence([
-				Animated.delay(3000),
-				Animated.timing(anim, {
-					toValue: 1,
-					duration: 80,
-					useNativeDriver: true,
-				}),
-				Animated.timing(anim, {
-					toValue: -1,
-					duration: 80,
-					useNativeDriver: true,
-				}),
-				Animated.timing(anim, {
-					toValue: 1,
-					duration: 80,
-					useNativeDriver: true,
-				}),
-				Animated.timing(anim, {
-					toValue: -1,
-					duration: 80,
-					useNativeDriver: true,
-				}),
-				Animated.timing(anim, {
-					toValue: 1,
-					duration: 80,
-					useNativeDriver: true,
-				}),
-				Animated.timing(anim, {
-					toValue: -1,
-					duration: 80,
-					useNativeDriver: true,
-				}),
-				Animated.timing(anim, {
-					toValue: 0,
-					duration: 80,
-					useNativeDriver: true,
-				}),
-			]),
-		);
-		wiggle.start();
-		return () => wiggle.stop();
-	}, [anim]);
-
-	const rotate = anim.interpolate({
-		inputRange: [-1, 1],
-		outputRange: ['-20deg', '20deg'],
-	});
-
-	return (
-		<Animated.View style={{ transform: [{ rotate }] }}>
-			<Ionicons name={name} size={size} color={color} />
-		</Animated.View>
-	);
-};
-
 const tabBarIconRender = ({
 	route,
 	color,
@@ -252,9 +184,7 @@ const tabBarIconRender = ({
 	}
 
 	if (route === 'Shop') {
-		return (
-			<AnimatedCartIcon name={icons[route]} size={size} color={color} />
-		);
+		return <MainTabIcon name={icons[route]} size={size} color={color} />;
 	}
 
 	return <Ionicons name={icons[route]} size={size} color={color} />;

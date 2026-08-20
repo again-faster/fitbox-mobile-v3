@@ -2,7 +2,11 @@ import { useEffect } from 'react';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { TrainingStackParamList } from '@/types/navigation';
 import TrainingTabBar from './TrainingTabBar';
-import { fallbackTrainingTab, type TrainingTabKey } from './trainingTabs';
+import {
+	fallbackTrainingTab,
+	visibleTabsDuringLoading,
+	type TrainingTabKey,
+} from './trainingTabs';
 import { useTrainingTabAvailability } from './useTrainingTabAvailability';
 
 type Navigation = Pick<StackNavigationProp<TrainingStackParamList>, 'replace'>;
@@ -14,9 +18,16 @@ type Props = {
 
 const TrainingTabShell = ({ selectedTab, navigation }: Props) => {
 	const availability = useTrainingTabAvailability();
+	const visibleTabs =
+		availability.status === 'loading'
+			? visibleTabsDuringLoading(
+					availability.visibleTabs,
+					selectedTab,
+			  )
+			: availability.visibleTabs;
 	const visibleSelectedTab = fallbackTrainingTab(
 		selectedTab,
-		availability.visibleTabs,
+		visibleTabs,
 	);
 
 	useEffect(() => {
@@ -31,7 +42,7 @@ const TrainingTabShell = ({ selectedTab, navigation }: Props) => {
 
 	return (
 		<TrainingTabBar
-			visibleTabs={availability.visibleTabs}
+			visibleTabs={visibleTabs}
 			selectedTab={visibleSelectedTab}
 			navigation={navigation}
 		/>
