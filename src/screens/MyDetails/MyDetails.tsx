@@ -538,8 +538,9 @@ const MyDetails = ({ navigation, route }: MenuStackNavigatorProps) => {
 								) : (
 									<Avatar
 										source={
-											`${data.user.profile_image}?v=${data.imageToken}` ||
-											avatarImage
+											data.user.profile_image
+												? `${data.user.profile_image}?v=${data.imageToken}`
+												: avatarImage
 										}
 										size={DEVICE_WIDTH / 3.5}
 										style={styles.avatarStyle}

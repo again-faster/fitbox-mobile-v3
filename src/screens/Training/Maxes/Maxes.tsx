@@ -40,7 +40,7 @@ const Maxes = () => {
 	const sections = useMemo(() => {
 		if (!data) return [];
 		const grouped: Record<string, AthleteRM[]> = {};
-		data.forEach(rm => {
+		data.forEach((rm: AthleteRM) => {
 			const { name } = rm.movements;
 			if (!grouped[name]) grouped[name] = [];
 			grouped[name]!.push(rm);

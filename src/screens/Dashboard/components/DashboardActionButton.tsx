@@ -1,4 +1,4 @@
-import { Text } from '@/components/atoms';
+import { MemberText } from '@/components/member';
 import { config } from '@/theme/_config';
 import { memberTheme } from '@/theme/member';
 import { StyleSheet, View } from 'react-native';
@@ -31,14 +31,13 @@ const DashboardActionButton = ({
 				</View>
 
 				<View style={styles.tileTextContainer}>
-					<Text
-						size="md"
-						bold
+					<MemberText
+						variant="label"
 						numberOfLines={stringHasOneWord ? 1 : 2}
 						style={styles.tileText}
 					>
 						{text}
-					</Text>
+					</MemberText>
 				</View>
 			</View>
 		</TouchableRipple>
@@ -54,11 +53,12 @@ const styles = StyleSheet.create({
 		borderColor: memberTheme.colors.border,
 		backgroundColor: memberTheme.colors.surface,
 		flexWrap: 'wrap',
-		padding: memberTheme.spacing.sm,
+		paddingVertical: memberTheme.spacing.xs,
+		paddingHorizontal: memberTheme.spacing.sm,
 		borderRadius: memberTheme.radius.md,
 		justifyContent: 'center',
-		minHeight: 72,
-		marginBottom: memberTheme.spacing.md,
+		minHeight: 56,
+		marginBottom: memberTheme.spacing.sm,
 		...memberTheme.shadow,
 	},
 	tileTextContainer: {
@@ -70,8 +70,8 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		marginRight: memberTheme.spacing.sm,
-		width: 40,
-		height: 40,
+		width: 36,
+		height: 36,
 		borderRadius: memberTheme.radius.sm,
 		backgroundColor: memberTheme.colors.surfaceSoft,
 	},

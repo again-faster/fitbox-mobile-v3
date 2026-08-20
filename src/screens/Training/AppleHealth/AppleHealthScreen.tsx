@@ -19,8 +19,8 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { MemberScreen } from '@/components/member';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingAppleHealth'>;
 
@@ -144,7 +144,11 @@ const AppleHealthScreen = ({ navigation }: Props) => {
 
 	if (Platform.OS !== 'ios') {
 		return (
-			<SafeAreaView style={styles.screen} edges={['top']}>
+			<MemberScreen
+				style={styles.screen}
+				contentContainerStyle={styles.screenContent}
+				edges={['top']}
+			>
 				<AppleHealthHeader onBack={() => navigation.goBack()} />
 				<View style={styles.unavailableContent}>
 					<View style={styles.unavailableCard}>
@@ -181,12 +185,16 @@ const AppleHealthScreen = ({ navigation }: Props) => {
 						</View>
 					</View>
 				</View>
-			</SafeAreaView>
+			</MemberScreen>
 		);
 	}
 
 	return (
-		<SafeAreaView style={styles.screen} edges={['top']}>
+		<MemberScreen
+			style={styles.screen}
+			contentContainerStyle={styles.screenContent}
+			edges={['top']}
+		>
 			<AppleHealthHeader onBack={() => navigation.goBack()} />
 			<ScrollView
 				contentContainerStyle={styles.content}
@@ -267,14 +275,14 @@ const AppleHealthScreen = ({ navigation }: Props) => {
 							{isSyncing ? (
 								<ActivityIndicator
 									size="small"
-									color="#FFFFFF"
+									color={trainingTheme.colors.surface}
 								/>
 							) : (
 								<>
 									<Ionicons
 										name="sync"
 										size={18}
-										color="#FFFFFF"
+										color={trainingTheme.colors.surface}
 									/>
 									<Text style={styles.syncButtonText}>
 										Sync now
@@ -330,12 +338,13 @@ const AppleHealthScreen = ({ navigation }: Props) => {
 					</View>
 				</View>
 			</ScrollView>
-		</SafeAreaView>
+		</MemberScreen>
 	);
 };
 
 const styles = StyleSheet.create({
 	screen: { flex: 1, backgroundColor: trainingTheme.colors.background },
+	screenContent: { paddingHorizontal: 0 },
 	header: {
 		flexDirection: 'row',
 		alignItems: 'center',
@@ -478,7 +487,7 @@ const styles = StyleSheet.create({
 	syncButtonText: {
 		fontSize: 14,
 		fontWeight: '800',
-		color: '#FFFFFF',
+		color: trainingTheme.colors.surface,
 	},
 	sectionTitle: {
 		fontSize: 20,

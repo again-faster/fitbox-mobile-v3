@@ -2,11 +2,10 @@ import { syncNow } from '@/services/healthKit';
 import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import type {
-	AthleteRM,
 	ProgramContext,
 	WellnessResponse,
+	WorkoutAssignment,
 } from '@/services/workoutStudio/types';
-import type { MemberFeatureMap } from '@/services/workoutStudio/memberFeatures';
 import { getMemberWorkouts } from '@/services/workoutStudio/workouts';
 import { mmkvStorage } from '@/storage';
 import type { TrainingStackParamList } from '@/types/navigation';
@@ -26,10 +25,14 @@ import {
 	View,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useCallback, useRef, useEffect, useMemo, useState } from 'react';
-import { trainingTheme } from '@/theme/training';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { MemberScreen } from '@/components/member';
 import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
+import { trainingTheme } from '@/theme/training';
+import {
+	type ReadinessMetric,
+	type ReadinessResult,
+} from '@/services/workoutStudio/readiness';
 import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
 import SkeletonCard from '../components/SkeletonCard';
 import ConsistencyCard from './components/ConsistencyCard';
@@ -37,16 +40,72 @@ import SectionHeading from '../components/SectionHeading';
 import OfflineBanner from '../components/OfflineBanner';
 import TrainingState from '../components/TrainingState';
 import { useTrainingConnectivity } from '../hooks/useTrainingConnectivity';
-import { shouldShowTodayProgressCard } from '../Progress/progressFeatures';
-import {
-	shouldShowTodayCoachNotes,
-	shouldShowTodayCustomWorkouts,
-	shouldShowTodayPRs,
-	shouldShowTodayWearables,
-	shouldShowTodayWellness,
-} from './todayFeaturePolicy';
+import TrainingTabShell from '../Tabs/TrainingTabShell';
+import { shouldAutoPromptWellness } from './todayFeaturePolicy';
 
 type Nav = StackNavigationProp<TrainingStackParamList>;
+
+const latestReadinessMetric = (
+	metrics: ReadinessMetric[],
+): ReadinessMetric | null =>
+	[...metrics].sort((left, right) =>
+		right.asOfDate.localeCompare(left.asOfDate),
+	)[0] ?? null;
+
+const formatReadinessMetric = (value: number | null, suffix = ''): string =>
+	value === null ? 'Not available' : `${value}${suffix}`;
+
+export const readinessCopy = (result: ReadinessResult) => {
+	if (result.status === 'loading')
+		return {
+			title: 'Loading readiness',
+			detail: 'Checking your latest recovery signals.',
+			score: 'Not available',
+			band: 'Not available',
+			confidence: 'Not available',
+			freshness: 'Not available',
+			metric: null,
+		};
+	if (result.status === 'error')
+		return {
+			title: 'Readiness unavailable',
+			detail: result.error.message,
+			score: 'Not available',
+			band: 'Not available',
+			confidence: 'Not available',
+			freshness: 'Not available',
+			metric: null,
+		};
+
+	const metric = latestReadinessMetric(result.data.metrics);
+	const statusCopy = {
+		ready: {
+			title: 'Readiness is ready',
+			detail: 'A provider-native readiness score is available.',
+			band: 'Ready',
+			confidence: 'Measured',
+		},
+		baseline: {
+			title: 'Building your baseline',
+			detail: 'More connected data is needed before a readiness score is available.',
+			band: 'Baseline',
+			confidence: 'Building',
+		},
+		empty: {
+			title: 'No readiness data yet',
+			detail: 'Connect a supported provider to add recovery context.',
+			band: 'No data',
+			confidence: 'Not available',
+		},
+	}[result.status];
+
+	return {
+		...statusCopy,
+		score: formatReadinessMetric(metric?.nativeReadinessScore ?? null),
+		freshness: `As of ${result.asOfDate}`,
+		metric,
+	};
+};
 
 type ProgramRowEmbed = {
 	id: string;
@@ -150,11 +209,10 @@ const greeting = () => {
 };
 
 const todayStr = moment().format('YYYY-MM-DD');
-const fourteenAgo = moment().subtract(14, 'days').format('YYYY-MM-DD');
 const wellnessPromptsEnabledKey = 'training.wellnessPromptsEnabled';
 const wellnessPromptDismissedDateKey = 'training.wellnessPromptDismissedDate';
 
-const useToday = (features: MemberFeatureMap) => {
+const useToday = (wellnessEnabled: boolean) => {
 	const session = getStoredWSSession();
 	const uid = session?.user.id;
 	const tenantId = session?.user.active_tenant_id;
@@ -170,7 +228,11 @@ const useToday = (features: MemberFeatureMap) => {
 	const ids = useMemo(
 		() =>
 			Array.from(
-				new Set((assignments.data ?? []).map(a => a.workout_id)),
+				new Set(
+					(assignments.data ?? []).map(
+						(a: WorkoutAssignment) => a.workout_id,
+					),
+				),
 			).sort(),
 		[assignments.data],
 	);
@@ -197,19 +259,19 @@ const useToday = (features: MemberFeatureMap) => {
 		[programDayCtx.data],
 	);
 
-	const wellness = useQuery({
+	const wellness = useQuery<WellnessResponse[]>({
 		queryKey: ['ws-wellness-today', uid],
 		queryFn: () =>
 			wsApi()
 				.get('wellness_responses', {
 					searchParams: {
-						select: 'id',
+						select: 'id,recorded_for,user_id',
 						user_id: `eq.${uid}`,
 						recorded_for: `eq.${todayStr}`,
 					},
 				})
 				.json<WellnessResponse[]>(),
-		enabled: !!uid && shouldShowTodayWellness(features),
+		enabled: wellnessEnabled && !!uid,
 		staleTime: 60_000,
 	});
 
@@ -233,32 +295,14 @@ const useToday = (features: MemberFeatureMap) => {
 					);
 					return total;
 				}),
-		enabled: !!uid && shouldShowTodayCoachNotes(features),
+		enabled: !!uid,
 		staleTime: 60_000,
-	});
-
-	const recentPRs = useQuery({
-		queryKey: ['ws-recent-prs', uid],
-		queryFn: () =>
-			wsApi()
-				.get('athlete_rms', {
-					searchParams: {
-						select: 'id,rep_max,weight_kg,achieved_on,movements(name)',
-						athlete_id: `eq.${uid}`,
-						achieved_on: `gte.${fourteenAgo}`,
-						order: 'achieved_on.desc',
-					},
-				})
-				.json<AthleteRM[]>(),
-		enabled: !!uid && shouldShowTodayPRs(features),
-		staleTime: 300_000,
 	});
 
 	return {
 		assignments,
 		wellness,
 		coachNotes,
-		recentPRs,
 		firstName,
 		programCtxMap,
 	};
@@ -266,21 +310,12 @@ const useToday = (features: MemberFeatureMap) => {
 
 const Today = () => {
 	const nav = useNavigation<Nav>();
-	const { features } = useWorkoutStudio();
-	const {
-		assignments,
-		wellness,
-		coachNotes,
-		recentPRs,
-		firstName,
-		programCtxMap,
-	} = useToday(features);
+	const { isEnabled } = useWorkoutStudio();
+	const wellnessEnabled = isEnabled('wellness');
+	const { assignments, wellness, coachNotes, firstName, programCtxMap } =
+		useToday(wellnessEnabled);
 	const session = getStoredWSSession();
 	const persona = session?.user.persona;
-	const wearableConnected =
-		Platform.OS === 'ios' &&
-		mmkvStorage.getString('healthkit.authorized') === 'true';
-	const wearableLastSync = mmkvStorage.getString('healthkit.lastSyncedAt');
 	const activeWorkout = findActiveWorkout(session?.user.id);
 	const isSolo = persona === 'solo';
 	const { data: hasCustomWorkouts } = useCustomWorkouts();
@@ -290,7 +325,9 @@ const Today = () => {
 		() => mmkvStorage.getString(wellnessPromptsEnabledKey) !== 'false',
 	);
 	const [wellnessPromptDismissedDate, setWellnessPromptDismissedDate] =
-		useState(() => mmkvStorage.getString(wellnessPromptDismissedDateKey));
+		useState<string | null>(
+			() => mmkvStorage.getString(wellnessPromptDismissedDateKey) ?? null,
+		);
 	const [wellnessPromptVisible, setWellnessPromptVisible] = useState(false);
 	const wellnessPromptPresentedDate = useRef<string | null>(null);
 
@@ -300,7 +337,7 @@ const Today = () => {
 				mmkvStorage.getString(wellnessPromptsEnabledKey) !== 'false',
 			);
 			setWellnessPromptDismissedDate(
-				mmkvStorage.getString(wellnessPromptDismissedDateKey),
+				mmkvStorage.getString(wellnessPromptDismissedDateKey) ?? null,
 			);
 		}, []),
 	);
@@ -320,7 +357,6 @@ const Today = () => {
 
 			if (
 				isForegrounding &&
-				shouldShowTodayWearables(features) &&
 				mmkvStorage.getString('healthkit.authorized') === 'true'
 			) {
 				syncNow().catch(e => {
@@ -333,16 +369,16 @@ const Today = () => {
 		return () => {
 			subscription.remove();
 		};
-	}, [features]);
+	}, []);
 
-	const isLoading = assignments.isLoading || wellness.isLoading;
-	const isRefreshing = assignments.isRefetching || wellness.isRefetching;
 	const hasWellnessToday = (wellness.data?.length ?? 0) > 0;
-	const showWellnessPrompt =
-		shouldShowTodayWellness(features) &&
-		!hasWellnessToday &&
-		wellnessPromptsEnabled &&
-		wellnessPromptDismissedDate !== todayStr;
+	const showWellnessPrompt = shouldAutoPromptWellness({
+		wellnessEnabled,
+		hasWellnessToday,
+		promptsEnabled: wellnessPromptsEnabled,
+		dismissedDate: wellnessPromptDismissedDate,
+		today: todayStr,
+	});
 
 	useEffect(() => {
 		if (
@@ -372,11 +408,67 @@ const Today = () => {
 		nav.navigate('TrainingWellness');
 	};
 
+	const isLoading =
+		assignments.isLoading || (wellnessEnabled && wellness.isLoading);
+	const isRefreshing =
+		assignments.isRefetching || (wellnessEnabled && wellness.isRefetching);
+
+	/*
+	const renderReadiness = () => {
+		if (!readinessResult) return null;
+		const summary = readinessCopy(readinessResult);
+		const native = summary.metric;
+		const nativeText = native
+			? `${providerNames[native.provider]} native · Sleep ${formatReadinessMetric(native.sleepMinutes, ' min')} · HRV ${formatReadinessMetric(native.hrvMs, ' ms')} · Resting HR ${formatReadinessMetric(native.restingHr, ' bpm')} · Recovery ${formatReadinessMetric(native.nativeRecoveryScore)} · Native readiness ${formatReadinessMetric(native.nativeReadinessScore)}`
+			: 'No provider-native metrics available';
+		return (
+			<TouchableOpacity
+				style={styles.readinessCard}
+				accessibilityRole="button"
+				accessibilityLabel={`Readiness. ${summary.title}. Score ${summary.score}. Band ${summary.band}. Confidence ${summary.confidence}. Freshness ${summary.freshness}. ${nativeText}`}
+				onPress={() => nav.navigate('TrainingWearables')}
+			>
+				<View style={styles.readinessIcon}>
+					<Ionicons
+						name="weather-sunset-up"
+						size={22}
+						color={trainingTheme.colors.primary}
+					/>
+				</View>
+				<View style={styles.cardText}>
+					<Text style={styles.progressTitle}>Readiness</Text>
+					<Text style={styles.progressSubtitle}>{summary.title}</Text>
+					<Text style={styles.readinessDetail}>{summary.detail}</Text>
+					<View style={styles.readinessStats}>
+						<Text style={styles.readinessMeta}>
+							Score {summary.score}
+						</Text>
+						<Text style={styles.readinessMeta}>
+							Band {summary.band}
+						</Text>
+						<Text style={styles.readinessMeta}>
+							Confidence {summary.confidence}
+						</Text>
+					</View>
+					<Text style={styles.readinessMeta}>
+						{summary.freshness}
+					</Text>
+					<Text style={styles.readinessMeta}>{nativeText}</Text>
+				</View>
+				<Ionicons
+					name="chevron-right"
+					size={21}
+					color={trainingTheme.colors.textMuted}
+				/>
+			</TouchableOpacity>
+		);
+	};
+	*/
+
 	const refresh = () => {
 		void assignments.refetch();
-		void wellness.refetch();
+		if (wellnessEnabled) void wellness.refetch();
 		void coachNotes.refetch();
-		void recentPRs.refetch();
 	};
 
 	const renderTraining = () => {
@@ -408,9 +500,17 @@ const Today = () => {
 		if (assignments.data?.length === 0) {
 			return (
 				<View
-					style={[styles.emptyCard, { backgroundColor: '#FFFFFF' }]}
+					style={[
+						styles.emptyCard,
+						{ backgroundColor: trainingTheme.colors.surface },
+					]}
 				>
-					<Text style={[styles.emptyText, { color: '#6B7280' }]}>
+					<Text
+						style={[
+							styles.emptyText,
+							{ color: trainingTheme.colors.textMuted },
+						]}
+					>
 						No workouts today
 					</Text>
 					<Text style={styles.emptySubtext}>
@@ -446,13 +546,16 @@ const Today = () => {
 				</View>
 			);
 		}
-		return assignments.data?.map(a => {
+		return assignments.data?.map((a: WorkoutAssignment) => {
 			const programContext = programCtxMap.get(a.workout_id);
 
 			return (
 				<TouchableOpacity
 					key={a.id}
-					style={[styles.workoutCard, { backgroundColor: '#FFFFFF' }]}
+					style={[
+						styles.workoutCard,
+						{ backgroundColor: trainingTheme.colors.surface },
+					]}
 					onPress={() =>
 						nav.navigate('TrainingWorkoutDetail', {
 							workoutId: a.workout_id,
@@ -464,7 +567,10 @@ const Today = () => {
 				>
 					<View style={styles.workoutCardLeft}>
 						<Text
-							style={[styles.workoutName, { color: '#111827' }]}
+							style={[
+								styles.workoutName,
+								{ color: trainingTheme.colors.text },
+							]}
 						>
 							{a.workouts.name}
 						</Text>
@@ -472,7 +578,7 @@ const Today = () => {
 							<Text
 								style={[
 									styles.workoutMeta,
-									{ color: '#6B7280' },
+									{ color: trainingTheme.colors.textMuted },
 								]}
 							>
 								~{a.workouts.estimated_duration_minutes} min
@@ -483,7 +589,7 @@ const Today = () => {
 								numberOfLines={1}
 								style={[
 									styles.programStrip,
-									{ color: '#6B7280' },
+									{ color: trainingTheme.colors.textMuted },
 								]}
 							>
 								{programContext.programName} · Week{' '}
@@ -495,14 +601,23 @@ const Today = () => {
 							</Text>
 						) : null}
 					</View>
-					<Ionicons name="chevron-right" size={20} color="#6B7280" />
+					<Ionicons
+						name="chevron-right"
+						size={20}
+						color={trainingTheme.colors.textMuted}
+					/>
 				</TouchableOpacity>
 			);
 		});
 	};
 
 	return (
-		<SafeAreaView style={styles.safeArea} edges={['top']}>
+		<MemberScreen
+			style={styles.safeArea}
+			contentContainerStyle={styles.screenContent}
+			edges={['top']}
+		>
+			<TrainingTabShell selectedTab="today" navigation={nav} />
 			<ScrollView
 				style={styles.screen}
 				contentContainerStyle={styles.container}
@@ -602,7 +717,7 @@ const Today = () => {
 								<Ionicons
 									name="play"
 									size={22}
-									color="#FFFFFF"
+									color={trainingTheme.colors.surface}
 								/>
 							</View>
 							<View style={styles.cardText}>
@@ -635,67 +750,9 @@ const Today = () => {
 
 				<ConsistencyCard />
 
-				{shouldShowTodayProgressCard(features) && (
-					<TouchableOpacity
-						style={styles.progressCard}
-						accessibilityRole="button"
-						onPress={() => nav.navigate('TrainingProgress')}
-					>
-						<View style={styles.progressIcon}>
-							<Ionicons
-								name="chart-line"
-								size={22}
-								color={trainingTheme.colors.primary}
-							/>
-						</View>
-						<View style={styles.cardText}>
-							<Text style={styles.progressTitle}>
-								My Progress
-							</Text>
-							<Text style={styles.progressSubtitle}>
-								Results, PRs, maxes and benchmarks
-							</Text>
-						</View>
-						<Ionicons
-							name="chevron-right"
-							size={21}
-							color={trainingTheme.colors.textMuted}
-						/>
-					</TouchableOpacity>
-				)}
-
-				{shouldShowTodayWearables(features) && (
-					<TouchableOpacity
-						style={styles.readinessCard}
-						accessibilityRole="button"
-						onPress={() => nav.navigate('TrainingWearables')}
-					>
-						<View style={styles.readinessIcon}>
-							<Ionicons
-								name="weather-sunset-up"
-								size={22}
-								color={trainingTheme.colors.primary}
-							/>
-						</View>
-						<View style={styles.cardText}>
-							<Text style={styles.progressTitle}>Readiness</Text>
-							<Text style={styles.progressSubtitle}>
-								{wearableConnected && wearableLastSync
-									? `Health data synced ${moment(wearableLastSync).fromNow()}`
-									: 'Connect a wearable to add recovery context'}
-							</Text>
-						</View>
-						<Ionicons
-							name="chevron-right"
-							size={21}
-							color={trainingTheme.colors.textMuted}
-						/>
-					</TouchableOpacity>
-				)}
-
-				{/* Wellness check-in card */}
+				{/* Optional wellness prompts now live in the Wellness tab.
 				{showWellnessPrompt ? (
-					<View style={[styles.card, { backgroundColor: '#FFFFFF' }]}>
+					<View style={[styles.card, { backgroundColor: trainingTheme.colors.surface }]}>
 						<TouchableOpacity
 							onPress={() => nav.navigate('TrainingWellness')}
 							accessibilityRole="button"
@@ -705,13 +762,13 @@ const Today = () => {
 								<Ionicons
 									name="heart-outline"
 									size={22}
-									color="#6B7280"
+									color={trainingTheme.colors.textMuted}
 								/>
 								<View style={styles.cardText}>
 									<Text
 										style={[
 											styles.cardTitle,
-											{ color: '#111827' },
+											{ color: trainingTheme.colors.text },
 										]}
 									>
 										Wellness check-in
@@ -719,7 +776,7 @@ const Today = () => {
 									<Text
 										style={[
 											styles.cardSub,
-											{ color: '#6B7280' },
+											{ color: trainingTheme.colors.textMuted },
 										]}
 									>
 										≈ 10 seconds
@@ -728,7 +785,7 @@ const Today = () => {
 								<Ionicons
 									name="chevron-right"
 									size={20}
-									color="#6B7280"
+									color={trainingTheme.colors.textMuted}
 								/>
 							</View>
 						</TouchableOpacity>
@@ -751,118 +808,103 @@ const Today = () => {
 							</TouchableOpacity>
 						</View>
 					</View>
-				) : null}
+				) : null} */}
 
+				{/*
 				{!showWellnessPrompt && hasWellnessToday ? (
 					<View style={styles.wellnessDoneRow}>
 						<Ionicons
 							name="check-circle"
 							size={16}
-							color="#43A047"
+							color={trainingTheme.colors.success}
 						/>
 						<Text style={styles.wellnessDoneText}>
 							Wellness check-in done
 						</Text>
 					</View>
-				) : null}
+				) : null} */}
 
-				{/* Recent PRs */}
-				{shouldShowTodayPRs(features) &&
-					(recentPRs.data?.length ?? 0) > 0 && (
-						<>
-							<SectionHeading
-								title="Recent PRs"
-								action="View all"
-							/>
-							<ScrollView
-								horizontal
-								showsHorizontalScrollIndicator={false}
-								contentContainerStyle={styles.prScroll}
-							>
-								{recentPRs.data?.map(pr => (
-									<TouchableOpacity
-										key={pr.id}
+				{/* Progress details now live in the Progress tab. */}
+				{/*
+				{(recentPRs.data?.length ?? 0) > 0 && (
+					<>
+						<SectionHeading title="Recent PRs" action="View all" />
+						<ScrollView
+							horizontal
+							showsHorizontalScrollIndicator={false}
+							contentContainerStyle={styles.prScroll}
+						>
+							{recentPRs.data?.map((pr: AthleteRM) => (
+								<TouchableOpacity
+									key={pr.id}
+									style={[
+										styles.prCard,
+										{ backgroundColor: trainingTheme.colors.surface },
+									]}
+									onPress={() => nav.navigate('TrainingPRs')}
+								>
+									<Ionicons
+										name="trophy-outline"
+										size={18}
+									color={trainingTheme.colors.warning}
+									/>
+									<Text
 										style={[
-											styles.prCard,
-											{ backgroundColor: '#FFFFFF' },
+											styles.prName,
+											{ color: trainingTheme.colors.text },
 										]}
-										onPress={() =>
-											nav.navigate('TrainingPRs')
-										}
 									>
-										<Ionicons
-											name="trophy-outline"
-											size={18}
-											color="#FFB300"
-										/>
-										<Text
-											style={[
-												styles.prName,
-												{ color: '#111827' },
-											]}
-										>
-											{pr.movements.name}
-										</Text>
-										<Text
-											style={[
-												styles.prWeight,
-												{
-													color: trainingTheme.colors
-														.primary,
-												},
-											]}
-										>
-											{pr.weight_kg}kg x {pr.rep_max}RM
-										</Text>
-									</TouchableOpacity>
-								))}
-							</ScrollView>
-						</>
-					)}
+										{pr.movements.name}
+									</Text>
+									<Text
+										style={[
+											styles.prWeight,
+											{
+												color: trainingTheme.colors
+													.primary,
+											},
+										]}
+									>
+										{pr.weight_kg}kg x {pr.rep_max}RM
+									</Text>
+								</TouchableOpacity>
+							))}
+						</ScrollView>
+					</>
+				)} */}
 
 				{/* Coach notes — members only */}
-				{shouldShowTodayCoachNotes(features) &&
-					!isSolo &&
-					(coachNotes.data ?? 0) > 0 && (
-						<TouchableOpacity
-							style={[
-								styles.card,
-								{ backgroundColor: '#FFFFFF' },
-							]}
-							onPress={() => nav.navigate('TrainingCoachNotes')}
-						>
-							<View style={styles.cardRow}>
-								<Ionicons
-									name="message-text-outline"
-									size={22}
-									color={trainingTheme.colors.primary}
-								/>
-								<Text
-									style={[
-										styles.cardTitle,
-										{ color: '#111827' },
-									]}
-								>
-									{coachNotes.data} unread coach note
-									{(coachNotes.data ?? 0) > 1 ? 's' : ''}
-								</Text>
-								<Ionicons
-									name="chevron-right"
-									size={20}
-									color="#6B7280"
-								/>
-							</View>
-						</TouchableOpacity>
-					)}
-
-				{/* Build card */}
-				{shouldShowTodayCustomWorkouts(
-					features,
-					isSolo,
-					hasCustomWorkouts === true,
-				) && (
+				{/* Secondary items now live in the More tab.
+				{!isSolo && (coachNotes.data ?? 0) > 0 && (
 					<TouchableOpacity
-						style={[styles.card, { backgroundColor: '#FFFFFF' }]}
+						style={[styles.card, { backgroundColor: trainingTheme.colors.surface }]}
+						onPress={() => nav.navigate('TrainingCoachNotes')}
+					>
+						<View style={styles.cardRow}>
+							<Ionicons
+								name="message-text-outline"
+								size={22}
+								color={trainingTheme.colors.primary}
+							/>
+							<Text
+								style={[styles.cardTitle, { color: trainingTheme.colors.text }]}
+							>
+								{coachNotes.data} unread coach note
+								{(coachNotes.data ?? 0) > 1 ? 's' : ''}
+							</Text>
+							<Ionicons
+								name="chevron-right"
+								size={20}
+								color={trainingTheme.colors.textMuted}
+							/>
+						</View>
+					</TouchableOpacity>
+				)} */}
+
+				{/* Build card now lives in the More tab.
+				{(isSolo || hasCustomWorkouts) && (
+					<TouchableOpacity
+						style={[styles.card, { backgroundColor: trainingTheme.colors.surface }]}
 						onPress={() => nav.navigate('TrainingBuildList')}
 					>
 						<View style={styles.cardRow}>
@@ -875,7 +917,7 @@ const Today = () => {
 								<Text
 									style={[
 										styles.cardTitle,
-										{ color: '#111827' },
+										{ color: trainingTheme.colors.text },
 									]}
 								>
 									My workouts
@@ -883,7 +925,7 @@ const Today = () => {
 								<Text
 									style={[
 										styles.cardSub,
-										{ color: '#6B7280' },
+										{ color: trainingTheme.colors.textMuted },
 									]}
 								>
 									Build and schedule personal workouts
@@ -892,12 +934,68 @@ const Today = () => {
 							<Ionicons
 								name="chevron-right"
 								size={20}
-								color="#6B7280"
+								color={trainingTheme.colors.textMuted}
 							/>
 						</View>
 					</TouchableOpacity>
-				)}
+				)} */}
 			</ScrollView>
+			<Modal
+				visible={wellnessPromptVisible && showWellnessPrompt}
+				transparent
+				animationType="slide"
+				onRequestClose={dismissWellnessPromptToday}
+			>
+				<View style={styles.wellnessModalBackdrop}>
+					<View style={styles.wellnessSheet}>
+						<View style={styles.wellnessSheetHandle} />
+						<View style={styles.wellnessSheetIcon}>
+							<Ionicons
+								name="heart-pulse"
+								size={28}
+								color={trainingTheme.colors.primary}
+							/>
+						</View>
+						<Text style={styles.wellnessSheetTitle}>
+							How are you feeling today?
+						</Text>
+						<Text style={styles.wellnessSheetBody}>
+							A 10-second check-in helps personalise your training
+							and gives your coach useful recovery context.
+						</Text>
+						<TouchableOpacity
+							style={styles.wellnessSheetPrimary}
+							onPress={startWellnessCheckIn}
+							accessibilityRole="button"
+							accessibilityLabel="Check in now"
+						>
+							<Text style={styles.wellnessSheetPrimaryText}>
+								Check in now
+							</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							style={styles.wellnessSheetSecondary}
+							onPress={dismissWellnessPromptToday}
+							accessibilityRole="button"
+							accessibilityLabel="Not today"
+						>
+							<Text style={styles.wellnessSheetSecondaryText}>
+								Not today
+							</Text>
+						</TouchableOpacity>
+						<TouchableOpacity
+							onPress={turnOffWellnessPrompts}
+							accessibilityRole="button"
+							accessibilityLabel="Don't remind me daily"
+						>
+							<Text style={styles.wellnessSheetOptOut}>
+								Don&apos;t remind me daily
+							</Text>
+						</TouchableOpacity>
+					</View>
+				</View>
+			</Modal>
+			{/* Wellness prompts now live in the Wellness tab.
 			<Modal
 				visible={wellnessPromptVisible && showWellnessPrompt}
 				transparent
@@ -949,13 +1047,14 @@ const Today = () => {
 						</TouchableOpacity>
 					</View>
 				</View>
-			</Modal>
-		</SafeAreaView>
+			</Modal> */}
+		</MemberScreen>
 	);
 };
 
 const styles = StyleSheet.create({
 	safeArea: { flex: 1, backgroundColor: trainingTheme.colors.background },
+	screenContent: { paddingHorizontal: 0 },
 	screen: { flex: 1, backgroundColor: trainingTheme.colors.background },
 	container: {
 		padding: trainingTheme.spacing.lg,
@@ -1025,7 +1124,11 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
-	badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+	badgeText: {
+		color: trainingTheme.colors.surface,
+		fontSize: 10,
+		fontWeight: '700',
+	},
 	sectionHeader: { fontSize: 17, fontWeight: '600', marginTop: 8 },
 	card: {
 		backgroundColor: trainingTheme.colors.surface,
@@ -1082,7 +1185,11 @@ const styles = StyleSheet.create({
 		fontSize: 15,
 		fontWeight: '600',
 	},
-	emptySubtext: { fontSize: 13, color: '#9CA3AF', textAlign: 'center' },
+	emptySubtext: {
+		fontSize: 13,
+		color: trainingTheme.colors.disabled,
+		textAlign: 'center',
+	},
 	link: {
 		color: trainingTheme.colors.primary,
 		fontSize: 14,
@@ -1137,7 +1244,7 @@ const styles = StyleSheet.create({
 		marginTop: 3,
 	},
 	readinessCard: {
-		minHeight: 76,
+		minHeight: 150,
 		flexDirection: 'row',
 		alignItems: 'center',
 		gap: 12,
@@ -1155,9 +1262,27 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		backgroundColor: trainingTheme.colors.primarySoft,
 	},
+	readinessDetail: {
+		color: trainingTheme.colors.textMuted,
+		fontSize: 12,
+		lineHeight: 17,
+		marginTop: 4,
+	},
+	readinessStats: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		gap: 8,
+		marginTop: 7,
+	},
+	readinessMeta: {
+		color: trainingTheme.colors.textMuted,
+		fontSize: 11,
+		lineHeight: 16,
+		marginTop: 3,
+	},
 	wellnessDoneText: {
 		fontSize: 13,
-		color: '#6B7280',
+		color: trainingTheme.colors.textMuted,
 	},
 	wellnessPromptActions: {
 		borderTopColor: trainingTheme.colors.border,
@@ -1188,7 +1313,7 @@ const styles = StyleSheet.create({
 		paddingTop: 12,
 	},
 	wellnessSheetHandle: {
-		backgroundColor: '#D1D5DB',
+		backgroundColor: trainingTheme.colors.disabled,
 		borderRadius: 2,
 		height: 4,
 		marginBottom: 22,
@@ -1226,7 +1351,7 @@ const styles = StyleSheet.create({
 		width: '100%',
 	},
 	wellnessSheetPrimaryText: {
-		color: '#FFFFFF',
+		color: trainingTheme.colors.surface,
 		fontSize: 16,
 		fontWeight: '700',
 	},

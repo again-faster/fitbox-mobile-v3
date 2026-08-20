@@ -1,8 +1,4 @@
-import { wsApi, wsRpc } from '@/services/workoutStudio/api';
-import { getStoredWSSession } from '@/services/workoutStudio/auth';
-import type { Notification } from '@/services/workoutStudio/types';
-import { trainingTheme } from '@/theme/training';
-import type { TrainingStackParamList } from '@/types/navigation';
+import { useMemo } from 'react';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import moment from 'moment';
@@ -15,70 +11,233 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { MemberScreen } from '@/components/member';
+import { getStoredWSSession } from '@/services/workoutStudio/auth';
+import {
+	getMemberNotifications,
+	markAllNotificationsRead,
+	markNotificationRead,
+	type MemberNotification,
+} from '@/services/workoutStudio/notifications';
+import { trainingTheme } from '@/theme/training';
+import type { TrainingStackParamList } from '@/types/navigation';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingNotifications'>;
+type NotificationSession = ReturnType<typeof getStoredWSSession>;
 
-const KIND_ICON: Record<string, string> = {
+export type NotificationInboxState = 'loading' | 'error' | 'empty' | 'ready';
+
+export type NotificationInboxStateCopy = {
+	state: NotificationInboxState;
+	title: string;
+	detail: string;
+};
+
+export const hasMemberNotificationSession = (
+	session: NotificationSession,
+): boolean =>
+	session?.user.persona === 'member' &&
+	!!session.user.id &&
+	!!session.user.active_tenant_id;
+
+export const shouldEnableNotificationQuery = (
+	session: NotificationSession,
+): boolean => hasMemberNotificationSession(session);
+
+export const notificationInboxStateCopy = (
+	state: NotificationInboxState,
+): NotificationInboxStateCopy => {
+	if (state === 'loading')
+		return {
+			state,
+			title: 'Loading notifications',
+			detail: 'Checking your latest training updates.',
+		};
+	if (state === 'error')
+		return {
+			state,
+			title: 'Notifications unavailable',
+			detail: 'We could not load your updates. Try again shortly.',
+		};
+	if (state === 'empty')
+		return {
+			state,
+			title: "You're all caught up",
+			detail: 'New assignments, coach notes and training updates will appear here.',
+		};
+	return {
+		state,
+		title: 'Your updates',
+		detail: 'Recent notifications from your training.',
+	};
+};
+
+export const notificationInboxViewState = (
+	enabled: boolean,
+	isLoading: boolean,
+	isError: boolean,
+	notifications: MemberNotification[] | undefined,
+): NotificationInboxState => {
+	if (!enabled) return 'empty';
+	if (isLoading) return 'loading';
+	if (isError) return 'error';
+	if (!notifications || notifications.length === 0) return 'empty';
+	return 'ready';
+};
+
+const KIND_ICON: Record<MemberNotification['kind'], string> = {
 	assignment: 'dumbbell',
 	coach_note: 'message-text-outline',
 	reaction: 'heart-outline',
 	wellness_followup: 'heart-pulse',
+	weekly_recap: 'calendar-check-outline',
 };
 
+const formatNotificationDate = (createdAt: string): string => {
+	const date = moment(createdAt);
+	return date.isValid() ? date.format('D MMM') : 'Date not available';
+};
+
+const notificationTime = (createdAt: string): string => {
+	const date = moment(createdAt);
+	return date.isValid()
+		? `${date.fromNow()} · ${date.format('D MMM')}`
+		: 'Date not available';
+};
+
+export const notificationAccessibilityLabel = (
+	notification: MemberNotification,
+): string =>
+	`${notification.read_at ? 'Read' : 'Unread'} notification. ${notification.title}. ${notification.body}. Received ${formatNotificationDate(notification.created_at)}.`;
+
 const NotificationsInbox = ({ navigation }: Props) => {
-	const qc = useQueryClient();
+	const queryClient = useQueryClient();
 	const session = getStoredWSSession();
 	const uid = session?.user.id;
+	const tenantId = session?.user.active_tenant_id;
+	const queryEnabled = shouldEnableNotificationQuery(session);
+	const queryKey = useMemo(
+		() => ['ws-member-notifications', uid, tenantId] as const,
+		[tenantId, uid],
+	);
 
-	const query = useQuery({
-		queryKey: ['ws-notifications', uid],
-		queryFn: () =>
-			wsApi()
-				.get('notifications', {
-					searchParams: {
-						select: '*',
-						user_id: `eq.${uid}`,
-						order: 'created_at.desc',
-						limit: '50',
-					},
-				})
-				.json<Notification[]>(),
-		enabled: !!uid,
+	const query = useQuery<MemberNotification[]>({
+		queryKey,
+		queryFn: () => getMemberNotifications({ limit: 50 }),
+		enabled: queryEnabled,
 		staleTime: 60_000,
 	});
 
 	const markRead = useMutation({
-		mutationFn: (id: string) =>
-			wsRpc('mark_notification_read', { p_id: id }),
+		mutationFn: (notificationId: string) =>
+			markNotificationRead(notificationId),
 		onSuccess: () => {
-			void qc.invalidateQueries({ queryKey: ['ws-notifications', uid] });
+			void queryClient.invalidateQueries({ queryKey });
 		},
 	});
 
 	const markAllRead = useMutation({
-		mutationFn: () => wsRpc('mark_all_notifications_read'),
+		mutationFn: () => markAllNotificationsRead(),
 		onSuccess: () => {
-			void qc.invalidateQueries({ queryKey: ['ws-notifications', uid] });
+			void queryClient.invalidateQueries({ queryKey });
 		},
 	});
 
-	const handleTap = (notification: Notification) => {
-		if (!notification.read_at) markRead.mutate(notification.id);
+	const notifications = query.data;
+	const unread =
+		notifications?.filter((item: MemberNotification) => !item.read_at)
+			.length ?? 0;
+	const state = notificationInboxViewState(
+		queryEnabled,
+		query.isLoading,
+		query.isError,
+		notifications,
+	);
+	const copy = notificationInboxStateCopy(state);
+	const mutationError = markRead.isError || markAllRead.isError;
+
+	const handleTap = (notification: MemberNotification) => {
+		if (
+			queryEnabled &&
+			!notification.read_at &&
+			notification.id.trim() &&
+			!markRead.isPending
+		)
+			markRead.mutate(notification.id);
+
 		if (notification.kind === 'assignment' && notification.entity_id) {
 			navigation.navigate('TrainingWorkoutDetail', {
 				workoutId: notification.entity_id,
 			});
 		} else if (notification.kind === 'coach_note') {
 			navigation.navigate('TrainingCoachNotes');
+		} else if (notification.kind === 'weekly_recap') {
+			navigation.navigate('TrainingWeeklyRecap');
 		}
 	};
 
-	const notifications = query.data ?? [];
-	const unread = notifications.filter(item => !item.read_at).length;
+	const renderNotification = ({ item }: { item: MemberNotification }) => {
+		const isUnread = !item.read_at;
+		return (
+			<TouchableOpacity
+				accessibilityRole="button"
+				accessibilityLabel={notificationAccessibilityLabel(item)}
+				accessibilityState={{
+					selected: isUnread,
+					disabled: markRead.isPending,
+				}}
+				style={[styles.card, isUnread && styles.cardUnread]}
+				onPress={() => handleTap(item)}
+				activeOpacity={0.75}
+			>
+				<View
+					style={[styles.itemIcon, isUnread && styles.itemIconUnread]}
+				>
+					<Ionicons
+						name={KIND_ICON[item.kind]}
+						size={23}
+						color={
+							isUnread
+								? trainingTheme.colors.primary
+								: trainingTheme.colors.textMuted
+						}
+					/>
+				</View>
+				<View style={styles.itemCopy}>
+					<View style={styles.titleRow}>
+						<Text style={styles.itemTitle} numberOfLines={2}>
+							{item.title}
+						</Text>
+						{isUnread && <View style={styles.unreadDot} />}
+					</View>
+					<Text style={styles.itemBody}>{item.body}</Text>
+					<View style={styles.timeRow}>
+						<Ionicons
+							name="clock-outline"
+							size={14}
+							color={trainingTheme.colors.textMuted}
+						/>
+						<Text style={styles.itemTime}>
+							{notificationTime(item.created_at)}
+						</Text>
+					</View>
+				</View>
+				{(item.kind === 'assignment' ||
+					item.kind === 'coach_note' ||
+					item.kind === 'weekly_recap') && (
+					<Ionicons
+						name="chevron-right"
+						size={20}
+						color={trainingTheme.colors.textMuted}
+					/>
+				)}
+			</TouchableOpacity>
+		);
+	};
+
 	const header = (
-		<>
+		<View>
 			<View style={styles.pageHeader}>
 				<TouchableOpacity
 					accessibilityRole="button"
@@ -100,8 +259,12 @@ const NotificationsInbox = ({ navigation }: Props) => {
 				</View>
 			</View>
 
-			{notifications.length > 0 && (
-				<View style={styles.summaryCard}>
+			{state === 'ready' && notifications && (
+				<View
+					style={styles.summaryCard}
+					accessibilityRole="summary"
+					accessibilityLabel={`Notifications. ${unread > 0 ? `${unread} unread` : 'All caught up'}.`}
+				>
 					<View
 						style={[
 							styles.summaryIcon,
@@ -131,13 +294,16 @@ const NotificationsInbox = ({ navigation }: Props) => {
 					{unread > 0 && (
 						<TouchableOpacity
 							accessibilityRole="button"
-							accessibilityLabel={`Mark all ${unread} notifications read`}
+							accessibilityLabel="Mark all notifications read"
 							accessibilityState={{
 								disabled: markAllRead.isPending,
 							}}
 							style={styles.markAllButton}
-							onPress={() => markAllRead.mutate()}
-							disabled={markAllRead.isPending}
+							onPress={() => {
+								if (!markAllRead.isPending && queryEnabled)
+									markAllRead.mutate();
+							}}
+							disabled={markAllRead.isPending || !queryEnabled}
 						>
 							<Text style={styles.markAllText}>
 								Mark all read
@@ -147,7 +313,7 @@ const NotificationsInbox = ({ navigation }: Props) => {
 				</View>
 			)}
 
-			{notifications.length > 0 && (
+			{state === 'ready' && notifications && (
 				<View style={styles.sectionHeading}>
 					<Text style={styles.sectionTitle}>Recent</Text>
 					<Text style={styles.sectionCount}>
@@ -155,134 +321,74 @@ const NotificationsInbox = ({ navigation }: Props) => {
 					</Text>
 				</View>
 			)}
-		</>
+			{mutationError && (
+				<Text style={styles.actionError} accessibilityRole="alert">
+					Read status could not be updated. Try again shortly.
+				</Text>
+			)}
+		</View>
 	);
 
-	const renderNotification = ({ item }: { item: Notification }) => {
-		const isUnread = !item.read_at;
+	const renderState = () => {
+		const signedOutCopy = {
+			title: 'Notifications unavailable',
+			detail: 'Sign in to view your training updates.',
+		};
+		const stateCopy = queryEnabled ? copy : signedOutCopy;
 		return (
-			<TouchableOpacity
-				accessibilityRole="button"
-				accessibilityLabel={`${isUnread ? 'Unread. ' : ''}${item.title}. ${item.body}`}
-				style={[styles.card, isUnread && styles.cardUnread]}
-				onPress={() => handleTap(item)}
-				activeOpacity={0.75}
-			>
+			<>
+				{header}
 				<View
-					style={[styles.itemIcon, isUnread && styles.itemIconUnread]}
+					style={styles.stateContainer}
+					accessibilityRole="summary"
+					accessibilityLabel={`${stateCopy.title}. ${stateCopy.detail}`}
 				>
-					<Ionicons
-						name={KIND_ICON[item.kind] ?? 'bell-outline'}
-						size={23}
-						color={
-							isUnread
-								? trainingTheme.colors.primary
-								: trainingTheme.colors.textMuted
-						}
-					/>
-				</View>
-				<View style={styles.itemCopy}>
-					<View style={styles.titleRow}>
-						<Text style={styles.itemTitle} numberOfLines={2}>
-							{item.title}
-						</Text>
-						{isUnread && <View style={styles.unreadDot} />}
-					</View>
-					<Text style={styles.itemBody}>{item.body}</Text>
-					<View style={styles.timeRow}>
-						<Ionicons
-							name="clock-outline"
-							size={14}
-							color={trainingTheme.colors.textMuted}
-						/>
-						<Text style={styles.itemTime}>
-							{moment(item.created_at).fromNow()} ·{' '}
-							{moment(item.created_at).format('D MMM')}
-						</Text>
-					</View>
-				</View>
-				{(item.kind === 'assignment' || item.kind === 'coach_note') && (
-					<Ionicons
-						name="chevron-right"
-						size={20}
-						color={trainingTheme.colors.textMuted}
-					/>
-				)}
-			</TouchableOpacity>
-		);
-	};
-
-	return (
-		<SafeAreaView style={styles.screen} edges={['top']}>
-			{query.isLoading && (
-				<>
-					{header}
-					<View style={styles.stateContainer}>
-						<View style={styles.stateIcon}>
+					<View style={styles.stateIcon}>
+						{state === 'loading' ? (
 							<ActivityIndicator
 								size="large"
 								color={trainingTheme.colors.primary}
 							/>
-						</View>
-						<Text style={styles.stateTitle}>
-							Loading notifications
-						</Text>
-					</View>
-				</>
-			)}
-			{!query.isLoading && query.isError && (
-				<>
-					{header}
-					<View style={styles.stateContainer}>
-						<View style={styles.stateIcon}>
+						) : (
 							<Ionicons
-								name="alert-circle-outline"
-								size={36}
+								name={
+									state === 'error'
+										? 'alert-circle-outline'
+										: 'bell-check-outline'
+								}
+								size={38}
 								color={trainingTheme.colors.primary}
 							/>
-						</View>
-						<Text style={styles.stateTitle}>
-							Notifications couldn&apos;t load
-						</Text>
-						<Text style={styles.stateBody}>
-							Check your connection and try again.
-						</Text>
+						)}
+					</View>
+					<Text style={styles.stateTitle}>{stateCopy.title}</Text>
+					<Text style={styles.stateBody}>{stateCopy.detail}</Text>
+					{state === 'error' && queryEnabled && (
 						<TouchableOpacity
 							accessibilityRole="button"
+							accessibilityLabel="Try again"
 							style={styles.retryButton}
 							onPress={() => void query.refetch()}
 						>
 							<Text style={styles.retryText}>Try again</Text>
 						</TouchableOpacity>
-					</View>
-				</>
-			)}
-			{!query.isLoading &&
-				!query.isError &&
-				notifications.length === 0 && (
-					<>
-						{header}
-						<View style={styles.stateContainer}>
-							<View style={styles.stateIcon}>
-								<Ionicons
-									name="bell-check-outline"
-									size={38}
-									color={trainingTheme.colors.primary}
-								/>
-							</View>
-							<Text style={styles.stateTitle}>
-								You&apos;re all caught up
-							</Text>
-							<Text style={styles.stateBody}>
-								New assignments, coach notes and training
-								updates will appear here.
-							</Text>
-						</View>
-					</>
-				)}
-			{!query.isLoading && !query.isError && notifications.length > 0 && (
+					)}
+				</View>
+			</>
+		);
+	};
+
+	return (
+		<MemberScreen
+			style={styles.screen}
+			contentContainerStyle={styles.screenContent}
+			edges={['top']}
+		>
+			{state !== 'ready' ? (
+				renderState()
+			) : (
 				<FlatList
-					data={notifications}
+					data={notifications ?? []}
 					keyExtractor={item => item.id}
 					ListHeaderComponent={header}
 					contentContainerStyle={styles.listContent}
@@ -298,12 +404,13 @@ const NotificationsInbox = ({ navigation }: Props) => {
 					renderItem={renderNotification}
 				/>
 			)}
-		</SafeAreaView>
+		</MemberScreen>
 	);
 };
 
 const styles = StyleSheet.create({
 	screen: { flex: 1, backgroundColor: trainingTheme.colors.background },
+	screenContent: { paddingHorizontal: 0 },
 	listContent: { paddingBottom: trainingTheme.spacing.xxl },
 	pageHeader: {
 		flexDirection: 'row',
@@ -466,6 +573,13 @@ const styles = StyleSheet.create({
 		lineHeight: 15,
 		color: trainingTheme.colors.textMuted,
 	},
+	actionError: {
+		marginHorizontal: trainingTheme.spacing.lg,
+		marginBottom: trainingTheme.spacing.md,
+		fontSize: 12,
+		lineHeight: 17,
+		color: trainingTheme.colors.danger,
+	},
 	stateContainer: {
 		flex: 1,
 		alignItems: 'center',
@@ -505,7 +619,11 @@ const styles = StyleSheet.create({
 		paddingHorizontal: trainingTheme.spacing.xl,
 		marginTop: trainingTheme.spacing.xl,
 	},
-	retryText: { fontSize: 15, fontWeight: '800', color: '#FFFFFF' },
+	retryText: {
+		fontSize: 15,
+		fontWeight: '800',
+		color: trainingTheme.colors.surface,
+	},
 });
 
 export default NotificationsInbox;

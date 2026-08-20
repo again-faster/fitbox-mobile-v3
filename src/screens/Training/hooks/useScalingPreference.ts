@@ -67,7 +67,7 @@ export const useScalingPreference = (athleteId?: string, tenantId?: string) => {
 
 	const levelIdByMobileKey = useMemo(() => {
 		const map = new Map<ScalingLevel, string>();
-		(query.data?.levels ?? []).forEach(level => {
+		(query.data?.levels ?? []).forEach((level: TenantLevel) => {
 			const key = toMobileLevel(level.name);
 			if (key) map.set(key, level.id);
 		});

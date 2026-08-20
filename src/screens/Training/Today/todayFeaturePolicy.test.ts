@@ -8,6 +8,7 @@ import {
 	shouldShowTodayPRs,
 	shouldShowTodayWearables,
 	shouldShowTodayWellness,
+	shouldAutoPromptWellness,
 } from './todayFeaturePolicy';
 
 describe('Today feature policy', () => {
@@ -69,5 +70,40 @@ describe('Today feature policy', () => {
 		expect(shouldShowTodayCoachNotes(ALL_MEMBER_FEATURES_ENABLED)).toBe(
 			true,
 		);
+	});
+
+	it('keeps the automatic wellness prompt eligible when today is incomplete', () => {
+		expect(
+			shouldAutoPromptWellness({
+				wellnessEnabled: true,
+				hasWellnessToday: false,
+				promptsEnabled: true,
+				dismissedDate: null,
+				today: '2026-08-20',
+			}),
+		).toBe(true);
+	});
+
+	it('does not auto-prompt when wellness is complete, disabled, or dismissed', () => {
+		const base = {
+			wellnessEnabled: true,
+			hasWellnessToday: false,
+			promptsEnabled: true,
+			dismissedDate: null,
+			today: '2026-08-20',
+		};
+
+		expect(
+			shouldAutoPromptWellness({ ...base, hasWellnessToday: true }),
+		).toBe(false);
+		expect(
+			shouldAutoPromptWellness({ ...base, wellnessEnabled: false }),
+		).toBe(false);
+		expect(
+			shouldAutoPromptWellness({ ...base, promptsEnabled: false }),
+		).toBe(false);
+		expect(
+			shouldAutoPromptWellness({ ...base, dismissedDate: '2026-08-20' }),
+		).toBe(false);
 	});
 });

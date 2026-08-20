@@ -1,13 +1,14 @@
 import TeamAvatar from '@/components/atoms/TeamAvatar/TeamAvatar';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
+import { memberTheme } from '@/theme/member';
 import { ApplicationStackParamList } from '@/types/navigation';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { memo } from 'react';
 import { ImageBackground, StyleSheet, View } from 'react-native';
 
 const bannerAspectRatio = 1440 / 380;
-const { fonts, colors } = config;
+const { fonts } = config;
 
 interface DashboardHeaderProps {
 	banner?: string;
@@ -36,7 +37,12 @@ const DashboardHeader = ({ banner = '', logo = '' }: DashboardHeaderProps) => {
 			{children}
 		</ImageBackground>
 	) : (
-		<View style={[styles.container, { backgroundColor: colors.brand }]}>
+		<View
+			style={[
+				styles.container,
+				{ backgroundColor: memberTheme.colors.primary },
+			]}
+		>
 			{children}
 		</View>
 	);
@@ -54,7 +60,7 @@ const styles = StyleSheet.create({
 		padding: 12,
 		position: 'relative',
 		...layout.shadowLight,
-		backgroundColor: colors.brand,
+		backgroundColor: memberTheme.colors.primary,
 	},
 	headerImageContainer: {
 		position: 'absolute',

@@ -11,17 +11,16 @@ import {
 } from '@/types/schemas/leaderboards';
 import { Constant } from '@/utils';
 import Say, { ICatchError } from '@/utils/Say';
-import { WINDOW_HEIGHT } from '@gorhom/bottom-sheet';
 import BottomSheet from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheet/BottomSheet';
 import { StackScreenProps } from '@react-navigation/stack';
 import moment from 'moment';
 import { useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Dimensions, Platform, StyleSheet, View } from 'react-native';
 import DateTimePicker from 'react-native-modal-datetime-picker';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import WorkoutHistoryBS from './components/WorkoutHistoryBS';
 
-const bottomSheetSpacing = WINDOW_HEIGHT * 0.3;
+const bottomSheetSpacing = Dimensions.get('window').height * 0.3;
 const iosVersion = parseInt(Platform.Version as string, 10);
 
 interface MovementResult extends PastPerformanceResultSchemaType {
