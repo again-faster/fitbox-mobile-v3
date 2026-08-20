@@ -325,8 +325,7 @@ const Today = () => {
 		};
 	}, []);
 
-	const isLoading = assignments.isLoading;
-	const isRefreshing = assignments.isRefetching;
+	const { isLoading, isRefetching: isRefreshing } = assignments;
 
 	/*
 	const renderReadiness = () => {

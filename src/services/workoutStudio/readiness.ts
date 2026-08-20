@@ -182,6 +182,8 @@ const safeReadinessMessage = (kind: ReadinessErrorKind): string => {
 			return 'Readiness data was not returned in a supported format.';
 		case 'unknown':
 			return 'Readiness could not be loaded.';
+		default:
+			return 'Readiness could not be loaded.';
 	}
 };
 

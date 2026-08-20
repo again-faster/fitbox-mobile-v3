@@ -52,7 +52,7 @@ export const tabRouteForKey = (
 		case 'more':
 			return 'TrainingMore';
 		default:
-			throw new Error(`Unknown training tab: ${key}`);
+			throw new Error('Unknown training tab');
 	}
 };
 
