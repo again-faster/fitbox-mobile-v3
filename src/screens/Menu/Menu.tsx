@@ -1,5 +1,4 @@
 import useAuth from '@/auth/hooks/useAuth';
-import React from 'react';
 import { ScrollView, Text } from '@/components/atoms';
 import useSwitchableUsers from '@/hooks/useSwitchableUsers';
 import { navigate, resetRoot } from '@/navigators/NavigationRef';

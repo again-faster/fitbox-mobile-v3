@@ -24,36 +24,42 @@ const MemberSection = ({
 	style,
 	actionAccessibilityLabel,
 	children,
-}: MemberSectionProps) => (
-	<View style={[styles.section, style]}>
-		<View style={styles.header}>
-			<MemberText variant="sectionTitle">{title}</MemberText>
-			{actionLabel ? (
-				onActionPress ? (
-					<Pressable
-						style={styles.action}
-						onPress={onActionPress}
-						accessibilityRole="button"
-						accessibilityLabel={
-							actionAccessibilityLabel ?? actionLabel
-						}
-					>
-						<MemberText variant="label" style={styles.actionLabel}>
-							{actionLabel}
-						</MemberText>
-					</Pressable>
-				) : (
-					<View style={styles.action}>
-						<MemberText variant="label" style={styles.actionLabel}>
-							{actionLabel}
-						</MemberText>
-					</View>
-				)
-			) : null}
+}: MemberSectionProps) => {
+	const action = (() => {
+		if (!actionLabel) return null;
+
+		const content = (
+			<MemberText variant="label" style={styles.actionLabel}>
+				{actionLabel}
+			</MemberText>
+		);
+
+		if (onActionPress) {
+			return (
+				<Pressable
+					style={styles.action}
+					onPress={onActionPress}
+					accessibilityRole="button"
+					accessibilityLabel={actionAccessibilityLabel ?? actionLabel}
+				>
+					{content}
+				</Pressable>
+			);
+		}
+
+		return <View style={styles.action}>{content}</View>;
+	})();
+
+	return (
+		<View style={[styles.section, style]}>
+			<View style={styles.header}>
+				<MemberText variant="sectionTitle">{title}</MemberText>
+				{action}
+			</View>
+			{children}
 		</View>
-		{children}
-	</View>
-);
+	);
+};
 
 const styles = StyleSheet.create({
 	section: {

@@ -1,3 +1,9 @@
+import type { ReadinessResult } from '@/services/workoutStudio/readiness';
+import { useQuery } from '@tanstack/react-query';
+import { createElement } from 'react';
+import { render } from '@testing-library/react-native';
+import Today, { readinessCopy } from './Today';
+
 jest.mock('@/services/healthKit', () => ({ syncNow: jest.fn() }));
 jest.mock('@/services/workoutStudio/api', () => ({ wsApi: jest.fn() }));
 jest.mock('@/services/workoutStudio/auth', () => ({
@@ -45,12 +51,6 @@ jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
 jest.mock('react-native-safe-area-context', () => ({
 	SafeAreaView: 'SafeAreaView',
 }));
-
-import type { ReadinessResult } from '@/services/workoutStudio/readiness';
-import { useQuery } from '@tanstack/react-query';
-import { createElement } from 'react';
-import { render } from '@testing-library/react-native';
-import Today, { readinessCopy } from './Today';
 
 const mockedUseQuery = jest.mocked(useQuery);
 

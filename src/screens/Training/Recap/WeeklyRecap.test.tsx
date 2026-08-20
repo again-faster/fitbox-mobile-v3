@@ -1,3 +1,23 @@
+import { createElement } from 'react';
+import { render } from '@testing-library/react-native';
+import { useQuery } from '@tanstack/react-query';
+import type { StackScreenProps } from '@react-navigation/stack';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
+import { ALL_MEMBER_FEATURES_DISABLED } from '@/services/workoutStudio/memberFeatures';
+import type {
+	EngagementSnapshot,
+	WeeklyRecapSnapshot,
+} from '@/services/workoutStudio/recap';
+import type { ReadinessResult } from '@/services/workoutStudio/readiness';
+import { getStoredWSSession } from '@/services/workoutStudio/auth';
+import type { TrainingStackParamList } from '@/types/navigation';
+import WeeklyRecap, {
+	hasMemberRecapSession,
+	shouldEnableWeeklyRecapQuery,
+	weeklyRecapViewState,
+	weeklyRecapStateCopy,
+} from './WeeklyRecap';
+
 jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
 jest.mock('@/services/workoutStudio/recap', () => ({
 	getMemberEngagement: jest.fn(),
@@ -49,26 +69,6 @@ jest.mock('@tanstack/react-query', () => ({
 }));
 jest.mock('../components/SkeletonCard', () => 'SkeletonCard');
 jest.mock('../components/TrainingState', () => 'TrainingState');
-
-import { createElement } from 'react';
-import { render } from '@testing-library/react-native';
-import { useQuery } from '@tanstack/react-query';
-import type { StackScreenProps } from '@react-navigation/stack';
-import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
-import { ALL_MEMBER_FEATURES_DISABLED } from '@/services/workoutStudio/memberFeatures';
-import type {
-	EngagementSnapshot,
-	WeeklyRecapSnapshot,
-} from '@/services/workoutStudio/recap';
-import type { ReadinessResult } from '@/services/workoutStudio/readiness';
-import { getStoredWSSession } from '@/services/workoutStudio/auth';
-import type { TrainingStackParamList } from '@/types/navigation';
-import WeeklyRecap, {
-	hasMemberRecapSession,
-	shouldEnableWeeklyRecapQuery,
-	weeklyRecapViewState,
-	weeklyRecapStateCopy,
-} from './WeeklyRecap';
 
 const mockedUseQuery = jest.mocked(useQuery);
 const mockedGetStoredWSSession = jest.mocked(getStoredWSSession);
