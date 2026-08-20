@@ -1,15 +1,15 @@
-import { useEffect } from "react";
-import type { StackNavigationProp } from "@react-navigation/stack";
-import type { TrainingStackParamList } from "@/types/navigation";
-import TrainingTabBar from "./TrainingTabBar";
+import { useEffect } from 'react';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { TrainingStackParamList } from '@/types/navigation';
+import TrainingTabBar from './TrainingTabBar';
 import {
 	fallbackTrainingTab,
 	visibleTabsDuringLoading,
 	type TrainingTabKey,
-} from "./trainingTabs";
-import { useTrainingTabAvailability } from "./useTrainingTabAvailability";
+} from './trainingTabs';
+import { useTrainingTabAvailability } from './useTrainingTabAvailability';
 
-type Navigation = Pick<StackNavigationProp<TrainingStackParamList>, "replace">;
+type Navigation = Pick<StackNavigationProp<TrainingStackParamList>, 'replace'>;
 
 type Props = {
 	selectedTab: TrainingTabKey;
@@ -19,18 +19,18 @@ type Props = {
 const TrainingTabShell = ({ selectedTab, navigation }: Props) => {
 	const availability = useTrainingTabAvailability();
 	const visibleTabs =
-		availability.status === "loading"
+		availability.status === 'loading'
 			? visibleTabsDuringLoading(availability.visibleTabs, selectedTab)
 			: availability.visibleTabs;
 	const visibleSelectedTab = fallbackTrainingTab(selectedTab, visibleTabs);
 
 	useEffect(() => {
 		if (
-			availability.status === "ready" &&
-			selectedTab !== "today" &&
-			visibleSelectedTab === "today"
+			availability.status === 'ready' &&
+			selectedTab !== 'today' &&
+			visibleSelectedTab === 'today'
 		) {
-			navigation.replace("TrainingToday");
+			navigation.replace('TrainingToday');
 		}
 	}, [availability.status, navigation, selectedTab, visibleSelectedTab]);
 

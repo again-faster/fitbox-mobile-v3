@@ -31,106 +31,106 @@ import {
 	SubscriptionDetails,
 	SubscriptionSetup,
 	WebView,
-} from "@/screens";
-import { useTheme } from "@/theme";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { LinkingOptions, NavigationContainer } from "@react-navigation/native";
+} from '@/screens';
+import { useTheme } from '@/theme';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { LinkingOptions, NavigationContainer } from '@react-navigation/native';
 import {
 	CardStyleInterpolators,
 	createStackNavigator,
-} from "@react-navigation/stack";
+} from '@react-navigation/stack';
 
-import Ionicons from "react-native-vector-icons/MaterialCommunityIcons";
-import VersionCheck from "react-native-version-check";
+import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
+import VersionCheck from 'react-native-version-check';
 
-import { SwitchGym, SwitchUser, WODAddAttendance } from "@/modals";
+import { SwitchGym, SwitchUser, WODAddAttendance } from '@/modals';
 
-import CalendarHeaderLeftComponent from "@/screens/Calendar/components/CalendarHeaderLeftComponent";
-import CalendarHeaderRightComponent from "@/screens/Calendar/components/CalendarHeaderRightComponent";
-import ShopHeaderRightComponent from "@/screens/Shop/components/ShopHeaderRightComponent";
+import CalendarHeaderLeftComponent from '@/screens/Calendar/components/CalendarHeaderLeftComponent';
+import CalendarHeaderRightComponent from '@/screens/Calendar/components/CalendarHeaderRightComponent';
+import ShopHeaderRightComponent from '@/screens/Shop/components/ShopHeaderRightComponent';
 
-import useAuth from "@/auth/hooks/useAuth";
+import useAuth from '@/auth/hooks/useAuth';
 import {
 	Loader,
 	NotificationDialog,
 	UpdateDialog,
-} from "@/components/molecules";
-import { useWorkoutStudio } from "@/context/WorkoutStudioProvider";
-import MovementHistory from "@/screens/PerformanceSummary/MovementHistory";
-import WorkoutHistory from "@/screens/PerformanceSummary/WorkoutHistory";
-import ResultTypesModal from "@/screens/PerformanceSummary/components/ResultTypesModal";
-import { MemberSurfaceGate } from "@/screens/Training/components/MemberFeatureGate";
+} from '@/components/molecules';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
+import MovementHistory from '@/screens/PerformanceSummary/MovementHistory';
+import WorkoutHistory from '@/screens/PerformanceSummary/WorkoutHistory';
+import ResultTypesModal from '@/screens/PerformanceSummary/components/ResultTypesModal';
+import { MemberSurfaceGate } from '@/screens/Training/components/MemberFeatureGate';
 import {
 	getVisibleMainTabRoutes,
 	normalizeCurrentMainTab,
-} from "@/screens/Training/features/memberFeatureRoutes";
-import { minVersion } from "@/services/auth";
-import { config } from "@/theme/_config";
-import layout from "@/theme/layout";
+} from '@/screens/Training/features/memberFeatureRoutes';
+import { minVersion } from '@/services/auth';
+import { config } from '@/theme/_config';
+import layout from '@/theme/layout';
 import type {
 	ApplicationScreenProps,
 	ApplicationStackParamList,
 	ComposeStackParamsList,
 	InboxParamList,
 	MainTabParamList,
-} from "@/types/navigation";
-import { Constant, Func } from "@/utils";
-import useStore from "@/zustand/Store";
-import { StripeProvider } from "@stripe/stripe-react-native";
-import LottieView from "lottie-react-native";
-import { useEffect, useState } from "react";
+} from '@/types/navigation';
+import { Constant, Func } from '@/utils';
+import useStore from '@/zustand/Store';
+import { StripeProvider } from '@stripe/stripe-react-native';
+import LottieView from 'lottie-react-native';
+import { useEffect, useState } from 'react';
 import {
 	Dimensions,
 	Platform,
 	StyleSheet,
 	TouchableWithoutFeedback,
 	View,
-} from "react-native";
-import DeviceInfo from "react-native-device-info";
-import { Badge } from "react-native-paper";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import confettiAnimation from "../theme/animations/confetti.json";
-import DashboardStackNavigator, { ResetToDashboard } from "./DashboardStack";
-import MenuStackNavigator from "./MenuStack";
-import TrainingStackNavigator from "./TrainingStack";
-import { navigationRef } from "./NavigationRef";
-import HeaderCloseButton from "./components/HeaderCloseButton";
-import MainTabIcon from "./components/MainTabIcon";
-import { CommonHeaderOptions, TabHeaderOptions } from "./utils/options";
-import { shouldCheckMinimumVersion } from "./updatePolicy";
+} from 'react-native';
+import DeviceInfo from 'react-native-device-info';
+import { Badge } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import confettiAnimation from '../theme/animations/confetti.json';
+import DashboardStackNavigator, { ResetToDashboard } from './DashboardStack';
+import MenuStackNavigator from './MenuStack';
+import TrainingStackNavigator from './TrainingStack';
+import { navigationRef } from './NavigationRef';
+import HeaderCloseButton from './components/HeaderCloseButton';
+import MainTabIcon from './components/MainTabIcon';
+import { CommonHeaderOptions, TabHeaderOptions } from './utils/options';
+import { shouldCheckMinimumVersion } from './updatePolicy';
 
-const PREVIEW_IOS_PACKAGE_NAME = "com.againfaster.fitbox.preview";
+const PREVIEW_IOS_PACKAGE_NAME = 'com.againfaster.fitbox.preview';
 
 const linking: LinkingOptions<ApplicationStackParamList> = {
-	prefixes: ["appfitbox://", "https://fitbox.iq", "http://fitbox.iq"],
+	prefixes: ['appfitbox://', 'https://fitbox.iq', 'http://fitbox.iq'],
 	config: {
-		initialRouteName: "Landing",
+		initialRouteName: 'Landing',
 		screens: {
 			Login: {
-				path: "auth/login/:emailFromSignin",
+				path: 'auth/login/:emailFromSignin',
 			},
 			SignUp: {
-				path: "auth/signup/:gymCode",
+				path: 'auth/signup/:gymCode',
 			},
 			Invite: {
-				path: "auth/invite/:inviteCode",
+				path: 'auth/invite/:inviteCode',
 			},
 			Shop: {
-				path: "auth/shop/pay/:orderKey",
+				path: 'auth/shop/pay/:orderKey',
 			},
 			Main: {
 				screens: {
 					TrainingStack: {
 						screens: {
-							TrainingToday: "app/training/today",
+							TrainingToday: 'app/training/today',
 							TrainingDay: {
-								path: "app/training/day/:date",
+								path: 'app/training/day/:date',
 								parse: {
 									date: (value: string) => value,
 								},
 							},
-							TrainingWellness: "app/training/wellness",
-							TrainingPT: "app/training/bookings",
+							TrainingWellness: 'app/training/wellness',
+							TrainingPT: 'app/training/bookings',
 						},
 					},
 				},
@@ -144,12 +144,12 @@ const linking: LinkingOptions<ApplicationStackParamList> = {
 };
 
 const icons: Record<keyof MainTabParamList, string> = {
-	DashboardStack: "home",
-	Calendar: "calendar-month-outline",
-	InboxStack: "chat",
-	Shop: "cart",
-	MenuTab: "menu",
-	TrainingStack: "dumbbell",
+	DashboardStack: 'home',
+	Calendar: 'calendar-month-outline',
+	InboxStack: 'chat',
+	Shop: 'cart',
+	MenuTab: 'menu',
+	TrainingStack: 'dumbbell',
 };
 
 const tabBarIconRender = ({
@@ -167,7 +167,7 @@ const tabBarIconRender = ({
 }) => {
 	if (loading) return <Loader size="xl" />;
 
-	if (route === "InboxStack") {
+	if (route === 'InboxStack') {
 		return (
 			<>
 				<Ionicons name={icons[route]} size={size} color={color} />
@@ -183,7 +183,7 @@ const tabBarIconRender = ({
 		);
 	}
 
-	if (route === "Shop") {
+	if (route === 'Shop') {
 		return <MainTabIcon name={icons[route]} size={size} color={color} />;
 	}
 
@@ -201,7 +201,7 @@ const MainTabNavigator = () => {
 		clearClasses,
 		unreadMessages,
 		setState,
-	} = useStore((state) => ({
+	} = useStore(state => ({
 		shopUrl: state.shopUrl,
 		activeMonth: state.activeMonth,
 		headerTitle: state.headerTitle,
@@ -210,11 +210,11 @@ const MainTabNavigator = () => {
 		setState: state.setAppState,
 	}));
 	const [currentTab, setCurrentTab] =
-		useState<keyof MainTabParamList>("DashboardStack");
+		useState<keyof MainTabParamList>('DashboardStack');
 	const [loadingCalendar, setLoadingCalendar] = useState<boolean>(false);
-	const classesEnabled = isEnabled("classes");
+	const classesEnabled = isEnabled('classes');
 	const visibleMainTabRoutes = getVisibleMainTabRoutes(classesEnabled);
-	const showCalendar = visibleMainTabRoutes.includes("Calendar");
+	const showCalendar = visibleMainTabRoutes.includes('Calendar');
 
 	useEffect(() => {
 		const normalizedTab = normalizeCurrentMainTab(
@@ -236,9 +236,9 @@ const MainTabNavigator = () => {
 			key={variant}
 			detachInactiveScreens={false}
 			screenOptions={({ route }) => ({
-				tabBarIcon: (options) =>
+				tabBarIcon: options =>
 					tabBarIconRender({
-						loading: route.name === "Calendar" && loadingCalendar,
+						loading: route.name === 'Calendar' && loadingCalendar,
 						route: route.name,
 						unreadMessages,
 						...options,
@@ -253,7 +253,7 @@ const MainTabNavigator = () => {
 				headerStyle: {
 					backgroundColor: colors.brand,
 				},
-				headerTitleAlign: "center",
+				headerTitleAlign: 'center',
 				headerTitleStyle: layout.fontMontserratRegular,
 			})}
 			screenListeners={({ route: slRoute }) => ({
@@ -261,21 +261,21 @@ const MainTabNavigator = () => {
 					setCurrentTab(slRoute.name);
 
 					if (
-						slRoute.name === "Calendar" &&
-						currentTab === "Calendar"
+						slRoute.name === 'Calendar' &&
+						currentTab === 'Calendar'
 					) {
 						handleRefreshCalendar();
 					}
 					// reset dashboard stack if home tab is pressed
-					if (slRoute.name === "DashboardStack") {
+					if (slRoute.name === 'DashboardStack') {
 						ResetToDashboard();
 					}
 
-					if (slRoute.name === "Shop" && currentTab === "Shop") {
-						const base = shopUrl.split("?")[0];
+					if (slRoute.name === 'Shop' && currentTab === 'Shop') {
+						const base = shopUrl.split('?')[0];
 						const timestamp = Date.now();
 
-						setState("shopUrl", `${base}?v=${timestamp}`);
+						setState('shopUrl', `${base}?v=${timestamp}`);
 					}
 				},
 			})}
@@ -292,7 +292,7 @@ const MainTabNavigator = () => {
 					options={{
 						headerLeft: CalendarHeaderLeftComponent,
 						headerRight: CalendarHeaderRightComponent,
-						title: headerTitle || activeMonth || "Calendar",
+						title: headerTitle || activeMonth || 'Calendar',
 					}}
 				/>
 			)}
@@ -352,7 +352,7 @@ const InboxStackNavigator = () => {
 					headerTintColor: colors.darkgray,
 					headerRight: HeaderCloseButton,
 					headerLeft: () => null,
-					presentation: "modal",
+					presentation: 'modal',
 					headerShown: true,
 
 					...(Constant.IS_ANDROID
@@ -388,7 +388,7 @@ const ComposeStackNavigator = () => {
 			screenOptions={{
 				headerTintColor: colors.darkgray,
 				cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-				headerMode: "float",
+				headerMode: 'float',
 				headerShadowVisible: false,
 				headerTitleStyle: layout.fontMontserratRegular,
 			}}
@@ -396,7 +396,7 @@ const ComposeStackNavigator = () => {
 			<ComposeStack.Screen
 				name="Compose"
 				component={ComposeScreen}
-				options={{ title: "Compose Message", headerLeft: () => null }}
+				options={{ title: 'Compose Message', headerLeft: () => null }}
 			/>
 			<ComposeStack.Screen
 				name="Contacts"
@@ -407,20 +407,20 @@ const ComposeStackNavigator = () => {
 				name="BrowseMedia"
 				component={BrowseMediaScreen}
 				options={{
-					title: "Browse Media",
+					title: 'Browse Media',
 					headerLeftLabelVisible: false,
 				}}
 			/>
 			<ComposeStack.Screen
 				name="Camera"
 				component={Camera}
-				options={{ title: "Camera", headerLeftLabelVisible: false }}
+				options={{ title: 'Camera', headerLeftLabelVisible: false }}
 			/>
 			<ComposeStack.Screen
 				name="fitboxGallery"
 				component={FitboxGalleryScreen}
 				options={{
-					title: "fitbox Gallery",
+					title: 'fitbox Gallery',
 					headerLeftLabelVisible: false,
 				}}
 			/>
@@ -440,7 +440,7 @@ const ApplicationNavigator = () => {
 		showConfetti,
 		randomAnimation,
 		setAppState,
-	} = useStore((state) => ({
+	} = useStore(state => ({
 		notifications: state.notifications,
 		showModalNotification: state.showModalNotification,
 		showConfetti: state.showConfetti,
@@ -451,26 +451,26 @@ const ApplicationNavigator = () => {
 	const [showUpdateDialog, setShowUpdateDialog] = useState<boolean>(false);
 
 	const dismissAnimation = () => {
-		setAppState("showConfetti", false);
+		setAppState('showConfetti', false);
 	};
 
 	const url = getApiUrl();
 
 	const getKeyBasedOnEnv = () => {
-		if (url.includes("dev.fitbox.iq")) {
+		if (url.includes('dev.fitbox.iq')) {
 			return Constant.STRIPE_PUBLISHABLE_KEY.TEST;
 		}
-		if (url.includes("staging.fitbox.iq")) {
+		if (url.includes('staging.fitbox.iq')) {
 			return Constant.STRIPE_PUBLISHABLE_KEY.TEST;
 		}
-		if (url.includes("fitbox.iq")) {
+		if (url.includes('fitbox.iq')) {
 			return Constant.STRIPE_PUBLISHABLE_KEY.LIVE;
 		}
-		return "";
+		return '';
 	};
 
 	const getTrimmedTitle = (title: string) => {
-		const { width } = Dimensions.get("window");
+		const { width } = Dimensions.get('window');
 
 		const maxTitleLength = Math.floor((width - 100) / 9);
 
@@ -487,7 +487,7 @@ const ApplicationNavigator = () => {
 			// TestFlight already manages preview distribution. A forced in-app
 			// update gate can strand testers when the store handoff is unavailable.
 			if (
-				Platform.OS === "ios" &&
+				Platform.OS === 'ios' &&
 				DeviceInfo.getBundleId() === PREVIEW_IOS_PACKAGE_NAME
 			) {
 				return;
@@ -507,7 +507,7 @@ const ApplicationNavigator = () => {
 					}
 				} catch (error) {
 					// eslint-disable-next-line no-console
-					console.log("Error fetching minVersion:", error);
+					console.log('Error fetching minVersion:', error);
 					// Handle error if necessary
 				}
 			}
@@ -547,8 +547,8 @@ const ApplicationNavigator = () => {
 						<Stack.Group
 							screenOptions={{
 								headerShown: false, // hide header by default but when screen needs it, it will be shown with corresponding options below
-								headerTintColor: "white",
-								headerTitleAlign: "center",
+								headerTintColor: 'white',
+								headerTitleAlign: 'center',
 								headerStyle: {
 									backgroundColor: config.colors.brand,
 								},
@@ -573,7 +573,7 @@ const ApplicationNavigator = () => {
 								name="ResetPassword"
 								component={ResetPassword}
 								options={{
-									title: "Forgot Password",
+									title: 'Forgot Password',
 									...TabHeaderOptions,
 									headerBackTitleVisible: false,
 								}}
@@ -597,7 +597,7 @@ const ApplicationNavigator = () => {
 								name="ScoreComments"
 								component={ScoreCommentsScreen}
 								options={{
-									title: "Class Results",
+									title: 'Class Results',
 									...TabHeaderOptions,
 									cardStyle: { paddingBottom: insets.bottom },
 								}}
@@ -606,7 +606,7 @@ const ApplicationNavigator = () => {
 								name="Eula"
 								component={EULAScreen}
 								options={{
-									title: "End User License Agreement",
+									title: 'End User License Agreement',
 									...TabHeaderOptions,
 									cardStyle: { paddingBottom: insets.bottom },
 								}}
@@ -615,7 +615,7 @@ const ApplicationNavigator = () => {
 								name="BillingAgreement"
 								component={BillingAgreementScreen}
 								options={{
-									title: "Billing Agreement",
+									title: 'Billing Agreement',
 									...TabHeaderOptions,
 								}}
 							/>
@@ -623,7 +623,7 @@ const ApplicationNavigator = () => {
 								name="GymWaiver"
 								component={GymWaiverScreen}
 								options={{
-									title: "Gym Waiver",
+									title: 'Gym Waiver',
 									...TabHeaderOptions,
 									cardStyle: { paddingBottom: insets.bottom },
 								}}
@@ -643,7 +643,7 @@ const ApplicationNavigator = () => {
 								options={{
 									...TabHeaderOptions,
 									headerBackTitleVisible: false,
-									title: "Health Capture",
+									title: 'Health Capture',
 									cardStyle: { paddingBottom: insets.bottom },
 								}}
 							/>
@@ -653,7 +653,7 @@ const ApplicationNavigator = () => {
 								options={{
 									...TabHeaderOptions,
 									headerBackTitleVisible: false,
-									title: "Sign Up",
+									title: 'Sign Up',
 									cardStyle: { paddingBottom: insets.bottom },
 								}}
 							/>
@@ -662,7 +662,7 @@ const ApplicationNavigator = () => {
 								component={SessionScoringScreen}
 								options={() => ({
 									...TabHeaderOptions,
-									title: "Add Result",
+									title: 'Add Result',
 									cardStyle: { paddingBottom: insets.bottom },
 								})}
 							/>
@@ -671,7 +671,7 @@ const ApplicationNavigator = () => {
 								component={InviteCodeScreen}
 								options={() => ({
 									...TabHeaderOptions,
-									title: "Invite Code",
+									title: 'Invite Code',
 								})}
 							/>
 							<Stack.Screen
@@ -680,7 +680,7 @@ const ApplicationNavigator = () => {
 								options={{
 									...TabHeaderOptions,
 									headerBackTitleVisible: false,
-									title: "Setup Subscription",
+									title: 'Setup Subscription',
 								}}
 								initialParams={{ setupSubscription: true }}
 							/>
@@ -690,7 +690,7 @@ const ApplicationNavigator = () => {
 								options={{
 									...TabHeaderOptions,
 									headerBackTitleVisible: false,
-									title: "Payment Setup",
+									title: 'Payment Setup',
 								}}
 							/>
 							<Stack.Screen
@@ -705,7 +705,7 @@ const ApplicationNavigator = () => {
 								name="Subscription"
 								component={Subscription}
 								options={{
-									title: "Memberships",
+									title: 'Memberships',
 									...TabHeaderOptions,
 									headerBackTitleVisible: false,
 								}}
@@ -714,7 +714,7 @@ const ApplicationNavigator = () => {
 								name="SubscriptionDetails"
 								component={SubscriptionDetails}
 								options={{
-									title: "Memberships",
+									title: 'Memberships',
 									...TabHeaderOptions,
 									headerBackTitleVisible: false,
 								}}
@@ -726,7 +726,7 @@ const ApplicationNavigator = () => {
 								headerTintColor: colors.darkgray,
 								headerRight: HeaderCloseButton,
 								headerLeft: () => null,
-								presentation: "modal",
+								presentation: 'modal',
 								headerShown: true,
 								...(Constant.IS_ANDROID
 									? {
@@ -739,23 +739,23 @@ const ApplicationNavigator = () => {
 							<Stack.Screen
 								name="SwitchGym"
 								component={SwitchGym}
-								options={{ title: "Switch Gym" }}
+								options={{ title: 'Switch Gym' }}
 							/>
 							<Stack.Screen
 								name="SwitchUser"
 								component={SwitchUser}
-								options={{ title: "Switch User" }}
+								options={{ title: 'Switch User' }}
 							/>
 							<Stack.Screen
 								name="AddAttendance"
 								component={WODAddAttendance}
-								options={{ title: "Add Attendance" }}
+								options={{ title: 'Add Attendance' }}
 							/>
 							<Stack.Screen
 								name="PaymentInformationModal"
 								component={PaymentInformation}
 								options={{
-									title: "Payment Details",
+									title: 'Payment Details',
 									headerRight: HeaderCloseButton,
 									headerLeft: () => null,
 								}}
@@ -763,29 +763,29 @@ const ApplicationNavigator = () => {
 							<Stack.Screen
 								name="BuyNow"
 								component={SubscriptionSetup}
-								options={{ title: "Buy Subscription" }}
+								options={{ title: 'Buy Subscription' }}
 							/>
 							<Stack.Screen
 								name="ResultTypesModal"
 								component={ResultTypesModal}
 								options={{
-									title: "Add new result",
+									title: 'Add new result',
 								}}
 							/>
 							<Stack.Screen
 								name="MovementHistory"
 								component={MovementHistory}
-								options={{ title: "Past Performance" }}
+								options={{ title: 'Past Performance' }}
 							/>
 							<Stack.Screen
 								name="WorkoutHistory"
 								component={WorkoutHistory}
-								options={{ title: "Past Performance" }}
+								options={{ title: 'Past Performance' }}
 							/>
 							<Stack.Screen
 								name="AttendancePastPerformance"
 								component={AttendancePastPerformance}
-								options={{ title: "Past Performance" }}
+								options={{ title: 'Past Performance' }}
 							/>
 						</Stack.Group>
 
@@ -795,7 +795,7 @@ const ApplicationNavigator = () => {
 							options={({ route }) => ({
 								title: route.params.title,
 								headerTintColor: colors.darkgray,
-								presentation: "modal",
+								presentation: 'modal',
 								headerRight: HeaderCloseButton,
 								headerLeft: () => null,
 							})}
@@ -806,7 +806,7 @@ const ApplicationNavigator = () => {
 								headerTintColor: colors.darkgray,
 								cardStyleInterpolator:
 									CardStyleInterpolators.forHorizontalIOS,
-								headerMode: "float",
+								headerMode: 'float',
 								headerShadowVisible: false,
 								headerTitleStyle: layout.fontMontserratRegular,
 							}}
@@ -815,7 +815,7 @@ const ApplicationNavigator = () => {
 								name="Compose"
 								component={ComposeScreen}
 								options={{
-									title: "Compose Message",
+									title: 'Compose Message',
 									headerLeft: () => null,
 								}}
 							/>
@@ -828,7 +828,7 @@ const ApplicationNavigator = () => {
 								name="BrowseMedia"
 								component={BrowseMediaScreen}
 								options={{
-									title: "Browse Media",
+									title: 'Browse Media',
 									headerLeftLabelVisible: false,
 								}}
 							/>
@@ -836,7 +836,7 @@ const ApplicationNavigator = () => {
 								name="Camera"
 								component={Camera}
 								options={{
-									title: "Camera",
+									title: 'Camera',
 									headerLeftLabelVisible: false,
 								}}
 							/>
@@ -844,7 +844,7 @@ const ApplicationNavigator = () => {
 								name="fitboxGallery"
 								component={FitboxGalleryScreen}
 								options={{
-									title: "fitbox Gallery",
+									title: 'fitbox Gallery',
 									headerLeftLabelVisible: false,
 								}}
 							/>
@@ -854,7 +854,7 @@ const ApplicationNavigator = () => {
 							component={Shop}
 							options={{
 								headerRight: ShopHeaderRightComponent,
-								title: "Gym Shop",
+								title: 'Gym Shop',
 							}}
 						/>
 					</Stack.Navigator>
@@ -898,35 +898,35 @@ const ApplicationNavigator = () => {
 
 const styles = StyleSheet.create({
 	badgeStyle: {
-		position: "absolute",
+		position: 'absolute',
 		top: 10,
-		right: Platform.OS === "ios" && Platform.isPad ? -5 : 23,
+		right: Platform.OS === 'ios' && Platform.isPad ? -5 : 23,
 		backgroundColor: config.colors.brand,
 	},
 	lottieStyle: {
-		width: "100%",
-		height: "100%",
-		backgroundColor: "transparent",
-		position: "absolute",
+		width: '100%',
+		height: '100%',
+		backgroundColor: 'transparent',
+		position: 'absolute',
 	},
 	lottieSmallSizeStyle: {
-		width: "50%",
-		height: "50%",
-		backgroundColor: "transparent",
-		position: "absolute",
-		alignSelf: "center",
-		top: "25%",
-		bottom: "25%",
+		width: '50%',
+		height: '50%',
+		backgroundColor: 'transparent',
+		position: 'absolute',
+		alignSelf: 'center',
+		top: '25%',
+		bottom: '25%',
 	},
 	touchableStyle: {
 		flex: 1,
-		justifyContent: "center",
-		alignItems: "center",
+		justifyContent: 'center',
+		alignItems: 'center',
 	},
 	viewAnimationStyle: {
-		width: "100%",
-		height: " 100%",
-		position: "absolute",
+		width: '100%',
+		height: ' 100%',
+		position: 'absolute',
 	},
 });
 

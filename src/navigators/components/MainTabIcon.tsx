@@ -1,4 +1,4 @@
-import Ionicons from "react-native-vector-icons/MaterialCommunityIcons";
+import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 export type MainTabIconProps = {
 	name: string;

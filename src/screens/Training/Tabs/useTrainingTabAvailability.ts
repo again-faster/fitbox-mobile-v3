@@ -1,26 +1,26 @@
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useWorkoutStudio } from "@/context/WorkoutStudioProvider";
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import {
 	getMemberReadiness,
 	createLoadingReadinessResult,
 	type ReadinessResult,
-} from "@/services/workoutStudio/readiness";
-import { getStoredWSSession } from "@/services/workoutStudio/auth";
-import { getWeeklyRecapSnapshot } from "@/services/workoutStudio/recap";
-import { wsApi } from "@/services/workoutStudio/api";
-import { shouldShowProgressHub } from "../features/memberFeatureRoutes";
-import { wellbeingPolicy } from "../features/wellnessFeaturePolicy";
-import { useCustomWorkouts } from "../hooks/useCustomWorkouts";
+} from '@/services/workoutStudio/readiness';
+import { getStoredWSSession } from '@/services/workoutStudio/auth';
+import { getWeeklyRecapSnapshot } from '@/services/workoutStudio/recap';
+import { wsApi } from '@/services/workoutStudio/api';
+import { shouldShowProgressHub } from '../features/memberFeatureRoutes';
+import { wellbeingPolicy } from '../features/wellnessFeaturePolicy';
+import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
 import {
 	buildTrainingMoreGroups,
 	countTrainingMoreItems,
-} from "../More/trainingMoreItems";
+} from '../More/trainingMoreItems';
 import {
 	visibleTrainingTabs,
 	type TrainingTabAvailabilityInput,
 	type TrainingTabKey,
-} from "./trainingTabs";
+} from './trainingTabs';
 
 export type TabPresence = {
 	progressRows: number;
@@ -40,7 +40,7 @@ export const createEmptyTabPresence = (): TabPresence => ({
 });
 
 export type TrainingTabAvailability = {
-	status: "loading" | "ready";
+	status: 'loading' | 'ready';
 	visibleTabs: TrainingTabKey[];
 };
 
@@ -57,7 +57,7 @@ const progressPresence = (
 export const buildTrainingTabAvailability = (
 	features: Parameters<typeof shouldShowProgressHub>[0],
 	presence: TabPresence,
-	readiness: Pick<ReadinessResult, "status">,
+	readiness: Pick<ReadinessResult, 'status'>,
 	secondaryItemCount: number,
 ): TrainingTabAvailability => {
 	const input: TrainingTabAvailabilityInput = {
@@ -65,7 +65,7 @@ export const buildTrainingTabAvailability = (
 		progressContent: progressPresence(features, presence),
 		wearablesFeature: features.wearables,
 		readinessStatus: presence.optionalQueryFailed
-			? "error"
+			? 'error'
 			: readiness.status,
 		wellnessFeature: features.wellness,
 		painReportsFeature: features.pain_reports,
@@ -73,7 +73,7 @@ export const buildTrainingTabAvailability = (
 		secondaryItemCount,
 	};
 	return {
-		status: "ready",
+		status: 'ready',
 		visibleTabs: visibleTrainingTabs(input),
 	};
 };
@@ -85,18 +85,18 @@ const usePresenceCount = (
 	enabled: boolean,
 ) =>
 	useQuery({
-		queryKey: ["ws-training-tab-presence", key, searchParams],
+		queryKey: ['ws-training-tab-presence', key, searchParams],
 		queryFn: () =>
 			wsApi()
 				.get(table, {
 					searchParams: {
-						select: "id",
+						select: 'id',
 						...searchParams,
-						limit: "1",
+						limit: '1',
 					},
 				})
 				.json<unknown[]>()
-				.then((rows) => rows.length),
+				.then(rows => rows.length),
 		enabled,
 		staleTime: 120_000,
 	});
@@ -110,27 +110,27 @@ export const useTrainingTabAvailability = (): TrainingTabAvailability => {
 	const wellbeing = wellbeingPolicy(features);
 
 	const results = usePresenceCount(
-		"results",
-		"workout_results",
-		{ athlete_id: `eq.${uid}`, completed_at: "not.is.null" },
+		'results',
+		'workout_results',
+		{ athlete_id: `eq.${uid}`, completed_at: 'not.is.null' },
 		hasSession &&
 			(features.progress || features.results || features.benchmarks),
 	);
 	const rms = usePresenceCount(
-		"rms",
-		"athlete_rms",
+		'rms',
+		'athlete_rms',
 		{ athlete_id: `eq.${uid}` },
 		hasSession && (features.prs || features.my_maxes),
 	);
 	const benchmarks = usePresenceCount(
-		"benchmarks",
-		"workouts",
-		{ type: "eq.benchmark" },
+		'benchmarks',
+		'workouts',
+		{ type: 'eq.benchmark' },
 		hasSession && features.benchmarks,
 	);
 	const readiness = useQuery<ReadinessResult>({
 		queryKey: [
-			"ws-training-tab-readiness",
+			'ws-training-tab-readiness',
 			uid,
 			session?.user.active_tenant_id,
 		],
@@ -140,7 +140,7 @@ export const useTrainingTabAvailability = (): TrainingTabAvailability => {
 		staleTime: 120_000,
 	});
 	const recap = useQuery({
-		queryKey: ["ws-training-tab-recap", uid],
+		queryKey: ['ws-training-tab-recap', uid],
 		queryFn: () => getWeeklyRecapSnapshot({ featureEnabled: true }),
 		enabled: hasSession && features.digest,
 		staleTime: 120_000,
@@ -174,10 +174,10 @@ export const useTrainingTabAvailability = (): TrainingTabAvailability => {
 		{ enabled: hasSession && features.wearables, query: readiness },
 		{ enabled: hasSession && features.digest, query: recap },
 	]
-		.filter((item) => item.enabled)
-		.map((item) => item.query);
-	const loading = enabledQueries.some((query) => query.isLoading);
-	const optionalQueryFailed = enabledQueries.some((query) => query.isError);
+		.filter(item => item.enabled)
+		.map(item => item.query);
+	const loading = enabledQueries.some(query => query.isLoading);
+	const optionalQueryFailed = enabledQueries.some(query => query.isError);
 	const presence: TabPresence = {
 		progressRows: results.data ?? 0,
 		rmRows: rms.data ?? 0,
@@ -204,7 +204,7 @@ export const useTrainingTabAvailability = (): TrainingTabAvailability => {
 	);
 
 	return {
-		status: loading ? "loading" : availability.status,
+		status: loading ? 'loading' : availability.status,
 		// Keep the last computed feature/content decisions visible while the
 		// presence queries refresh. TrainingTabShell preserves the selected tab
 		// during this window so the navigation rail does not disappear.
