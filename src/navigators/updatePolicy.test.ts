@@ -12,8 +12,6 @@ describe('shouldCheckMinimumVersion', () => {
 	});
 
 	it('enforces the production update gate in release builds', () => {
-		expect(shouldCheckMinimumVersion(false, 'com.againfaster.fitbox')).toBe(
-		true,
-	);
+		expect(shouldCheckMinimumVersion(false, 'com.againfaster.fitbox')).toBe(true);
 	});
 });
