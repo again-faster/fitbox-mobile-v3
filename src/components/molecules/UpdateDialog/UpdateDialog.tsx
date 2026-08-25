@@ -18,12 +18,18 @@ import {
 const PREVIEW_PACKAGE_NAME = 'com.againfaster.fitbox.preview';
 const PREVIEW_TESTFLIGHT_URL =
 	'itms-beta://beta.itunes.apple.com/v1/app/6792605351';
+const PREVIEW_INTERNAL_TEST_URL =
+	'https://play.google.com/apps/internaltest/4701658175453440071';
 const PRODUCTION_IOS_APP_ID = '1462002702';
 
 export const getUpdateUrl = async (
 	platform = Platform.OS,
 	packageName = VersionCheck.getPackageName(),
 ) => {
+	if (platform === 'android' && packageName === PREVIEW_PACKAGE_NAME) {
+		return PREVIEW_INTERNAL_TEST_URL;
+	}
+
 	if (platform === 'ios') {
 		if (packageName === PREVIEW_PACKAGE_NAME) {
 			return PREVIEW_TESTFLIGHT_URL;
