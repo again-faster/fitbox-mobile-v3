@@ -27,6 +27,7 @@ import {
 	getBookedSessions,
 	getFailedPayments,
 	getUserGymInfo,
+	getUserProfile,
 } from '@/services/users';
 import { mmkvStorage } from '@/storage';
 import { useTheme } from '@/theme';
@@ -49,7 +50,6 @@ import { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
 import { ClassFilter, VenueFilter } from '@/zustand/interface/SessionInterface';
 import messaging, { firebase } from '@react-native-firebase/messaging';
-import * as Sentry from '@sentry/react-native';
 import {
 	NavigationProp,
 	useFocusEffect,
@@ -233,6 +233,7 @@ const Dashboard = () => {
 		if (!loggedInUser?.user_data.user_id) return;
 
 		const results = await Promise.allSettled([
+			refreshUserName(),
 			initializeAppStates(true),
 			getFailedInvoices(true),
 			getUpcomingSessions(true),
@@ -249,6 +250,21 @@ const Dashboard = () => {
 		if (betaBuild) {
 			checkBetaActive();
 		}
+	};
+
+	const refreshUserName = async () => {
+		const currentUser = useStore.getState().loggedInUser;
+		if (!currentUser) return;
+
+		const res = await getUserProfile(currentUser.id);
+		if (res.error) {
+			throw new Error(res.message);
+		}
+
+		updateUser({
+			first_name: res.user_data.first_name,
+			last_name: res.user_data.last_name,
+		} as UserSchemaType);
 	};
 
 	const fetchWorkouts = async () => {
@@ -1311,7 +1327,7 @@ const Dashboard = () => {
 
 			<ScrollView
 				refreshing={refreshing}
-				onRefresh={onRefresh}
+				onRefresh={() => void onRefresh()}
 				style={{ marginTop: headerMarginTop }}
 			>
 				<View style={styles.section}>

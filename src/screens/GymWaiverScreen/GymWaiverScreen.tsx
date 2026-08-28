@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import useAuth from '@/auth/hooks/useAuth';
 import { Button, Row, Spacer, Text } from '@/components/atoms';
+import queryClient from '@/query/queryClient';
 import { acceptWaiver, getWaiver } from '@/services/waivers';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
@@ -13,7 +13,6 @@ import {
 	ActivityIndicator,
 	Alert,
 	NativeSyntheticEvent,
-	Permission,
 	PermissionsAndroid,
 	Platform,
 	StyleSheet,
@@ -105,13 +104,11 @@ const GymWaiverScreen = ({ navigation }: ApplicationScreenProps) => {
 
 		if (Platform.OS === 'android') {
 			const granted = await PermissionsAndroid.check(
-				PermissionsAndroid.PERMISSIONS
-					.WRITE_EXTERNAL_STORAGE as Permission,
+				PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
 			);
 			if (!granted) {
 				await PermissionsAndroid.request(
-					PermissionsAndroid.PERMISSIONS
-						.WRITE_EXTERNAL_STORAGE as Permission,
+					PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
 				);
 			}
 
@@ -170,6 +167,9 @@ const GymWaiverScreen = ({ navigation }: ApplicationScreenProps) => {
 			setState({ ...state, accepting: true });
 
 			await acceptWaiver();
+			await queryClient.invalidateQueries({
+				queryKey: ['gym-info'],
+			});
 			const session = user?.user_data as UserSchemaType;
 
 			session.waiver_accepted = true;

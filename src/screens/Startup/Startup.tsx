@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 
@@ -22,6 +22,7 @@ const Startup = ({ navigation }: ApplicationScreenProps) => {
 	}));
 
 	const { isLoggedIn, user, signOut } = useAuth();
+	const hasStartedNavigationRef = useRef(false);
 
 	const { isSuccess, isError } = useQuery({
 		queryKey: ['startup'],
@@ -31,6 +32,10 @@ const Startup = ({ navigation }: ApplicationScreenProps) => {
 	});
 
 	useEffect(() => {
+		if (!isSuccess || hasStartedNavigationRef.current) {
+			return () => undefined;
+		}
+
 		const checkToken = () => {
 			const apiToken = getApiToken();
 			if (isLoggedIn && apiToken) {
@@ -116,10 +121,13 @@ const Startup = ({ navigation }: ApplicationScreenProps) => {
 			});
 		};
 
-		setTimeout(() => {
+		const timer = setTimeout(() => {
+			hasStartedNavigationRef.current = true;
 			void checkToken();
 		}, 1000);
-	}, [isSuccess, user?.user_data.waiver_accepted]);
+
+		return () => clearTimeout(timer);
+	}, [fromAcceptInvite, isSuccess, user?.user_data.waiver_accepted]);
 
 	return (
 		<SafeScreen>
