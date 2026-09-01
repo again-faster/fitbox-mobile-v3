@@ -39,8 +39,9 @@ export const shouldShowMemberSurface = (
 ) => !featureForMemberSurface(route) || classesEnabled;
 
 export const featureForMemberSurface = (
-	_route: MemberSurfaceRoute,
+	route: MemberSurfaceRoute,
 ): MemberFeature | null => {
+	void route;
 	// Fitbox IQ owns the legacy class booking surfaces. They remain available
 	// while Workout Studio feature flags are rolled out independently.
 	return null;

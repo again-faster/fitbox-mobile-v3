@@ -67,9 +67,11 @@ import {
 	Dimensions,
 	Image,
 	Platform,
+	StyleProp,
 	StatusBar,
 	StyleSheet,
 	TouchableOpacity,
+	TextStyle,
 	View,
 } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
@@ -850,11 +852,11 @@ const Dashboard = () => {
 				resultsEntryPointsAvailable,
 			),
 		[
-				bookingEntryPointsAvailable,
-				classEntryPointsAvailable,
-				resultsEntryPointsAvailable,
-				shopUrl,
-			],
+			bookingEntryPointsAvailable,
+			classEntryPointsAvailable,
+			resultsEntryPointsAvailable,
+			shopUrl,
+		],
 	);
 
 	const onExploreActionPress = (action: DashboardExploreAction) => {
@@ -946,6 +948,12 @@ const Dashboard = () => {
 	const compactMonthlyGoalMetric = Boolean(
 		monthlyAttendanceGoal && renderedAttendanceMetricCount === 3,
 	);
+	let monthlyGoalValueStyle: StyleProp<TextStyle> | undefined;
+	if (compactMonthlyGoalMetric) {
+		monthlyGoalValueStyle = styles.monthlyGoalCompactValue;
+	} else if (monthlyAttendanceGoal) {
+		monthlyGoalValueStyle = styles.monthlyGoalValue;
+	}
 
 	const renderDashboardComponents = () => {
 		return (
@@ -1014,13 +1022,7 @@ const Dashboard = () => {
 													? 'monthly goal'
 													: 'this month'
 											}
-											valueStyle={
-												compactMonthlyGoalMetric
-													? styles.monthlyGoalCompactValue
-													: monthlyAttendanceGoal
-														? styles.monthlyGoalValue
-														: undefined
-											}
+											valueStyle={monthlyGoalValueStyle}
 										>
 											{monthlyAttendanceGoal ? (
 												<MemberProgressRing

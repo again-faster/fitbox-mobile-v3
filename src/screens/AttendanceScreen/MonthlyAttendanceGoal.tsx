@@ -233,7 +233,9 @@ const MonthlyAttendanceGoal = ({
 									color={memberTheme.colors.primary}
 								/>
 								<Text bold style={styles.goalMessageTitle}>
-									{achieved ? 'Goal achieved' : 'Keep showing up'}
+									{achieved
+										? 'Goal achieved'
+										: 'Keep showing up'}
 								</Text>
 								<Text style={styles.goalMessageBody}>
 									{achieved

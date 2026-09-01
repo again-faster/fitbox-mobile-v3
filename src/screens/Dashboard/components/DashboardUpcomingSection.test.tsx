@@ -7,10 +7,16 @@ import DashboardUpcomingSection from './DashboardUpcomingSection';
 
 const mockNavigate = jest.fn();
 
-jest.mock('@react-navigation/native', () => ({
-	...jest.requireActual('@react-navigation/native'),
-	useNavigation: () => ({ navigate: mockNavigate }),
-}));
+jest.mock('@react-navigation/native', () => {
+	const actualNavigation = jest.requireActual<
+		typeof import('@react-navigation/native')
+	>('@react-navigation/native');
+
+	return {
+		...actualNavigation,
+		useNavigation: () => ({ navigate: mockNavigate }),
+	};
+});
 
 const sessions = [
 	{

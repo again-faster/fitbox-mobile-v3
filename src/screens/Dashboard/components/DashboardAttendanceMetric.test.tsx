@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react-native';
 import { MMKV } from 'react-native-mmkv';
 import { StyleSheet, View } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 
 import { ThemeProvider } from '@/theme';
 
@@ -34,7 +35,8 @@ describe('DashboardAttendanceMetric', () => {
 			textAlign: 'center',
 		});
 		const initialMetricStyle = StyleSheet.flatten(
-			getByTestId('attendance-metric').props.style,
+			getByTestId('attendance-metric').props
+				.style as StyleProp<ViewStyle>,
 		);
 		expect(initialMetricStyle).not.toHaveProperty('paddingLeft');
 
@@ -66,7 +68,8 @@ describe('DashboardAttendanceMetric', () => {
 		expect(getByTestId('attendance-metric-icon')).toBeTruthy();
 
 		const rerenderedMetricStyle = StyleSheet.flatten(
-			getByTestId('attendance-metric').props.style,
+			getByTestId('attendance-metric').props
+				.style as StyleProp<ViewStyle>,
 		);
 		expect(rerenderedMetricStyle).not.toHaveProperty('paddingLeft');
 	});

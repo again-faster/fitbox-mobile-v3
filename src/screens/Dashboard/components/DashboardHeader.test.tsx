@@ -1,34 +1,46 @@
 import { render } from '@testing-library/react-native';
 import { ImageBackground, StyleSheet } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 
 import { config } from '@/theme/_config';
 
 import DashboardHeader from './DashboardHeader';
 
-jest.mock('@react-navigation/native', () => ({
-	...jest.requireActual('@react-navigation/native'),
-	useNavigation: () => ({ navigate: jest.fn() }),
-}));
+jest.mock('@react-navigation/native', () => {
+	const actualNavigation = jest.requireActual<
+		typeof import('@react-navigation/native')
+	>('@react-navigation/native');
+
+	return {
+		...actualNavigation,
+		useNavigation: () => ({ navigate: jest.fn() }),
+	};
+});
 
 describe('DashboardHeader', () => {
 	it('keeps the full-width banner and logo overlap visible to dashboard content', () => {
-		const { getByTestId, UNSAFE_getByType } = render(
-			<DashboardHeader banner="https://example.com/banner.jpg" logo="logo" />,
+		const rendered = render(
+			<DashboardHeader
+				banner="https://example.com/banner.jpg"
+				logo="logo"
+			/>,
 		);
 
-		expect(getByTestId('dashboard-header')).toHaveStyle({
+		expect(rendered.getByTestId('dashboard-header')).toHaveStyle({
 			width: '100%',
 			overflow: 'visible',
 			marginBottom: 37,
 		});
-		const banner = UNSAFE_getByType(ImageBackground);
-		const bannerStyle = StyleSheet.flatten(banner.props.style);
+		const banner = rendered.UNSAFE_getByType(ImageBackground);
+		const bannerStyle = StyleSheet.flatten(
+			banner.props.style as StyleProp<ViewStyle>,
+		);
 		expect(bannerStyle).toMatchObject({
 			width: '100%',
 			aspectRatio: 1440 / 380,
 			overflow: 'visible',
 		});
-		expect(getByTestId('dashboard-logo')).toHaveStyle({
+		expect(rendered.getByTestId('dashboard-logo')).toHaveStyle({
 			position: 'absolute',
 			left: 16,
 			bottom: -37,
@@ -38,7 +50,7 @@ describe('DashboardHeader', () => {
 			backgroundColor: 'white',
 			borderRadius: 12,
 		});
-		expect(getByTestId('dashboard-logo-inner')).toHaveStyle({
+		expect(rendered.getByTestId('dashboard-logo-inner')).toHaveStyle({
 			width: 74,
 			height: 74,
 			aspectRatio: 1,
