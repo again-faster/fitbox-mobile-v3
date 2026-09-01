@@ -1,6 +1,4 @@
 import { fireEvent, render } from '@testing-library/react-native';
-import React from 'react';
-
 import { memberTheme } from '@/theme/member';
 
 import MemberPill from './MemberPill';

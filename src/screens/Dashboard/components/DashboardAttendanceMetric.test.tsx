@@ -1,5 +1,4 @@
 import { render } from '@testing-library/react-native';
-import React from 'react';
 import { MMKV } from 'react-native-mmkv';
 import { StyleSheet, View } from 'react-native';
 
