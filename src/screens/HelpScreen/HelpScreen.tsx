@@ -16,7 +16,7 @@ const HelpScreen = () => {
 					<Icon
 						name="lifebuoy"
 						size={25}
-						color={memberTheme.colors.primaryDeep}
+						color={memberTheme.colors.memberAction}
 					/>
 				</View>
 				<View style={styles.headerCopy}>
@@ -32,7 +32,7 @@ const HelpScreen = () => {
 				{isLoading && (
 					<View style={styles.loaderStyle}>
 						<ActivityIndicator
-							color={memberTheme.colors.primaryDeep}
+							color={memberTheme.colors.memberAction}
 							size="large"
 						/>
 						<Text style={styles.loadingText}>

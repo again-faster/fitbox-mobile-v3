@@ -1,11 +1,18 @@
 import { memberTheme } from '@/theme/member';
-import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import {
+	StyleProp,
+	StyleSheet,
+	Text,
+	TouchableOpacity,
+	type ViewStyle,
+} from 'react-native';
 
 interface MemberPillProps {
 	label: string;
 	selected?: boolean;
 	onPress: () => void;
 	accessibilityLabel?: string;
+	style?: StyleProp<ViewStyle>;
 }
 
 const MemberPill = ({
@@ -13,9 +20,10 @@ const MemberPill = ({
 	selected = false,
 	onPress,
 	accessibilityLabel,
+	style,
 }: MemberPillProps) => (
 	<TouchableOpacity
-		style={[styles.pill, selected && styles.selected]}
+		style={[styles.pill, style, selected && styles.selected]}
 		onPress={onPress}
 		activeOpacity={0.8}
 		accessibilityRole="button"
@@ -38,7 +46,7 @@ const styles = StyleSheet.create({
 		backgroundColor: memberTheme.colors.surfaceSoft,
 	},
 	selected: {
-		backgroundColor: memberTheme.colors.ink,
+		backgroundColor: memberTheme.colors.primary,
 	},
 	label: {
 		color: memberTheme.colors.primaryInk,

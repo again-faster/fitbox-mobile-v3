@@ -231,7 +231,7 @@ const Subscription = ({ navigation, route }: MenuStackNavigatorProps) => {
 					<Icon
 						name="id-card"
 						size={22}
-						color={memberTheme.colors.primaryDeep}
+						color={memberTheme.colors.memberAction}
 					/>
 				</View>
 				<View style={layout.flex_1}>
@@ -269,6 +269,7 @@ const Subscription = ({ navigation, route }: MenuStackNavigatorProps) => {
 				<Button
 					title="Add New Membership"
 					labelStyle={styles.addSubscriptionButtonLabelStyle}
+					textColor={memberTheme.colors.memberActionForeground}
 					onPress={() =>
 						navigate('SubscriptionSetup', {
 							fromSubscription: true,
@@ -346,7 +347,7 @@ const styles = StyleSheet.create({
 	},
 	settingLabel: { color: memberTheme.colors.text },
 	addButton: {
-		backgroundColor: memberTheme.colors.primaryDeep,
+		backgroundColor: memberTheme.colors.memberAction,
 		borderRadius: memberTheme.radius.md,
 	},
 	transactionsCard: {
@@ -358,6 +359,7 @@ const styles = StyleSheet.create({
 		paddingVertical: memberTheme.spacing.md,
 	},
 	addSubscriptionButtonLabelStyle: {
+		color: memberTheme.colors.memberActionForeground,
 		fontSize: config.metrics.md,
 		textTransform: 'capitalize',
 	},

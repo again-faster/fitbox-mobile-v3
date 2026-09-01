@@ -4,6 +4,8 @@ export const memberTheme = {
 		surface: '#FFFFFF',
 		surfaceSoft: '#F1F0FF',
 		primary: '#7775E6',
+		memberAction: '#7775E6',
+		memberActionForeground: '#15151A',
 		primaryDeep: '#5F2260',
 		primaryInk: '#44427D',
 		ink: '#15151A',

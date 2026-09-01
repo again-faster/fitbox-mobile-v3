@@ -135,7 +135,7 @@ const SwitchUser = () => {
 				<Icon
 					name="account-switch-outline"
 					size={27}
-					color={memberTheme.colors.primaryDeep}
+					color={memberTheme.colors.memberAction}
 				/>
 			</View>
 			<View style={styles.headerCopy}>
@@ -171,6 +171,7 @@ const SwitchUser = () => {
 				<Button
 					title="Close"
 					style={styles.closeButton}
+					labelStyle={styles.closeButtonLabel}
 					onPress={goBack}
 				/>
 			) : null}
@@ -181,7 +182,7 @@ const SwitchUser = () => {
 		<View style={styles.loadingStyle}>
 			<ActivityIndicator
 				size="large"
-				color={memberTheme.colors.primaryDeep}
+				color={memberTheme.colors.memberAction}
 			/>
 			<Text style={styles.loadingText}>{loadingMessage}</Text>
 		</View>
@@ -252,9 +253,12 @@ const styles = StyleSheet.create({
 		marginTop: memberTheme.spacing.xs,
 	},
 	closeButton: {
-		backgroundColor: memberTheme.colors.primaryDeep,
+		backgroundColor: memberTheme.colors.memberAction,
 		borderRadius: memberTheme.radius.pill,
 		marginTop: memberTheme.spacing.lg,
+	},
+	closeButtonLabel: {
+		color: memberTheme.colors.memberActionForeground,
 	},
 });
 

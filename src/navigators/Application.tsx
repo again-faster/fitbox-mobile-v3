@@ -154,6 +154,18 @@ const icons: Record<keyof MainTabParamList, string> = {
 	TrainingStack: 'dumbbell',
 };
 
+const tabLabels: Record<keyof MainTabParamList, string> = {
+	DashboardStack: 'Home',
+	Calendar: 'Schedule',
+	InboxStack: 'Messages',
+	Shop: 'Shop',
+	TrainingStack: 'Workouts',
+	MenuTab: 'More',
+};
+
+const TAB_BAR_CONTENT_HEIGHT = 60;
+const TAB_BAR_VERTICAL_PADDING = 6;
+
 const AnimatedCartIcon = ({
 	name,
 	size,
@@ -266,6 +278,7 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 const MainTabNavigator = () => {
 	const { variant, colors } = useTheme();
 	const { isEnabled } = useWorkoutStudio();
+	const insets = useSafeAreaInsets();
 	const {
 		shopUrl,
 		activeMonth,
@@ -315,12 +328,23 @@ const MainTabNavigator = () => {
 						unreadMessages,
 						...options,
 					}),
-				tabBarActiveTintColor: colors.brand,
+				tabBarActiveTintColor: config.colors.brand,
 				tabBarInactiveTintColor: colors.gray50,
 				tabBarStyle: {
 					backgroundColor: colors.gray800,
+					height: TAB_BAR_CONTENT_HEIGHT + insets.bottom,
+					paddingTop: TAB_BAR_VERTICAL_PADDING,
+					paddingBottom: Math.max(
+						insets.bottom,
+						TAB_BAR_VERTICAL_PADDING,
+					),
 				},
-				tabBarLabel: () => null,
+				tabBarLabel: tabLabels[route.name],
+				tabBarLabelStyle: {
+					...layout.fontMontserratRegular,
+					fontSize: 10,
+					lineHeight: 13,
+				},
 				headerShown: true,
 				headerStyle: {
 					backgroundColor: colors.brand,

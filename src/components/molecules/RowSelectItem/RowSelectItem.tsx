@@ -57,7 +57,7 @@ const RowSelectItem = ({
 					<Icon
 						name="account-outline"
 						size={fonts.metrics.xxl}
-						color={memberTheme.colors.primaryDeep}
+						color={memberTheme.colors.memberAction}
 					/>
 				)}
 			</View>

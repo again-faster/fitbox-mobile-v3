@@ -138,7 +138,7 @@ const NotificationScreen = () => {
 					<Icon
 						name="bell-outline"
 						size={26}
-						color={memberTheme.colors.primaryDeep}
+						color={memberTheme.colors.memberAction}
 					/>
 				</View>
 				<View style={layout.flex_1}>
@@ -162,6 +162,7 @@ const NotificationScreen = () => {
 						<Button
 							onPress={requestNotificationPermission}
 							style={styles.enableButton}
+							labelStyle={styles.enableButtonLabel}
 							mode="contained"
 							title="Turn on"
 						/>
@@ -208,8 +209,11 @@ const styles = StyleSheet.create({
 	},
 	enableButton: {
 		alignSelf: 'flex-end',
-		backgroundColor: memberTheme.colors.primaryDeep,
+		backgroundColor: memberTheme.colors.memberAction,
 		borderRadius: memberTheme.radius.pill,
+	},
+	enableButtonLabel: {
+		color: memberTheme.colors.memberActionForeground,
 	},
 	optionSwitch: {
 		marginLeft: config.metrics.xl,

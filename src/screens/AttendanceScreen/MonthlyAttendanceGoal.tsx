@@ -149,16 +149,12 @@ const MonthlyAttendanceGoal = ({
 
 	return (
 		<>
-			<View style={styles.heroCard}>
-				<View style={styles.glowLarge} />
-				<View style={styles.glowSmall} />
+			<MemberCard style={styles.goalCard}>
 				{goal === null ? (
 					<View style={styles.emptyContent}>
-						<View style={styles.eyebrowPill}>
-							<Text bold style={styles.eyebrowText}>
-								MONTHLY ROUTINE
-							</Text>
-						</View>
+						<Text bold style={styles.eyebrowText}>
+							YOUR GOAL
+						</Text>
 						<Text bold style={styles.heroTitle}>
 							Make consistency your new personal best.
 						</Text>
@@ -171,6 +167,7 @@ const MonthlyAttendanceGoal = ({
 							onPress={openEditor}
 							activeOpacity={0.85}
 							accessibilityRole="button"
+							accessibilityLabel="Set monthly attendance goal"
 						>
 							<Text bold style={styles.heroActionText}>
 								Set monthly goal
@@ -185,9 +182,9 @@ const MonthlyAttendanceGoal = ({
 				) : (
 					<>
 						<View style={styles.heroHeader}>
-							<View>
-								<Text bold style={styles.eyebrowTextLight}>
-									YOUR CONSISTENCY
+							<View style={styles.goalHeading}>
+								<Text bold style={styles.eyebrowText}>
+									YOUR GOAL
 								</Text>
 								<Text
 									bold
@@ -203,7 +200,7 @@ const MonthlyAttendanceGoal = ({
 								<Icon
 									name="pencil-outline"
 									size={17}
-									color="#FFFFFF"
+									color={memberTheme.colors.primary}
 								/>
 								<Text bold style={styles.editLabel}>
 									Edit
@@ -213,10 +210,10 @@ const MonthlyAttendanceGoal = ({
 						<View style={styles.goalContent}>
 							<MemberProgressRing
 								progress={progress}
-								size={156}
-								strokeWidth={12}
-								trackColor="rgba(255,255,255,0.22)"
-								progressColor="#FFFFFF"
+								size={112}
+								strokeWidth={10}
+								trackColor={memberTheme.colors.surfaceSoft}
+								progressColor={memberTheme.colors.primary}
 							>
 								<Text bold style={styles.ringValue}>
 									{attendanceCount}
@@ -233,21 +230,26 @@ const MonthlyAttendanceGoal = ({
 											: 'lightning-bolt-outline'
 									}
 									size={24}
-									color="#FFFFFF"
+									color={memberTheme.colors.primary}
 								/>
 								<Text bold style={styles.goalMessageTitle}>
-									{achieved ? 'Goal achieved' : 'Keep moving'}
+									{achieved ? 'Goal achieved' : 'Keep showing up'}
 								</Text>
 								<Text style={styles.goalMessageBody}>
 									{achieved
 										? 'You showed up for yourself this month.'
-										: `${remaining} ${remaining === 1 ? 'visit' : 'visits'} to reach your goal.`}
+										: `${remaining} ${remaining === 1 ? 'visit' : 'visits'} to go`}
+								</Text>
+								<Text style={styles.goalEncouragement}>
+									{achieved
+										? 'Keep building on this strong routine.'
+										: 'A little consistency goes a long way.'}
 								</Text>
 							</View>
 						</View>
 					</>
 				)}
-			</View>
+			</MemberCard>
 
 			<Modal
 				visible={showEditor}
@@ -371,134 +373,111 @@ const MonthlyAttendanceGoal = ({
 };
 
 const styles = StyleSheet.create({
-	heroCard: {
-		minHeight: 280,
-		backgroundColor: memberTheme.colors.primary,
-		borderRadius: memberTheme.radius.xl,
-		padding: memberTheme.spacing.xl,
+	goalCard: {
+		minHeight: 220,
 		marginBottom: memberTheme.spacing.xl,
-		overflow: 'hidden',
-		...memberTheme.shadow,
-	},
-	glowLarge: {
-		position: 'absolute',
-		width: 260,
-		height: 260,
-		borderRadius: 130,
-		backgroundColor: 'rgba(255,255,255,0.11)',
-		top: -110,
-		right: -90,
-	},
-	glowSmall: {
-		position: 'absolute',
-		width: 150,
-		height: 150,
-		borderRadius: 75,
-		backgroundColor: 'rgba(95,34,96,0.20)',
-		bottom: -70,
-		left: -45,
+		padding: memberTheme.spacing.xl,
 	},
 	emptyContent: {
 		flex: 1,
-		justifyContent: 'space-between',
-	},
-	eyebrowPill: {
-		alignSelf: 'flex-start',
-		backgroundColor: 'rgba(255,255,255,0.18)',
-		paddingHorizontal: memberTheme.spacing.md,
-		paddingVertical: memberTheme.spacing.sm,
-		borderRadius: memberTheme.radius.pill,
+		justifyContent: 'center',
 	},
 	eyebrowText: {
 		fontSize: 10,
 		letterSpacing: 1.2,
-		color: '#FFFFFF',
+		color: memberTheme.colors.primary,
 	},
 	heroTitle: {
-		fontSize: 29,
-		lineHeight: 34,
-		color: '#FFFFFF',
-		maxWidth: 310,
-		marginTop: memberTheme.spacing.lg,
+		fontSize: 23,
+		lineHeight: 29,
+		color: memberTheme.colors.ink,
+		marginTop: memberTheme.spacing.sm,
 	},
 	heroBody: {
 		fontSize: 14,
 		lineHeight: 21,
-		color: 'rgba(255,255,255,0.82)',
-		marginVertical: memberTheme.spacing.lg,
-		maxWidth: 315,
+		color: memberTheme.colors.textMuted,
+		marginVertical: memberTheme.spacing.md,
 	},
 	heroAction: {
 		alignSelf: 'flex-start',
 		flexDirection: 'row',
 		alignItems: 'center',
 		gap: memberTheme.spacing.sm,
-		backgroundColor: '#FFFFFF',
+		backgroundColor: memberTheme.colors.surfaceSoft,
 		paddingHorizontal: memberTheme.spacing.lg,
 		minHeight: 48,
 		borderRadius: memberTheme.radius.pill,
 	},
 	heroActionText: {
-		color: memberTheme.colors.ink,
+		color: memberTheme.colors.primaryInk,
 	},
 	heroHeader: {
 		flexDirection: 'row',
 		alignItems: 'flex-start',
 		justifyContent: 'space-between',
 	},
-	eyebrowTextLight: {
-		fontSize: 10,
-		letterSpacing: 1.1,
-		color: 'rgba(255,255,255,0.72)',
+	goalHeading: {
+		flex: 1,
+		minWidth: 0,
 	},
 	goalTitle: {
-		fontSize: 24,
-		lineHeight: 30,
-		color: '#FFFFFF',
+		fontSize: 22,
+		lineHeight: 28,
+		color: memberTheme.colors.ink,
 		marginTop: memberTheme.spacing.xs,
 	},
 	editPill: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		gap: memberTheme.spacing.xs,
-		backgroundColor: 'rgba(255,255,255,0.16)',
+		backgroundColor: 'transparent',
+		borderWidth: 1,
+		borderColor: memberTheme.colors.primary,
 		paddingVertical: memberTheme.spacing.sm,
 		paddingHorizontal: memberTheme.spacing.md,
 		borderRadius: memberTheme.radius.pill,
+		marginLeft: memberTheme.spacing.sm,
 	},
 	editLabel: {
 		fontSize: 12,
-		color: '#FFFFFF',
+		color: memberTheme.colors.primary,
 	},
 	goalContent: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'space-between',
-		marginTop: memberTheme.spacing.lg,
+		marginTop: memberTheme.spacing.xl,
 	},
 	ringValue: {
-		fontSize: 38,
-		lineHeight: 42,
-		color: '#FFFFFF',
+		fontSize: 30,
+		lineHeight: 34,
+		color: memberTheme.colors.ink,
 	},
 	ringLabel: {
 		fontSize: 12,
-		color: 'rgba(255,255,255,0.78)',
+		color: memberTheme.colors.textMuted,
 	},
 	goalMessage: {
 		flex: 1,
-		paddingLeft: memberTheme.spacing.lg,
+		paddingLeft: memberTheme.spacing.xl,
+		minWidth: 0,
 	},
 	goalMessageTitle: {
 		fontSize: 18,
 		lineHeight: 23,
-		color: '#FFFFFF',
+		color: memberTheme.colors.ink,
 		marginTop: memberTheme.spacing.sm,
 	},
 	goalMessageBody: {
 		fontSize: 12,
 		lineHeight: 18,
-		color: 'rgba(255,255,255,0.78)',
+		color: memberTheme.colors.primaryInk,
+		marginTop: memberTheme.spacing.xs,
+	},
+	goalEncouragement: {
+		fontSize: 12,
+		lineHeight: 18,
+		color: memberTheme.colors.textMuted,
 		marginTop: memberTheme.spacing.xs,
 	},
 	modalRoot: {

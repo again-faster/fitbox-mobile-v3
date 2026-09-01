@@ -82,7 +82,7 @@ const AboutUs = ({ navigation }: MenuStackNavigatorProps) => {
 					<Icon
 						name="open-in-new"
 						size={18}
-						color={memberTheme.colors.primaryDeep}
+						color={memberTheme.colors.memberAction}
 					/>
 				</TouchableOpacity>
 			</ScrollView>
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: memberTheme.spacing.md,
 		paddingVertical: memberTheme.spacing.sm,
 	},
-	websiteText: { color: memberTheme.colors.primaryDeep, fontSize: 15 },
+	websiteText: { color: memberTheme.colors.primaryInk, fontSize: 15 },
 });
 
 export default AboutUs;

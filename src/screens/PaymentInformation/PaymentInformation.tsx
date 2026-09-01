@@ -428,10 +428,10 @@ const styles = StyleSheet.create({
 	},
 	buttonTextStyle: {
 		fontSize: config.metrics.md,
-		color: config.backgrounds.light,
+		color: memberTheme.colors.memberActionForeground,
 	},
 	buttonColor: {
-		backgroundColor: memberTheme.colors.primaryDeep,
+		backgroundColor: memberTheme.colors.memberAction,
 		borderRadius: memberTheme.radius.md,
 	},
 	loaderStyle: {
