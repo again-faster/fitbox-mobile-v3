@@ -1,5 +1,5 @@
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
-import React from 'react';
+import type { ReactNode } from 'react';
 import { MMKV } from 'react-native-mmkv';
 
 import getAttendanceGraph from '@/services/leaderboards/getAttendanceGraph';
@@ -26,19 +26,26 @@ jest.mock('@/zustand/Store', () => ({
 }));
 
 jest.mock('./components/AttendanceHeader', () => {
-	const { View } = require('react-native');
-
-	return () => <View testID="attendance-header-mock" />;
+	const mockReactNative = jest.requireActual<typeof import('react-native')>(
+		'react-native',
+	);
+	const MockView = mockReactNative.View;
+	return () => <MockView testID="attendance-header-mock" />;
 });
 
 jest.mock('./MonthlyAttendanceGoal', () => {
-	const { View } = require('react-native');
-
-	return () => <View testID="monthly-attendance-goal-mock" />;
+	const mockReactNative = jest.requireActual<typeof import('react-native')>(
+		'react-native',
+	);
+	const MockView = mockReactNative.View;
+	return () => <MockView testID="monthly-attendance-goal-mock" />;
 });
 
 jest.mock('react-native-dropdown-picker', () => {
-	const { Text, TouchableOpacity } = require('react-native');
+	const mockReactNative = jest.requireActual<typeof import('react-native')>(
+		'react-native',
+	);
+	const { Text, TouchableOpacity } = mockReactNative;
 
 	return ({
 		items,
@@ -63,11 +70,14 @@ jest.mock('react-native-dropdown-picker', () => {
 });
 
 jest.mock('react-native-safe-area-context', () => {
-	const { View } = require('react-native');
+	const mockReactNative = jest.requireActual<typeof import('react-native')>(
+		'react-native',
+	);
+	const MockView = mockReactNative.View;
 
 	return {
-		SafeAreaView: ({ children }: { children: React.ReactNode }) => (
-			<View>{children}</View>
+		SafeAreaView: ({ children }: { children: ReactNode }) => (
+			<MockView>{children}</MockView>
 		),
 	};
 });
@@ -77,7 +87,10 @@ jest.mock('react-native-svg', () => ({
 }));
 
 jest.mock('react-native-svg-charts', () => {
-	const { Text, View } = require('react-native');
+	const mockReactNative = jest.requireActual<typeof import('react-native')>(
+		'react-native',
+	);
+	const { Text, View } = mockReactNative;
 
 	const BarChart = ({ data }: { data: number[] }) => (
 		<View testID="attendance-chart">

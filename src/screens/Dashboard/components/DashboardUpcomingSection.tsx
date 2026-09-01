@@ -1,7 +1,6 @@
 import { Text } from '@/components/atoms';
 import { memberTheme } from '@/theme/member';
-import { View } from 'react-native';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import BookedSessionCard, { BookedSessionCardProps } from './BookedSessionCard';

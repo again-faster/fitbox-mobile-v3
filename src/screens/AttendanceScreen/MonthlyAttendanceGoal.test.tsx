@@ -1,5 +1,4 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
-import React from 'react';
 import { MMKV } from 'react-native-mmkv';
 
 import { ThemeProvider } from '@/theme';
