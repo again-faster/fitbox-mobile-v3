@@ -266,8 +266,10 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 			<WebView
 				ref={ref}
 				key={storeUrl}
-				source={{ uri: storeUrl }}
-				headers={{ 'x-app-version': appVersion }}
+				source={{
+					uri: storeUrl,
+					headers: { 'x-app-version': appVersion },
+				}}
 				onShouldStartLoadWithRequest={(request: { url: string }) => {
 					try {
 						const { url } = request;
@@ -298,11 +300,11 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 						return true;
 					}
 				}}
-				onOpenWindow={async (event: {
+				onOpenWindow={(event: {
 					nativeEvent: { targetUrl: string };
 				}) => {
 					// catches window.open / target="_blank"
-					await Linking.openURL(event.nativeEvent.targetUrl);
+					void Linking.openURL(event.nativeEvent.targetUrl);
 				}}
 				onNavigationStateChange={(navState: {
 					url: string;

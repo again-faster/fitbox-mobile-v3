@@ -18,6 +18,7 @@ import {
 	Landing,
 	Login,
 	MyDetails,
+	OtherPaymentOptionsScreen,
 	PDFViewerScreen,
 	PaymentInformation,
 	ResetPassword,
@@ -82,7 +83,6 @@ import { useEffect, useRef, useState } from 'react';
 import {
 	Animated,
 	Dimensions,
-	Platform,
 	StyleSheet,
 	TouchableWithoutFeedback,
 	View,
@@ -235,7 +235,7 @@ const tabBarIconRender = ({
 
 	if (route === 'InboxStack') {
 		return (
-			<>
+			<View style={styles.inboxIconContainer}>
 				<Ionicons name={icons[route]} size={size} color={color} />
 				<Badge
 					visible={Number(unreadMessages) > 0}
@@ -245,7 +245,7 @@ const tabBarIconRender = ({
 				>
 					{unreadMessages}
 				</Badge>
-			</>
+			</View>
 		);
 	}
 
@@ -358,6 +358,7 @@ const MainTabNavigator = () => {
 					name="Calendar"
 					component={Calendar}
 					options={{
+						lazy: false,
 						headerLeft: CalendarHeaderLeftComponent,
 						headerRight: CalendarHeaderRightComponent,
 						title: headerTitle || activeMonth || 'Calendar',
@@ -374,11 +375,11 @@ const MainTabNavigator = () => {
 			<Tab.Screen
 				name="Shop"
 				component={Shop}
-				// options={{
-				// 	tabBarButton: !shopUrl ? () => null : undefined,
-				// 	headerRight: ShopHeaderRightComponent,
-				// 	title: 'Gym Shop',
-				// }}
+				options={{
+					tabBarButton: !shopUrl ? () => null : undefined,
+					// headerRight: ShopHeaderRightComponent,
+					// title: 'Gym Shop',
+				}}
 			/>
 			<Tab.Screen
 				name="TrainingStack"
@@ -753,6 +754,15 @@ const ApplicationNavigator = () => {
 								}}
 							/>
 							<Stack.Screen
+								name="OtherPaymentOptions"
+								component={OtherPaymentOptionsScreen}
+								options={{
+									...TabHeaderOptions,
+									headerBackTitleVisible: false,
+									title: 'Add/Update Payment Details',
+								}}
+							/>
+							<Stack.Screen
 								name="MyDetails"
 								component={MyDetails}
 								options={{
@@ -956,10 +966,13 @@ const ApplicationNavigator = () => {
 };
 
 const styles = StyleSheet.create({
+	inboxIconContainer: {
+		position: 'relative',
+	},
 	badgeStyle: {
 		position: 'absolute',
-		top: 10,
-		right: Platform.OS === 'ios' && Platform.isPad ? -5 : 23,
+		top: -2,
+		right: -6,
 		backgroundColor: config.colors.brand,
 	},
 	lottieStyle: {

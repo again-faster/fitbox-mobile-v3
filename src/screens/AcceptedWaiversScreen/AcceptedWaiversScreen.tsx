@@ -10,7 +10,6 @@ import { useEffect, useState } from 'react';
 import {
 	ActivityIndicator,
 	FlatList,
-	Permission,
 	PermissionsAndroid,
 	Platform,
 	StyleSheet,
@@ -69,13 +68,11 @@ const AcceptedWaiversScreen = ({ navigation }: MenuStackNavigatorProps) => {
 
 		if (Platform.OS === 'android') {
 			const granted = await PermissionsAndroid.check(
-				PermissionsAndroid.PERMISSIONS
-					.WRITE_EXTERNAL_STORAGE as Permission,
+				PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
 			);
 			if (!granted) {
 				await PermissionsAndroid.request(
-					PermissionsAndroid.PERMISSIONS
-						.WRITE_EXTERNAL_STORAGE as Permission,
+					PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
 				);
 			}
 

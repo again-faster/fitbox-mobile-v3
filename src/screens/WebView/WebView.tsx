@@ -2,6 +2,7 @@ import { HTMLView, ScrollView } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import { ApplicationScreenProps, WebViewParams } from '@/types/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { StyleSheet } from 'react-native';
 import { WebView as WV } from 'react-native-webview';
 
 const { metrics } = config;
@@ -18,7 +19,12 @@ const WebView = ({ route }: ApplicationScreenProps) => {
 
 	if (content) {
 		return (
-			<ScrollView style={{ padding: metrics.rg }}>
+			<ScrollView
+				style={{
+					padding: metrics.rg,
+				}}
+				contentContainerStyle={styles.contentContainer}
+			>
 				<HTMLView content={content} />
 			</ScrollView>
 		);
@@ -48,3 +54,9 @@ const WebView = ({ route }: ApplicationScreenProps) => {
 };
 
 export default WebView;
+
+const styles = StyleSheet.create({
+	contentContainer: {
+		flexGrow: 1,
+	},
+});

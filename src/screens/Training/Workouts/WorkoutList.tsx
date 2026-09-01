@@ -44,7 +44,7 @@ const WorkoutList = () => {
 		data.forEach((a: WorkoutAssignment) => {
 			const d = a.due_date;
 			if (!grouped[d]) grouped[d] = [];
-			grouped[d]!.push(a);
+			grouped[d].push(a);
 		});
 		return Object.entries(grouped).map(([date, items]) => ({
 			title: moment(date).format('dddd, MMM D'),

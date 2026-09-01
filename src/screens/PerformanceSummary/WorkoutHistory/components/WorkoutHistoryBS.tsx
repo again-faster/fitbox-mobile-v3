@@ -116,7 +116,7 @@ const WorkoutHistoryBS = ({
 					showResults[slug] = [];
 				}
 
-				showResults[slug]!.push(d);
+				showResults[slug].push(d);
 			}
 		});
 
@@ -131,7 +131,7 @@ const WorkoutHistoryBS = ({
 
 		Object.keys(showResults).forEach(movement_type => {
 			if (showResults[movement_type]) {
-				showResults[movement_type]!.forEach(mov => {
+				showResults[movement_type].forEach(mov => {
 					if (mov.one_rm && !oneRMs[movement_type]) {
 						oneRMs[movement_type] = mov.one_rm;
 					}

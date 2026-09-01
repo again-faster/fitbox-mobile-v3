@@ -101,7 +101,7 @@ const WODPastPerformance = ({
 				const slug = d.movement_name!.replace(/ /g, '_');
 				if (slug) {
 					if (!showResults[slug]) showResults[slug] = [];
-					showResults[slug]!.push(d);
+					showResults[slug].push(d);
 				}
 			});
 		} else {
@@ -136,9 +136,7 @@ const WODPastPerformance = ({
 					<Spacer size="sm" />
 
 					{oneRMs[movement] && (
-						<OneRMComponent
-							weight={oneRMs[movement]?.weight as number}
-						/>
+						<OneRMComponent weight={oneRMs[movement]?.weight} />
 					)}
 
 					{hasData || oneRMs[movement] ? (

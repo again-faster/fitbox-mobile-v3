@@ -18,12 +18,14 @@ import {
 import { Constant, Func, Say } from '@/utils';
 import { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useQueryClient } from '@tanstack/react-query';
 import { isArray, isNaN, parseInt } from 'lodash';
 import {
 	MutableRefObject,
 	useCallback,
 	useEffect,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -79,6 +81,7 @@ interface ScoreComponentProps {
 	wod_id?: number | null;
 	date?: string;
 	fromCalendar?: boolean;
+	isEdit?: boolean;
 }
 
 const ScoreComponent = ({
@@ -91,6 +94,7 @@ const ScoreComponent = ({
 	wod_id = null,
 	date,
 	fromCalendar = false,
+	isEdit = false,
 }: ScoreComponentProps) => {
 	const {
 		allowComments,
@@ -106,12 +110,21 @@ const ScoreComponent = ({
 		scoringBottomSheet: state.scoringBottomSheet,
 	}));
 
+	const queryClient = useQueryClient();
+	const navigation = useNavigation();
+
 	// create input ref
 	const inputRefs: MutableRefObject<{
 		[key: string]: HTMLInputElement | null;
 	}> = { current: {} };
 
 	const keyboardVisible = Func.useKeyboardStatus();
+
+	useLayoutEffect(() => {
+		navigation.setOptions({
+			title: isEdit ? 'Edit Result' : 'Add Result',
+		});
+	}, [navigation, isEdit]);
 
 	const defaultLeaderboardVisible = allowComments ?? true;
 	const enableLeaderboardComment = sectionProp?.is_leaderboard ?? false;
@@ -168,7 +181,7 @@ const ScoreComponent = ({
 		enableLeaderboardComment,
 		hideOnLeaderboard: true,
 	});
-	const [isDeleting, setDeleting] = useState<boolean>(false);
+	// const [isDeleting, setDeleting] = useState<boolean>(false);
 	const [submitting, setSubmitting] = useState<boolean>(false);
 
 	/**
@@ -182,9 +195,6 @@ const ScoreComponent = ({
 	const [layoutHeight, setLayoutHeight] = useState(0);
 
 	const scoringFlexValue = scoringBottomSheet ? 0.59 : 1;
-
-	// eslint-disable-next-line no-console
-	console.log('@setDeleting', setDeleting);
 
 	const hideRxSwitch =
 		section.scoring_by === 'movement' || independentScoring; // 17, 20 for load/aggregate
@@ -462,7 +472,13 @@ const ScoreComponent = ({
 			// show toast if no pr
 			if (!hasPr) SimpleToast.show('Score Submitted!', SimpleToast.SHORT);
 
-			fetchScores();
+			// fetchScores();
+
+			if (sessionId && !independentScoring) {
+				void queryClient.invalidateQueries({
+					queryKey: ['sessionScores', sessionId],
+				});
+			}
 
 			// Check if there is a callback function
 			if (onSubmitCallback) {
@@ -518,13 +534,13 @@ const ScoreComponent = ({
 
 		if (movementId && newSection.movements[movementId]) {
 			if (record.reps) {
-				newSection.movements[movementId]!.reps = String(record.reps);
+				newSection.movements[movementId].reps = String(record.reps);
 			}
 
-			newSection.movements[movementId]!.scored = true;
-			newSection.movements[movementId]!.value = record.value;
-			newSection.movements[movementId]!.comments = record.comments;
-			newSection.movements[movementId]!.comment_leaderboard_visible =
+			newSection.movements[movementId].scored = true;
+			newSection.movements[movementId].value = record.value;
+			newSection.movements[movementId].comments = record.comments;
+			newSection.movements[movementId].comment_leaderboard_visible =
 				record?.comment_leaderboard_visible;
 		} else {
 			newSection.scored = true;
@@ -657,9 +673,10 @@ const ScoreComponent = ({
 						totalSec += isNaN(parseInt(sec)) ? 0 : parseInt(sec);
 					},
 				);
-
-				newSection.movements[movementId]!.value =
-					`${totalMin}:${totalSec}`;
+				newSection.movements[movementId]!.value = checkValueFormat(
+					`${totalMin}:${totalSec}`,
+					'time',
+				) as string;
 			} else {
 				newSection.movements[movementId]!.value = `${val}:${time[1]}`;
 			}
@@ -674,10 +691,12 @@ const ScoreComponent = ({
 			newSection.seconds.forEach(sec => {
 				totalSec += isNaN(parseInt(sec)) ? 0 : parseInt(sec);
 			});
-
 			newSection = {
 				...newSection,
-				value: `${totalMin}:${totalSec}`,
+				value: checkValueFormat(
+					`${totalMin}:${totalSec}`,
+					'time',
+				) as string,
 			};
 		} else {
 			newSection = {
@@ -745,9 +764,10 @@ const ScoreComponent = ({
 				newSection.movements[movementId]!.seconds.forEach(sec => {
 					totalSec += isNaN(parseInt(sec)) ? 0 : parseInt(sec);
 				});
-
-				newSection.movements[movementId]!.value =
-					`${totalMin}:${totalSec}`;
+				newSection.movements[movementId]!.value = checkValueFormat(
+					`${totalMin}:${totalSec}`,
+					'time',
+				) as string;
 			} else {
 				newSection.movements[movementId]!.value = `${time[0]}:${val}`;
 			}
@@ -767,7 +787,10 @@ const ScoreComponent = ({
 
 			newSection = {
 				...newSection,
-				value: `${totalMin}:${totalSec}`,
+				value: checkValueFormat(
+					`${totalMin}:${totalSec}`,
+					'time',
+				) as string,
 			};
 		} else {
 			newSection = {
@@ -1133,7 +1156,7 @@ const ScoreComponent = ({
 
 						{editMode && independentScoring && (
 							<Button
-								loading={isDeleting}
+								// loading={isDeleting}
 								// TODO: Do this
 								// onPress={() => this.handleDeletePress()}
 								style={styles.removeButton}

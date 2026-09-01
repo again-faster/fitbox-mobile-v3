@@ -1,10 +1,14 @@
 // TODO: create a util function for moment-timezone with the user's timezone
 import useAuth from '@/auth/hooks/useAuth';
 import { ScrollView } from '@/components/atoms';
+import { QUERY_STALE_TIME } from '@/query/cachePolicy';
+import queryClient from '@/query/queryClient';
+import queryKeys from '@/query/queryKeys';
 import { getBookedSessions } from '@/services/users';
 import { config } from '@/theme/_config';
 import { Say } from '@/utils';
 import { ICatchError } from '@/utils/Say';
+import useStore from '@/zustand/Store';
 import moment from 'moment-timezone';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
@@ -19,23 +23,31 @@ const BookingScreen = () => {
 		BookedSessionCardProps[]
 	>([]);
 	const { user } = useAuth();
+	const teamId = useStore(state => state.teamId);
 	const timezone = user?.user_data.dob.timezone as string;
 
 	useEffect(() => {
 		void getUpcomingSessions();
-	}, []);
+	}, [user?.user_data.user_id, teamId]);
 
 	const onRefresh = () => {
-		void getUpcomingSessions();
+		void getUpcomingSessions(true);
 	};
 
-	const getUpcomingSessions = async () => {
+	const getUpcomingSessions = async (force = false) => {
 		setLoading(true);
 		const memberSessions: BookedSessionCardProps[] = [];
 
 		try {
+			const userId = user?.user_data.user_id;
+			if (!userId) return;
+
 			// let res = await RestService.getNextSessions(selectedClassIds.length ? selectedClassIds.join() : null);
-			const res = await getBookedSessions();
+			const res = await queryClient.fetchQuery({
+				queryKey: queryKeys.upcomingBookings(userId, teamId),
+				queryFn: getBookedSessions,
+				staleTime: force ? 0 : QUERY_STALE_TIME.SHORT,
+			});
 
 			if (res.data && res.data.length > 0) {
 				// Parse the response data

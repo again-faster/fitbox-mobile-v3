@@ -43,7 +43,7 @@ const Maxes = () => {
 		data.forEach((rm: AthleteRM) => {
 			const { name } = rm.movements;
 			if (!grouped[name]) grouped[name] = [];
-			grouped[name]!.push(rm);
+			grouped[name].push(rm);
 		});
 		return Object.entries(grouped).map(([name, items]) => ({
 			title: name,

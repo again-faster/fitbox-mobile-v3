@@ -9,6 +9,7 @@ import {
 	setupPaymentIntent,
 } from '@/services/payment';
 import { getSubscriptionInfo } from '@/services/subscription';
+import getUserGymInfo from '@/services/users/getUserGymInfo';
 import { config } from '@/theme/_config';
 import stripeLogo from '@/theme/assets/images/stripe-logo.png';
 import layout from '@/theme/layout';
@@ -51,14 +52,21 @@ type PaymentStateType = {
 	country: string | undefined;
 };
 
+type QueryParamsTypes = {
+	cs: string;
+	pmt: string;
+	uid: number;
+};
+
 const PaymentInformation = ({
 	route,
 }: MenuStackNavigatorProps | ApplicationScreenProps) => {
 	const routeParams = route.params as PaymentInformationParams;
 	const { user, updateUser, getApiUrl } = useAuth();
 	const currentApi = getApiUrl();
-	const { countryCode } = useStore(state => ({
+	const { countryCode, setAppState } = useStore(state => ({
 		countryCode: state.countryCode,
+		setAppState: state.setAppState,
 	}));
 
 	const [state, setState] = useState<PaymentStateType>({
@@ -69,14 +77,31 @@ const PaymentInformation = ({
 		name: '',
 		country: 'AU',
 	});
-
+	const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 	const [setupPaymentId, setSetupPaymentId] = useState<string>();
 	const [allowSkip, setAllowSkip] = useState<boolean>(true);
+
+	let showNzDirectDebitOption = countryCode === 'NZ';
+
+	const getGymInfo = async () => {
+		if (!countryCode && countryCode.length === 0) {
+			try {
+				const res = await getUserGymInfo();
+				if (!res.error) {
+					setAppState('countryCode', res.gym_info.country);
+					showNzDirectDebitOption = res.gym_info.country === 'NZ';
+				}
+			} catch (e) {
+				console.log(e);
+			}
+		}
+	};
 
 	useEffect(() => {
 		void (async () => {
 			await checkSubscription();
 			await getPaymentInfoFn();
+			await getGymInfo();
 		})();
 	}, []);
 
@@ -170,6 +195,20 @@ const PaymentInformation = ({
 				},
 			});
 
+			const queryParams: QueryParamsTypes = {
+				cs: res.clientSecret || '',
+				pmt: JSON.stringify(['nz_bank_account']),
+				uid: user?.user_data.user_id as number,
+			};
+			const url = `${currentApi}/payments?${Object.keys(queryParams)
+				.map(
+					key =>
+						`${key}=${queryParams[key as keyof QueryParamsTypes]}`,
+				)
+				.join('&')}`;
+
+			setPaymentUrl(url);
+
 			if (res.id) {
 				setSetupPaymentId(res.id);
 			}
@@ -186,48 +225,52 @@ const PaymentInformation = ({
 		void openPaymentSheet();
 	};
 
+	const handleConfirmSetupIntent = async () => {
+		await confirmSetupIntent(setupPaymentId as string)
+			.then(() => {
+				SimpleToast.show(
+					'Successfully Added/Updated Payment Details',
+					SimpleToast.SHORT,
+				);
+
+				// update session
+				updateUser({
+					...user?.user_data,
+					has_payment_details: 1,
+				} as UserSchemaType);
+
+				if (
+					routeParams?.onSuccessCallback &&
+					typeof routeParams?.onSuccessCallback === 'function'
+				) {
+					goBack();
+
+					setTimeout(() => {
+						routeParams?.onSuccessCallback!();
+					}, 500);
+				}
+
+				if (routeParams?.setup) {
+					void handleSkip();
+				}
+
+				void getPaymentInfoFn();
+			})
+			.catch(e => {
+				Say.err(e as ICatchError);
+			})
+			.finally(() => {
+				void setUpPaymentIntent();
+			});
+	};
+
 	const openPaymentSheet = async () => {
 		const { error } = await presentPaymentSheet();
 
 		if (error) {
 			console.log(error);
 		} else {
-			await confirmSetupIntent(setupPaymentId as string)
-				.then(() => {
-					SimpleToast.show(
-						'Successfully Added/Updated Payment Details',
-						SimpleToast.SHORT,
-					);
-
-					// update session
-					updateUser({
-						...user?.user_data,
-						has_payment_details: 1,
-					} as UserSchemaType);
-
-					if (
-						routeParams?.onSuccessCallback &&
-						typeof routeParams?.onSuccessCallback === 'function'
-					) {
-						goBack();
-
-						setTimeout(() => {
-							routeParams?.onSuccessCallback!();
-						}, 500);
-					}
-
-					if (routeParams?.setup) {
-						void handleSkip();
-					}
-
-					void getPaymentInfoFn();
-				})
-				.catch(e => {
-					Say.err(e as ICatchError);
-				})
-				.finally(() => {
-					void setUpPaymentIntent();
-				});
+			void handleConfirmSetupIntent();
 		}
 	};
 
@@ -256,15 +299,25 @@ const PaymentInformation = ({
 				hasPaymentMethod: false,
 			});
 		} else {
+			let methodLabel = 'BECS Direct Debit';
+			let lastDigits;
+
+			if (method === 'card') {
+				methodLabel = 'Credit Card';
+				lastDigits = res?.card?.last4;
+			} else if (method === 'nz-direct-debit') {
+				methodLabel = 'NZ Direct Debit';
+				lastDigits = (res as PaymentMethodType)?.nz_bank_account?.last4;
+			} else {
+				lastDigits = (res as PaymentMethodType)?.au_becs_debit?.last4;
+			}
+
 			setState({
 				...state,
 				isLoading: false,
 				hasPaymentMethod: true,
-				method: method === 'card' ? 'Credit Card' : 'BECS Direct Debit',
-				lastDigits:
-					method === 'card'
-						? res?.card?.last4
-						: (res as PaymentMethodType)?.au_becs_debit?.last4,
+				method: methodLabel,
+				lastDigits: lastDigits ?? '',
 				name:
 					(res as PaymentMethodType)?.billing_details?.name ||
 					(res as CardDetailsType)?.card.name,
@@ -360,26 +413,47 @@ const PaymentInformation = ({
 				source={stripeLogo as ImageSourcePropType}
 				resizeMode="contain"
 			/>
-
 			<Spacer size="md" />
 			{renderPaymentInfo}
-
 			<Spacer size="lg" />
-
 			<Button
 				title={
 					routeParams?.setup ||
 					(state.method === '' && state.lastDigits === '')
-						? 'Add Payment Details'
-						: 'Add/Update Payment Details'
+						? 'Add Credit Card'
+						: 'Add/Update Credit Card'
 				}
 				style={styles.buttonColor}
 				labelStyle={styles.buttonTextStyle}
 				onPress={() => void handleAddPaymentClick()}
 			/>
 
-			<Spacer />
+			{showNzDirectDebitOption && (
+				<>
+					<Spacer size="xs" />
 
+					<Button
+						title={
+							routeParams?.setup ||
+							(state.method === '' && state.lastDigits === '')
+								? 'Add Direct Debit'
+								: 'Add/Update Direct Debit'
+						}
+						style={styles.buttonColor}
+						labelStyle={styles.buttonTextStyle}
+						onPress={() =>
+							navigate('OtherPaymentOptions', {
+								paymentURL: paymentUrl as string,
+								onSuccessCallback: () => {
+									void handleConfirmSetupIntent();
+								},
+								fromPaymentInformation: !routeParams?.setup,
+							})
+						}
+					/>
+				</>
+			)}
+			<Spacer />
 			{renderSkipButton}
 		</View>
 	);

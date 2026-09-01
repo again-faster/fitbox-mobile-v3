@@ -4,7 +4,7 @@ import { ThemeProvider } from '@/theme';
 import NotificationService from '@/utils/NotificationService';
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import * as Sentry from '@sentry/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import DeviceInfo from 'react-native-device-info';
 import { Platform } from 'react-native';
 import { useEffect } from 'react';
@@ -18,6 +18,7 @@ import KeyboardVisibilityProvider from './context/KeyboardProvider';
 import SwitchableUserProvider from './context/SwitchableUser';
 import { WorkoutStudioProvider } from './context/WorkoutStudioProvider';
 import ApplicationNavigator from './navigators/Application';
+import queryClient from './query/queryClient';
 import { mmkvStorage } from './storage';
 import layout from './theme/layout';
 import './translations';
@@ -44,7 +45,6 @@ Sentry.init({
 	// enableSpotlight: __DEV__,
 });
 
-const queryClient = new QueryClient();
 const isPreviewIosBuild =
 	Platform.OS === 'ios' &&
 	DeviceInfo.getBundleId() === 'com.againfaster.fitbox.preview';
