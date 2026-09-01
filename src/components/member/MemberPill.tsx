@@ -1,12 +1,18 @@
 import { memberTheme } from '@/theme/member';
-import { Pressable, StyleSheet } from 'react-native';
-import MemberText from './MemberText';
+import {
+	StyleProp,
+	StyleSheet,
+	Text,
+	TouchableOpacity,
+	type ViewStyle,
+} from 'react-native';
 
 interface MemberPillProps {
 	label: string;
 	selected?: boolean;
 	onPress: () => void;
 	accessibilityLabel?: string;
+	style?: StyleProp<ViewStyle>;
 }
 
 const MemberPill = ({
@@ -14,26 +20,25 @@ const MemberPill = ({
 	selected = false,
 	onPress,
 	accessibilityLabel,
+	style,
 }: MemberPillProps) => (
-	<Pressable
-		style={[styles.pill, selected && styles.selected]}
+	<TouchableOpacity
+		style={[styles.pill, style, selected && styles.selected]}
 		onPress={onPress}
+		activeOpacity={0.8}
 		accessibilityRole="button"
 		accessibilityLabel={accessibilityLabel ?? label}
 		accessibilityState={{ selected }}
 	>
-		<MemberText
-			variant="label"
-			style={[styles.label, selected && styles.selectedLabel]}
-		>
+		<Text style={[styles.label, selected && styles.selectedLabel]}>
 			{label}
-		</MemberText>
-	</Pressable>
+		</Text>
+	</TouchableOpacity>
 );
 
 const styles = StyleSheet.create({
 	pill: {
-		minHeight: memberTheme.controls.minTouchTarget,
+		minHeight: 42,
 		paddingHorizontal: memberTheme.spacing.lg,
 		borderRadius: memberTheme.radius.pill,
 		alignItems: 'center',
@@ -41,11 +46,12 @@ const styles = StyleSheet.create({
 		backgroundColor: memberTheme.colors.surfaceSoft,
 	},
 	selected: {
-		backgroundColor: memberTheme.colors.ink,
+		backgroundColor: memberTheme.colors.primary,
 	},
 	label: {
-		...memberTheme.typography.label,
 		color: memberTheme.colors.primaryInk,
+		fontSize: 14,
+		fontWeight: '600',
 	},
 	selectedLabel: {
 		color: memberTheme.colors.surface,

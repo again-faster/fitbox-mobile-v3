@@ -130,7 +130,7 @@ const AcceptedWaiversScreen = ({ navigation }: MenuStackNavigatorProps) => {
 					<Icon
 						name="file-check-outline"
 						size={24}
-						color={memberTheme.colors.primaryDeep}
+						color={memberTheme.colors.memberAction}
 					/>
 				</View>
 				<View style={style.waiverCopy}>
@@ -158,7 +158,7 @@ const AcceptedWaiversScreen = ({ navigation }: MenuStackNavigatorProps) => {
 				<Icon
 					name="shield-check-outline"
 					size={26}
-					color={memberTheme.colors.primaryDeep}
+					color={memberTheme.colors.memberAction}
 				/>
 			</View>
 			<View style={style.headerCopy}>
@@ -271,7 +271,7 @@ const style = StyleSheet.create({
 		minWidth: 68,
 	},
 	viewButtonLabel: {
-		color: memberTheme.colors.primaryDeep,
+		color: memberTheme.colors.primaryInk,
 		fontSize: 12,
 		textTransform: 'none',
 	},

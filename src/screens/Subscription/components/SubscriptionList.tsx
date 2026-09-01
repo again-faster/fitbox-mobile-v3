@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
 		minWidth: 64,
 	},
 	viewButtonLabel: {
-		color: memberTheme.colors.primaryDeep,
+		color: memberTheme.colors.primaryInk,
 		fontSize: 12,
 		textTransform: 'none',
 	},

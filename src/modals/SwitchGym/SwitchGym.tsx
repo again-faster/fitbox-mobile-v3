@@ -141,9 +141,9 @@ const SwitchGym = () => {
 						<Icon
 							name="plus"
 							size={20}
-							color={config.backgrounds.light}
+							color={memberTheme.colors.memberActionForeground}
 						/>
-						<Text style={styles.addGymText} color="light" bold>
+						<Text style={styles.addGymText} bold>
 							Add Gym
 						</Text>
 					</Row>
@@ -177,7 +177,7 @@ const SwitchGym = () => {
 					<Icon
 						name="home-city-outline"
 						size={24}
-						color={memberTheme.colors.primaryDeep}
+						color={memberTheme.colors.memberAction}
 					/>
 				</View>
 				<View style={styles.introCopy}>
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
 	},
 	addGymCon: {
 		height: 52,
-		backgroundColor: memberTheme.colors.primaryDeep,
+		backgroundColor: memberTheme.colors.memberAction,
 		borderRadius: memberTheme.radius.md,
 		justifyContent: 'center',
 		alignItems: 'center',
@@ -251,6 +251,7 @@ const styles = StyleSheet.create({
 		...memberTheme.shadow,
 	},
 	addGymText: {
+		color: memberTheme.colors.memberActionForeground,
 		fontSize: 15,
 		marginHorizontal: config.metrics.xs,
 	},

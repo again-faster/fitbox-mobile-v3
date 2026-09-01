@@ -1,4 +1,4 @@
-import { MemberText } from '@/components/member';
+import { Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import { memberTheme } from '@/theme/member';
 import { StyleSheet, View } from 'react-native';
@@ -18,9 +18,13 @@ const DashboardActionButton = ({
 	text,
 	icon,
 }: DashboardActionButtonProps) => {
-	const stringHasOneWord = text.split(' ').length === 1;
 	return (
-		<TouchableRipple onPress={onPress} style={styles.container}>
+		<TouchableRipple
+			onPress={onPress}
+			style={styles.container}
+			accessibilityRole="button"
+			accessibilityLabel={text}
+		>
 			<View style={styles.tileContainer}>
 				<View style={styles.tileIconContainer}>
 					<Icon
@@ -31,13 +35,14 @@ const DashboardActionButton = ({
 				</View>
 
 				<View style={styles.tileTextContainer}>
-					<MemberText
-						variant="label"
-						numberOfLines={stringHasOneWord ? 1 : 2}
+					<Text
+						size="md"
+						bold
+						numberOfLines={2}
 						style={styles.tileText}
 					>
 						{text}
-					</MemberText>
+					</Text>
 				</View>
 			</View>
 		</TouchableRipple>
@@ -48,39 +53,36 @@ export default DashboardActionButton;
 
 const styles = StyleSheet.create({
 	container: {
-		width: '48%',
+		width: '100%',
 		borderWidth: 1,
 		borderColor: memberTheme.colors.border,
-		backgroundColor: memberTheme.colors.surface,
-		flexWrap: 'wrap',
-		paddingVertical: memberTheme.spacing.xs,
-		paddingHorizontal: memberTheme.spacing.sm,
+		backgroundColor: memberTheme.colors.surfaceSoft,
+		padding: memberTheme.spacing.md,
 		borderRadius: memberTheme.radius.md,
 		justifyContent: 'center',
-		minHeight: 56,
-		marginBottom: memberTheme.spacing.sm,
+		minHeight: 104,
 		...memberTheme.shadow,
 	},
 	tileTextContainer: {
-		flex: 1,
+		width: '100%',
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
 	tileIconContainer: {
 		justifyContent: 'center',
 		alignItems: 'center',
-		marginRight: memberTheme.spacing.sm,
-		width: 36,
-		height: 36,
+		marginBottom: memberTheme.spacing.sm,
+		width: 44,
+		height: 44,
 		borderRadius: memberTheme.radius.sm,
-		backgroundColor: memberTheme.colors.surfaceSoft,
+		backgroundColor: memberTheme.colors.surface,
 	},
 	tileContainer: {
-		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
 	tileText: {
-		flex: 1,
-		textAlign: 'left',
+		textAlign: 'center',
 		color: memberTheme.colors.primaryInk,
 	},
 });

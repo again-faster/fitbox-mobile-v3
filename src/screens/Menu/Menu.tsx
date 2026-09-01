@@ -290,7 +290,7 @@ const Menu = ({ navigation }: MenuScreenProps) => {
 				<FontAwesomeIcon
 					name={item.icon}
 					style={styles.menuOptionIcon}
-					color={memberTheme.colors.primaryDeep}
+					color={memberTheme.colors.memberAction}
 					size={15}
 				/>
 			);
@@ -299,7 +299,7 @@ const Menu = ({ navigation }: MenuScreenProps) => {
 				<Ionicons
 					name={item.icon}
 					style={[styles.menuOptionIcon, styles.menuOptionIonic]}
-					color={memberTheme.colors.primaryDeep}
+					color={memberTheme.colors.memberAction}
 					size={21}
 				/>
 			);
@@ -342,7 +342,7 @@ const Menu = ({ navigation }: MenuScreenProps) => {
 					<Ionicons
 						name="options-outline"
 						size={26}
-						color={memberTheme.colors.primaryDeep}
+						color={memberTheme.colors.memberAction}
 					/>
 				</View>
 				<View style={layout.flex_1}>

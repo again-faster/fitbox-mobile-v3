@@ -117,7 +117,7 @@ describe('training member feature route policy', () => {
 		},
 	);
 
-	it('filters only class navigation surfaces when classes are disabled', () => {
+	it('keeps legacy class navigation surfaces available when classes are disabled', () => {
 		const routes = [
 			'Calendar',
 			'Bookings',
@@ -130,21 +130,16 @@ describe('training member feature route policy', () => {
 
 		expect(
 			routes.filter(route => shouldShowMemberSurface(route, false)),
-		).toEqual([
-			'TrainingToday',
-			'TrainingDay',
-			'TrainingWorkouts',
-			'TrainingWorkoutDetail',
-		]);
+		).toEqual(routes);
 		expect(
 			routes.filter(route => shouldShowMemberSurface(route, true)),
 		).toEqual(routes);
 	});
 
-	it('omits only Calendar from main tabs when classes are disabled', () => {
+	it('keeps Calendar in the main tabs when classes are disabled', () => {
 		const disabledRoutes = getVisibleMainTabRoutes(false);
 
-		expect(disabledRoutes).not.toContain('Calendar');
+		expect(disabledRoutes).toContain('Calendar');
 		expect(disabledRoutes).toContain('TrainingStack');
 		expect(disabledRoutes).toContain('DashboardStack');
 		expect(getVisibleMainTabRoutes(true)).toEqual([
@@ -157,7 +152,7 @@ describe('training member feature route policy', () => {
 		]);
 	});
 
-	it('filters dashboard class entries without removing results or training', () => {
+	it('keeps dashboard class entries alongside results and training', () => {
 		const entries = [
 			{ id: 'calendar', route: 'Calendar' },
 			{ id: 'bookings', route: 'Bookings' },
@@ -168,14 +163,14 @@ describe('training member feature route policy', () => {
 
 		expect(
 			filterMemberSurfaceEntries(entries, false).map(entry => entry.id),
-		).toEqual(['results', 'training']);
+		).toEqual(['calendar', 'bookings', 'session', 'results', 'training']);
 		expect(filterMemberSurfaceEntries(entries, true)).toEqual(entries);
 	});
 
 	it.each(['Calendar', 'Bookings', 'Session'] as const)(
-		'requires the classes feature for the %s surface',
+		'keeps the Fitbox IQ %s surface outside Workout Studio feature gating',
 		route => {
-			expect(featureForMemberSurface(route)).toBe('classes');
+			expect(featureForMemberSurface(route)).toBeNull();
 		},
 	);
 
@@ -186,10 +181,8 @@ describe('training member feature route policy', () => {
 		},
 	);
 
-	it('resets a disabled current Calendar tab without disturbing training', () => {
-		expect(normalizeCurrentMainTab('Calendar', false)).toBe(
-			'DashboardStack',
-		);
+	it('keeps the legacy Calendar tab active without disturbing training', () => {
+		expect(normalizeCurrentMainTab('Calendar', false)).toBe('Calendar');
 		expect(normalizeCurrentMainTab('Calendar', true)).toBe('Calendar');
 		expect(normalizeCurrentMainTab('TrainingStack', false)).toBe(
 			'TrainingStack',

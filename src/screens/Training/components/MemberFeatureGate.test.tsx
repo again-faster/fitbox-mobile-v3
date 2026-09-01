@@ -91,7 +91,7 @@ describe('MemberFeatureGate', () => {
 	});
 
 	it.each(['Session', 'Bookings'] as const)(
-		'guards the %s route with the classes feature',
+		'renders the Fitbox IQ %s route without Workout Studio gating',
 		route => {
 			const isEnabled = mockFeatureEnabled(false);
 
@@ -101,14 +101,14 @@ describe('MemberFeatureGate', () => {
 				</MemberSurfaceGate>,
 			);
 
-			expect(isEnabled).toHaveBeenCalledWith('classes');
-			expect(screen.queryByText(`${route} content`)).toBeNull();
-			expect(screen.getByText('Feature unavailable')).toBeTruthy();
+			expect(isEnabled).not.toHaveBeenCalled();
+			expect(screen.getByText(`${route} content`)).toBeTruthy();
+			expect(screen.queryByText('Feature unavailable')).toBeNull();
 		},
 	);
 
-	it('renders an enabled class surface', () => {
-		const isEnabled = mockFeatureEnabled(true);
+	it('renders a class surface with the Workout Studio classes flag disabled', () => {
+		const isEnabled = mockFeatureEnabled(false);
 
 		render(
 			<MemberSurfaceGate route="Session">
@@ -116,7 +116,7 @@ describe('MemberFeatureGate', () => {
 			</MemberSurfaceGate>,
 		);
 
-		expect(isEnabled).toHaveBeenCalledWith('classes');
+		expect(isEnabled).not.toHaveBeenCalled();
 		expect(screen.getByText('enabled session')).toBeTruthy();
 	});
 

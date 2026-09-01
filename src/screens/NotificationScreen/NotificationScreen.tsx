@@ -1,4 +1,3 @@
-import { MemberCard, MemberText } from '@/components/member';
 import { Button, Row, Spacer, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
@@ -134,39 +133,28 @@ const NotificationScreen = () => {
 
 	return (
 		<View style={styles.container}>
-			<MemberCard elevated={false} style={styles.headerCard}>
+			<View style={styles.headerCard}>
 				<View style={styles.headerIcon}>
 					<Icon
 						name="bell-outline"
 						size={26}
-						color={memberTheme.colors.primaryDeep}
+						color={memberTheme.colors.memberAction}
 					/>
 				</View>
 				<View style={layout.flex_1}>
-					<MemberText
-						variant="sectionTitle"
-						style={styles.headerTitle}
-					>
+					<Text bold style={styles.headerTitle}>
 						Stay in the loop
-					</MemberText>
+					</Text>
 					{!state?.enabled && (
-						<MemberText
-							variant="body"
-							muted
-							style={styles.headerText}
-						>
+						<Text size="sm" style={styles.headerText}>
 							Notifications are currently turned off. Please
 							enable them to receive important gym updates.
-						</MemberText>
+						</Text>
 					)}
 					{state?.enabled && (
-						<MemberText
-							variant="body"
-							muted
-							style={styles.headerText}
-						>
+						<Text size="sm" style={styles.headerText}>
 							Choose which updates you want to receive.
-						</MemberText>
+						</Text>
 					)}
 				</View>
 				{!state?.enabled && (
@@ -174,12 +162,13 @@ const NotificationScreen = () => {
 						<Button
 							onPress={requestNotificationPermission}
 							style={styles.enableButton}
+							labelStyle={styles.enableButtonLabel}
 							mode="contained"
 							title="Turn on"
 						/>
 					</View>
 				)}
-			</MemberCard>
+			</View>
 			<Spacer size="lg" />
 
 			{state?.enabled && renderOptions()}
@@ -220,8 +209,11 @@ const styles = StyleSheet.create({
 	},
 	enableButton: {
 		alignSelf: 'flex-end',
-		backgroundColor: memberTheme.colors.primaryDeep,
+		backgroundColor: memberTheme.colors.memberAction,
 		borderRadius: memberTheme.radius.pill,
+	},
+	enableButtonLabel: {
+		color: memberTheme.colors.memberActionForeground,
 	},
 	optionSwitch: {
 		marginLeft: config.metrics.xl,

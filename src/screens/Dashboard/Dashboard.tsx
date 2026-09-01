@@ -16,7 +16,6 @@ import { navigate } from '@/navigators/NavigationRef';
 import {
 	filterMemberSurfaceEntries,
 	shouldShowMemberSurface,
-	type MemberSurfaceRoute,
 } from '@/screens/Training/features/memberFeatureRoutes';
 import { betaActive, savePushToken } from '@/services/auth';
 import { getGymClasses, getGymVenues } from '@/services/gym';
@@ -78,40 +77,20 @@ import { RESULTS, checkNotifications } from 'react-native-permissions';
 import PushNotification from 'react-native-push-notification';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
-import BookedSessionCard, {
-	BookedSessionCardProps,
-} from './components/BookedSessionCard';
-import DashboardActionButton from './components/DashboardActionButton';
+import { BookedSessionCardProps } from './components/BookedSessionCard';
+import DashboardActionGrid, {
+	getDashboardExploreActions,
+	getDashboardExploreNavigation,
+	type DashboardExploreAction,
+} from './components/DashboardActionGrid';
+import DashboardAttendanceRow from './components/DashboardAttendanceRow';
+import DashboardAttendanceMetric from './components/DashboardAttendanceMetric';
 import DashboardHeader from './components/DashboardHeader';
+import DashboardUpcomingSection from './components/DashboardUpcomingSection';
 import FailedInvoicesModal from './components/FailedInvoicesModal';
 import LoggedInUserInfo from './components/LoggedInUserInfo';
 import LoginNotification from './components/LoginNotification';
 import RequiredFieldsModal from './components/RequiredFieldsModal';
-
-// List of action buttons to be displayed on the dashboard screen
-const actionButtons: {
-	id: string;
-	icon: string;
-	text: string;
-	route: MemberSurfaceRoute;
-}[] = [
-	// {
-	// 	id: 'calendar',
-	// 	icon: 'calendar-alt',
-	// 	text: 'Book Class',
-	// },
-	// {
-	// 	id: 'wellness',
-	// 	icon: 'heart',
-	// 	text: 'Wellness',
-	// },
-	{
-		id: 'results',
-		icon: 'trophy',
-		text: 'My Results',
-		route: 'TrainingResults',
-	},
-];
 
 const { height } = Dimensions.get('window');
 const { metrics } = config;
@@ -142,6 +121,7 @@ const Dashboard = () => {
 
 	const {
 		setAppState,
+		shopUrl,
 		classFilters,
 		venueFilters,
 		pushToken,
@@ -163,6 +143,7 @@ const Dashboard = () => {
 		teamId,
 	} = useStore(state => ({
 		setAppState: state.setAppState,
+		shopUrl: state.shopUrl,
 		classFilters: state.classFilters,
 		venueFilters: state.venueFilters,
 		setClassFilters: state.setClassFilters,
@@ -216,9 +197,6 @@ const Dashboard = () => {
 	const [showRequiredFieldsModal, setShowRequiredFieldsModal] =
 		useState<boolean>(false);
 
-	const [showAttendanceReportLabel, setShowAttendanceReportLabel] =
-		useState<boolean>(false);
-
 	const { hasSwitchableUsers } = useSwitchableUsers();
 	const classesEnabled = isEnabled('classes');
 	const showBookingsEntryPoints = shouldShowMemberSurface(
@@ -229,6 +207,13 @@ const Dashboard = () => {
 		'Session',
 		classesEnabled,
 	);
+	const classEntryPointsAvailable = shouldShowMemberSurface(
+		'Calendar',
+		classesEnabled,
+	);
+	const bookingEntryPointsAvailable =
+		isEnabled('bookings') || isEnabled('my_bookings');
+	const resultsEntryPointsAvailable = isEnabled('results');
 
 	const attendanceGoalKey = useMemo(() => {
 		const memberId = loggedInUser?.user_data.user_id;
@@ -389,7 +374,7 @@ const Dashboard = () => {
 
 			// set gym logo and banner
 			setGymLogo(gymInfo.logo);
-			setGymBanner(String(gymInfo.banner));
+			setGymBanner(String(gymInfo.banner ?? ''));
 
 			setShowAttendanceReport(gymInfo.allow_attendance_report);
 			setAttendanceFilter(gymInfo.mobile_dashboard_type);
@@ -715,24 +700,10 @@ const Dashboard = () => {
 		NotificationService.setGymFetcher(initializeAppStates);
 	}, []);
 
-	useEffect(() => {
-		const checkIfPressed = () => {
-			const version = DeviceInfo.getVersion();
-			const key = `hasPressedAttendanceReport_${version}`;
-			const hasPressed = mmkvStorage.getBoolean(key);
-			if (!hasPressed) {
-				setShowAttendanceReportLabel(true);
-			}
-		};
-
-		checkIfPressed();
-	}, []);
-
 	const handleAttendancePress = () => {
 		const version = DeviceInfo.getVersion();
 		const key = `hasPressedAttendanceReport_${version}`;
 		mmkvStorage.set(key, true);
-		setShowAttendanceReportLabel(false);
 		navigate('Attendance');
 	};
 
@@ -867,31 +838,36 @@ const Dashboard = () => {
 				screen: 'TrainingStack',
 				params: { screen: 'TrainingResults' },
 			});
-		} else {
-			Alert.alert('Coming soon', `${navTo} screen`);
 		}
 	};
 
-	const renderActionButtons = useMemo(
+	const exploreActions = useMemo(
 		() =>
-			filterMemberSurfaceEntries(actionButtons, classesEnabled).map(
-				({ id, text, icon }) => {
-					const hideButton = false;
-					// const hideButton = id === 'results' && allow_leaderboards; // TODO: Hide button when results is disabled for gym
-
-					return !hideButton ? (
-						<DashboardActionButton
-							key={id}
-							text={text}
-							icon={icon}
-							onPress={() => onActionButtonClick(id)}
-							// onPress={() => onActionButtonClick(id)} // TODO: use this once screens are implemented
-						/>
-					) : null;
-				},
+			getDashboardExploreActions(
+				Boolean(shopUrl),
+				classEntryPointsAvailable,
+				bookingEntryPointsAvailable,
+				resultsEntryPointsAvailable,
 			),
-		[classesEnabled],
+		[
+				bookingEntryPointsAvailable,
+				classEntryPointsAvailable,
+				resultsEntryPointsAvailable,
+				shopUrl,
+			],
 	);
+
+	const onExploreActionPress = (action: DashboardExploreAction) => {
+		if (action.destination.tab === 'TrainingStack') {
+			navigate('Main', {
+				screen: 'TrainingStack',
+				params: { screen: action.destination.screen },
+			});
+			return;
+		}
+
+		navigate('Main', getDashboardExploreNavigation(action.destination));
+	};
 
 	const visiblePresetFilters = useMemo(
 		() =>
@@ -903,9 +879,9 @@ const Dashboard = () => {
 							? ('TrainingResults' as const)
 							: ('Calendar' as const),
 				})),
-				classesEnabled,
+				classEntryPointsAvailable,
 			).map(({ item }) => item),
-		[classFiltersDataState, classesEnabled],
+		[classFiltersDataState, classEntryPointsAvailable],
 	);
 
 	const onPresetFilterClick = (data: ClassFiltersDataType) => {
@@ -934,51 +910,42 @@ const Dashboard = () => {
 		navigate('Calendar');
 	};
 
-	const renderPresetFilters = (item: ClassFiltersDataType) => {
+	const renderPresetFilter = (item: ClassFiltersDataType) => {
 		const isLeaderboard = item.name === 'Leaderboard';
 		const onPress = isLeaderboard
 			? () => onActionButtonClick('results')
 			: () => onPresetFilterClick(item);
 
 		return (
-			<DashboardActionButton
+			<TouchableOpacity
 				key={isLeaderboard ? 'leaderboard' : item.id}
-				text={item.name}
-				icon={isLeaderboard ? 'trophy' : 'calendar-alt'}
 				onPress={onPress}
-			/>
+				accessibilityRole="button"
+				accessibilityLabel={`Class filter ${item.name}`}
+				style={styles.filterChip}
+			>
+				<Icon
+					name={isLeaderboard ? 'trophy-outline' : 'calendar-outline'}
+					size={18}
+					color={memberTheme.colors.primary}
+				/>
+				<Text size="sm" style={styles.filterChipText} numberOfLines={1}>
+					{item.name}
+				</Text>
+			</TouchableOpacity>
 		);
 	};
 
-	const thisStyle = {
-		flex: 1,
-		paddingLeft:
-			attendanceReportState?.monthToDate?.toString().length === 1 &&
-			attendanceReportState?.yearToDate?.toString().length === 1 &&
-			attendanceReportState?.lifetime?.toString().length === 1
-				? 40
-				: 0,
-	};
-	const yearLeftPadding: number =
-		attendanceReportState.yearToDate?.toString().length === 1 ? 20 : 0;
 	const monthAttendance = attendanceReportState.monthToDate ?? 0;
 	const monthlyGoalProgress = monthlyAttendanceGoal
 		? Math.min(monthAttendance / monthlyAttendanceGoal, 1)
 		: 0;
-	const getMonthAttendanceStatStyle = () => {
-		if (monthlyAttendanceGoal && attendanceFilter.length === 3) {
-			return styles.monthlyGoalStat;
-		}
-
-		if (
-			attendanceFilter.length <= 2 ||
-			attendanceReportState.monthToDate.toString().length === 1
-		) {
-			return layout.flex_1;
-		}
-
-		return styles.monthToDate;
-	};
+	const renderedAttendanceMetricCount = ['month', 'year', 'alltime'].filter(
+		metric => attendanceFilter.includes(metric),
+	).length;
+	const compactMonthlyGoalMetric = Boolean(
+		monthlyAttendanceGoal && renderedAttendanceMetricCount === 3,
+	);
 
 	const renderDashboardComponents = () => {
 		return (
@@ -988,14 +955,14 @@ const Dashboard = () => {
 					spacing="space-between"
 					style={styles.greetingRow}
 				>
-					<View>
+					<View style={styles.greetingCopy}>
 						<Text bold size="xxl">
 							{t('dashboard:sessions.member.greeting', {
 								name: user?.user_data.first_name ?? '',
 							})}
 						</Text>
-						<Text style={styles.greetingSubtitle}>
-							Here is your training at a glance
+						<Text size="md" style={styles.greetingSubtitle}>
+							Let’s keep the momentum going 💪
 						</Text>
 					</View>
 
@@ -1030,183 +997,103 @@ const Dashboard = () => {
 							<TouchableOpacity
 								style={styles.attendanceCard}
 								onPress={handleAttendancePress}
+								accessibilityRole="button"
+								accessibilityLabel="View attendance details"
 							>
-								{showAttendanceReportLabel && (
-									<Row
-										spacing="space-between"
-										align="flex-end"
-									>
-										<Text
-											bold
-											style={{
-												marginBottom: config.metrics.sm,
-											}}
-										>
-											Attendance:
-										</Text>
-										<Text
-											size="sm"
-											style={styles.viewAttendance}
-										>
-											View details
-										</Text>
-									</Row>
-								)}
-
-								<Row
-									spacing="space-evenly"
-									style={[
-										styles.attendanceStats,
-										!showAttendanceReportLabel
-											? styles.attendanceStatsCompact
-											: null,
-									]}
-								>
+								<DashboardAttendanceRow>
 									{attendanceFilter.includes('month') && (
-										<View
-											style={getMonthAttendanceStatStyle()}
-										>
-											<Row align="center">
-												{monthlyAttendanceGoal ? (
-													<MemberProgressRing
-														progress={
-															monthlyGoalProgress
-														}
-														size={38}
-														strokeWidth={3}
-														trackColor={
-															memberTheme.colors
-																.surfaceSoft
-														}
-													>
-														<Text
-															style={
-																styles.goalAttendanceIcon
-															}
-															allowFontScaling={
-																false
-															}
-														>
-															🎯
-														</Text>
-													</MemberProgressRing>
-												) : (
-													<Image
-														source={
-															resources.icon
-																.monthToDate
-														}
-														style={
-															styles.attendanceIcon
-														}
-													/>
-												)}
-												<Text
-													style={[
-														styles.attendanceValue,
-														monthlyAttendanceGoal
-															? styles.monthlyGoalValue
-															: null,
-													]}
-													bold
-													allowFontScaling={false}
-												>
-													{monthlyAttendanceGoal
-														? `${monthAttendance} / ${monthlyAttendanceGoal}`
-														: monthAttendance}
-												</Text>
-											</Row>
-											<Text
-												size="rg"
-												style={styles.attendanceText}
-												allowFontScaling={false}
-											>
-												{monthlyAttendanceGoal
+										<DashboardAttendanceMetric
+											compact={compactMonthlyGoalMetric}
+											value={
+												monthlyAttendanceGoal
+													? `${monthAttendance} / ${monthlyAttendanceGoal}`
+													: String(monthAttendance)
+											}
+											label={
+												monthlyAttendanceGoal
 													? 'monthly goal'
-													: 'this month'}
-											</Text>
-										</View>
-									)}
-
-									{attendanceFilter.includes('year') && (
-										<View
-											style={
-												attendanceFilter.length <= 2 ||
-												attendanceReportState.yearToDate.toString()
-													.length === 1
-													? thisStyle
-													: {
-															...styles.monthToDate,
-															paddingLeft:
-																yearLeftPadding,
-														}
+													: 'this month'
+											}
+											valueStyle={
+												compactMonthlyGoalMetric
+													? styles.monthlyGoalCompactValue
+													: monthlyAttendanceGoal
+														? styles.monthlyGoalValue
+														: undefined
 											}
 										>
-											<Row align="flex-end">
+											{monthlyAttendanceGoal ? (
+												<MemberProgressRing
+													progress={
+														monthlyGoalProgress
+													}
+													size={
+														compactMonthlyGoalMetric
+															? 26
+															: 38
+													}
+													strokeWidth={3}
+													trackColor={
+														memberTheme.colors
+															.surfaceSoft
+													}
+												>
+													<Text
+														style={[
+															styles.goalAttendanceIcon,
+															compactMonthlyGoalMetric
+																? styles.compactGoalAttendanceIcon
+																: null,
+														]}
+														allowFontScaling={false}
+													>
+														🎯
+													</Text>
+												</MemberProgressRing>
+											) : (
 												<Image
 													source={
 														resources.icon
-															.yearToDate
+															.monthToDate
 													}
 													style={
 														styles.attendanceIcon
 													}
 												/>
-												<Text
-													style={
-														styles.attendanceValue
-													}
-													bold
-													allowFontScaling={false}
-												>
-													{
-														attendanceReportState.yearToDate
-													}
-												</Text>
-											</Row>
-											<Text
-												size="rg"
-												style={styles.attendanceText}
-												allowFontScaling={false}
-											>
-												this year
-											</Text>
-										</View>
+											)}
+										</DashboardAttendanceMetric>
+									)}
+
+									{attendanceFilter.includes('year') && (
+										<DashboardAttendanceMetric
+											value={String(
+												attendanceReportState.yearToDate,
+											)}
+											label="this year"
+										>
+											<Image
+												source={
+													resources.icon.yearToDate
+												}
+												style={styles.attendanceIcon}
+											/>
+										</DashboardAttendanceMetric>
 									)}
 
 									{attendanceFilter.includes('alltime') && (
-										<View style={thisStyle}>
-											<Row align="flex-end">
-												<Image
-													source={
-														resources.icon.trophy
-													}
-													style={
-														styles.attendanceIcon
-													}
-												/>
-												<Text
-													style={
-														styles.attendanceValue
-													}
-													bold
-													allowFontScaling={false}
-												>
-													{
-														attendanceReportState.lifetime
-													}
-												</Text>
-											</Row>
-											<Text
-												size="rg"
-												style={styles.attendanceText}
-												allowFontScaling={false}
-											>
-												all time
-											</Text>
-										</View>
+										<DashboardAttendanceMetric
+											value={String(
+												attendanceReportState.lifetime,
+											)}
+											label="all time"
+										>
+											<Image
+												source={resources.icon.trophy}
+												style={styles.attendanceIcon}
+											/>
+										</DashboardAttendanceMetric>
 									)}
-								</Row>
+								</DashboardAttendanceRow>
 							</TouchableOpacity>
 						)
 					))}
@@ -1216,48 +1103,21 @@ const Dashboard = () => {
 					isEmpty(upcomingSessionsState) ? (
 						<>
 							<Spacer size="md" />
-							<SkeletonView height={66} width="100%" />
-							<View style={styles.viewMoreButton}>
-								<SkeletonView height={17.2} width="40%" />
+							<View style={styles.upcomingSkeleton}>
+								<SkeletonView height={18} width="48%" />
+								<Spacer size="sm" />
+								<SkeletonView height={94} width="100%" />
 							</View>
 						</>
 					) : (
-						upcomingSessionsState.length > 0 && (
-							<>
-								<View style={styles.sectionHeadingRow}>
-									<Text
-										bold
-										style={styles.sectionHeadingText}
-									>
-										Coming up
-									</Text>
-								</View>
-								<View style={styles.bookedSessionsContainer}>
-									{upcomingSessionsState // show only 1
-										.slice(0, 1)
-										.map(({ ...rest }, i) => (
-											<BookedSessionCard
-												key={i}
-												{...rest}
-											/>
-										))}
-								</View>
-
-								{showBookingsEntryPoints &&
-									upcomingSessionsState.length > 1 && (
-										<TouchableOpacity
-											style={styles.viewMoreButton}
-											onPress={() => navigate('Bookings')}
-										>
-											<Text bold color="info">
-												{t(
-													'dashboard:sessions.member.viewAll',
-												)}
-											</Text>
-										</TouchableOpacity>
-									)}
-							</>
-						)
+						<DashboardUpcomingSection
+							sessions={upcomingSessionsState}
+							onViewAll={
+								showBookingsEntryPoints
+									? () => navigate('Bookings')
+									: undefined
+							}
+						/>
 					))}
 
 				{!presetFiltersIsLoaded && isEmpty(classFiltersDataState) ? (
@@ -1273,16 +1133,29 @@ const Dashboard = () => {
 								Explore
 							</Text>
 						</View>
-						<Row
-							spacing="space-between"
-							style={styles.presetFilters}
-						>
-							{isEmpty(classFiltersDataState) &&
-								renderActionButtons}
-							{visiblePresetFilters.map(item =>
-								renderPresetFilters(item),
-							)}
-						</Row>
+						<DashboardActionGrid
+							actions={exploreActions.map(action => ({
+								...action,
+								onPress: () => onExploreActionPress(action),
+							}))}
+						/>
+
+						{visiblePresetFilters.some(
+							item => item.name !== 'Leaderboard',
+						) ? (
+							<View style={styles.classFiltersSection}>
+								<Text bold style={styles.classFiltersHeading}>
+									Class filters
+								</Text>
+								<View style={styles.filterChips}>
+									{visiblePresetFilters
+										.filter(
+											item => item.name !== 'Leaderboard',
+										)
+										.map(renderPresetFilter)}
+								</View>
+							</View>
+						) : null}
 					</>
 				)}
 			</>
@@ -1370,136 +1243,63 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 	},
 	greetingRow: {
+		alignItems: 'flex-start',
 		marginBottom: memberTheme.spacing.md,
 	},
+	greetingCopy: {
+		flex: 1,
+		minWidth: 0,
+	},
 	greetingSubtitle: {
-		color: memberTheme.colors.textMuted,
 		marginTop: memberTheme.spacing.xs,
+		color: memberTheme.colors.textMuted,
 	},
 	attendanceCard: {
 		marginTop: memberTheme.spacing.sm,
-		marginBottom: memberTheme.spacing.sm,
+		marginBottom: memberTheme.spacing.md,
 		paddingHorizontal: memberTheme.spacing.lg,
-		paddingVertical: memberTheme.spacing.md,
+		paddingVertical: memberTheme.spacing.lg,
 		backgroundColor: memberTheme.colors.surface,
 		borderRadius: memberTheme.radius.lg,
 		borderWidth: 1,
 		borderColor: memberTheme.colors.border,
 		...memberTheme.shadow,
 	},
-	attendanceStats: {
-		paddingTop: memberTheme.spacing.sm,
-	},
-	attendanceStatsCompact: {
-		paddingTop: 0,
-	},
 	sectionHeadingRow: {
-		marginTop: memberTheme.spacing.md,
-		marginBottom: memberTheme.spacing.sm,
+		marginTop: memberTheme.spacing.lg,
+		marginBottom: memberTheme.spacing.md,
 	},
 	sectionHeadingText: {
-		fontSize: height < 750 ? 18 : config.fonts.metrics.lg,
+		fontSize: height < 750 ? 20 : 24,
 	},
-	bookedSessionsContainer: {
-		overflow: 'hidden',
+	upcomingSkeleton: {
+		marginTop: memberTheme.spacing.lg,
+		padding: memberTheme.spacing.md,
 		borderRadius: memberTheme.radius.lg,
 		backgroundColor: memberTheme.colors.surface,
-	},
-	rowButton: {
-		flexDirection: 'row',
-		borderTopWidth: 1,
-		borderBottomWidth: 1,
-		borderColor: '#F2F2F2',
-		paddingHorizontal: 15,
-		paddingVertical: 12,
-		alignItems: 'center',
-	},
-	headerStyle: {
-		flex: 1,
-		// backgroundColor: colors.info, // apply colors using useTheme
-		// height: headerHeight,
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-	},
-	headerSection: {
-		flex: 1,
-		justifyContent: 'center',
-	},
-	headerIconImage: {
-		height: 74,
-		width: 74,
-		textAlign: 'center',
-		paddingTop: '3%',
-		backgroundColor: 'white',
-		fontSize: height / 15,
-		// color: colors.darkgray, // apply colors using useTheme
-	},
-	headerImageBgStyle: {
-		// backgroundColor: colors.lightgrey, // apply colors using useTheme
-		height: height / 6,
-		justifyContent: 'space-between',
-		alignItems: 'center',
-		flexDirection: 'row',
-		padding: 12,
-		position: 'relative',
-	},
-	headerImageContainer: {
-		position: 'absolute',
-		bottom: '-25%',
-		left: 18,
-		// borderColor: colors.lightgrey, // apply colors using useTheme
 		borderWidth: 1,
-	},
-	noBannerHeaderImageContainer: {
-		marginLeft: 5,
-		marginBottom: 10,
-		marginTop: 5,
-		flex: 1,
-	},
-	noBannerHeaderImageStyle: {
-		// height: headerHeight / (isAndroid ? 1.2 : 1.7),
-		// width: headerHeight / (isAndroid ? 1.2 : 1.7),
-	},
-	noGymLogoContainer: {
-		margin: 5,
-		// height: headerHeight / (isAndroid ? 1.2 : 1.7),
-		// width: headerHeight / (isAndroid ? 1.2 : 1.7),
-		backgroundColor: 'white',
-		alignItems: 'center',
-		justifyContent: 'center',
-		flex: 1,
-	},
-	headerImageStyle: {
-		width: 74,
-		height: 74,
-	},
-	viewMoreButton: {
-		alignItems: 'flex-end',
-		backgroundColor: 'transparent',
-		paddingTop: memberTheme.spacing.sm,
-		paddingHorizontal: memberTheme.spacing.sm,
-	},
-	presetFilters: {
-		flexWrap: 'wrap',
+		borderColor: memberTheme.colors.border,
 	},
 	attendanceIcon: {
-		width: 25,
-		height: 25,
-		marginBottom: 5,
-		marginRight: 8,
+		width: 30,
+		height: 30,
+		marginRight: memberTheme.spacing.xs,
 	},
 	goalAttendanceIcon: {
 		fontSize: 20,
 		lineHeight: 24,
 	},
-	attendanceText: {
-		paddingBottom: 5,
-		marginLeft: config.metrics.sm,
-	},
-	attendanceValue: { fontSize: 28 },
 	monthlyGoalValue: {
 		fontSize: 23,
 		marginLeft: memberTheme.spacing.xs,
+	},
+	monthlyGoalCompactValue: {
+		fontSize: 17,
+		marginLeft: 0,
+	},
+	compactGoalAttendanceIcon: {
+		fontSize: 14,
+		lineHeight: 16,
 	},
 	switchIcon: {
 		position: 'absolute',
@@ -1510,16 +1310,35 @@ const styles = StyleSheet.create({
 		fontSize: config.fonts.metrics.xs,
 		...layout.shadowLight,
 	},
-	monthToDate: {
-		flex: 0.9,
+	classFiltersSection: {
+		marginTop: memberTheme.spacing.sm,
 	},
-	monthlyGoalStat: {
-		flex: 1.35,
+	classFiltersHeading: {
+		marginBottom: memberTheme.spacing.sm,
+		color: memberTheme.colors.primaryInk,
+	},
+	filterChips: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		gap: memberTheme.spacing.sm,
+	},
+	filterChip: {
+		maxWidth: '100%',
+		minHeight: 40,
+		flexDirection: 'row',
 		alignItems: 'center',
+		borderRadius: memberTheme.radius.pill,
+		borderWidth: 1,
+		borderColor: memberTheme.colors.border,
+		backgroundColor: memberTheme.colors.surface,
+		paddingHorizontal: memberTheme.spacing.md,
+		paddingVertical: memberTheme.spacing.sm,
+		...memberTheme.shadow,
 	},
-	viewAttendance: {
-		marginBottom: config.metrics.sm,
-		color: memberTheme.colors.primary,
+	filterChipText: {
+		marginLeft: memberTheme.spacing.xs,
+		color: memberTheme.colors.primaryInk,
+		flexShrink: 1,
 	},
 });
 

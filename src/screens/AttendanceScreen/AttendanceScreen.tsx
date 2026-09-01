@@ -1,91 +1,136 @@
-import { HR, Row, Spacer, Text } from '@/components/atoms';
+import { Text } from '@/components/atoms';
 import { MemberCard, MemberPill } from '@/components/member';
 import getAttendanceGraph from '@/services/leaderboards/getAttendanceGraph';
 import { config } from '@/theme/_config';
-import layout from '@/theme/layout';
 import { memberTheme } from '@/theme/member';
 import resources from '@/theme/resources';
-import { AttendanceGraphType } from '@/types/schemas/leaderboards';
+import type { DashboardParamList } from '@/types/navigation';
+import type { AttendanceGraphType } from '@/types/schemas/leaderboards';
 import { Say } from '@/utils';
-import { ICatchError } from '@/utils/Say';
+import type { ICatchError } from '@/utils/Say';
 import useStore from '@/zustand/Store';
-import { useEffect, useState } from 'react';
+import type { StackScreenProps } from '@react-navigation/stack';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
 	ActivityIndicator,
-	FlatList,
 	Image,
 	ScrollView,
+	StatusBar,
 	StyleSheet,
+	TouchableOpacity,
 	View,
+	useWindowDimensions,
 } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { Line } from 'react-native-svg';
 import { BarChart, XAxis, YAxis } from 'react-native-svg-charts';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AttendanceHeader from './components/AttendanceHeader';
 import MonthlyAttendanceGoal from './MonthlyAttendanceGoal';
-
-// TODO: Add target lines once data is available
-// const TargetLines = ({ targetData, x, y, bandwidth }) => (
-// 	<G>
-// 		{targetData.map((value, index) => (
-// 			<Line
-// 				key={index}
-// 				x1={x(index)}
-// 				x2={x(index) + bandwidth}
-// 				y1={y(value)}
-// 				y2={y(value)}
-// 				stroke="orange"
-// 				strokeWidth={4}
-// 			/>
-// 		))}
-// 	</G>
-// );
 
 const tabs = [
 	{ label: 'Month', value: 'month' },
 	{ label: 'Year', value: 'year' },
-];
+] as const;
 
-const AttendanceScreen = () => {
-	// const targetData = data.map(item => item.target);
-	// const combinedData = [...attendanceData, ...targetData];
-	// const yMin = 0;
-	// const yMax = Math.max(...attendanceData);
+type AttendancePeriod = (typeof tabs)[number]['value'];
 
+interface AttendanceGraphResponseStatus {
+	data?: unknown;
+	message?: string | null;
+	error?: boolean | null;
+}
+
+export const isAttendanceGraphError = (
+	response: AttendanceGraphResponseStatus | null | undefined,
+) => response?.error === true;
+
+interface AttendanceGraphErrorProps {
+	period: AttendancePeriod;
+	onRetry: () => void;
+}
+
+export const AttendanceGraphError = ({
+	period,
+	onRetry,
+}: AttendanceGraphErrorProps) => {
+	const periodLabel = period === 'month' ? 'monthly' : 'yearly';
+
+	return (
+		<View style={styles.chartMessage}>
+			<Text bold style={styles.graphErrorTitle}>
+				Couldn't load this graph
+			</Text>
+			<Text style={styles.graphErrorText}>
+				{`We couldn't load your ${periodLabel} attendance chart.`}
+			</Text>
+			<TouchableOpacity
+				style={styles.retryButton}
+				onPress={onRetry}
+				accessibilityRole="button"
+				accessibilityLabel="Retry"
+			>
+				<Text bold style={styles.retryLabel}>
+					Retry
+				</Text>
+			</TouchableOpacity>
+		</View>
+	);
+};
+
+type AttendanceScreenProps = StackScreenProps<
+	DashboardParamList,
+	'Attendance'
+>;
+
+const AttendanceScreen = ({ navigation }: AttendanceScreenProps) => {
 	const [filterValue, setFilterValue] = useState<string>(
 		new Date().getFullYear().toString(),
 	);
+	const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
+	const [isMonthLoading, setIsMonthLoading] = useState<boolean>(true);
+	const [isYearLoading, setIsYearLoading] = useState<boolean>(true);
+	const [monthError, setMonthError] = useState<boolean>(false);
+	const [yearError, setYearError] = useState<boolean>(false);
+	const [activeTab, setActiveTab] = useState<AttendancePeriod>('month');
+	const [yearData, setYearData] = useState<AttendanceGraphType>([]);
+	const [monthData, setMonthData] = useState<AttendanceGraphType>([]);
+	const [yearLabels, setYearLabels] = useState<string[]>([]);
+	const [monthLabels, setMonthLabels] = useState<string[]>([]);
+	const yearRequestId = useRef(0);
+	const monthRequestId = useRef(0);
+	const [yearFilters, setYearFilters] = useState<
+		{ label: string; value: string }[]
+	>([]);
+	const { width } = useWindowDimensions();
 
 	const currentMonth = new Date().getMonth();
-
-	const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
-
 	const { attendanceReportState, gymId, memberId } = useStore(state => ({
 		attendanceReportState: state.attendanceReportState,
 		gymId: state.teamId,
 		memberId: state.loggedInUser?.user_data.user_id,
 	}));
 
-	const [isLoading, setIsLoading] = useState<boolean>(true);
-	const [isDropdownLoading, setIsDropdownLoading] = useState<boolean>(true);
+	const fetchYearGraph = useCallback(() => {
+		const requestId = yearRequestId.current + 1;
+		yearRequestId.current = requestId;
+		setIsYearLoading(true);
+		setYearError(false);
 
-	const [activeTab, setActiveTab] = useState<string>(
-		tabs[0]?.value as string,
-	);
-	const [yearData, setYearData] = useState<AttendanceGraphType>([]);
-	const [monthData, setMonthData] = useState<AttendanceGraphType>([]);
-
-	const [yearLabels, setYearLabels] = useState<string[]>([]);
-	const [monthLabels, setMonthLabels] = useState<string[]>([]);
-
-	const [yearFilters, setYearFilters] = useState<
-		{ label: string; value: string }[]
-	>([]);
-
-	useEffect(() => {
-		setIsDropdownLoading(true);
-		getAttendanceGraph('year', filterValue)
+		return getAttendanceGraph('year', filterValue)
 			.then(res => {
+				if (requestId !== yearRequestId.current) {
+					return;
+				}
+
+				if (isAttendanceGraphError(res)) {
+					Say.err(res.message || 'Unable to load attendance data.');
+					setYearError(true);
+					return;
+				}
+
 				if (res) {
+					setYearError(false);
 					const filters = res.data
 						.map(item => ({
 							label: item.label,
@@ -98,17 +143,43 @@ const AttendanceScreen = () => {
 					setYearLabels(xLabels);
 				}
 			})
-			.catch(err => Say.err(err as ICatchError))
-			.finally(() => {
-				setIsDropdownLoading(false);
-			});
-	}, []);
+			.catch(err => {
+				if (requestId !== yearRequestId.current) {
+					return;
+				}
 
-	useEffect(() => {
-		setIsLoading(true);
-		getAttendanceGraph('month', filterValue)
+				Say.err(err as ICatchError);
+				setYearError(true);
+			})
+			.finally(() => {
+				if (requestId === yearRequestId.current) {
+					setIsYearLoading(false);
+				}
+			});
+	}, [filterValue]);
+
+	const fetchMonthGraph = useCallback(() => {
+		const requestId = monthRequestId.current + 1;
+		monthRequestId.current = requestId;
+		setIsMonthLoading(true);
+		setMonthError(false);
+		setMonthData([]);
+		setMonthLabels([]);
+
+		return getAttendanceGraph('month', filterValue)
 			.then(res => {
+				if (requestId !== monthRequestId.current) {
+					return;
+				}
+
+				if (isAttendanceGraphError(res)) {
+					Say.err(res.message || 'Unable to load attendance data.');
+					setMonthError(true);
+					return;
+				}
+
 				if (res) {
+					setMonthError(false);
 					const currentYearData = res.data.slice(0, currentMonth + 1);
 
 					if (filterValue === new Date().getFullYear().toString()) {
@@ -126,15 +197,34 @@ const AttendanceScreen = () => {
 					}
 				}
 			})
-			.catch(err => Say.err(err as ICatchError))
-			.finally(() => setIsLoading(false));
+			.catch(err => {
+				if (requestId !== monthRequestId.current) {
+					return;
+				}
+
+				Say.err(err as ICatchError);
+				setMonthError(true);
+			})
+			.finally(() => {
+				if (requestId === monthRequestId.current) {
+					setIsMonthLoading(false);
+				}
+			});
+	}, [currentMonth, filterValue]);
+
+	useEffect(() => {
+		void fetchYearGraph();
+	}, []);
+
+	useEffect(() => {
+		void fetchMonthGraph();
 	}, [filterValue]);
 
 	const attendanceData =
 		activeTab === 'month'
 			? monthData.map(item => item.value)
 			: yearData.map(item => item.value);
-	const attendanceMax = Math.max(...attendanceData);
+	const attendanceMax = Math.max(...attendanceData, 0);
 
 	let numberOfTicks;
 	if (attendanceMax === 0) {
@@ -146,340 +236,331 @@ const AttendanceScreen = () => {
 	}
 
 	const tableData = activeTab === 'month' ? monthData : yearData;
-	const tableTitle = tabs.find(tab => tab.value === activeTab)?.label;
+	const tableTitle =
+		tabs.find(tab => tab.value === activeTab)?.label ?? 'Month';
 	const labels = activeTab === 'month' ? monthLabels : yearLabels;
+	const summaryColumnCount = width >= 360 ? 2 : 1;
+	const summarySplitIndex = Math.ceil(tableData.length / summaryColumnCount);
+	const summaryColumns =
+		summaryColumnCount === 2
+			? [
+					tableData.slice(0, summarySplitIndex),
+					tableData.slice(summarySplitIndex),
+			  ]
+			: [tableData];
 
 	const getXContentInset = (barCount: number) => {
 		const count = Math.max(barCount, 1);
-
-		const minInset = 10;
-		const a = 160;
-		const b = 1.5;
-
-		const inset = Math.max(minInset, Math.round(a / count ** b));
+		const inset = Math.max(10, Math.round(160 / count ** 1.5));
 
 		return { left: inset, right: inset };
 	};
 
-	const renderTabs = () => {
-		return (
-			<View style={styles.tabRow}>
-				{tabs.map(tab => (
-					<MemberPill
-						key={tab.value}
-						label={tab.label}
-						selected={activeTab === tab.value}
-						onPress={() => setActiveTab(tab.value)}
-					/>
-				))}
-			</View>
-		);
-	};
+	const stats = [
+		{
+			key: 'selected-period',
+			value:
+				activeTab === 'month'
+					? attendanceReportState.monthToDate
+					: attendanceReportState.yearToDate,
+			label: activeTab === 'month' ? 'this month' : 'this year',
+			icon:
+				activeTab === 'month'
+					? resources.icon.monthToDate
+					: resources.icon.yearToDate,
+		},
+		{
+			key: 'lifetime',
+			value: attendanceReportState.lifetime,
+			label: 'all time',
+			icon: resources.icon.trophy,
+		},
+	];
+	const isActiveLoading =
+		activeTab === 'month' ? isMonthLoading : isYearLoading;
+	const activeGraphError = activeTab === 'month' ? monthError : yearError;
+	const retryActiveGraph =
+		activeTab === 'month' ? fetchMonthGraph : fetchYearGraph;
 
-	const renderTableItems = ({
-		item,
-	}: {
-		item: { label: string; value: number };
-	}) => {
-		return (
-			<View style={{ marginHorizontal: config.metrics.lg }}>
-				<Row>
-					<View style={[styles.flex_1_2]}>
-						<Text size="sm">{item.label}</Text>
-					</View>
-					<View style={[layout.itemsCenter, layout.flex_1]}>
-						<Text size="sm">{item.value}</Text>
-					</View>
-					{/* <View style={[layout.itemsCenter, layout.flex_1]}>
-						<Text size="sm">{item.target}</Text>
-					</View> */}
-				</Row>
-				<HR margin={false} />
-			</View>
-		);
-	};
+	const renderTabs = () => (
+		<View style={styles.tabRow}>
+			{tabs.map(tab => (
+				<MemberPill
+					key={tab.value}
+					label={tab.label}
+					selected={activeTab === tab.value}
+					onPress={() => setActiveTab(tab.value)}
+					style={styles.periodPill}
+				/>
+			))}
+		</View>
+	);
 
 	return (
-		<ScrollView
-			style={styles.container}
-			contentContainerStyle={styles.contentContainer}
-			showsVerticalScrollIndicator={false}
-		>
-			<Text bold style={styles.pageTitle}>
-				Build your training rhythm.
-			</Text>
-			<Text style={styles.pageSubtitle}>
-				Every visit adds up. Set a goal and see your consistency grow.
-			</Text>
-			<MonthlyAttendanceGoal
-				attendanceCount={attendanceReportState.monthToDate ?? 0}
-				gymId={gymId}
-				memberId={memberId}
+		<View style={styles.container}>
+			<StatusBar
+				barStyle="light-content"
+				backgroundColor={memberTheme.colors.primary}
 			/>
-			{renderTabs()}
-			{/* TODO: Add legends once we have target data */}
-			{/* <View style={[layout.row, layout.itemsCenter]}>
-				<View
-					style={{
-						backgroundColor: config.colors.brand,
-						...styles.legend,
-					}}
+			<SafeAreaView style={styles.headerSafeArea} edges={['top']}>
+				<AttendanceHeader onBack={() => navigation.goBack()} />
+			</SafeAreaView>
+			<ScrollView
+				style={styles.scrollView}
+				contentContainerStyle={styles.contentContainer}
+				showsVerticalScrollIndicator={false}
+			>
+				<MonthlyAttendanceGoal
+					attendanceCount={attendanceReportState.monthToDate ?? 0}
+					gymId={gymId}
+					memberId={memberId}
 				/>
-				<Text size="sm">Attendance</Text>
-			</View> */}
-			{/* <View style={[layout.row, layout.itemsCenter]}>
-				<View
-					style={{
-						backgroundColor: config.colors.orange,
-						...styles.legend,
-					}}
-				/>
-				<Text size="sm">Target</Text>
-			</View> */}
-			<MemberCard style={styles.trendCard}>
-				<View style={styles.trendHeader}>
-					<View>
-						<Text bold style={styles.sectionTitle}>
-							Attendance trend
-						</Text>
-						<Text style={styles.sectionSubtitle}>
-							{activeTab === 'month'
-								? `Monthly visits in ${filterValue}`
-								: 'Your year-by-year consistency'}
-						</Text>
-					</View>
-					{activeTab === 'month' && !isDropdownLoading && (
-						<DropDownPicker
-							open={isFilterOpen}
-							value={filterValue}
-							items={yearFilters}
-							setOpen={setIsFilterOpen}
-							setValue={value => setFilterValue(value)}
-							textStyle={{ fontSize: config.fonts.metrics.sm }}
-							style={styles.dropDownStyle}
-							dropDownContainerStyle={
-								styles.dropDownContainerStyle
-							}
-							listItemLabelStyle={{
-								fontSize: config.fonts.metrics.sm,
-							}}
-							labelStyle={{ fontSize: config.fonts.metrics.sm }}
-							arrowIconStyle={{
-								width: config.metrics.rg,
-								height: config.metrics.rg,
-							}}
-							tickIconStyle={{
-								width: config.metrics.md,
-								height: config.metrics.md,
-							}}
-							listMode="SCROLLVIEW"
-							placeholder=""
-						/>
-					)}
-				</View>
-				<View style={styles.chartContainer}>
-					{isLoading ? (
-						<View
-							style={[
-								layout.itemsCenter,
-								layout.justifyCenter,
-								layout.flex_1,
-							]}
-						>
-							<ActivityIndicator color={config.colors.brand} />
+				{renderTabs()}
+				<MemberCard style={styles.trendCard}>
+					<View style={styles.trendHeader}>
+						<View style={styles.trendCopy}>
+							<Text bold style={styles.sectionTitle}>
+								Attendance trend
+							</Text>
+							<Text style={styles.sectionSubtitle}>
+								{activeTab === 'month'
+									? `Monthly visits in ${filterValue}`
+									: 'Your year-by-year consistency'}
+							</Text>
 						</View>
-					) : (
-						<Row>
-							<YAxis
-								data={attendanceData}
-								contentInset={{ top: 20, bottom: 20 }}
-								svg={{ fontSize: 10, fill: 'grey' }}
-								numberOfTicks={numberOfTicks}
-								style={styles.y}
-								formatLabel={(value: number) =>
-									value === 0 ? '' : value.toString()
-								}
-								min={0}
-							/>
-							<View
-								style={[
-									layout.flex_1,
-									{ marginLeft: config.metrics.rg },
-								]}
-							>
-								<BarChart
-									style={styles.barChart}
-									data={attendanceData}
-									svg={{ fill: config.colors.brand }}
-									spacingInner={0.5}
-									contentInset={{ top: 20, bottom: 20 }}
-									yMin={0}
-								>
-									<Line
-										x1="0"
-										x2="0"
-										y1="0"
-										y2="90%"
-										stroke="black"
-										strokeWidth="1"
-									/>
-									<Line
-										x1="0"
-										x2="100%"
-										y1="90%"
-										y2="90%"
-										stroke="black"
-										strokeWidth="1"
-									/>
-								</BarChart>
-								<XAxis
-									data={attendanceData}
-									formatLabel={(
-										_value: unknown,
-										index: number,
-									) => labels[index]}
-									contentInset={getXContentInset(
-										attendanceData.length,
-									)}
-									svg={{ fontSize: 10, fill: 'grey' }}
-									style={styles.x}
-									spacingInner={0.5}
+						{activeTab === 'month' &&
+							!isYearLoading &&
+							!yearError &&
+							yearFilters.length > 0 && (
+								<DropDownPicker
+									open={isFilterOpen}
+									value={filterValue}
+									items={yearFilters}
+									setOpen={setIsFilterOpen}
+									setValue={value => setFilterValue(value)}
+									textStyle={{ fontSize: config.fonts.metrics.sm }}
+									style={styles.dropDownStyle}
+									dropDownContainerStyle={
+										styles.dropDownContainerStyle
+									}
+									listItemLabelStyle={{
+										fontSize: config.fonts.metrics.sm,
+									}}
+									labelStyle={{ fontSize: config.fonts.metrics.sm }}
+									arrowIconStyle={{
+										width: config.metrics.rg,
+										height: config.metrics.rg,
+									}}
+									tickIconStyle={{
+										width: config.metrics.md,
+										height: config.metrics.md,
+									}}
+									listMode="SCROLLVIEW"
+									placeholder=""
+								/>
+							)}
+					</View>
+					<View style={styles.chartContainer}>
+						{isActiveLoading ? (
+							<View style={styles.chartMessage}>
+								<ActivityIndicator
+									color={memberTheme.colors.primary}
 								/>
 							</View>
-						</Row>
-					)}
-				</View>
-			</MemberCard>
-			<View style={[layout.row, layout.justifyBetween]}>
-				{activeTab === 'month' ? (
-					<MemberCard
-						elevated={false}
-						style={[layout.flex_1, styles.attendanceContainer]}
-					>
-						<Row align="center">
-							<Image
-								source={resources.icon.monthToDate}
-								style={styles.attendanceIcon}
+						) : activeGraphError ? (
+							<AttendanceGraphError
+								period={activeTab}
+								onRetry={() => void retryActiveGraph()}
 							/>
-							<Text
-								style={styles.attendanceValue}
-								bold
-								allowFontScaling={false}
-							>
-								{attendanceReportState.monthToDate}
-							</Text>
-							<Text
-								size="rg"
-								style={styles.attendanceText}
-								allowFontScaling={false}
-							>
-								this month
-							</Text>
-						</Row>
-					</MemberCard>
-				) : (
-					<MemberCard
-						elevated={false}
-						style={[layout.flex_1, styles.attendanceContainer]}
-					>
-						<Row align="center">
-							<Image
-								source={resources.icon.yearToDate}
-								style={styles.attendanceIcon}
-							/>
-							<Text
-								style={styles.attendanceValue}
-								bold
-								allowFontScaling={false}
-							>
-								{attendanceReportState.yearToDate}
-							</Text>
-							<Text
-								size="rg"
-								style={styles.attendanceText}
-								allowFontScaling={false}
-							>
-								this year
-							</Text>
-						</Row>
-					</MemberCard>
-				)}
-				<MemberCard
-					elevated={false}
-					style={[layout.flex_1, styles.attendanceContainer]}
-				>
-					<Row align="center">
-						<Image
-							source={resources.icon.trophy}
-							style={styles.attendanceIcon}
-						/>
-						<Text
-							style={styles.attendanceValue}
-							bold
-							allowFontScaling={false}
-						>
-							{attendanceReportState.lifetime}
-						</Text>
-						<Text
-							size="rg"
-							style={styles.attendanceText}
-							allowFontScaling={false}
-						>
-							all time
-						</Text>
-					</Row>
+						) : attendanceData.length === 0 ? (
+							<View style={styles.chartMessage}>
+								<Text style={styles.emptyChartText}>
+									No attendance data yet.
+								</Text>
+							</View>
+						) : (
+							<View style={styles.chartRow}>
+								<YAxis
+									data={attendanceData}
+									contentInset={{ top: 16, bottom: 16 }}
+									svg={{
+										fontSize: 10,
+										fill: memberTheme.colors.textMuted,
+									}}
+									numberOfTicks={numberOfTicks}
+									style={styles.yAxis}
+									formatLabel={(value: number) =>
+										value === 0 ? '' : value.toString()
+									}
+									min={0}
+								/>
+								<View style={styles.chartBody}>
+									<BarChart
+										style={styles.barChart}
+										data={attendanceData}
+										svg={{ fill: memberTheme.colors.primary }}
+										spacingInner={0.5}
+										contentInset={{ top: 16, bottom: 16 }}
+										yMin={0}
+									>
+										<Line
+											x1="0"
+											x2="0"
+											y1="0"
+											y2="90%"
+											stroke={memberTheme.colors.border}
+											strokeWidth="1"
+										/>
+										<Line
+											x1="0"
+											x2="100%"
+											y1="90%"
+											y2="90%"
+											stroke={memberTheme.colors.border}
+											strokeWidth="1"
+										/>
+									</BarChart>
+									<XAxis
+										data={attendanceData}
+										formatLabel={(
+											_value: unknown,
+											index: number,
+										) => labels[index] ?? ''}
+										contentInset={getXContentInset(
+											attendanceData.length,
+										)}
+										svg={{
+											fontSize: 10,
+											fill: memberTheme.colors.textMuted,
+										}}
+										style={styles.xAxis}
+										spacingInner={0.5}
+									/>
+								</View>
+							</View>
+						)}
+					</View>
+					<View style={styles.statsRow}>
+						{stats.map(stat => (
+							<View key={stat.key} style={styles.statItem}>
+								<View style={styles.statIconCircle}>
+									<Image
+										source={stat.icon}
+										style={styles.statIcon}
+									/>
+								</View>
+								<Text
+									bold
+									style={styles.statValue}
+									allowFontScaling={false}
+								>
+									{stat.value ?? 0}
+								</Text>
+								<Text
+									style={styles.statLabel}
+									allowFontScaling={false}
+									numberOfLines={1}
+								>
+									{stat.label}
+								</Text>
+							</View>
+						))}
+					</View>
 				</MemberCard>
-			</View>
-			<MemberCard style={styles.summaryCard}>
-				<Text bold style={styles.sectionTitle}>
-					{`${tableTitle}ly summary ${activeTab === 'month' ? filterValue : ''}`}
-				</Text>
-				<Spacer />
-				<FlatList
-					data={tableData}
-					renderItem={renderTableItems}
-					scrollEnabled={false}
-				/>
-			</MemberCard>
-		</ScrollView>
+				<MemberCard style={styles.summaryCard}>
+					<View style={styles.summaryHeader}>
+						<View style={styles.summaryHeading}>
+							<Text bold style={styles.sectionTitle}>
+								{`${tableTitle}ly summary ${
+									activeTab === 'month' ? filterValue : ''
+								}`}
+							</Text>
+							<Text style={styles.sectionSubtitle}>
+								{activeTab === 'month'
+									? 'A quick look at every month'
+									: 'Your attendance across the years'}
+							</Text>
+						</View>
+						{activeTab === 'month' && (
+							<TouchableOpacity
+								style={styles.viewYearButton}
+								onPress={() => setActiveTab('year')}
+								accessibilityRole="button"
+								accessibilityLabel="View year summary"
+							>
+								<Text bold style={styles.viewYearLabel}>
+									View year
+								</Text>
+							</TouchableOpacity>
+						)}
+					</View>
+					{tableData.length === 0 ? (
+						<Text style={styles.emptySummaryText}>
+							No attendance data yet.
+						</Text>
+					) : (
+						<View style={styles.summaryColumns}>
+							{summaryColumns.map((column, columnIndex) => (
+								<View
+									key={`summary-column-${columnIndex}`}
+									style={styles.summaryColumn}
+								>
+									{column.map((item, itemIndex) => (
+										<View
+											key={`${item.label}-${itemIndex}`}
+											style={[
+												styles.summaryRow,
+												itemIndex < column.length - 1 &&
+													styles.summaryRowDivider,
+											]}
+										>
+											<Text
+												style={styles.summaryLabel}
+												numberOfLines={1}
+											>
+												{item.label}
+											</Text>
+											<Text bold style={styles.summaryValue}>
+												{item.value}
+											</Text>
+										</View>
+									))}
+								</View>
+							))}
+						</View>
+					)}
+				</MemberCard>
+			</ScrollView>
+		</View>
 	);
 };
 
 const styles = StyleSheet.create({
-	chartContainer: {
-		paddingTop: memberTheme.spacing.sm,
-		height: 250,
-	},
 	container: {
 		flex: 1,
 		backgroundColor: memberTheme.colors.background,
+	},
+	headerSafeArea: {
+		backgroundColor: memberTheme.colors.primary,
+	},
+	scrollView: {
+		flex: 1,
 	},
 	contentContainer: {
 		paddingHorizontal: memberTheme.spacing.lg,
 		paddingTop: memberTheme.spacing.xl,
 		paddingBottom: 48,
 	},
-	pageTitle: {
-		fontSize: 30,
-		lineHeight: 36,
-		color: memberTheme.colors.ink,
-		maxWidth: 320,
-	},
-	pageSubtitle: {
-		fontSize: 14,
-		lineHeight: 21,
-		color: memberTheme.colors.textMuted,
-		marginTop: memberTheme.spacing.sm,
-		marginBottom: memberTheme.spacing.xl,
-		maxWidth: 330,
-	},
 	tabRow: {
 		flexDirection: 'row',
 		gap: memberTheme.spacing.sm,
 		marginBottom: memberTheme.spacing.lg,
 	},
+	periodPill: {
+		flex: 1,
+	},
 	trendCard: {
-		marginBottom: memberTheme.spacing.md,
+		marginBottom: memberTheme.spacing.lg,
 		zIndex: 2,
 	},
 	trendHeader: {
@@ -487,6 +568,11 @@ const styles = StyleSheet.create({
 		alignItems: 'flex-start',
 		justifyContent: 'space-between',
 		zIndex: 4,
+	},
+	trendCopy: {
+		flex: 1,
+		minWidth: 0,
+		paddingRight: memberTheme.spacing.sm,
 	},
 	sectionTitle: {
 		fontSize: 18,
@@ -499,54 +585,104 @@ const styles = StyleSheet.create({
 		color: memberTheme.colors.textMuted,
 		marginTop: memberTheme.spacing.xs,
 	},
-	legend: {
-		height: 4,
-		width: 15,
-		marginRight: config.metrics.sm,
+	chartContainer: {
+		height: 224,
+		marginTop: memberTheme.spacing.lg,
 	},
-	flex_1_2: {
+	chartMessage: {
 		flex: 1,
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
-	attendanceText: {
-		fontSize: 11,
+	emptyChartText: {
+		fontSize: 13,
 		color: memberTheme.colors.textMuted,
+	},
+	graphErrorTitle: {
+		fontSize: 15,
+		lineHeight: 20,
+		color: memberTheme.colors.ink,
+		textAlign: 'center',
+	},
+	graphErrorText: {
+		fontSize: 12,
+		lineHeight: 18,
+		color: memberTheme.colors.textMuted,
+		textAlign: 'center',
 		marginTop: memberTheme.spacing.xs,
 	},
-	attendanceContainer: {
-		marginHorizontal: memberTheme.spacing.xs,
-		marginBottom: memberTheme.spacing.md,
-		padding: memberTheme.spacing.md,
+	retryButton: {
+		minHeight: 38,
+		borderWidth: 1,
+		borderColor: memberTheme.colors.primary,
+		borderRadius: memberTheme.radius.pill,
+		paddingHorizontal: memberTheme.spacing.lg,
+		alignItems: 'center',
+		justifyContent: 'center',
+		marginTop: memberTheme.spacing.md,
 	},
-	attendanceValue: {
-		fontSize: 24,
-		lineHeight: 28,
-		color: memberTheme.colors.ink,
-	},
-	attendanceIcon: {
-		width: 22,
-		height: 22,
-		marginRight: memberTheme.spacing.sm,
-	},
-	labelsContainer: {
-		flexDirection: 'row',
-		justifyContent: 'space-around',
-		// marginTop: 10,
-	},
-	labelText: {
+	retryLabel: {
 		fontSize: 12,
-		color: '#555',
+		color: memberTheme.colors.primary,
+	},
+	chartRow: {
+		flex: 1,
+		flexDirection: 'row',
+	},
+	yAxis: {
+		width: 24,
+		height: 176,
+		marginTop: 8,
+	},
+	chartBody: {
+		flex: 1,
+		minWidth: 0,
+		marginLeft: memberTheme.spacing.sm,
 	},
 	barChart: {
-		height: 200,
-		marginVertical: 20,
+		height: 176,
 	},
-	x: {
-		height: 10,
-		marginTop: -30,
+	xAxis: {
+		height: 24,
+		marginTop: memberTheme.spacing.xs,
 	},
-	y: {
-		height: 200,
-		marginTop: 20,
+	statsRow: {
+		flexDirection: 'row',
+		borderTopWidth: 1,
+		borderTopColor: memberTheme.colors.border,
+		paddingTop: memberTheme.spacing.lg,
+		marginTop: memberTheme.spacing.sm,
+		gap: memberTheme.spacing.sm,
+	},
+	statItem: {
+		flex: 1,
+		minWidth: 0,
+		alignItems: 'center',
+	},
+	statIconCircle: {
+		width: 34,
+		height: 34,
+		borderRadius: 17,
+		alignItems: 'center',
+		justifyContent: 'center',
+		backgroundColor: memberTheme.colors.surfaceSoft,
+		marginBottom: memberTheme.spacing.xs,
+	},
+	statIcon: {
+		width: 18,
+		height: 18,
+	},
+	statValue: {
+		fontSize: 20,
+		lineHeight: 24,
+		color: memberTheme.colors.ink,
+	},
+	statLabel: {
+		fontSize: 11,
+		lineHeight: 16,
+		color: memberTheme.colors.textMuted,
+		textAlign: 'center',
+		marginTop: 2,
 	},
 	dropDownStyle: {
 		width: 82,
@@ -567,6 +703,63 @@ const styles = StyleSheet.create({
 	},
 	summaryCard: {
 		marginTop: memberTheme.spacing.sm,
+	},
+	summaryHeader: {
+		flexDirection: 'row',
+		alignItems: 'flex-start',
+		justifyContent: 'space-between',
+	},
+	summaryHeading: {
+		flex: 1,
+		minWidth: 0,
+		paddingRight: memberTheme.spacing.sm,
+	},
+	viewYearButton: {
+		minHeight: 36,
+		borderWidth: 1,
+		borderColor: memberTheme.colors.primary,
+		borderRadius: memberTheme.radius.pill,
+		paddingHorizontal: memberTheme.spacing.md,
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
+	viewYearLabel: {
+		fontSize: 12,
+		color: memberTheme.colors.primary,
+	},
+	summaryColumns: {
+		flexDirection: 'row',
+		gap: memberTheme.spacing.lg,
+		marginTop: memberTheme.spacing.lg,
+	},
+	summaryColumn: {
+		flex: 1,
+		minWidth: 0,
+	},
+	summaryRow: {
+		minHeight: 38,
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		gap: memberTheme.spacing.sm,
+	},
+	summaryRowDivider: {
+		borderBottomWidth: StyleSheet.hairlineWidth,
+		borderBottomColor: memberTheme.colors.border,
+	},
+	summaryLabel: {
+		flex: 1,
+		fontSize: 13,
+		color: memberTheme.colors.text,
+	},
+	summaryValue: {
+		fontSize: 13,
+		color: memberTheme.colors.ink,
+	},
+	emptySummaryText: {
+		fontSize: 13,
+		color: memberTheme.colors.textMuted,
+		marginTop: memberTheme.spacing.lg,
 	},
 });
 

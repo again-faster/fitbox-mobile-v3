@@ -20,6 +20,7 @@ export interface BookedSessionCardProps {
 	waitlistEnabled: boolean;
 	waitlistTime: number;
 	color: string;
+	compact?: boolean;
 }
 
 const BookedSessionCard = ({
@@ -32,6 +33,7 @@ const BookedSessionCard = ({
 	waitlistEnabled,
 	waitlistTime,
 	color,
+	compact = false,
 }: BookedSessionCardProps) => {
 	const navigation =
 		useNavigation<NavigationProp<ApplicationStackParamList>>();
@@ -50,8 +52,18 @@ const BookedSessionCard = ({
 	};
 
 	return (
-		<TouchableOpacity onPress={handlePress}>
-			<View style={styles.container}>
+		<TouchableOpacity
+			onPress={handlePress}
+			accessibilityRole="button"
+			accessibilityLabel={`Open ${title}`}
+		>
+			<View
+				testID="booked-session-card"
+				style={[
+					styles.container,
+					compact ? styles.compactContainer : null,
+				]}
+			>
 				<Row style={styles.bookingDetails}>
 					<View style={layout.justifyCenter}>
 						<Text bold size="sm" center>
@@ -125,6 +137,13 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderRadius: memberTheme.radius.lg,
 		...memberTheme.shadow,
+	},
+	compactContainer: {
+		minHeight: 96,
+		padding: memberTheme.spacing.md,
+		borderRadius: memberTheme.radius.md,
+		shadowOpacity: 0.04,
+		elevation: 1,
 	},
 	warningTxt: {
 		color: '#595959',

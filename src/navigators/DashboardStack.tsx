@@ -76,7 +76,7 @@ const DashboardStackNavigator = () => {
 				name="Attendance"
 				component={AttendanceScreen}
 				options={{
-					title: 'Attendance',
+					headerShown: false,
 				}}
 			/>
 		</Stack.Navigator>

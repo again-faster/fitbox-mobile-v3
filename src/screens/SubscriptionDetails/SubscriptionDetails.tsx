@@ -204,18 +204,26 @@ const styles = StyleSheet.create({
 		padding: memberTheme.spacing.lg,
 	},
 	headerCard: {
-		backgroundColor: memberTheme.colors.primaryDeep,
+		backgroundColor: memberTheme.colors.memberAction,
 		borderRadius: memberTheme.radius.lg,
 		marginBottom: memberTheme.spacing.md,
 		padding: memberTheme.spacing.xl,
 	},
-	eyebrow: { color: '#D9C8DA', fontSize: 11, letterSpacing: 1.4 },
+	eyebrow: {
+		color: memberTheme.colors.memberActionForeground,
+		fontSize: 11,
+		letterSpacing: 1.4,
+	},
 	membershipName: {
-		color: memberTheme.colors.surface,
+		color: memberTheme.colors.memberActionForeground,
 		fontSize: 22,
 		marginTop: 8,
 	},
-	headerHint: { color: '#EADFEB', fontSize: 13, marginTop: 6 },
+	headerHint: {
+		color: memberTheme.colors.memberActionForeground,
+		fontSize: 13,
+		marginTop: 6,
+	},
 	loaderStyle: {
 		flex: 1,
 		justifyContent: 'center',
