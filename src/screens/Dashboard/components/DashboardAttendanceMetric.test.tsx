@@ -1,13 +1,13 @@
-import { render } from '@testing-library/react-native';
-import { MMKV } from 'react-native-mmkv';
-import { StyleSheet, View } from 'react-native';
+import { render } from "@testing-library/react-native";
+import { MMKV } from "react-native-mmkv";
+import { StyleSheet, View } from "react-native";
 
-import { ThemeProvider } from '@/theme';
+import { ThemeProvider } from "@/theme";
 
-import DashboardAttendanceMetric from './DashboardAttendanceMetric';
+import DashboardAttendanceMetric from "./DashboardAttendanceMetric";
 
-describe('DashboardAttendanceMetric', () => {
-	it('uses the same centered cell layout for one- and two-digit values', () => {
+describe("DashboardAttendanceMetric", () => {
+	it("uses the same centered cell layout for one- and two-digit values", () => {
 		const storage = new MMKV();
 		const { getByTestId, getByText, rerender } = render(
 			<ThemeProvider storage={storage}>
@@ -17,26 +17,26 @@ describe('DashboardAttendanceMetric', () => {
 			</ThemeProvider>,
 		);
 
-		expect(getByText('10')).toBeTruthy();
-		expect(getByText('THIS YEAR')).toBeTruthy();
-		expect(getByTestId('attendance-metric-icon')).toBeTruthy();
-		expect(getByTestId('attendance-metric')).toHaveStyle({
+		expect(getByText("10")).toBeTruthy();
+		expect(getByText("THIS YEAR")).toBeTruthy();
+		expect(getByTestId("attendance-metric-icon")).toBeTruthy();
+		expect(getByTestId("attendance-metric")).toHaveStyle({
 			flex: 1,
-			justifyContent: 'center',
-			alignItems: 'center',
+			justifyContent: "center",
+			alignItems: "center",
 		});
-		expect(getByTestId('attendance-metric-value-row')).toHaveStyle({
-			flexDirection: 'row',
-			alignItems: 'center',
-			justifyContent: 'center',
+		expect(getByTestId("attendance-metric-value-row")).toHaveStyle({
+			flexDirection: "row",
+			alignItems: "center",
+			justifyContent: "center",
 		});
-		expect(getByTestId('attendance-metric-label')).toHaveStyle({
-			textAlign: 'center',
+		expect(getByTestId("attendance-metric-label")).toHaveStyle({
+			textAlign: "center",
 		});
 		const initialMetricStyle = StyleSheet.flatten(
-			getByTestId('attendance-metric').props.style,
+			getByTestId("attendance-metric").props.style,
 		);
-		expect(initialMetricStyle).not.toHaveProperty('paddingLeft');
+		expect(initialMetricStyle).not.toHaveProperty("paddingLeft");
 
 		rerender(
 			<ThemeProvider storage={storage}>
@@ -46,38 +46,38 @@ describe('DashboardAttendanceMetric', () => {
 			</ThemeProvider>,
 		);
 
-		expect(getByText('0')).toBeTruthy();
-		expect(getByText('THIS MONTH')).toBeTruthy();
-		expect(getByTestId('attendance-metric')).toHaveStyle({
+		expect(getByText("0")).toBeTruthy();
+		expect(getByText("THIS MONTH")).toBeTruthy();
+		expect(getByTestId("attendance-metric")).toHaveStyle({
 			flex: 1,
-			justifyContent: 'center',
-			alignItems: 'center',
+			justifyContent: "center",
+			alignItems: "center",
 		});
-		expect(getByTestId('attendance-metric-value-row')).toHaveStyle({
-			flexDirection: 'row',
-			alignItems: 'center',
-			justifyContent: 'center',
+		expect(getByTestId("attendance-metric-value-row")).toHaveStyle({
+			flexDirection: "row",
+			alignItems: "center",
+			justifyContent: "center",
 		});
-		expect(getByTestId('attendance-metric-label')).toHaveStyle({
-			textAlign: 'center',
-			textTransform: 'uppercase',
-			color: '#7775E6',
+		expect(getByTestId("attendance-metric-label")).toHaveStyle({
+			textAlign: "center",
+			textTransform: "uppercase",
+			color: "#7775E6",
 		});
-		expect(getByTestId('attendance-metric-icon')).toBeTruthy();
+		expect(getByTestId("attendance-metric-icon")).toBeTruthy();
 
 		const rerenderedMetricStyle = StyleSheet.flatten(
-			getByTestId('attendance-metric').props.style,
+			getByTestId("attendance-metric").props.style,
 		);
-		expect(rerenderedMetricStyle).not.toHaveProperty('paddingLeft');
+		expect(rerenderedMetricStyle).not.toHaveProperty("paddingLeft");
 	});
 
-	it('supports a compact goal value in a narrow three-metric row', () => {
+	it("supports a compact goal value in a narrow three-metric row", () => {
 		const storage = new MMKV();
 		const { getAllByTestId, getByText } = render(
 			<ThemeProvider storage={storage}>
 				<View
 					testID="attendance-metrics-row"
-					style={{ width: 312, flexDirection: 'row' }}
+					style={{ width: 312, flexDirection: "row" }}
 				>
 					<DashboardAttendanceMetric
 						compact
@@ -97,31 +97,31 @@ describe('DashboardAttendanceMetric', () => {
 			</ThemeProvider>,
 		);
 
-		expect(getByText('10 / 12')).toHaveStyle({
+		expect(getByText("10 / 12")).toHaveStyle({
 			fontSize: 23,
 			flexShrink: 1,
 			minWidth: 0,
 		});
-		expect(getByText('10 / 12').props).toMatchObject({
+		expect(getByText("10 / 12").props).toMatchObject({
 			numberOfLines: 1,
 			adjustsFontSizeToFit: true,
 			minimumFontScale: 0.75,
 		});
-		expect(getAllByTestId('attendance-metric')).toHaveLength(3);
-		expect(getAllByTestId('attendance-metric-value-row')).toHaveLength(3);
-		expect(getAllByTestId('attendance-metric-value-row')[0]).toHaveStyle({
-			width: '100%',
+		expect(getAllByTestId("attendance-metric")).toHaveLength(3);
+		expect(getAllByTestId("attendance-metric-value-row")).toHaveLength(3);
+		expect(getAllByTestId("attendance-metric-value-row")[0]).toHaveStyle({
+			width: "100%",
 			flexShrink: 1,
 		});
 	});
 
-	it('stacks the compact goal content inside an 85 point metric cell', () => {
+	it("stacks the compact goal content inside an 85 point metric cell", () => {
 		const storage = new MMKV();
 		const { getAllByTestId, getByText } = render(
 			<ThemeProvider storage={storage}>
 				<View
 					testID="attendance-metrics-row"
-					style={{ width: 255, flexDirection: 'row' }}
+					style={{ width: 255, flexDirection: "row" }}
 				>
 					<DashboardAttendanceMetric
 						compact
@@ -141,19 +141,19 @@ describe('DashboardAttendanceMetric', () => {
 			</ThemeProvider>,
 		);
 
-		expect(getByText('10 / 12')).toHaveStyle({
+		expect(getByText("10 / 12")).toHaveStyle({
 			fontSize: 17,
 			flexShrink: 1,
 			minWidth: 0,
-			width: '100%',
-			textAlign: 'center',
+			width: "100%",
+			textAlign: "center",
 		});
-		expect(getAllByTestId('attendance-metric')).toHaveLength(3);
-		expect(getAllByTestId('attendance-metric-value-row')[0]).toHaveStyle({
-			width: '100%',
-			flexDirection: 'column',
-			alignItems: 'center',
-			justifyContent: 'center',
+		expect(getAllByTestId("attendance-metric")).toHaveLength(3);
+		expect(getAllByTestId("attendance-metric-value-row")[0]).toHaveStyle({
+			width: "100%",
+			flexDirection: "column",
+			alignItems: "center",
+			justifyContent: "center",
 			flexShrink: 1,
 		});
 	});

@@ -1,12 +1,12 @@
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
-import { MMKV } from 'react-native-mmkv';
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { MMKV } from "react-native-mmkv";
 
-import { ThemeProvider } from '@/theme';
-import { mmkvStorage } from '@/storage';
+import { ThemeProvider } from "@/theme";
+import { mmkvStorage } from "@/storage";
 
-import MonthlyAttendanceGoal from './MonthlyAttendanceGoal';
+import MonthlyAttendanceGoal from "./MonthlyAttendanceGoal";
 
-jest.mock('@/storage', () => ({
+jest.mock("@/storage", () => ({
 	mmkvStorage: {
 		delete: jest.fn(),
 		getBoolean: jest.fn(() => false),
@@ -15,13 +15,13 @@ jest.mock('@/storage', () => ({
 	},
 }));
 
-jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => {
-	const { Text } = require('react-native');
+jest.mock("react-native-vector-icons/MaterialCommunityIcons", () => {
+	const { Text } = require("react-native");
 
 	return ({ name }: { name: string }) => <Text>{name}</Text>;
 });
 
-describe('MonthlyAttendanceGoal', () => {
+describe("MonthlyAttendanceGoal", () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
 		(mmkvStorage.getNumber as jest.Mock).mockReturnValue(8);
@@ -39,29 +39,29 @@ describe('MonthlyAttendanceGoal', () => {
 			</ThemeProvider>,
 		);
 
-	it('renders the live monthly goal card with remaining visits', async () => {
+	it("renders the live monthly goal card with remaining visits", async () => {
 		const { getByText, getByLabelText } = renderGoal();
-		const monthName = new Date().toLocaleString('en-AU', {
-			month: 'long',
+		const monthName = new Date().toLocaleString("en-AU", {
+			month: "long",
 		});
 
-		await waitFor(() => expect(getByText('YOUR GOAL')).toBeTruthy());
+		await waitFor(() => expect(getByText("YOUR GOAL")).toBeTruthy());
 
 		expect(getByText(`${monthName} goal`)).toBeTruthy();
-		expect(getByText('8 visits to go')).toBeTruthy();
-		expect(getByText('Keep showing up')).toBeTruthy();
-		expect(getByLabelText('Edit monthly attendance goal')).toHaveStyle({
+		expect(getByText("8 visits to go")).toBeTruthy();
+		expect(getByText("Keep showing up")).toBeTruthy();
+		expect(getByLabelText("Edit monthly attendance goal")).toHaveStyle({
 			borderWidth: 1,
 		});
 	});
 
-	it('keeps the no-goal state actionable', async () => {
+	it("keeps the no-goal state actionable", async () => {
 		(mmkvStorage.getNumber as jest.Mock).mockReturnValue(undefined);
 		const { getByText } = renderGoal();
 
-		await waitFor(() => expect(getByText('Set monthly goal')).toBeTruthy());
-		fireEvent.press(getByText('Set monthly goal'));
+		await waitFor(() => expect(getByText("Set monthly goal")).toBeTruthy());
+		fireEvent.press(getByText("Set monthly goal"));
 
-		expect(getByText('Set your monthly rhythm')).toBeTruthy();
+		expect(getByText("Set your monthly rhythm")).toBeTruthy();
 	});
 });
