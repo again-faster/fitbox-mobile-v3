@@ -14,6 +14,12 @@ import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import useSwitchableUsers from '@/hooks/useSwitchableUsers';
 import { navigate } from '@/navigators/NavigationRef';
 import {
+	QUERY_STALE_TIME,
+	getEmptyFailedPaymentsStaleTime,
+} from '@/query/cachePolicy';
+import queryClient from '@/query/queryClient';
+import queryKeys from '@/query/queryKeys';
+import {
 	filterMemberSurfaceEntries,
 	shouldShowMemberSurface,
 	type MemberSurfaceRoute,
@@ -28,6 +34,7 @@ import {
 	getBookedSessions,
 	getFailedPayments,
 	getUserGymInfo,
+	getUserProfile,
 } from '@/services/users';
 import { mmkvStorage } from '@/storage';
 import { useTheme } from '@/theme';
@@ -40,7 +47,6 @@ import { GymVenueType } from '@/types/schemas/gym';
 import { AnnouncementsItemType } from '@/types/schemas/message';
 import { NotificationSettingsState } from '@/types/schemas/notifications';
 import { FailedInvoicesType } from '@/types/schemas/payment';
-import { LoginResponseSchemaType } from '@/types/schemas/response';
 import {
 	ClassFiltersDataType,
 	WorkoutSchemaType,
@@ -58,6 +64,7 @@ import {
 	useIsFocused,
 	useNavigation,
 } from '@react-navigation/native';
+import * as Sentry from '@sentry/react-native';
 import { isArray, isEmpty } from 'lodash';
 import moment from 'moment-timezone';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -115,6 +122,17 @@ const actionButtons: {
 
 const { height } = Dimensions.get('window');
 const { metrics } = config;
+
+const reportDashboardError = (source: string, error: unknown) => {
+	// Keep this console output while diagnosing intermittent startup failures.
+	// eslint-disable-next-line no-console
+	console.error(`[Dashboard:${source}]`, error);
+	Sentry.captureException(error, {
+		tags: {
+			dashboard_source: source,
+		},
+	});
+};
 
 // const isAndroid = Platform.OS === 'ios';
 
@@ -184,8 +202,6 @@ const Dashboard = () => {
 		teamId: state.teamId,
 	}));
 
-	const userState = loggedInUser as LoginResponseSchemaType;
-
 	const [failedInvoicesRefreshing, setFailedInvoicesRefreshing] =
 		useState<boolean>(true);
 	const [refreshing, setRefreshing] = useState<boolean>(true);
@@ -196,9 +212,6 @@ const Dashboard = () => {
 	const [monthlyAttendanceGoal, setMonthlyAttendanceGoal] = useState<
 		number | null
 	>(null);
-
-	const [hasPrevSubscriptions, setHasPrevSubscriptions] =
-		useState<boolean>(false);
 
 	const [upcomingSessionsIsLoading, setUpcomingSessionsIsLoading] =
 		useState<boolean>(true);
@@ -254,25 +267,71 @@ const Dashboard = () => {
 	const [currentNotificationIndex, setCurrentNotificationIndex] =
 		useState<number>(0);
 	const betaBuild = false;
-	const onRefresh = () => {
-		void initializeAppStates();
-		void getFailedInvoices();
-		void getUpcomingSessions();
-		void getClassFiltersFn();
-		void fetchAttendanceReport();
+	// const onRefresh = () => {
+	// 	void initializeAppStates();
+	// 	void getFailedInvoices();
+	// 	void getUpcomingSessions();
+	// 	void getClassFiltersFn();
+	// 	void fetchAttendanceReport();
+	// 	// void getWorkouts();
+	// 	if (betaBuild) {
+	// 		checkBetaActive();
+	// 	}
+	// };
+
+	const onRefresh = async () => {
+		if (!loggedInUser?.user_data.user_id) return;
+
+		const results = await Promise.allSettled([
+			refreshUserName(),
+			initializeAppStates(true),
+			getFailedInvoices(true),
+			getUpcomingSessions(true),
+			getClassFiltersFn(true),
+			fetchAttendanceReport(true),
+		]);
+		results.forEach(result => {
+			if (result.status === 'rejected') {
+				reportDashboardError('pull-to-refresh', result.reason);
+			}
+		});
+
 		// void getWorkouts();
 		if (betaBuild) {
 			checkBetaActive();
 		}
 	};
 
-	const fetchWorkouts = () =>
-		getWorkouts().then(res =>
+	const refreshUserName = async () => {
+		const currentUser = useStore.getState().loggedInUser;
+		if (!currentUser) return;
+
+		const res = await getUserProfile(currentUser.id);
+		if (res.error) {
+			throw new Error(res.message);
+		}
+
+		updateUser({
+			first_name: res.user_data.first_name,
+			last_name: res.user_data.last_name,
+		} as UserSchemaType);
+	};
+
+	const fetchWorkouts = async () => {
+		try {
+			const res = await queryClient.fetchQuery({
+				queryKey: queryKeys.workouts(useStore.getState().teamId),
+				queryFn: getWorkouts,
+				staleTime: QUERY_STALE_TIME.STANDARD,
+			});
 			setWorkoutData({
 				benchmark: res.data.benchmark as WorkoutSchemaType[],
 				favorite: res.data.favorite as WorkoutSchemaType[],
-			}),
-		);
+			});
+		} catch (error) {
+			reportDashboardError('workouts', error);
+		}
+	};
 
 	const checkBetaActive = () => {
 		betaActive()
@@ -304,24 +363,22 @@ const Dashboard = () => {
 	};
 
 	useEffect(() => {
-		setLoggedInUser({
-			...userState,
-			user_data: {
-				...userState.user_data,
-				has_previous_subscriptions: hasPrevSubscriptions,
-			},
-		});
-	}, [hasPrevSubscriptions]);
-
-	useEffect(() => {
 		if (isFocused) {
 			setLoginNotifications([]);
 			setCurrentNotificationIndex(0);
 		}
 	}, [isFocused]);
 
-	const initializeAppStates = async () => {
-		const res = await getUserGymInfo();
+	const initializeAppStates = async (force = false) => {
+		const currentState = useStore.getState();
+		const userId = currentState.loggedInUser?.user_data.user_id;
+		if (!userId) return;
+
+		const res = await queryClient.fetchQuery({
+			queryKey: queryKeys.gymInfo(userId, currentState.teamId),
+			queryFn: () => getUserGymInfo(),
+			staleTime: force ? 0 : QUERY_STALE_TIME.SHORT,
+		});
 
 		if (!res.error) {
 			// TODO: Update the following once other functionalities are implemented
@@ -380,7 +437,9 @@ const Dashboard = () => {
 			);
 			setAppState('stripeCustomerId', userData.stripe_customer_id || '');
 			setAppState('unreadMessages', gymInfo.num_of_unread_messages);
-			setAppState('unreadMessageCallback', initializeAppStates);
+			setAppState('unreadMessageCallback', () =>
+				initializeAppStates(true),
+			);
 			setAppState('allowLeaderboards', !!gymInfo.allow_leaderboards);
 			setAppState('allowComments', !!gymInfo.allow_leaderboards_comment);
 			setAppState('appForceUpdate', !!gymInfo.mobile_force_update);
@@ -394,21 +453,46 @@ const Dashboard = () => {
 			setShowAttendanceReport(gymInfo.allow_attendance_report);
 			setAttendanceFilter(gymInfo.mobile_dashboard_type);
 
-			setHasPrevSubscriptions(userData.has_previous_subscriptions);
+			const currentUser = useStore.getState().loggedInUser;
+			if (
+				currentUser &&
+				currentUser.user_data.has_previous_subscriptions !==
+					userData.has_previous_subscriptions
+			) {
+				setLoggedInUser({
+					...currentUser,
+					user_data: {
+						...currentUser.user_data,
+						has_previous_subscriptions:
+							userData.has_previous_subscriptions,
+					},
+				});
+			}
 
 			if (gymInfo.num_of_unread_messages > 0) {
-				void getLoginNotifications(gymInfo.gym_lookup);
+				void getLoginNotifications(gymInfo.gym_lookup, force);
 			}
 		}
 	};
 
-	const getLoginNotifications = async (gymId: number | string) => {
-		const res = await getAnnouncements(gymId as number);
-		if (!res.error) {
-			if (res.data.length > 0) {
-				const announcements = res.data.reverse();
-				setLoginNotifications(announcements);
+	const getLoginNotifications = async (
+		gymId: number | string,
+		force = false,
+	) => {
+		try {
+			const userId = useStore.getState().loggedInUser?.user_data.user_id;
+			if (!userId) return;
+
+			const res = await queryClient.fetchQuery({
+				queryKey: queryKeys.announcements(userId, Number(gymId)),
+				queryFn: () => getAnnouncements(Number(gymId)),
+				staleTime: force ? 0 : QUERY_STALE_TIME.SHORT,
+			});
+			if (!res.error && res.data.length > 0) {
+				setLoginNotifications([...res.data].reverse());
 			}
+		} catch (error) {
+			reportDashboardError('announcements', error);
 		}
 	};
 
@@ -504,10 +588,27 @@ const Dashboard = () => {
 		setAppState('notifSettings', notificationSettings);
 	};
 
-	const getFailedInvoices = async () => {
+	const getFailedInvoices = async (force = false) => {
 		setFailedInvoicesRefreshing(true);
 		try {
-			const res = await getFailedPayments();
+			const userId = useStore.getState().loggedInUser?.user_data.user_id;
+			if (!userId) return;
+			const { teamId: currentTeamId } = useStore.getState();
+
+			const res = await queryClient.fetchQuery({
+				queryKey: queryKeys.failedPayments(userId, currentTeamId),
+				queryFn: getFailedPayments,
+				staleTime: force
+					? 0
+					: query => {
+							const { data } = query.state;
+							if (!data || data.invoices.length > 0) return 0;
+
+							return getEmptyFailedPaymentsStaleTime(
+								query.state.dataUpdatedAt,
+							);
+						},
+			});
 
 			if (res.invoices.length > 0) {
 				setShowFailedInvoicesModal(true);
@@ -523,13 +624,24 @@ const Dashboard = () => {
 		}
 	};
 
-	const getUpcomingSessions = async () => {
+	const getUpcomingSessions = async (force = false) => {
 		setUpcomingSessionsIsLoading(true);
 		const memberSessions: BookedSessionCardProps[] = [];
 
 		try {
+			const currentState = useStore.getState();
+			const userId = currentState.loggedInUser?.user_data.user_id;
+			if (!userId) return;
+
 			// let res = await RestService.getNextSessions(selectedClassIds.length ? selectedClassIds.join() : null);
-			const res = await getBookedSessions();
+			const res = await queryClient.fetchQuery({
+				queryKey: queryKeys.upcomingBookings(
+					userId,
+					currentState.teamId,
+				),
+				queryFn: getBookedSessions,
+				staleTime: force ? 0 : QUERY_STALE_TIME.SHORT,
+			});
 
 			if (res.data && res.data.length > 0) {
 				// Parse the response data
@@ -658,10 +770,22 @@ const Dashboard = () => {
 	};
 
 	const onFocusTasks = async () => {
-		await initializeAppStates();
-		await getFailedInvoices();
-		await getUpcomingSessions();
-		await getClassFiltersFn();
+		try {
+			await initializeAppStates();
+		} catch (error) {
+			reportDashboardError('gym-initialization', error);
+		}
+
+		const results = await Promise.allSettled([
+			getFailedInvoices(),
+			getUpcomingSessions(),
+			getClassFiltersFn(),
+		]);
+		results.forEach(result => {
+			if (result.status === 'rejected') {
+				reportDashboardError('focus-refresh', result.reason);
+			}
+		});
 		PushNotification.cancelAllLocalNotifications();
 	};
 
@@ -680,11 +804,14 @@ const Dashboard = () => {
 				setRefreshing(false);
 			}, 2000);
 
-			void onFocusTasks();
+			void onFocusTasks().catch(error => {
+				reportDashboardError('focus-tasks', error);
+				setRefreshing(false);
+			});
 			void fetchAttendanceReport();
 
 			return () => clearTimeout(timer);
-		}, [user]),
+		}, [user?.user_data.user_id]),
 	);
 
 	// useEffect(() => {
@@ -695,24 +822,34 @@ const Dashboard = () => {
 		setAppState('showConfetti', false);
 		await savePushNotificationToken();
 		await initializeNotificationSettings();
-		AppState.addEventListener('change', () => {
-			void checkNotificationStatus();
-		});
 	};
 
 	// get filter options every gym switch
 	useEffect(() => {
+		const appStateSubscription = AppState.addEventListener(
+			'change',
+			state => {
+				if (state === 'active') {
+					void checkNotificationStatus();
+				}
+			},
+		);
+
 		if (joiningOtherGym) {
 			navigate('SwitchGym');
 			setAppState('joiningOtherGym', false);
 		}
 		void fetchFilterOptions();
-		void onMountTasks();
+		void onMountTasks().catch(error => {
+			reportDashboardError('mount-tasks', error);
+		});
 		void fetchWorkouts();
 		if (betaBuild) {
 			checkBetaActive();
 		}
-		NotificationService.setGymFetcher(initializeAppStates);
+		NotificationService.setGymFetcher(() => initializeAppStates(true));
+
+		return () => appStateSubscription.remove();
 	}, []);
 
 	useEffect(() => {
@@ -736,18 +873,21 @@ const Dashboard = () => {
 		navigate('Attendance');
 	};
 
-	const fetchAttendanceReport = () => {
+	const fetchAttendanceReport = async (force = false) => {
+		const userId = useStore.getState().loggedInUser?.user_data.user_id;
+		if (!userId) return;
+		const { teamId: currentTeamId } = useStore.getState();
+
 		setAttendanceReportIsLoading(true);
 		try {
-			getAttendanceReport(user?.user_data.user_id as number)
-				.then(res => {
-					if (!res.error) {
-						setAppState('attendanceReportState', res.data);
-					}
-				})
-				.catch(err => {
-					Say.err(err as ICatchError);
-				});
+			const res = await queryClient.fetchQuery({
+				queryKey: queryKeys.attendanceReport(userId, currentTeamId),
+				queryFn: () => getAttendanceReport(userId),
+				staleTime: force ? 0 : QUERY_STALE_TIME.STANDARD,
+			});
+			if (!res.error) {
+				setAppState('attendanceReportState', res.data);
+			}
 		} catch (e) {
 			Say.err(e as ICatchError);
 		} finally {
@@ -755,7 +895,7 @@ const Dashboard = () => {
 		}
 	};
 
-	const fetchFilterOptions = () => {
+	const fetchFilterOptions = (force = false) => {
 		const selectedVenueIds = venueFilters
 			.filter(v => v.is_selected)
 			.map(v => v.id);
@@ -764,7 +904,12 @@ const Dashboard = () => {
 			.map(c => c.id);
 
 		// fetch venues
-		getGymVenues()
+		queryClient
+			.fetchQuery({
+				queryKey: queryKeys.gymVenues(useStore.getState().teamId),
+				queryFn: getGymVenues,
+				staleTime: force ? 0 : QUERY_STALE_TIME.STANDARD,
+			})
 			.then(res => {
 				if (isArray(res)) {
 					const venueFilterList: VenueFilter[] = res.map(
@@ -815,7 +960,7 @@ const Dashboard = () => {
 			});
 	};
 
-	const getClassFiltersFn = async () => {
+	const getClassFiltersFn = async (force = false) => {
 		const leaderboards = {
 			classIds: [],
 			id: 0,
@@ -825,9 +970,17 @@ const Dashboard = () => {
 		};
 
 		try {
-			const res = await getClassFilters();
-			const newResData = res.data;
-			newResData.splice(1, 0, leaderboards);
+			const { teamId: currentTeamId } = useStore.getState();
+			const res = await queryClient.fetchQuery({
+				queryKey: queryKeys.classFilters(currentTeamId),
+				queryFn: getClassFilters,
+				staleTime: force ? 0 : QUERY_STALE_TIME.STANDARD,
+			});
+			const newResData = [
+				...res.data.slice(0, 1),
+				leaderboards,
+				...res.data.slice(1),
+			];
 			setAppState('classFiltersDataState', newResData);
 			const defaultItem = res.data.find(
 				item =>
@@ -1301,7 +1454,7 @@ const Dashboard = () => {
 
 			<ScrollView
 				refreshing={refreshing}
-				onRefresh={onRefresh}
+				onRefresh={() => void onRefresh()}
 				style={[styles.scrollView, { marginTop: headerMarginTop }]}
 			>
 				<View style={styles.section}>
@@ -1339,18 +1492,21 @@ const Dashboard = () => {
 				loginNotifications.length > 0 &&
 				currentNotificationIndex < loginNotifications.length &&
 				loginNotifications[currentNotificationIndex] && (
-					<LoginNotification
-						item={
-							loginNotifications[
-								currentNotificationIndex
-							] as AnnouncementsItemType
-						}
-						onClose={() => void onClosePopup()}
-						navigation={navigate}
-						index={currentNotificationIndex}
+					<Sentry.ErrorBoundary
+						fallback={<View />}
 						key={currentNotificationIndex}
-						resetCurrentIndex={() => void resetCurrentIndex()}
-					/>
+						onError={error =>
+							reportDashboardError('announcement-render', error)
+						}
+					>
+						<LoginNotification
+							item={loginNotifications[currentNotificationIndex]}
+							onClose={() => void onClosePopup()}
+							navigation={navigate}
+							index={currentNotificationIndex}
+							resetCurrentIndex={() => void resetCurrentIndex()}
+						/>
+					</Sentry.ErrorBoundary>
 				)}
 		</SafeAreaView>
 	);

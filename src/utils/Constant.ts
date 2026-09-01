@@ -123,7 +123,7 @@ const MOVEMENT_PARAMS = [
 const RESPONSE_TIMEOUT = {
 	DEV: 70000,
 	STG: 70000,
-	PROD: 30000,
+	PROD: 60000,
 };
 
 // Transaction Fees in subscription details
@@ -149,6 +149,11 @@ const BETA_ACTIVE = 'https://fitbox.iq/beta_active';
  * just put empty string if you don't want to check for min version
  */
 const MIN_VERSION_URL = 'https://fitbox.iq/appVersionConfig.json';
+
+const APP_URL =
+	Platform.OS === 'android'
+		? 'https://play.google.com/store/apps/details?id=com.wa.fitbox'
+		: 'https://apps.apple.com/US/app/id1462002702';
 
 export default {
 	ENABLE_ENV_PICKER,
@@ -183,4 +188,6 @@ export default {
 	TRANSACTION_FEES,
 	BETA_ACTIVE,
 	MIN_VERSION_URL,
+	APP_URL,
+	PAYMENT_URL: `${process.env.PAYMENT_URL}payments`,
 };

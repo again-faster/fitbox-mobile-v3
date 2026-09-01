@@ -149,7 +149,8 @@ const ScoreCommentsScreen = ({
 
 				let currentReaction: string | null = null;
 				[...res.data].forEach(({ applause_type, user_id }) => {
-					reactions[applause_type] += 1;
+					reactions[applause_type] =
+						(reactions[applause_type] ?? 0) + 1;
 					if (user_id === user?.user_data.user_id) {
 						currentReaction = applause_type;
 					}

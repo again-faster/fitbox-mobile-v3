@@ -1,5 +1,6 @@
 import { deletePushToken, login } from '@/services/auth';
 import { resolveApiUrl } from '@/services/resolveApiUrl';
+import queryClient from '@/query/queryClient';
 import { LoginResponseSchemaType } from '@/types/schemas/response';
 import { UserSchemaType } from '@/types/schemas/user';
 import { Constant, Func } from '@/utils';
@@ -41,6 +42,8 @@ const AuthProvider = ({ children, storage }: Props) => {
 	}));
 
 	const setStorageAuth = (data: LoginResponseSchemaType): void => {
+		queryClient.clear();
+
 		// Store the access token, refresh token, and expiration time in storage
 		storage.set('apiToken', data.token);
 
@@ -119,6 +122,7 @@ const AuthProvider = ({ children, storage }: Props) => {
 			// remove all tokens from storage
 			storage.delete('apiToken');
 			storage.delete('user');
+			queryClient.clear();
 
 			// remove the logged in user
 			const timer = setTimeout(() => {

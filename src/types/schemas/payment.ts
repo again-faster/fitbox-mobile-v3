@@ -60,13 +60,26 @@ export const CardSchema = z
 
 export const BECSDebitSchema = z
 	.object({
-		bsb_number: z.string(),
-		fingerprint: z.string(),
+		bsb_number: z.string().optional(),
+		fingerprint: z.string().optional(),
 		last4: z.string(),
 	})
 	.optional();
 
 export type BECSDebitType = z.infer<typeof BECSDebitSchema>;
+
+export const NZBankAccountSchema = z
+	.object({
+		account_holder_name: z.string().nullable(),
+		bank_code: z.string().nullable(),
+		bank_name: z.string().nullable(),
+		branch_code: z.string().nullable(),
+		last4: z.string().nullable(),
+		suffix: z.string().nullable(),
+	})
+	.optional();
+
+export type NZBankAccountType = z.infer<typeof NZBankAccountSchema>;
 
 export const PaymentMethodSchema = z.object({
 	allow_redisplay: z.string(),
@@ -83,6 +96,7 @@ export const PaymentMethodSchema = z.object({
 		name: z.string().nullable(),
 		phone: z.string().nullable(),
 	}),
+	nz_bank_account: NZBankAccountSchema,
 	card: CardSchema,
 	au_becs_debit: BECSDebitSchema,
 	created: z.number(),

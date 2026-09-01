@@ -141,7 +141,7 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 		const index = waitlist?.findIndex(
 			(w: SessionWaitlistMember) => w.user_id === loggedInUser?.id,
 		);
-		return index !== -1 ? (index as number) + 1 : -1;
+		return index !== -1 ? index + 1 : -1;
 	}, [session, loggedInUser]);
 
 	const waitlistLength = useMemo(() => {

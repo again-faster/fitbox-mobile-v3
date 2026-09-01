@@ -5,6 +5,7 @@ import { Constant } from '@/utils';
 import {
 	ImageProps,
 	ImageSourcePropType,
+	Linking,
 	Modal,
 	SafeAreaView,
 	StyleProp,
@@ -36,8 +37,12 @@ const UpdateDialog = () => {
 						latest version to continue using the app.
 					</Text>
 				</View>
+				<Button
+					title="Update"
+					style={styles.updateButton}
+					onPress={() => void Linking.openURL(Constant.APP_URL)}
+				/>
 			</SafeAreaView>
-			<Button title="Update" style={styles.updateButton} />
 		</Modal>
 	);
 };

@@ -2,6 +2,9 @@ import useAuth from '@/auth/hooks/useAuth';
 import { Button, Text } from '@/components/atoms';
 import { RowSelectItem } from '@/components/molecules';
 import { goBack, resetRoot } from '@/navigators/NavigationRef';
+import { QUERY_STALE_TIME } from '@/query/cachePolicy';
+import queryClient from '@/query/queryClient';
+import queryKeys from '@/query/queryKeys';
 import { getChildInfo, getParentInfo, switchAccount } from '@/services/users';
 import layout from '@/theme/layout';
 import { memberTheme } from '@/theme/member';
@@ -34,10 +37,20 @@ const SwitchUser = () => {
 		void (async () => {
 			setLoadError(false);
 			const isParent = user?.user_data.is_parent;
+			const userId = user?.id;
+			if (!userId) {
+				setIsLoading(false);
+				return;
+			}
+
 			try {
-				const res: GetChildInfoType | GetParentInfoType = isParent
-					? await getChildInfo()
-					: await getParentInfo();
+				const res = await queryClient.fetchQuery({
+					queryKey: queryKeys.switchableUsers(userId, !!isParent),
+					queryFn: (): Promise<
+						GetChildInfoType | GetParentInfoType
+					> => (isParent ? getChildInfo() : getParentInfo()),
+					staleTime: QUERY_STALE_TIME.STANDARD,
+				});
 
 				if (isParent) {
 					const childRes = res as GetChildInfoType;
@@ -74,7 +87,7 @@ const SwitchUser = () => {
 				setIsLoading(false);
 			}
 		})();
-	}, []);
+	}, [user?.id, user?.user_data.is_parent]);
 
 	const handleSwitch = async (id: number) => {
 		setLoadingMessage('Switching profile…');

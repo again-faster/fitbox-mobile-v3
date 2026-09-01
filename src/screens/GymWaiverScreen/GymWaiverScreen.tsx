@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import useAuth from '@/auth/hooks/useAuth';
 import { Button, Row, Spacer, Text } from '@/components/atoms';
+import queryClient from '@/query/queryClient';
 import { acceptWaiver, getWaiver } from '@/services/waivers';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
@@ -12,8 +12,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
 	ActivityIndicator,
 	Alert,
-	NativeSyntheticEvent,
-	Permission,
 	PermissionsAndroid,
 	Platform,
 	StyleSheet,
@@ -23,7 +21,7 @@ import {
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import SimpleToast from 'react-native-simple-toast';
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import WebView, { WebViewNavigation } from 'react-native-webview';
+import WebView from 'react-native-webview';
 
 type StateTypes = {
 	loading: boolean;
@@ -105,13 +103,11 @@ const GymWaiverScreen = ({ navigation }: ApplicationScreenProps) => {
 
 		if (Platform.OS === 'android') {
 			const granted = await PermissionsAndroid.check(
-				PermissionsAndroid.PERMISSIONS
-					.WRITE_EXTERNAL_STORAGE as Permission,
+				PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
 			);
 			if (!granted) {
 				await PermissionsAndroid.request(
-					PermissionsAndroid.PERMISSIONS
-						.WRITE_EXTERNAL_STORAGE as Permission,
+					PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
 				);
 			}
 
@@ -170,6 +166,9 @@ const GymWaiverScreen = ({ navigation }: ApplicationScreenProps) => {
 			setState({ ...state, accepting: true });
 
 			await acceptWaiver();
+			await queryClient.invalidateQueries({
+				queryKey: ['gym-info'],
+			});
 			const session = user?.user_data as UserSchemaType;
 
 			session.waiver_accepted = true;
@@ -191,10 +190,8 @@ const GymWaiverScreen = ({ navigation }: ApplicationScreenProps) => {
 		navigation.navigate('Startup');
 	};
 
-	const handleLoadEnd = (data: NativeSyntheticEvent<WebViewNavigation>) => {
+	const handleLoadEnd = (title: string) => {
 		setIsLoading(false);
-		const { nativeEvent } = data;
-		const { title }: { title: string } = nativeEvent;
 
 		if (!title.trim()) {
 			webViewRef.current?.stopLoading();
@@ -234,7 +231,9 @@ const GymWaiverScreen = ({ navigation }: ApplicationScreenProps) => {
 							)}`,
 						}}
 						onLoadStart={() => setIsLoading(true)}
-						onLoadEnd={handleLoadEnd}
+						onLoadEnd={({ nativeEvent }) =>
+							handleLoadEnd(nativeEvent.title)
+						}
 					/>
 				) : (
 					<View style={[layout.flex_1, layout.justifyCenter]}>

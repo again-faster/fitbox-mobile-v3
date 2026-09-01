@@ -42,6 +42,12 @@ export type ShopParams = {
 	orderKey: string;
 };
 
+export type OtherPaymentOptionsParams = {
+	paymentURL: string;
+	onSuccessCallback?: () => void;
+	fromPaymentInformation?: boolean;
+};
+
 export type ApplicationStackParamList = {
 	Example: undefined;
 	Main: NavigatorScreenParams<MainTabParamList> | undefined;
@@ -83,6 +89,7 @@ export type ApplicationStackParamList = {
 	Shop: ShopParams;
 	PaymentInformation: undefined;
 	Menu: undefined;
+	OtherPaymentOptions: OtherPaymentOptionsParams;
 };
 export type ApplicationScreenProps =
 	StackScreenProps<ApplicationStackParamList>;
@@ -129,6 +136,7 @@ export type WebViewParams = {
 export type ScoringParams = {
 	section: SessionSectionSchemaType;
 	sessionId: number;
+	isEdit?: boolean;
 };
 
 export type SubscriptionDetailsParams = {
@@ -182,6 +190,7 @@ export type MenuStackParamList = {
 	PerformanceSummary: undefined;
 	SwitchUser: undefined;
 	SwitchGym: undefined;
+	OtherPaymentOptions: OtherPaymentOptionsParams;
 };
 export type MenuStackNavigatorProps = StackScreenProps<MenuStackParamList>;
 

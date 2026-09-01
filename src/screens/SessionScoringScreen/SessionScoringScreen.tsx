@@ -24,7 +24,11 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 const bottomSheetSpacing = Dimensions.get('window').height * 0.3;
 
 const SessionScoringScreen = ({ route }: ApplicationScreenProps) => {
-	const { section, sessionId } = route.params as ScoringParams;
+	const {
+		section,
+		sessionId,
+		isEdit = false,
+	} = route.params as ScoringParams;
 	const { isKeyboardVisible } = useKeyboardVisibility();
 
 	const { setScoringBottomSheet } = useStore(state => ({
@@ -115,6 +119,7 @@ const SessionScoringScreen = ({ route }: ApplicationScreenProps) => {
 						onSubmitCallback={() => void fetchDetails()}
 						editMode={false}
 						fromCalendar
+						isEdit={isEdit}
 					/>
 				</View>
 			</View>

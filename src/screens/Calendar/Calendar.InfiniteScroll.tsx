@@ -372,7 +372,7 @@ const Calendar = () => {
 
 			return null;
 		})
-		.filter(item => item !== null) as number[];
+		.filter(item => item !== null);
 
 	const handleDateChange = useCallback((date: SetStateAction<string>) => {
 		setCurrentDate(date);
