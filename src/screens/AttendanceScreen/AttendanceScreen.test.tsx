@@ -291,7 +291,7 @@ describe('AttendanceScreen graph loading', () => {
 			).toBeTruthy(),
 		);
 
-		await act(async () => {
+		act(() => {
 			firstMonthResponse.resolve(
 				graphResponse([{ label: 'January', value: 11 }]),
 			);
@@ -314,7 +314,7 @@ describe('AttendanceScreen graph loading', () => {
 
 		expect(screen.queryAllByText('11')).toHaveLength(0);
 
-		await act(async () => {
+		act(() => {
 			currentMonthResponse.resolve(
 				graphResponse([{ label: 'January', value: 7 }]),
 			);

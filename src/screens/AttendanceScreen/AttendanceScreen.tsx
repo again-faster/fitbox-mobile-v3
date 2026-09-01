@@ -59,7 +59,7 @@ export const AttendanceGraphError = ({
 	return (
 		<View style={styles.chartMessage}>
 			<Text bold style={styles.graphErrorTitle}>
-				Couldn't load this graph
+				Could not load this graph
 			</Text>
 			<Text style={styles.graphErrorText}>
 				{`We couldn't load your ${periodLabel} attendance chart.`}
@@ -78,10 +78,7 @@ export const AttendanceGraphError = ({
 	);
 };
 
-type AttendanceScreenProps = StackScreenProps<
-	DashboardParamList,
-	'Attendance'
->;
+type AttendanceScreenProps = StackScreenProps<DashboardParamList, 'Attendance'>;
 
 const AttendanceScreen = ({ navigation }: AttendanceScreenProps) => {
 	const [filterValue, setFilterValue] = useState<string>(
@@ -226,7 +223,7 @@ const AttendanceScreen = ({ navigation }: AttendanceScreenProps) => {
 			: yearData.map(item => item.value);
 	const attendanceMax = Math.max(...attendanceData, 0);
 
-	let numberOfTicks;
+	let numberOfTicks = 5;
 	if (attendanceMax === 0) {
 		numberOfTicks = 1;
 	} else if (attendanceMax < 5) {
@@ -246,7 +243,7 @@ const AttendanceScreen = ({ navigation }: AttendanceScreenProps) => {
 			? [
 					tableData.slice(0, summarySplitIndex),
 					tableData.slice(summarySplitIndex),
-			  ]
+				]
 			: [tableData];
 
 	const getXContentInset = (barCount: number) => {
@@ -296,6 +293,94 @@ const AttendanceScreen = ({ navigation }: AttendanceScreenProps) => {
 		</View>
 	);
 
+	const renderChart = () => {
+		if (isActiveLoading) {
+			return (
+				<View style={styles.chartMessage}>
+					<ActivityIndicator color={memberTheme.colors.primary} />
+				</View>
+			);
+		}
+
+		if (activeGraphError) {
+			return (
+				<AttendanceGraphError
+					period={activeTab}
+					onRetry={() => void retryActiveGraph()}
+				/>
+			);
+		}
+
+		if (attendanceData.length === 0) {
+			return (
+				<View style={styles.chartMessage}>
+					<Text style={styles.emptyChartText}>
+						No attendance data yet.
+					</Text>
+				</View>
+			);
+		}
+
+		return (
+			<View style={styles.chartRow}>
+				<YAxis
+					data={attendanceData}
+					contentInset={{ top: 16, bottom: 16 }}
+					svg={{
+						fontSize: 10,
+						fill: memberTheme.colors.textMuted,
+					}}
+					numberOfTicks={numberOfTicks}
+					style={styles.yAxis}
+					formatLabel={(value: number) =>
+						value === 0 ? '' : value.toString()
+					}
+					min={0}
+				/>
+				<View style={styles.chartBody}>
+					<BarChart
+						style={styles.barChart}
+						data={attendanceData}
+						svg={{ fill: memberTheme.colors.primary }}
+						spacingInner={0.5}
+						contentInset={{ top: 16, bottom: 16 }}
+						yMin={0}
+					>
+						<Line
+							x1="0"
+							x2="0"
+							y1="0"
+							y2="90%"
+							stroke={memberTheme.colors.border}
+							strokeWidth="1"
+						/>
+						<Line
+							x1="0"
+							x2="100%"
+							y1="90%"
+							y2="90%"
+							stroke={memberTheme.colors.border}
+							strokeWidth="1"
+						/>
+					</BarChart>
+					<XAxis
+						data={attendanceData}
+						formatLabel={(_value: unknown, index: number) =>
+							labels[index] ?? ''
+						}
+						contentInset={getXContentInset(attendanceData.length)}
+						svg={{
+							fontSize: 10,
+							fill: memberTheme.colors.textMuted,
+						}}
+						style={styles.xAxis}
+						spacingInner={0.5}
+					/>
+				</View>
+			</View>
+		);
+	};
+
 	return (
 		<View style={styles.container}>
 			<StatusBar
@@ -338,7 +423,9 @@ const AttendanceScreen = ({ navigation }: AttendanceScreenProps) => {
 									items={yearFilters}
 									setOpen={setIsFilterOpen}
 									setValue={value => setFilterValue(value)}
-									textStyle={{ fontSize: config.fonts.metrics.sm }}
+									textStyle={{
+										fontSize: config.fonts.metrics.sm,
+									}}
 									style={styles.dropDownStyle}
 									dropDownContainerStyle={
 										styles.dropDownContainerStyle
@@ -346,7 +433,9 @@ const AttendanceScreen = ({ navigation }: AttendanceScreenProps) => {
 									listItemLabelStyle={{
 										fontSize: config.fonts.metrics.sm,
 									}}
-									labelStyle={{ fontSize: config.fonts.metrics.sm }}
+									labelStyle={{
+										fontSize: config.fonts.metrics.sm,
+									}}
 									arrowIconStyle={{
 										width: config.metrics.rg,
 										height: config.metrics.rg,
@@ -360,86 +449,7 @@ const AttendanceScreen = ({ navigation }: AttendanceScreenProps) => {
 								/>
 							)}
 					</View>
-					<View style={styles.chartContainer}>
-						{isActiveLoading ? (
-							<View style={styles.chartMessage}>
-								<ActivityIndicator
-									color={memberTheme.colors.primary}
-								/>
-							</View>
-						) : activeGraphError ? (
-							<AttendanceGraphError
-								period={activeTab}
-								onRetry={() => void retryActiveGraph()}
-							/>
-						) : attendanceData.length === 0 ? (
-							<View style={styles.chartMessage}>
-								<Text style={styles.emptyChartText}>
-									No attendance data yet.
-								</Text>
-							</View>
-						) : (
-							<View style={styles.chartRow}>
-								<YAxis
-									data={attendanceData}
-									contentInset={{ top: 16, bottom: 16 }}
-									svg={{
-										fontSize: 10,
-										fill: memberTheme.colors.textMuted,
-									}}
-									numberOfTicks={numberOfTicks}
-									style={styles.yAxis}
-									formatLabel={(value: number) =>
-										value === 0 ? '' : value.toString()
-									}
-									min={0}
-								/>
-								<View style={styles.chartBody}>
-									<BarChart
-										style={styles.barChart}
-										data={attendanceData}
-										svg={{ fill: memberTheme.colors.primary }}
-										spacingInner={0.5}
-										contentInset={{ top: 16, bottom: 16 }}
-										yMin={0}
-									>
-										<Line
-											x1="0"
-											x2="0"
-											y1="0"
-											y2="90%"
-											stroke={memberTheme.colors.border}
-											strokeWidth="1"
-										/>
-										<Line
-											x1="0"
-											x2="100%"
-											y1="90%"
-											y2="90%"
-											stroke={memberTheme.colors.border}
-											strokeWidth="1"
-										/>
-									</BarChart>
-									<XAxis
-										data={attendanceData}
-										formatLabel={(
-											_value: unknown,
-											index: number,
-										) => labels[index] ?? ''}
-										contentInset={getXContentInset(
-											attendanceData.length,
-										)}
-										svg={{
-											fontSize: 10,
-											fill: memberTheme.colors.textMuted,
-										}}
-										style={styles.xAxis}
-										spacingInner={0.5}
-									/>
-								</View>
-							</View>
-						)}
-					</View>
+					<View style={styles.chartContainer}>{renderChart()}</View>
 					<View style={styles.statsRow}>
 						{stats.map(stat => (
 							<View key={stat.key} style={styles.statItem}>
@@ -520,7 +530,10 @@ const AttendanceScreen = ({ navigation }: AttendanceScreenProps) => {
 											>
 												{item.label}
 											</Text>
-											<Text bold style={styles.summaryValue}>
+											<Text
+												bold
+												style={styles.summaryValue}
+											>
 												{item.value}
 											</Text>
 										</View>
