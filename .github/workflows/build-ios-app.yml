@@ -68,7 +68,7 @@ jobs:
           printf '%s' "$ANDROID_PREVIEW_KEYSTORE_BASE64" | base64 --decode > android/app/fitbox-preview-upload.keystore
 
       - name: Set preview version code
-        run: echo "PREVIEW_VERSION_CODE=$((1000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
+        run: echo "PREVIEW_VERSION_CODE=$((2000000000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
 
       - name: Build signed preview app bundle
         env:
