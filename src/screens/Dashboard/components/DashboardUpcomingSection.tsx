@@ -1,9 +1,9 @@
-import { Text } from "@/components/atoms";
-import { memberTheme } from "@/theme/member";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { Text } from '@/components/atoms';
+import { memberTheme } from '@/theme/member';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import BookedSessionCard, { BookedSessionCardProps } from "./BookedSessionCard";
+import BookedSessionCard, { BookedSessionCardProps } from './BookedSessionCard';
 
 interface DashboardUpcomingSectionProps {
 	sessions: readonly BookedSessionCardProps[];
@@ -76,14 +76,14 @@ const styles = StyleSheet.create({
 		...memberTheme.shadow,
 	},
 	headingRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
 		marginBottom: memberTheme.spacing.sm,
 	},
 	headingCopy: {
-		flexDirection: "row",
-		alignItems: "center",
+		flexDirection: 'row',
+		alignItems: 'center',
 		minWidth: 0,
 		flex: 1,
 	},
@@ -91,8 +91,8 @@ const styles = StyleSheet.create({
 		width: 32,
 		height: 32,
 		borderRadius: 16,
-		alignItems: "center",
-		justifyContent: "center",
+		alignItems: 'center',
+		justifyContent: 'center',
 		backgroundColor: memberTheme.colors.surfaceSoft,
 		marginRight: memberTheme.spacing.sm,
 	},
@@ -102,9 +102,9 @@ const styles = StyleSheet.create({
 		flexShrink: 1,
 	},
 	viewAll: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "flex-end",
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'flex-end',
 		marginTop: memberTheme.spacing.sm,
 		paddingHorizontal: memberTheme.spacing.xs,
 	},

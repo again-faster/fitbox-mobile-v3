@@ -1,47 +1,47 @@
-import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
-import type { ReactNode } from "react";
-import { MMKV } from "react-native-mmkv";
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import type { ReactNode } from 'react';
+import { MMKV } from 'react-native-mmkv';
 
-import getAttendanceGraph from "@/services/leaderboards/getAttendanceGraph";
-import { ThemeProvider } from "@/theme";
-import useStore from "@/zustand/Store";
+import getAttendanceGraph from '@/services/leaderboards/getAttendanceGraph';
+import { ThemeProvider } from '@/theme';
+import useStore from '@/zustand/Store';
 
 import AttendanceScreen, {
 	AttendanceGraphError,
 	isAttendanceGraphError,
-} from "./AttendanceScreen";
+} from './AttendanceScreen';
 
-jest.mock("@/services/leaderboards/getAttendanceGraph", () => ({
+jest.mock('@/services/leaderboards/getAttendanceGraph', () => ({
 	__esModule: true,
 	default: jest.fn(),
 }));
 
-jest.mock("@/utils", () => ({
+jest.mock('@/utils', () => ({
 	Say: { err: jest.fn() },
 }));
 
-jest.mock("@/zustand/Store", () => ({
+jest.mock('@/zustand/Store', () => ({
 	__esModule: true,
 	default: jest.fn(),
 }));
 
-jest.mock("./components/AttendanceHeader", () => {
+jest.mock('./components/AttendanceHeader', () => {
 	const mockReactNative =
-		jest.requireActual<typeof import("react-native")>("react-native");
+		jest.requireActual<typeof import('react-native')>('react-native');
 	const MockView = mockReactNative.View;
 	return () => <MockView testID="attendance-header-mock" />;
 });
 
-jest.mock("./MonthlyAttendanceGoal", () => {
+jest.mock('./MonthlyAttendanceGoal', () => {
 	const mockReactNative =
-		jest.requireActual<typeof import("react-native")>("react-native");
+		jest.requireActual<typeof import('react-native')>('react-native');
 	const MockView = mockReactNative.View;
 	return () => <MockView testID="monthly-attendance-goal-mock" />;
 });
 
-jest.mock("react-native-dropdown-picker", () => {
+jest.mock('react-native-dropdown-picker', () => {
 	const mockReactNative =
-		jest.requireActual<typeof import("react-native")>("react-native");
+		jest.requireActual<typeof import('react-native')>('react-native');
 	const { Text, TouchableOpacity } = mockReactNative;
 
 	return ({
@@ -66,9 +66,9 @@ jest.mock("react-native-dropdown-picker", () => {
 	);
 });
 
-jest.mock("react-native-safe-area-context", () => {
+jest.mock('react-native-safe-area-context', () => {
 	const mockReactNative =
-		jest.requireActual<typeof import("react-native")>("react-native");
+		jest.requireActual<typeof import('react-native')>('react-native');
 	const MockView = mockReactNative.View;
 
 	return {
@@ -78,18 +78,18 @@ jest.mock("react-native-safe-area-context", () => {
 	};
 });
 
-jest.mock("react-native-svg", () => ({
+jest.mock('react-native-svg', () => ({
 	Line: () => null,
 }));
 
-jest.mock("react-native-svg-charts", () => {
+jest.mock('react-native-svg-charts', () => {
 	const mockReactNative =
-		jest.requireActual<typeof import("react-native")>("react-native");
+		jest.requireActual<typeof import('react-native')>('react-native');
 	const { Text, View } = mockReactNative;
 
 	const BarChart = ({ data }: { data: number[] }) => (
 		<View testID="attendance-chart">
-			<Text testID="attendance-chart-values">{data.join(",")}</Text>
+			<Text testID="attendance-chart-values">{data.join(',')}</Text>
 		</View>
 	);
 
@@ -123,14 +123,14 @@ type GraphResponse = {
 };
 
 const graphResponse = (
-	data: GraphResponse["data"],
+	data: GraphResponse['data'],
 	error = false,
-	message = "",
+	message = '',
 ): GraphResponse => ({ data, message, error });
 
 const deferred = <T,>() => {
 	let resolve: (value: T) => void = () => undefined;
-	const promise = new Promise<T>((resolvePromise) => {
+	const promise = new Promise<T>(resolvePromise => {
 		resolve = resolvePromise;
 	});
 
@@ -142,7 +142,7 @@ const renderAttendanceScreen = () =>
 		<ThemeProvider storage={new MMKV()}>
 			<AttendanceScreen
 				navigation={{ goBack: jest.fn() } as never}
-				route={{ key: "Attendance-test", name: "Attendance" } as never}
+				route={{ key: 'Attendance-test', name: 'Attendance' } as never}
 			/>
 		</ThemeProvider>,
 	);
@@ -155,15 +155,15 @@ beforeEach(() => {
 	);
 });
 
-describe("AttendanceScreen graph loading", () => {
-	it("renders a visible retry action for an HTTP-200 month graph error", async () => {
+describe('AttendanceScreen graph loading', () => {
+	it('renders a visible retry action for an HTTP-200 month graph error', async () => {
 		mockedGetAttendanceGraph.mockImplementation((period: string) =>
-			period === "year"
+			period === 'year'
 				? Promise.resolve(
 						graphResponse([{ label: currentYear, value: 3 }]),
 					)
 				: Promise.resolve(
-						graphResponse([], true, "Monthly graph unavailable"),
+						graphResponse([], true, 'Monthly graph unavailable'),
 					),
 		);
 
@@ -181,7 +181,7 @@ describe("AttendanceScreen graph loading", () => {
 			).toBeTruthy(),
 		);
 
-		const retry = screen.getByRole("button", { name: "Retry" });
+		const retry = screen.getByRole('button', { name: 'Retry' });
 		expect(retry).toBeTruthy();
 
 		await act(async () => {
@@ -191,18 +191,18 @@ describe("AttendanceScreen graph loading", () => {
 		});
 
 		expect(mockedGetAttendanceGraph).toHaveBeenLastCalledWith(
-			"month",
+			'month',
 			currentYear,
 		);
 	});
 
-	it("ignores an older month response after changing the year filter", async () => {
+	it('ignores an older month response after changing the year filter', async () => {
 		const firstMonthResponse = deferred<GraphResponse>();
 		const currentMonthResponse = deferred<GraphResponse>();
 
 		mockedGetAttendanceGraph.mockImplementation(
 			(period: string, year: string) => {
-				if (period === "year") {
+				if (period === 'year') {
 					return Promise.resolve(
 						graphResponse([
 							{ label: currentYear, value: 3 },
@@ -221,54 +221,54 @@ describe("AttendanceScreen graph loading", () => {
 
 		await waitFor(() =>
 			expect(
-				screen.getByRole("button", { name: "Change attendance year" }),
+				screen.getByRole('button', { name: 'Change attendance year' }),
 			).toBeTruthy(),
 		);
 
 		fireEvent.press(
-			screen.getByRole("button", { name: "Change attendance year" }),
+			screen.getByRole('button', { name: 'Change attendance year' }),
 		);
 
 		await waitFor(() =>
 			expect(mockedGetAttendanceGraph).toHaveBeenCalledWith(
-				"month",
+				'month',
 				previousYear,
 			),
 		);
 
 		act(() => {
 			firstMonthResponse.resolve(
-				graphResponse([{ label: "January", value: 99 }]),
+				graphResponse([{ label: 'January', value: 99 }]),
 			);
 		});
 
-		expect(screen.queryByTestId("attendance-chart")).toBeNull();
-		expect(screen.queryByTestId("attendance-chart-values")).toBeNull();
-		expect(screen.queryByText("99")).toBeNull();
+		expect(screen.queryByTestId('attendance-chart')).toBeNull();
+		expect(screen.queryByTestId('attendance-chart-values')).toBeNull();
+		expect(screen.queryByText('99')).toBeNull();
 
 		act(() => {
 			currentMonthResponse.resolve(
-				graphResponse([{ label: "January", value: 7 }]),
+				graphResponse([{ label: 'January', value: 7 }]),
 			);
 		});
 
 		await waitFor(() =>
 			expect(
-				screen.getByTestId("attendance-chart-values"),
-			).toHaveTextContent("7"),
+				screen.getByTestId('attendance-chart-values'),
+			).toHaveTextContent('7'),
 		);
 		expect(
-			screen.getByTestId("attendance-chart-values"),
-		).not.toHaveTextContent("99");
+			screen.getByTestId('attendance-chart-values'),
+		).not.toHaveTextContent('99');
 	});
 
-	it("clears the previous month summary while a new year is loading", async () => {
+	it('clears the previous month summary while a new year is loading', async () => {
 		const firstMonthResponse = deferred<GraphResponse>();
 		const currentMonthResponse = deferred<GraphResponse>();
 
 		mockedGetAttendanceGraph.mockImplementation(
 			(period: string, year: string) => {
-				if (period === "year") {
+				if (period === 'year') {
 					return Promise.resolve(
 						graphResponse([
 							{ label: currentYear, value: 3 },
@@ -287,66 +287,66 @@ describe("AttendanceScreen graph loading", () => {
 
 		await waitFor(() =>
 			expect(
-				screen.getByRole("button", { name: "Change attendance year" }),
+				screen.getByRole('button', { name: 'Change attendance year' }),
 			).toBeTruthy(),
 		);
 
 		await act(async () => {
 			firstMonthResponse.resolve(
-				graphResponse([{ label: "January", value: 11 }]),
+				graphResponse([{ label: 'January', value: 11 }]),
 			);
 		});
 
 		await waitFor(() =>
-			expect(screen.getAllByText("11").length).toBeGreaterThan(0),
+			expect(screen.getAllByText('11').length).toBeGreaterThan(0),
 		);
 
 		fireEvent.press(
-			screen.getByRole("button", { name: "Change attendance year" }),
+			screen.getByRole('button', { name: 'Change attendance year' }),
 		);
 
 		await waitFor(() =>
 			expect(mockedGetAttendanceGraph).toHaveBeenCalledWith(
-				"month",
+				'month',
 				previousYear,
 			),
 		);
 
-		expect(screen.queryAllByText("11")).toHaveLength(0);
+		expect(screen.queryAllByText('11')).toHaveLength(0);
 
 		await act(async () => {
 			currentMonthResponse.resolve(
-				graphResponse([{ label: "January", value: 7 }]),
+				graphResponse([{ label: 'January', value: 7 }]),
 			);
 		});
 
 		await waitFor(() =>
-			expect(screen.getAllByText("7").length).toBeGreaterThan(0),
+			expect(screen.getAllByText('7').length).toBeGreaterThan(0),
 		);
 	});
 });
 
-describe("isAttendanceGraphError", () => {
-	it("recognizes an HTTP-200 error response", () => {
+describe('isAttendanceGraphError', () => {
+	it('recognizes an HTTP-200 error response', () => {
 		expect(
 			isAttendanceGraphError({
 				data: [],
-				message: "Attendance graph unavailable",
+				message: 'Attendance graph unavailable',
 				error: true,
 			}),
 		).toBe(true);
 		expect(
 			isAttendanceGraphError({
 				data: [],
-				message: "",
+				message: '',
 				error: false,
 			}),
 		).toBe(false);
 	});
 });
 
-describe("AttendanceGraphError", () => {
-	it("shows a visible yearly error and retries the requested graph", () => {
+describe('AttendanceGraphError', () => {
+	it('shows a visible yearly error and retries the requested graph', () => {
 		const onRetry = jest.fn();
 		const { getByRole, getByText } = render(
 			<ThemeProvider storage={new MMKV()}>
@@ -358,7 +358,7 @@ describe("AttendanceGraphError", () => {
 			getByText("We couldn't load your yearly attendance chart."),
 		).toBeTruthy();
 
-		fireEvent.press(getByRole("button", { name: "Retry" }));
+		fireEvent.press(getByRole('button', { name: 'Retry' }));
 
 		expect(onRetry).toHaveBeenCalledTimes(1);
 	});
