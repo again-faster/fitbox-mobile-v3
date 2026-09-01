@@ -14,7 +14,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { MemberScreen } from '@/components/member';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type Props = TrainingStackScreenProps<'TrainingInjuryList'>;
@@ -28,11 +28,26 @@ const SEVERITY_COLORS: Record<
 	number,
 	{ background: string; foreground: string }
 > = {
-	1: { background: trainingTheme.colors.successSoft, foreground: '#2E7D32' },
-	2: { background: '#EFF8E7', foreground: '#5D8D2D' },
-	3: { background: trainingTheme.colors.warningSoft, foreground: '#996800' },
-	4: { background: '#FFF0EA', foreground: '#CF572A' },
-	5: { background: '#FDECEC', foreground: trainingTheme.colors.danger },
+	1: {
+		background: trainingTheme.colors.successSoft,
+		foreground: trainingTheme.colors.success,
+	},
+	2: {
+		background: trainingTheme.colors.successSoft,
+		foreground: trainingTheme.colors.success,
+	},
+	3: {
+		background: trainingTheme.colors.warningSoft,
+		foreground: trainingTheme.colors.warning,
+	},
+	4: {
+		background: trainingTheme.colors.warningSoft,
+		foreground: trainingTheme.colors.warning,
+	},
+	5: {
+		background: trainingTheme.colors.dangerSoft,
+		foreground: trainingTheme.colors.danger,
+	},
 };
 
 const titleCase = (value: string) =>
@@ -64,9 +79,12 @@ const InjuryList = ({ navigation }: Props) => {
 	});
 
 	const injuries = query.data ?? [];
-	const active = injuries.filter(injury => injury.status === 'active');
+	const active = injuries.filter(
+		(injury: Injury) => injury.status === 'active',
+	);
 	const resolved = injuries.filter(
-		injury => injury.status === 'recovered' || injury.status === 'stopped',
+		(injury: Injury) =>
+			injury.status === 'recovered' || injury.status === 'stopped',
 	);
 	const sections: Section[] = [];
 	if (active.length > 0) sections.push({ title: 'Active', data: active });
@@ -223,7 +241,11 @@ const InjuryList = ({ navigation }: Props) => {
 	};
 
 	return (
-		<SafeAreaView style={styles.screen} edges={['top']}>
+		<MemberScreen
+			style={styles.screen}
+			contentContainerStyle={{ paddingHorizontal: 0 }}
+			edges={['top']}
+		>
 			{query.isLoading && (
 				<>
 					{header}
@@ -324,7 +346,7 @@ const InjuryList = ({ navigation }: Props) => {
 					renderItem={renderInjury}
 				/>
 			)}
-		</SafeAreaView>
+		</MemberScreen>
 	);
 };
 
@@ -534,7 +556,7 @@ const styles = StyleSheet.create({
 	retryText: {
 		fontSize: 15,
 		fontWeight: '800',
-		color: '#FFFFFF',
+		color: trainingTheme.colors.surface,
 	},
 });
 

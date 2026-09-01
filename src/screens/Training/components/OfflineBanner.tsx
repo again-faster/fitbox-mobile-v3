@@ -1,6 +1,7 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { trainingTheme } from '@/theme/training';
+import { MemberButton, MemberText } from '@/components/member';
+import { memberTheme } from '@/theme/member';
 
 type Props = {
 	onRetry?: () => void;
@@ -15,51 +16,41 @@ const OfflineBanner = ({
 		<Ionicons
 			name="wifi-off"
 			size={18}
-			color={trainingTheme.colors.warning}
+			color={memberTheme.colors.warning}
 		/>
-		<Text style={styles.message}>{message}</Text>
+		<MemberText variant="meta" style={styles.message}>
+			{message}
+		</MemberText>
 		{onRetry ? (
-			<TouchableOpacity
-				accessibilityRole="button"
+			<MemberButton
+				label="Retry"
+				variant="quiet"
+				compact
 				onPress={onRetry}
 				style={styles.retry}
-			>
-				<Text style={styles.retryText}>Retry</Text>
-			</TouchableOpacity>
+			/>
 		) : null}
 	</View>
 );
 
 const styles = StyleSheet.create({
 	banner: {
-		minHeight: trainingTheme.touchTarget,
-		borderRadius: trainingTheme.radius.sm,
-		backgroundColor: trainingTheme.colors.warningSoft,
-		borderColor: '#F0D699',
+		minHeight: memberTheme.controls.minTouchTarget,
+		borderRadius: memberTheme.radius.sm,
+		backgroundColor: memberTheme.colors.warningSoft,
+		borderColor: memberTheme.colors.warning,
 		borderWidth: StyleSheet.hairlineWidth,
-		paddingHorizontal: trainingTheme.spacing.md,
-		paddingVertical: trainingTheme.spacing.sm,
+		paddingHorizontal: memberTheme.spacing.md,
+		paddingVertical: memberTheme.spacing.sm,
 		flexDirection: 'row',
 		alignItems: 'center',
-		gap: trainingTheme.spacing.sm,
+		gap: memberTheme.spacing.sm,
 	},
 	message: {
 		flex: 1,
-		color: trainingTheme.colors.text,
-		fontFamily: 'Inter-Variable',
-		fontSize: 12,
-		lineHeight: 17,
 	},
 	retry: {
-		minHeight: trainingTheme.touchTarget,
-		justifyContent: 'center',
-		paddingHorizontal: trainingTheme.spacing.xs,
-	},
-	retryText: {
-		color: trainingTheme.colors.warning,
-		fontFamily: 'Inter-Variable',
-		fontSize: 13,
-		fontWeight: '700',
+		paddingHorizontal: memberTheme.spacing.xs,
 	},
 });
 

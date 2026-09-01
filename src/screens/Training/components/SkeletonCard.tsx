@@ -1,6 +1,9 @@
-﻿import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
-import { trainingTheme } from '@/theme/training';
+import { MemberCard } from '@/components/member';
+import { memberTheme } from '@/theme/member';
+
+const AnimatedMemberCard = Animated.createAnimatedComponent(MemberCard);
 
 const SkeletonCard = () => {
 	const opacity = useRef(new Animated.Value(0.3)).current;
@@ -23,26 +26,18 @@ const SkeletonCard = () => {
 	}, [opacity]);
 
 	return (
-		<Animated.View style={[styles.card, { opacity }]}>
+		<AnimatedMemberCard style={[styles.card, { opacity }]} elevated={false}>
 			<View style={styles.line} />
 			<View style={[styles.line, styles.short]} />
-		</Animated.View>
+		</AnimatedMemberCard>
 	);
 };
 
 const styles = StyleSheet.create({
-	card: {
-		backgroundColor: trainingTheme.colors.surface,
-		borderRadius: trainingTheme.radius.lg,
-		padding: trainingTheme.spacing.lg,
-		marginBottom: trainingTheme.spacing.sm,
-		gap: trainingTheme.spacing.sm,
-		borderWidth: 1,
-		borderColor: trainingTheme.colors.border,
-	},
+	card: { marginBottom: memberTheme.spacing.sm, gap: memberTheme.spacing.sm },
 	line: {
 		height: 14,
-		backgroundColor: trainingTheme.colors.surfaceMuted,
+		backgroundColor: memberTheme.colors.surfaceSoft,
 		borderRadius: 7,
 	},
 	short: {

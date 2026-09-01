@@ -61,31 +61,31 @@ const BookingsHub = () => {
 	const tenantId = session?.user.active_tenant_id;
 	const [tab, setTab] = useState<Tab | null>(() => tabs[0] ?? null);
 	const [selection, setSelection] = useState<BookingSelection | null>(null);
-	const services = useQuery({
+	const services = useQuery<BookingService[]>({
 		queryKey: ['ws-bookable-service-types', tenantId],
 		queryFn: () => bookingApi.services(tenantId!),
 		enabled: !!tenantId && features.bookings,
 		staleTime: 300_000,
 	});
-	const ptProviders = useQuery({
+	const ptProviders = useQuery<BookingProvider[]>({
 		queryKey: ['ws-booking-providers', tenantId, 'pt'],
 		queryFn: () => bookingApi.providers(tenantId!, 'pt'),
 		enabled: !!tenantId && features.bookings,
 		staleTime: 300_000,
 	});
-	const treatmentProviders = useQuery({
+	const treatmentProviders = useQuery<BookingProvider[]>({
 		queryKey: ['ws-booking-providers', tenantId, 'treatment'],
 		queryFn: () => bookingApi.providers(tenantId!, 'treatment'),
 		enabled: !!tenantId && features.bookings,
 		staleTime: 300_000,
 	});
-	const resources = useQuery({
+	const resources = useQuery<BookingResource[]>({
 		queryKey: ['ws-bookable-resources', tenantId],
 		queryFn: () => bookingApi.resources(tenantId!),
 		enabled: !!tenantId && features.bookings,
 		staleTime: 300_000,
 	});
-	const bookings = useQuery({
+	const bookings = useQuery<MemberBooking[]>({
 		queryKey: ['ws-member-bookings', uid],
 		queryFn: () => bookingApi.mine('all', 100),
 		enabled: !!uid && features.my_bookings,
@@ -129,24 +129,33 @@ const BookingsHub = () => {
 		if (features.my_bookings) void bookings.refetch();
 	};
 	const typeMap = useMemo(
-		() => new Map((services.data ?? []).map(type => [type.id, type])),
+		() =>
+			new Map<string, BookingService>(
+				(services.data ?? []).map((type: BookingService) => [
+					type.id,
+					type,
+				]),
+			),
 		[services.data],
 	);
-	const providerRows =
+	const providerRows: BookingProvider[] | undefined =
 		tab === 'treatment' ? treatmentProviders.data : ptProviders.data;
 	const providers = useMemo(
 		() =>
 			(providerRows ?? [])
-				.map(provider => ({
+				.map((provider: BookingProvider) => ({
 					...provider,
 					offered: provider.serviceTypeIds
-						.map(id => typeMap.get(id))
+						.map((id: string) => typeMap.get(id))
 						.filter(
 							(type): type is BookingService =>
 								!!type && type.service_kind === tab,
 						),
 				}))
-				.filter(row => row.offered.length > 0),
+				.filter(
+					(row: BookingProvider & { offered: BookingService[] }) =>
+						row.offered.length > 0,
+				),
 		[providerRows, typeMap, tab],
 	);
 	const loading = !tab
@@ -193,7 +202,7 @@ const BookingsHub = () => {
 			: undefined;
 		const resource = booking.resource
 			? (resources.data ?? []).find(
-					item => item.id === booking.resource?.id,
+					(item: BookingResource) => item.id === booking.resource?.id,
 				)
 			: undefined;
 

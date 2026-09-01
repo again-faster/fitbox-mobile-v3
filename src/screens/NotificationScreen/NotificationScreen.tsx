@@ -1,3 +1,4 @@
+import { MemberCard, MemberText } from '@/components/member';
 import { Button, Row, Spacer, Text } from '@/components/atoms';
 import { config } from '@/theme/_config';
 import layout from '@/theme/layout';
@@ -133,7 +134,7 @@ const NotificationScreen = () => {
 
 	return (
 		<View style={styles.container}>
-			<View style={styles.headerCard}>
+			<MemberCard elevated={false} style={styles.headerCard}>
 				<View style={styles.headerIcon}>
 					<Icon
 						name="bell-outline"
@@ -142,19 +143,30 @@ const NotificationScreen = () => {
 					/>
 				</View>
 				<View style={layout.flex_1}>
-					<Text bold style={styles.headerTitle}>
+					<MemberText
+						variant="sectionTitle"
+						style={styles.headerTitle}
+					>
 						Stay in the loop
-					</Text>
+					</MemberText>
 					{!state?.enabled && (
-						<Text size="sm" style={styles.headerText}>
+						<MemberText
+							variant="body"
+							muted
+							style={styles.headerText}
+						>
 							Notifications are currently turned off. Please
 							enable them to receive important gym updates.
-						</Text>
+						</MemberText>
 					)}
 					{state?.enabled && (
-						<Text size="sm" style={styles.headerText}>
+						<MemberText
+							variant="body"
+							muted
+							style={styles.headerText}
+						>
 							Choose which updates you want to receive.
-						</Text>
+						</MemberText>
 					)}
 				</View>
 				{!state?.enabled && (
@@ -168,7 +180,7 @@ const NotificationScreen = () => {
 						/>
 					</View>
 				)}
-			</View>
+			</MemberCard>
 			<Spacer size="lg" />
 
 			{state?.enabled && renderOptions()}

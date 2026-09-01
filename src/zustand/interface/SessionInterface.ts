@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { GymClassType, GymVenueType } from '@/types/schemas/gym';
 import {
 	ClassFiltersDataType,
@@ -93,6 +92,6 @@ export type {
 	ClassItem,
 	ClassItemData,
 	SessionStateInterface,
-	VenueFilter
+	VenueFilter,
 };
 export default SessionInterface;
