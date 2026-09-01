@@ -236,7 +236,7 @@ describe('AttendanceScreen graph loading', () => {
 			),
 		);
 
-		act(() => {
+		void act(() => {
 			firstMonthResponse.resolve(
 				graphResponse([{ label: 'January', value: 99 }]),
 			);
@@ -246,7 +246,7 @@ describe('AttendanceScreen graph loading', () => {
 		expect(screen.queryByTestId('attendance-chart-values')).toBeNull();
 		expect(screen.queryByText('99')).toBeNull();
 
-		act(() => {
+		void act(() => {
 			currentMonthResponse.resolve(
 				graphResponse([{ label: 'January', value: 7 }]),
 			);
@@ -291,7 +291,7 @@ describe('AttendanceScreen graph loading', () => {
 			).toBeTruthy(),
 		);
 
-		act(() => {
+		void act(() => {
 			firstMonthResponse.resolve(
 				graphResponse([{ label: 'January', value: 11 }]),
 			);
@@ -314,7 +314,7 @@ describe('AttendanceScreen graph loading', () => {
 
 		expect(screen.queryAllByText('11')).toHaveLength(0);
 
-		act(() => {
+		void act(() => {
 			currentMonthResponse.resolve(
 				graphResponse([{ label: 'January', value: 7 }]),
 			);

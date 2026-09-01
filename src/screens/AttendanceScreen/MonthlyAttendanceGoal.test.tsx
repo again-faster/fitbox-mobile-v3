@@ -16,9 +16,11 @@ jest.mock('@/storage', () => ({
 }));
 
 jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => {
-	const { Text } = require('react-native');
+	const mockReactNative =
+		jest.requireActual<typeof import('react-native')>('react-native');
+	const MockText = mockReactNative.Text;
 
-	return ({ name }: { name: string }) => <Text>{name}</Text>;
+	return ({ name }: { name: string }) => <MockText>{name}</MockText>;
 });
 
 describe('MonthlyAttendanceGoal', () => {

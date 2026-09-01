@@ -1,12 +1,7 @@
 import { memberTheme } from '@/theme/member';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Svg, {
-	Defs,
-	LinearGradient,
-	Rect,
-	Stop,
-} from 'react-native-svg';
+import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 interface AttendanceHeaderProps {
 	onBack: () => void;
@@ -32,11 +27,7 @@ const AttendanceHeader = ({ onBack }: AttendanceHeaderProps) => (
 						stopColor={memberTheme.colors.primary}
 						stopOpacity="1"
 					/>
-					<Stop
-						offset="100%"
-						stopColor="#4F9CEB"
-						stopOpacity="1"
-					/>
+					<Stop offset="100%" stopColor="#4F9CEB" stopOpacity="1" />
 				</LinearGradient>
 			</Defs>
 			<Rect
