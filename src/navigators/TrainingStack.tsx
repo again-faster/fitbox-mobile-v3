@@ -20,7 +20,6 @@ import TrainingSettings from '@/screens/Training/Settings/TrainingSettings';
 import Today from '@/screens/Training/Today/Today';
 import TrainingRoot from '@/screens/Training/TrainingRoot';
 import Wellness from '@/screens/Training/Wellness/Wellness';
-import WellnessHub from '@/screens/Training/Wellness/WellnessHub';
 import WorkoutDetail from '@/screens/Training/Workouts/WorkoutDetail';
 import WorkoutList from '@/screens/Training/Workouts/WorkoutList';
 import AppleHealthScreen from '@/screens/Training/AppleHealth/AppleHealthScreen';
@@ -170,7 +169,7 @@ const TrainingStackNavigator = () => {
 			</Stack.Screen>
 			<Stack.Screen
 				name="TrainingWellness"
-				options={{ headerShown: false }}
+				options={{ title: 'Wellness' }}
 			>
 				{props => (
 					<MemberFeatureGate feature="wellness">
@@ -178,11 +177,6 @@ const TrainingStackNavigator = () => {
 					</MemberFeatureGate>
 				)}
 			</Stack.Screen>
-			<Stack.Screen
-				name="TrainingWellnessHub"
-				component={WellnessHub}
-				options={{ headerShown: false }}
-			/>
 			<Stack.Screen name="TrainingMaxes" options={{ title: 'My Maxes' }}>
 				{() => (
 					<MemberFeatureGate feature="my_maxes">
@@ -223,7 +217,7 @@ const TrainingStackNavigator = () => {
 			<Stack.Screen
 				name="TrainingProgress"
 				component={Progress}
-				options={{ headerShown: false }}
+				options={{ title: 'My Progress' }}
 			/>
 			<Stack.Screen
 				name="TrainingWeeklyRecap"
@@ -238,7 +232,7 @@ const TrainingStackNavigator = () => {
 			<Stack.Screen
 				name="TrainingMore"
 				component={TrainingMore}
-				options={{ headerShown: false }}
+				options={{ title: 'More' }}
 			/>
 			<Stack.Screen
 				name="TrainingPT"

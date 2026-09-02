@@ -1,4 +1,4 @@
-import { MemberCard, MemberText } from '@/components/member';
+import { Text } from '@/components/atoms';
 import type { ClassSessionSummary } from '@/services/workoutStudio/classSessionSummary';
 import { memberTheme } from '@/theme/member';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
@@ -12,19 +12,16 @@ const TodaySessionCard = ({ isLoading, summary }: TodaySessionCardProps) => {
 	if (!isLoading && !summary) return null;
 
 	return (
-		<MemberCard style={styles.card}>
-			<MemberText variant="sectionTitle" style={styles.title}>
+		<View style={styles.card}>
+			<Text size="md" bold style={styles.title}>
 				Today’s session
-			</MemberText>
+			</Text>
 
 			{summary ? (
 				<>
-					<MemberText
-						variant="sectionTitle"
-						style={styles.workoutName}
-					>
+					<Text size="md" bold style={styles.workoutName}>
 						{summary.workoutName}
-					</MemberText>
+					</Text>
 					{summary.sections.map(section => {
 						const parts = [
 							...section.details,
@@ -38,19 +35,12 @@ const TodaySessionCard = ({ isLoading, summary }: TodaySessionCardProps) => {
 
 						return (
 							<View key={section.id} style={styles.section}>
-								<MemberText
-									variant="label"
-									style={styles.sectionName}
-								>
+								<Text size="rg" bold style={styles.sectionName}>
 									{section.name}
-								</MemberText>
-								<MemberText
-									variant="body"
-									muted
-									style={styles.sectionSummary}
-								>
+								</Text>
+								<Text size="rg" style={styles.sectionSummary}>
 									{parts.join(' · ')}
-								</MemberText>
+								</Text>
 							</View>
 						);
 					})}
@@ -61,27 +51,54 @@ const TodaySessionCard = ({ isLoading, summary }: TodaySessionCardProps) => {
 						size="small"
 						color={memberTheme.colors.primary}
 					/>
-					<MemberText variant="body" muted style={styles.loadingText}>
+					<Text size="rg" style={styles.loadingText}>
 						Loading session…
-					</MemberText>
+					</Text>
 				</View>
 			)}
-		</MemberCard>
+		</View>
 	);
 };
 
 export default TodaySessionCard;
 
 const styles = StyleSheet.create({
-	card: { marginBottom: memberTheme.spacing.md },
+	card: {
+		marginBottom: memberTheme.spacing.md,
+		padding: memberTheme.spacing.lg,
+		borderRadius: memberTheme.radius.md,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderColor: memberTheme.colors.border,
+		backgroundColor: memberTheme.colors.surface,
+		...memberTheme.shadow,
+	},
 	title: {
 		color: memberTheme.colors.primary,
+		fontSize: 15,
 		marginBottom: memberTheme.spacing.sm,
 	},
-	workoutName: { color: memberTheme.colors.text, lineHeight: 22 },
-	section: { marginTop: memberTheme.spacing.sm },
-	sectionName: { color: memberTheme.colors.primaryInk, lineHeight: 21 },
-	sectionSummary: { lineHeight: 21 },
-	loadingRow: { flexDirection: 'row', alignItems: 'center' },
-	loadingText: { marginLeft: memberTheme.spacing.sm, lineHeight: 21 },
+	workoutName: {
+		color: memberTheme.colors.text,
+		lineHeight: 22,
+	},
+	section: {
+		marginTop: memberTheme.spacing.sm,
+	},
+	sectionName: {
+		color: memberTheme.colors.primaryInk,
+		lineHeight: 21,
+	},
+	sectionSummary: {
+		color: memberTheme.colors.textMuted,
+		lineHeight: 21,
+	},
+	loadingRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+	},
+	loadingText: {
+		marginLeft: memberTheme.spacing.sm,
+		color: memberTheme.colors.textMuted,
+		lineHeight: 21,
+	},
 });

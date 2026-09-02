@@ -107,10 +107,7 @@ const PersonalTraining = ({ route }: Props) => {
 		staleTime: 60_000,
 	});
 	const ids = useMemo(
-		() =>
-			(participants.data ?? []).map(
-				(item: Participant) => item.appointment_id,
-			),
+		() => (participants.data ?? []).map(item => item.appointment_id),
 		[participants.data],
 	);
 	const appointments = useQuery({
@@ -200,7 +197,7 @@ const PersonalTraining = ({ route }: Props) => {
 							message="Your gym has not published any bookable PT session types yet."
 						/>
 					) : (
-						types.data?.map((item: AppointmentType) => (
+						types.data?.map(item => (
 							<View key={item.id} style={styles.serviceCard}>
 								<View style={styles.serviceIcon}>
 									<Ionicons
@@ -285,7 +282,7 @@ const PersonalTraining = ({ route }: Props) => {
 							onAction={() => setTab('book')}
 						/>
 					) : (
-						appointments.data?.map((item: Appointment) => {
+						appointments.data?.map(item => {
 							const state = STATUS[item.status];
 							return (
 								<View key={item.id} style={styles.appointment}>

@@ -33,7 +33,6 @@ import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import SkeletonCard from '../components/SkeletonCard';
 import { useTrainingConnectivity } from '../hooks/useTrainingConnectivity';
 import { wellbeingPolicy } from '../features/wellnessFeaturePolicy';
-import TrainingTabShell from '../Tabs/TrainingTabShell';
 
 type Props = TrainingStackScreenProps<'TrainingWellness'>;
 
@@ -99,7 +98,7 @@ const Wellness = ({ navigation }: Props) => {
 	});
 
 	const todayResponse = history.data?.find(
-		(item: WellnessResponseSummary) => item.recorded_for === today,
+		item => item.recorded_for === today,
 	);
 
 	const dimensions = useQuery({
@@ -207,7 +206,7 @@ const Wellness = ({ navigation }: Props) => {
 		if (!responseId || !dimensions.data)
 			throw new Error('Wellness response could not be created.');
 		await Promise.all(
-			dimensions.data.map((d: WellnessDimension) =>
+			dimensions.data.map(d =>
 				wsApi().post('wellness_dimension_responses', {
 					searchParams: { on_conflict: 'response_id,dimension_id' },
 					json: {
@@ -433,246 +432,230 @@ const Wellness = ({ navigation }: Props) => {
 
 	if (!hasConsent) {
 		return (
-			<View style={styles.screen}>
-				<TrainingTabShell
-					selectedTab="wellness"
-					navigation={navigation}
-				/>
-				<ScrollView contentContainerStyle={styles.container}>
-					<Text style={styles.title}>Wellness check-ins</Text>
-					<View style={styles.consentBox}>
-						<Text style={styles.consentText}>{CONSENT_TEXT}</Text>
-					</View>
-					<TouchableOpacity
-						style={styles.primaryBtn}
-						onPress={() => grantConsent.mutate()}
-						disabled={grantConsent.isPending}
-					>
-						<Text style={styles.primaryBtnText}>
-							{grantConsent.isPending
-								? 'Saving…'
-								: 'I agree — activate wellness'}
-						</Text>
-					</TouchableOpacity>
-				</ScrollView>
-			</View>
+			<ScrollView
+				style={styles.screen}
+				contentContainerStyle={styles.container}
+			>
+				<Text style={styles.title}>Wellness check-ins</Text>
+				<View style={styles.consentBox}>
+					<Text style={styles.consentText}>{CONSENT_TEXT}</Text>
+				</View>
+				<TouchableOpacity
+					style={styles.primaryBtn}
+					onPress={() => grantConsent.mutate()}
+					disabled={grantConsent.isPending}
+				>
+					<Text style={styles.primaryBtnText}>
+						{grantConsent.isPending
+							? 'Saving…'
+							: 'I agree — activate wellness'}
+					</Text>
+				</TouchableOpacity>
+			</ScrollView>
 		);
 	}
 
 	return (
-		<View style={styles.screen}>
-			<TrainingTabShell selectedTab="wellness" navigation={navigation} />
-			<ScrollView contentContainerStyle={styles.container}>
-				<View style={styles.hero}>
-					<Text style={styles.eyebrow}>DAILY WELLNESS</Text>
-					<Text style={styles.heroTitle}>
-						{todayResponse
-							? 'How are you feeling now?'
-							: 'How are you feeling today?'}
-					</Text>
-					<Text style={styles.heroCopy}>
-						A quick check-in helps you spot patterns in recovery and
-						training.
+		<ScrollView
+			style={styles.screen}
+			contentContainerStyle={styles.container}
+		>
+			<View style={styles.hero}>
+				<Text style={styles.eyebrow}>DAILY WELLNESS</Text>
+				<Text style={styles.heroTitle}>
+					{todayResponse
+						? 'How are you feeling now?'
+						: 'How are you feeling today?'}
+				</Text>
+				<Text style={styles.heroCopy}>
+					A quick check-in helps you spot patterns in recovery and
+					training.
+				</Text>
+			</View>
+			<Text style={styles.privacy}>
+				Coaches at your gym can view your last 28 days through an
+				audited view — every coach read is logged.
+			</Text>
+
+			<Text style={styles.sectionHeader}>
+				{todayResponse ? "Update today's check-in" : "Today's check-in"}
+			</Text>
+			{queued.length > 0 ? (
+				<View style={styles.queuedBanner}>
+					<Text style={styles.queuedTitle}>Waiting to sync</Text>
+					<Text style={styles.queuedText}>
+						{queued.length} wellness check-in
+						{queued.length === 1 ? '' : 's'} saved securely on this
+						phone.
 					</Text>
 				</View>
-				<Text style={styles.privacy}>
-					Coaches at your gym can view your last 28 days through an
-					audited view — every coach read is logged.
+			) : null}
+			{todayResponse ? (
+				<Text style={styles.savedHint}>
+					Already recorded today. Saving again replaces today&apos;s
+					entry.
 				</Text>
+			) : null}
 
-				<Text style={styles.sectionHeader}>
-					{todayResponse
-						? "Update today's check-in"
-						: "Today's check-in"}
-				</Text>
-				{queued.length > 0 ? (
-					<View style={styles.queuedBanner}>
-						<Text style={styles.queuedTitle}>Waiting to sync</Text>
-						<Text style={styles.queuedText}>
-							{queued.length} wellness check-in
-							{queued.length === 1 ? '' : 's'} saved securely on
-							this phone.
+			{dimensions.data?.map(d => (
+				<View key={d.id} style={styles.sliderRow}>
+					<View style={styles.sliderHeader}>
+						<Text style={styles.dimensionLabel}>{d.label}</Text>
+						<Text style={styles.sliderValue}>
+							{scores[d.id] ?? 3}
 						</Text>
 					</View>
-				) : null}
-				{todayResponse ? (
-					<Text style={styles.savedHint}>
-						Already recorded today. Saving again replaces
-						today&apos;s entry.
-					</Text>
-				) : null}
-
-				{dimensions.data?.map((d: WellnessDimension) => (
-					<View key={d.id} style={styles.sliderRow}>
-						<View style={styles.sliderHeader}>
-							<Text style={styles.dimensionLabel}>{d.label}</Text>
-							<Text style={styles.sliderValue}>
-								{scores[d.id] ?? 3}
-							</Text>
-						</View>
-						<View style={styles.sliderWrap}>
-							<Text style={styles.sliderEndLabel}>1</Text>
-							<Slider
-								values={[scores[d.id] ?? 3]}
-								min={1}
-								max={5}
-								step={1}
-								sliderLength={200}
-								onValuesChange={([v]) =>
-									setScores(prev => ({
-										...prev,
-										[d.id]: v ?? 3,
-									}))
-								}
-								selectedStyle={{
-									backgroundColor:
-										trainingTheme.colors.primary,
-								}}
-								unselectedStyle={{
-									backgroundColor:
-										trainingTheme.colors.border,
-								}}
-								markerStyle={{
-									backgroundColor:
-										trainingTheme.colors.primary,
-									borderColor: '#fff',
-									borderWidth: 2,
-									width: 32,
-									height: 32,
-									borderRadius: 16,
-								}}
-								touchDimensions={{
-									height: 56,
-									width: 56,
-									borderRadius: 28,
-									slipDisplacement: 40,
-								}}
-							/>
-							<Text style={styles.sliderEndLabel}>5</Text>
-						</View>
-						<Text style={styles.sliderDirection}>
-							{d.higher_is_better
-								? '← worse  ·  better →'
-								: '← better  ·  worse →'}
-						</Text>
-					</View>
-				))}
-
-				<TouchableOpacity
-					style={styles.primaryBtn}
-					onPress={() => saveCheckin.mutate()}
-					disabled={saveCheckin.isPending}
-				>
-					<Text style={styles.primaryBtnText}>
-						{saveCheckin.isPending
-							? 'Saving…'
-							: todayResponse
-								? 'Update check-in'
-								: 'Save check-in'}
-					</Text>
-				</TouchableOpacity>
-
-				{(history.data?.length ?? 0) > 0 ? (
-					<>
-						<Text style={styles.sectionHeader}>
-							Recent check-ins
-						</Text>
-						{history.data?.map((item: WellnessResponseSummary) => (
-							<View key={item.id} style={styles.historyRow}>
-								<View style={{ flex: 1 }}>
-									<Text style={styles.historyDate}>
-										{moment(item.recorded_for).format(
-											'dddd, D MMMM',
-										)}
-									</Text>
-									<Text style={styles.historyMeta}>
-										{item.recorded_for === today
-											? 'Today'
-											: 'Recorded check-in'}
-									</Text>
-								</View>
-								<TouchableOpacity
-									accessibilityRole="button"
-									accessibilityLabel={`Delete check-in from ${moment(item.recorded_for).format('D MMMM')}`}
-									style={styles.deleteButton}
-									onPress={() => confirmDelete(item)}
-								>
-									<Text style={styles.deleteLabel}>
-										Delete
-									</Text>
-								</TouchableOpacity>
-							</View>
-						))}
-					</>
-				) : null}
-
-				{/* Trends */}
-				{(trends.data?.length ?? 0) > 0 && (
-					<>
-						<Text style={styles.sectionHeader}>
-							Your 7-day trend
-						</Text>
-						{trends.data?.map((t: WellnessTrend) => {
-							const recent = t.recent_avg ?? 0;
-							const baseline = t.baseline_avg ?? 0;
-							const delta = recent - baseline;
-							const improved = t.higher_is_better
-								? delta > 0
-								: delta < 0;
-							let trendColor: string =
-								trainingTheme.colors.textMuted;
-							if (improved)
-								trendColor = trainingTheme.colors.success;
-							else if (delta !== 0)
-								trendColor = trainingTheme.colors.danger;
-							let trendText = 'Holding steady';
-							if (delta !== 0) {
-								trendText = improved
-									? `↑ Better (${recent.toFixed(1)} vs ${baseline.toFixed(1)})`
-									: `↓ Lower (${recent.toFixed(1)} vs ${baseline.toFixed(1)})`;
+					<View style={styles.sliderWrap}>
+						<Text style={styles.sliderEndLabel}>1</Text>
+						<Slider
+							values={[scores[d.id] ?? 3]}
+							min={1}
+							max={5}
+							step={1}
+							sliderLength={200}
+							onValuesChange={([v]) =>
+								setScores(prev => ({
+									...prev,
+									[d.id]: v ?? 3,
+								}))
 							}
-							return (
-								<View key={t.slug} style={styles.trendCard}>
-									<Text style={styles.dimensionLabel}>
-										{t.label}
-									</Text>
-									<Text
-										style={[
-											styles.trendDelta,
-											{ color: trendColor },
-										]}
-									>
-										{trendText}
-									</Text>
-								</View>
-							);
-						})}
-					</>
-				)}
-
-				{/* My Injuries entry point */}
-				<TouchableOpacity
-					style={styles.injuryCard}
-					onPress={() => navigation.navigate('TrainingInjuryList')}
-					activeOpacity={0.7}
-				>
-					<Text style={styles.injuryCardLabel}>My Injuries</Text>
-					<Text style={styles.injuryCardChevron}>›</Text>
-				</TouchableOpacity>
-
-				<TouchableOpacity
-					style={styles.withdrawButton}
-					onPress={confirmWithdraw}
-					disabled={withdrawConsent.isPending}
-				>
-					<Text style={styles.withdrawLabel}>
-						{withdrawConsent.isPending
-							? 'Withdrawing…'
-							: 'Withdraw wellness consent'}
+							selectedStyle={{
+								backgroundColor: trainingTheme.colors.primary,
+							}}
+							unselectedStyle={{
+								backgroundColor: trainingTheme.colors.border,
+							}}
+							markerStyle={{
+								backgroundColor: trainingTheme.colors.primary,
+								borderColor: '#fff',
+								borderWidth: 2,
+								width: 32,
+								height: 32,
+								borderRadius: 16,
+							}}
+							touchDimensions={{
+								height: 56,
+								width: 56,
+								borderRadius: 28,
+								slipDisplacement: 40,
+							}}
+						/>
+						<Text style={styles.sliderEndLabel}>5</Text>
+					</View>
+					<Text style={styles.sliderDirection}>
+						{d.higher_is_better
+							? '← worse  ·  better →'
+							: '← better  ·  worse →'}
 					</Text>
-				</TouchableOpacity>
-			</ScrollView>
-		</View>
+				</View>
+			))}
+
+			<TouchableOpacity
+				style={styles.primaryBtn}
+				onPress={() => saveCheckin.mutate()}
+				disabled={saveCheckin.isPending}
+			>
+				<Text style={styles.primaryBtnText}>
+					{saveCheckin.isPending
+						? 'Saving…'
+						: todayResponse
+							? 'Update check-in'
+							: 'Save check-in'}
+				</Text>
+			</TouchableOpacity>
+
+			{(history.data?.length ?? 0) > 0 ? (
+				<>
+					<Text style={styles.sectionHeader}>Recent check-ins</Text>
+					{history.data?.map(item => (
+						<View key={item.id} style={styles.historyRow}>
+							<View style={{ flex: 1 }}>
+								<Text style={styles.historyDate}>
+									{moment(item.recorded_for).format(
+										'dddd, D MMMM',
+									)}
+								</Text>
+								<Text style={styles.historyMeta}>
+									{item.recorded_for === today
+										? 'Today'
+										: 'Recorded check-in'}
+								</Text>
+							</View>
+							<TouchableOpacity
+								accessibilityRole="button"
+								accessibilityLabel={`Delete check-in from ${moment(item.recorded_for).format('D MMMM')}`}
+								style={styles.deleteButton}
+								onPress={() => confirmDelete(item)}
+							>
+								<Text style={styles.deleteLabel}>Delete</Text>
+							</TouchableOpacity>
+						</View>
+					))}
+				</>
+			) : null}
+
+			{/* Trends */}
+			{(trends.data?.length ?? 0) > 0 && (
+				<>
+					<Text style={styles.sectionHeader}>Your 7-day trend</Text>
+					{trends.data?.map(t => {
+						const recent = t.recent_avg ?? 0;
+						const baseline = t.baseline_avg ?? 0;
+						const delta = recent - baseline;
+						const improved = t.higher_is_better
+							? delta > 0
+							: delta < 0;
+						let trendColor: string = trainingTheme.colors.textMuted;
+						if (improved) trendColor = trainingTheme.colors.success;
+						else if (delta !== 0)
+							trendColor = trainingTheme.colors.danger;
+						let trendText = 'Holding steady';
+						if (delta !== 0) {
+							trendText = improved
+								? `↑ Better (${recent.toFixed(1)} vs ${baseline.toFixed(1)})`
+								: `↓ Lower (${recent.toFixed(1)} vs ${baseline.toFixed(1)})`;
+						}
+						return (
+							<View key={t.slug} style={styles.trendCard}>
+								<Text style={styles.dimensionLabel}>
+									{t.label}
+								</Text>
+								<Text
+									style={[
+										styles.trendDelta,
+										{ color: trendColor },
+									]}
+								>
+									{trendText}
+								</Text>
+							</View>
+						);
+					})}
+				</>
+			)}
+
+			{/* My Injuries entry point */}
+			<TouchableOpacity
+				style={styles.injuryCard}
+				onPress={() => navigation.navigate('TrainingInjuryList')}
+				activeOpacity={0.7}
+			>
+				<Text style={styles.injuryCardLabel}>My Injuries</Text>
+				<Text style={styles.injuryCardChevron}>›</Text>
+			</TouchableOpacity>
+
+			<TouchableOpacity
+				style={styles.withdrawButton}
+				onPress={confirmWithdraw}
+				disabled={withdrawConsent.isPending}
+			>
+				<Text style={styles.withdrawLabel}>
+					{withdrawConsent.isPending
+						? 'Withdrawing…'
+						: 'Withdraw wellness consent'}
+				</Text>
+			</TouchableOpacity>
+		</ScrollView>
 	);
 };
 

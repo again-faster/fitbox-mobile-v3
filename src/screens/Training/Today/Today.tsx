@@ -2,9 +2,9 @@ import { syncNow } from '@/services/healthKit';
 import { wsApi } from '@/services/workoutStudio/api';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import type {
+	AthleteRM,
 	ProgramContext,
 	WellnessResponse,
-	WorkoutAssignment,
 } from '@/services/workoutStudio/types';
 import { getMemberWorkouts } from '@/services/workoutStudio/workouts';
 import { mmkvStorage } from '@/storage';
@@ -25,14 +25,10 @@ import {
 	View,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { MemberScreen } from '@/components/member';
-import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useCallback, useRef, useEffect, useMemo, useState } from 'react';
 import { trainingTheme } from '@/theme/training';
-import {
-	type ReadinessMetric,
-	type ReadinessResult,
-} from '@/services/workoutStudio/readiness';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { useCustomWorkouts } from '../hooks/useCustomWorkouts';
 import SkeletonCard from '../components/SkeletonCard';
 import ConsistencyCard from './components/ConsistencyCard';
@@ -40,10 +36,25 @@ import SectionHeading from '../components/SectionHeading';
 import OfflineBanner from '../components/OfflineBanner';
 import TrainingState from '../components/TrainingState';
 import { useTrainingConnectivity } from '../hooks/useTrainingConnectivity';
-import TrainingTabShell from '../Tabs/TrainingTabShell';
-import { shouldAutoPromptWellness } from './todayFeaturePolicy';
+import { shouldShowTodayProgressCard } from '../Progress/progressFeatures';
+import {
+	createLoadingReadinessResult,
+	getMemberReadiness,
+	type ProviderId,
+	type ReadinessMetric,
+	type ReadinessResult,
+} from '@/services/workoutStudio/readiness';
 
 type Nav = StackNavigationProp<TrainingStackParamList>;
+
+const providerNames: Record<ProviderId, string> = {
+	apple_health: 'Apple Health',
+	health_connect: 'Health Connect',
+	whoop: 'WHOOP',
+	garmin: 'Garmin',
+	fitbit: 'Fitbit',
+	strava: 'Strava',
+};
 
 const latestReadinessMetric = (
 	metrics: ReadinessMetric[],
@@ -52,8 +63,10 @@ const latestReadinessMetric = (
 		right.asOfDate.localeCompare(left.asOfDate),
 	)[0] ?? null;
 
-const formatReadinessMetric = (value: number | null, suffix = ''): string =>
-	value === null ? 'Not available' : `${value}${suffix}`;
+const formatReadinessMetric = (
+	value: number | null,
+	suffix = '',
+): string => (value === null ? 'Not available' : `${value}${suffix}`);
 
 export const readinessCopy = (result: ReadinessResult) => {
 	if (result.status === 'loading')
@@ -78,30 +91,32 @@ export const readinessCopy = (result: ReadinessResult) => {
 		};
 
 	const metric = latestReadinessMetric(result.data.metrics);
-	const statusCopy = {
-		ready: {
-			title: 'Readiness is ready',
-			detail: 'A provider-native readiness score is available.',
-			band: 'Ready',
-			confidence: 'Measured',
-		},
-		baseline: {
-			title: 'Building your baseline',
-			detail: 'More connected data is needed before a readiness score is available.',
-			band: 'Baseline',
-			confidence: 'Building',
-		},
-		empty: {
-			title: 'No readiness data yet',
-			detail: 'Connect a supported provider to add recovery context.',
-			band: 'No data',
-			confidence: 'Not available',
-		},
-	}[result.status];
-
 	return {
-		...statusCopy,
+		title:
+			result.status === 'ready'
+				? 'Readiness is ready'
+				: result.status === 'baseline'
+					? 'Building your baseline'
+					: 'No readiness data yet',
+		detail:
+			result.status === 'ready'
+				? 'A provider-native readiness score is available.'
+				: result.status === 'baseline'
+					? 'More connected data is needed before a readiness score is available.'
+					: 'Connect a supported provider to add recovery context.',
 		score: formatReadinessMetric(metric?.nativeReadinessScore ?? null),
+		band:
+			result.status === 'ready'
+				? 'Ready'
+				: result.status === 'baseline'
+					? 'Baseline'
+					: 'No data',
+		confidence:
+			result.status === 'ready'
+				? 'Measured'
+				: result.status === 'baseline'
+					? 'Building'
+					: 'Not available',
 		freshness: `As of ${result.asOfDate}`,
 		metric,
 	};
@@ -209,10 +224,11 @@ const greeting = () => {
 };
 
 const todayStr = moment().format('YYYY-MM-DD');
+const fourteenAgo = moment().subtract(14, 'days').format('YYYY-MM-DD');
 const wellnessPromptsEnabledKey = 'training.wellnessPromptsEnabled';
 const wellnessPromptDismissedDateKey = 'training.wellnessPromptDismissedDate';
 
-const useToday = (wellnessEnabled: boolean) => {
+const useToday = () => {
 	const session = getStoredWSSession();
 	const uid = session?.user.id;
 	const tenantId = session?.user.active_tenant_id;
@@ -228,11 +244,7 @@ const useToday = (wellnessEnabled: boolean) => {
 	const ids = useMemo(
 		() =>
 			Array.from(
-				new Set(
-					(assignments.data ?? []).map(
-						(a: WorkoutAssignment) => a.workout_id,
-					),
-				),
+				new Set((assignments.data ?? []).map(a => a.workout_id)),
 			).sort(),
 		[assignments.data],
 	);
@@ -259,19 +271,19 @@ const useToday = (wellnessEnabled: boolean) => {
 		[programDayCtx.data],
 	);
 
-	const wellness = useQuery<WellnessResponse[]>({
+	const wellness = useQuery({
 		queryKey: ['ws-wellness-today', uid],
 		queryFn: () =>
 			wsApi()
 				.get('wellness_responses', {
 					searchParams: {
-						select: 'id,recorded_for,user_id',
+						select: 'id',
 						user_id: `eq.${uid}`,
 						recorded_for: `eq.${todayStr}`,
 					},
 				})
 				.json<WellnessResponse[]>(),
-		enabled: wellnessEnabled && !!uid,
+		enabled: !!uid,
 		staleTime: 60_000,
 	});
 
@@ -299,10 +311,28 @@ const useToday = (wellnessEnabled: boolean) => {
 		staleTime: 60_000,
 	});
 
+	const recentPRs = useQuery({
+		queryKey: ['ws-recent-prs', uid],
+		queryFn: () =>
+			wsApi()
+				.get('athlete_rms', {
+					searchParams: {
+						select: 'id,rep_max,weight_kg,achieved_on,movements(name)',
+						athlete_id: `eq.${uid}`,
+						achieved_on: `gte.${fourteenAgo}`,
+						order: 'achieved_on.desc',
+					},
+				})
+				.json<AthleteRM[]>(),
+		enabled: !!uid,
+		staleTime: 300_000,
+	});
+
 	return {
 		assignments,
 		wellness,
 		coachNotes,
+		recentPRs,
 		firstName,
 		programCtxMap,
 	};
@@ -310,11 +340,37 @@ const useToday = (wellnessEnabled: boolean) => {
 
 const Today = () => {
 	const nav = useNavigation<Nav>();
-	const { isEnabled } = useWorkoutStudio();
-	const wellnessEnabled = isEnabled('wellness');
-	const { assignments, wellness, coachNotes, firstName, programCtxMap } =
-		useToday(wellnessEnabled);
+	const { features, isEnabled } = useWorkoutStudio();
+	const {
+		assignments,
+		wellness,
+		coachNotes,
+		recentPRs,
+		firstName,
+		programCtxMap,
+	} = useToday();
 	const session = getStoredWSSession();
+	const readinessFeatureEnabled = isEnabled('wearables');
+	const readinessQuery = useQuery<ReadinessResult>({
+		queryKey: [
+			'ws-member-readiness-today',
+			session?.user.id,
+			session?.user.active_tenant_id,
+		],
+		queryFn: () =>
+			getMemberReadiness({
+				windowDays: 7,
+				featureEnabled: readinessFeatureEnabled,
+			}),
+		enabled:
+			readinessFeatureEnabled &&
+			!!session?.user.id &&
+			!!session?.user.active_tenant_id,
+		staleTime: 60_000,
+	});
+	const readinessResult = readinessFeatureEnabled
+		? (readinessQuery.data ?? createLoadingReadinessResult())
+		: null;
 	const persona = session?.user.persona;
 	const activeWorkout = findActiveWorkout(session?.user.id);
 	const isSolo = persona === 'solo';
@@ -325,9 +381,7 @@ const Today = () => {
 		() => mmkvStorage.getString(wellnessPromptsEnabledKey) !== 'false',
 	);
 	const [wellnessPromptDismissedDate, setWellnessPromptDismissedDate] =
-		useState<string | null>(
-			() => mmkvStorage.getString(wellnessPromptDismissedDateKey) ?? null,
-		);
+		useState(() => mmkvStorage.getString(wellnessPromptDismissedDateKey));
 	const [wellnessPromptVisible, setWellnessPromptVisible] = useState(false);
 	const wellnessPromptPresentedDate = useRef<string | null>(null);
 
@@ -337,7 +391,7 @@ const Today = () => {
 				mmkvStorage.getString(wellnessPromptsEnabledKey) !== 'false',
 			);
 			setWellnessPromptDismissedDate(
-				mmkvStorage.getString(wellnessPromptDismissedDateKey) ?? null,
+				mmkvStorage.getString(wellnessPromptDismissedDateKey),
 			);
 		}, []),
 	);
@@ -371,14 +425,16 @@ const Today = () => {
 		};
 	}, []);
 
+	const isLoading = assignments.isLoading || wellness.isLoading;
+	const isRefreshing =
+		assignments.isRefetching ||
+		wellness.isRefetching ||
+		readinessQuery.isRefetching;
 	const hasWellnessToday = (wellness.data?.length ?? 0) > 0;
-	const showWellnessPrompt = shouldAutoPromptWellness({
-		wellnessEnabled,
-		hasWellnessToday,
-		promptsEnabled: wellnessPromptsEnabled,
-		dismissedDate: wellnessPromptDismissedDate,
-		today: todayStr,
-	});
+	const showWellnessPrompt =
+		!hasWellnessToday &&
+		wellnessPromptsEnabled &&
+		wellnessPromptDismissedDate !== todayStr;
 
 	useEffect(() => {
 		if (
@@ -408,12 +464,6 @@ const Today = () => {
 		nav.navigate('TrainingWellness');
 	};
 
-	const isLoading =
-		assignments.isLoading || (wellnessEnabled && wellness.isLoading);
-	const isRefreshing =
-		assignments.isRefetching || (wellnessEnabled && wellness.isRefetching);
-
-	/*
 	const renderReadiness = () => {
 		if (!readinessResult) return null;
 		const summary = readinessCopy(readinessResult);
@@ -463,12 +513,13 @@ const Today = () => {
 			</TouchableOpacity>
 		);
 	};
-	*/
 
 	const refresh = () => {
 		void assignments.refetch();
-		if (wellnessEnabled) void wellness.refetch();
+		void wellness.refetch();
 		void coachNotes.refetch();
+		void recentPRs.refetch();
+		if (readinessFeatureEnabled) void readinessQuery.refetch();
 	};
 
 	const renderTraining = () => {
@@ -500,17 +551,9 @@ const Today = () => {
 		if (assignments.data?.length === 0) {
 			return (
 				<View
-					style={[
-						styles.emptyCard,
-						{ backgroundColor: trainingTheme.colors.surface },
-					]}
+					style={[styles.emptyCard, { backgroundColor: '#FFFFFF' }]}
 				>
-					<Text
-						style={[
-							styles.emptyText,
-							{ color: trainingTheme.colors.textMuted },
-						]}
-					>
+					<Text style={[styles.emptyText, { color: '#6B7280' }]}>
 						No workouts today
 					</Text>
 					<Text style={styles.emptySubtext}>
@@ -546,16 +589,13 @@ const Today = () => {
 				</View>
 			);
 		}
-		return assignments.data?.map((a: WorkoutAssignment) => {
+		return assignments.data?.map(a => {
 			const programContext = programCtxMap.get(a.workout_id);
 
 			return (
 				<TouchableOpacity
 					key={a.id}
-					style={[
-						styles.workoutCard,
-						{ backgroundColor: trainingTheme.colors.surface },
-					]}
+					style={[styles.workoutCard, { backgroundColor: '#FFFFFF' }]}
 					onPress={() =>
 						nav.navigate('TrainingWorkoutDetail', {
 							workoutId: a.workout_id,
@@ -567,10 +607,7 @@ const Today = () => {
 				>
 					<View style={styles.workoutCardLeft}>
 						<Text
-							style={[
-								styles.workoutName,
-								{ color: trainingTheme.colors.text },
-							]}
+							style={[styles.workoutName, { color: '#111827' }]}
 						>
 							{a.workouts.name}
 						</Text>
@@ -578,7 +615,7 @@ const Today = () => {
 							<Text
 								style={[
 									styles.workoutMeta,
-									{ color: trainingTheme.colors.textMuted },
+									{ color: '#6B7280' },
 								]}
 							>
 								~{a.workouts.estimated_duration_minutes} min
@@ -589,7 +626,7 @@ const Today = () => {
 								numberOfLines={1}
 								style={[
 									styles.programStrip,
-									{ color: trainingTheme.colors.textMuted },
+									{ color: '#6B7280' },
 								]}
 							>
 								{programContext.programName} · Week{' '}
@@ -601,23 +638,14 @@ const Today = () => {
 							</Text>
 						) : null}
 					</View>
-					<Ionicons
-						name="chevron-right"
-						size={20}
-						color={trainingTheme.colors.textMuted}
-					/>
+					<Ionicons name="chevron-right" size={20} color="#6B7280" />
 				</TouchableOpacity>
 			);
 		});
 	};
 
 	return (
-		<MemberScreen
-			style={styles.safeArea}
-			contentContainerStyle={styles.screenContent}
-			edges={['top']}
-		>
-			<TrainingTabShell selectedTab="today" navigation={nav} />
+		<SafeAreaView style={styles.safeArea} edges={['top']}>
 			<ScrollView
 				style={styles.screen}
 				contentContainerStyle={styles.container}
@@ -717,7 +745,7 @@ const Today = () => {
 								<Ionicons
 									name="play"
 									size={22}
-									color={trainingTheme.colors.surface}
+									color="#FFFFFF"
 								/>
 							</View>
 							<View style={styles.cardText}>
@@ -750,9 +778,40 @@ const Today = () => {
 
 				<ConsistencyCard />
 
-				{/* Optional wellness prompts now live in the Wellness tab.
+				{shouldShowTodayProgressCard(features) && (
+					<TouchableOpacity
+						style={styles.progressCard}
+						accessibilityRole="button"
+						onPress={() => nav.navigate('TrainingProgress')}
+					>
+						<View style={styles.progressIcon}>
+							<Ionicons
+								name="chart-line"
+								size={22}
+								color={trainingTheme.colors.primary}
+							/>
+						</View>
+						<View style={styles.cardText}>
+							<Text style={styles.progressTitle}>
+								My Progress
+							</Text>
+							<Text style={styles.progressSubtitle}>
+								Results, PRs, maxes and benchmarks
+							</Text>
+						</View>
+						<Ionicons
+							name="chevron-right"
+							size={21}
+							color={trainingTheme.colors.textMuted}
+						/>
+					</TouchableOpacity>
+				)}
+
+				{renderReadiness()}
+
+				{/* Wellness check-in card */}
 				{showWellnessPrompt ? (
-					<View style={[styles.card, { backgroundColor: trainingTheme.colors.surface }]}>
+					<View style={[styles.card, { backgroundColor: '#FFFFFF' }]}>
 						<TouchableOpacity
 							onPress={() => nav.navigate('TrainingWellness')}
 							accessibilityRole="button"
@@ -762,13 +821,13 @@ const Today = () => {
 								<Ionicons
 									name="heart-outline"
 									size={22}
-									color={trainingTheme.colors.textMuted}
+									color="#6B7280"
 								/>
 								<View style={styles.cardText}>
 									<Text
 										style={[
 											styles.cardTitle,
-											{ color: trainingTheme.colors.text },
+											{ color: '#111827' },
 										]}
 									>
 										Wellness check-in
@@ -776,7 +835,7 @@ const Today = () => {
 									<Text
 										style={[
 											styles.cardSub,
-											{ color: trainingTheme.colors.textMuted },
+											{ color: '#6B7280' },
 										]}
 									>
 										≈ 10 seconds
@@ -785,7 +844,7 @@ const Today = () => {
 								<Ionicons
 									name="chevron-right"
 									size={20}
-									color={trainingTheme.colors.textMuted}
+									color="#6B7280"
 								/>
 							</View>
 						</TouchableOpacity>
@@ -808,24 +867,22 @@ const Today = () => {
 							</TouchableOpacity>
 						</View>
 					</View>
-				) : null} */}
+				) : null}
 
-				{/*
 				{!showWellnessPrompt && hasWellnessToday ? (
 					<View style={styles.wellnessDoneRow}>
 						<Ionicons
 							name="check-circle"
 							size={16}
-							color={trainingTheme.colors.success}
+							color="#43A047"
 						/>
 						<Text style={styles.wellnessDoneText}>
 							Wellness check-in done
 						</Text>
 					</View>
-				) : null} */}
+				) : null}
 
-				{/* Progress details now live in the Progress tab. */}
-				{/*
+				{/* Recent PRs */}
 				{(recentPRs.data?.length ?? 0) > 0 && (
 					<>
 						<SectionHeading title="Recent PRs" action="View all" />
@@ -834,24 +891,24 @@ const Today = () => {
 							showsHorizontalScrollIndicator={false}
 							contentContainerStyle={styles.prScroll}
 						>
-							{recentPRs.data?.map((pr: AthleteRM) => (
+							{recentPRs.data?.map(pr => (
 								<TouchableOpacity
 									key={pr.id}
 									style={[
 										styles.prCard,
-										{ backgroundColor: trainingTheme.colors.surface },
+										{ backgroundColor: '#FFFFFF' },
 									]}
 									onPress={() => nav.navigate('TrainingPRs')}
 								>
 									<Ionicons
 										name="trophy-outline"
 										size={18}
-									color={trainingTheme.colors.warning}
+										color="#FFB300"
 									/>
 									<Text
 										style={[
 											styles.prName,
-											{ color: trainingTheme.colors.text },
+											{ color: '#111827' },
 										]}
 									>
 										{pr.movements.name}
@@ -871,13 +928,12 @@ const Today = () => {
 							))}
 						</ScrollView>
 					</>
-				)} */}
+				)}
 
 				{/* Coach notes — members only */}
-				{/* Secondary items now live in the More tab.
 				{!isSolo && (coachNotes.data ?? 0) > 0 && (
 					<TouchableOpacity
-						style={[styles.card, { backgroundColor: trainingTheme.colors.surface }]}
+						style={[styles.card, { backgroundColor: '#FFFFFF' }]}
 						onPress={() => nav.navigate('TrainingCoachNotes')}
 					>
 						<View style={styles.cardRow}>
@@ -887,7 +943,7 @@ const Today = () => {
 								color={trainingTheme.colors.primary}
 							/>
 							<Text
-								style={[styles.cardTitle, { color: trainingTheme.colors.text }]}
+								style={[styles.cardTitle, { color: '#111827' }]}
 							>
 								{coachNotes.data} unread coach note
 								{(coachNotes.data ?? 0) > 1 ? 's' : ''}
@@ -895,16 +951,16 @@ const Today = () => {
 							<Ionicons
 								name="chevron-right"
 								size={20}
-								color={trainingTheme.colors.textMuted}
+								color="#6B7280"
 							/>
 						</View>
 					</TouchableOpacity>
-				)} */}
+				)}
 
-				{/* Build card now lives in the More tab.
+				{/* Build card */}
 				{(isSolo || hasCustomWorkouts) && (
 					<TouchableOpacity
-						style={[styles.card, { backgroundColor: trainingTheme.colors.surface }]}
+						style={[styles.card, { backgroundColor: '#FFFFFF' }]}
 						onPress={() => nav.navigate('TrainingBuildList')}
 					>
 						<View style={styles.cardRow}>
@@ -917,7 +973,7 @@ const Today = () => {
 								<Text
 									style={[
 										styles.cardTitle,
-										{ color: trainingTheme.colors.text },
+										{ color: '#111827' },
 									]}
 								>
 									My workouts
@@ -925,7 +981,7 @@ const Today = () => {
 								<Text
 									style={[
 										styles.cardSub,
-										{ color: trainingTheme.colors.textMuted },
+										{ color: '#6B7280' },
 									]}
 								>
 									Build and schedule personal workouts
@@ -934,68 +990,12 @@ const Today = () => {
 							<Ionicons
 								name="chevron-right"
 								size={20}
-								color={trainingTheme.colors.textMuted}
+								color="#6B7280"
 							/>
 						</View>
 					</TouchableOpacity>
-				)} */}
+				)}
 			</ScrollView>
-			<Modal
-				visible={wellnessPromptVisible && showWellnessPrompt}
-				transparent
-				animationType="slide"
-				onRequestClose={dismissWellnessPromptToday}
-			>
-				<View style={styles.wellnessModalBackdrop}>
-					<View style={styles.wellnessSheet}>
-						<View style={styles.wellnessSheetHandle} />
-						<View style={styles.wellnessSheetIcon}>
-							<Ionicons
-								name="heart-pulse"
-								size={28}
-								color={trainingTheme.colors.primary}
-							/>
-						</View>
-						<Text style={styles.wellnessSheetTitle}>
-							How are you feeling today?
-						</Text>
-						<Text style={styles.wellnessSheetBody}>
-							A 10-second check-in helps personalise your training
-							and gives your coach useful recovery context.
-						</Text>
-						<TouchableOpacity
-							style={styles.wellnessSheetPrimary}
-							onPress={startWellnessCheckIn}
-							accessibilityRole="button"
-							accessibilityLabel="Check in now"
-						>
-							<Text style={styles.wellnessSheetPrimaryText}>
-								Check in now
-							</Text>
-						</TouchableOpacity>
-						<TouchableOpacity
-							style={styles.wellnessSheetSecondary}
-							onPress={dismissWellnessPromptToday}
-							accessibilityRole="button"
-							accessibilityLabel="Not today"
-						>
-							<Text style={styles.wellnessSheetSecondaryText}>
-								Not today
-							</Text>
-						</TouchableOpacity>
-						<TouchableOpacity
-							onPress={turnOffWellnessPrompts}
-							accessibilityRole="button"
-							accessibilityLabel="Don't remind me daily"
-						>
-							<Text style={styles.wellnessSheetOptOut}>
-								Don&apos;t remind me daily
-							</Text>
-						</TouchableOpacity>
-					</View>
-				</View>
-			</Modal>
-			{/* Wellness prompts now live in the Wellness tab.
 			<Modal
 				visible={wellnessPromptVisible && showWellnessPrompt}
 				transparent
@@ -1047,14 +1047,13 @@ const Today = () => {
 						</TouchableOpacity>
 					</View>
 				</View>
-			</Modal> */}
-		</MemberScreen>
+			</Modal>
+		</SafeAreaView>
 	);
 };
 
 const styles = StyleSheet.create({
 	safeArea: { flex: 1, backgroundColor: trainingTheme.colors.background },
-	screenContent: { paddingHorizontal: 0 },
 	screen: { flex: 1, backgroundColor: trainingTheme.colors.background },
 	container: {
 		padding: trainingTheme.spacing.lg,
@@ -1124,11 +1123,7 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
-	badgeText: {
-		color: trainingTheme.colors.surface,
-		fontSize: 10,
-		fontWeight: '700',
-	},
+	badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
 	sectionHeader: { fontSize: 17, fontWeight: '600', marginTop: 8 },
 	card: {
 		backgroundColor: trainingTheme.colors.surface,
@@ -1185,11 +1180,7 @@ const styles = StyleSheet.create({
 		fontSize: 15,
 		fontWeight: '600',
 	},
-	emptySubtext: {
-		fontSize: 13,
-		color: trainingTheme.colors.disabled,
-		textAlign: 'center',
-	},
+	emptySubtext: { fontSize: 13, color: '#9CA3AF', textAlign: 'center' },
 	link: {
 		color: trainingTheme.colors.primary,
 		fontSize: 14,
@@ -1282,7 +1273,7 @@ const styles = StyleSheet.create({
 	},
 	wellnessDoneText: {
 		fontSize: 13,
-		color: trainingTheme.colors.textMuted,
+		color: '#6B7280',
 	},
 	wellnessPromptActions: {
 		borderTopColor: trainingTheme.colors.border,
@@ -1313,7 +1304,7 @@ const styles = StyleSheet.create({
 		paddingTop: 12,
 	},
 	wellnessSheetHandle: {
-		backgroundColor: trainingTheme.colors.disabled,
+		backgroundColor: '#D1D5DB',
 		borderRadius: 2,
 		height: 4,
 		marginBottom: 22,
@@ -1351,7 +1342,7 @@ const styles = StyleSheet.create({
 		width: '100%',
 	},
 	wellnessSheetPrimaryText: {
-		color: trainingTheme.colors.surface,
+		color: '#FFFFFF',
 		fontSize: 16,
 		fontWeight: '700',
 	},

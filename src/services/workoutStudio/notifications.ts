@@ -1,7 +1,7 @@
-import { wsApi, wsRpc } from './api';
-import { getStoredWSSession } from './auth';
-import { WSApiError, toWSApiError } from './errors';
-import type { Notification } from './types';
+import { wsApi, wsRpc } from "./api";
+import { getStoredWSSession } from "./auth";
+import { WSApiError, toWSApiError } from "./errors";
+import type { Notification } from "./types";
 
 export type MemberNotification = Notification;
 
@@ -14,7 +14,7 @@ export type NotificationPreferences = {
 
 export type NotificationDeviceInput = {
 	deviceToken: string;
-	platform: 'ios' | 'android';
+	platform: "ios" | "android";
 	deviceId?: string;
 	appVersion?: string;
 };
@@ -30,38 +30,37 @@ export type NotificationListOptions = NotificationServiceOptions & {
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
-const NOTIFICATION_KINDS: Notification['kind'][] = [
-	'assignment',
-	'coach_note',
-	'reaction',
-	'wellness_followup',
-	'weekly_recap',
+const NOTIFICATION_KINDS: Notification["kind"][] = [
+	"assignment",
+	"coach_note",
+	"reaction",
+	"wellness_followup",
 ];
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
-	typeof value === 'object' && value !== null && !Array.isArray(value);
+	typeof value === "object" && value !== null && !Array.isArray(value);
 
 const toNullableString = (value: unknown): string | null => {
 	if (value === undefined || value === null) return null;
-	if (typeof value !== 'string') throw new Error('notifications contract');
+	if (typeof value !== "string") throw new Error("notifications contract");
 	return value;
 };
 
 const isUnavailable = (error: unknown): boolean =>
 	error instanceof WSApiError &&
-	['not_found', 'server', 'network', 'timeout'].includes(error.kind);
+	["not_found", "server", "network", "timeout"].includes(error.kind);
 
 const requireMemberSession = () => {
 	const session = getStoredWSSession();
 	if (!session)
 		throw new WSApiError(
-			'unauthorized',
-			'Your Training session has expired.',
+			"unauthorized",
+			"Your Training session has expired.",
 		);
-	if (session.user.persona !== 'member')
+	if (session.user.persona !== "member")
 		throw new WSApiError(
-			'forbidden',
-			'Notifications are available for members only.',
+			"forbidden",
+			"Notifications are available for members only.",
 		);
 	return session;
 };
@@ -72,7 +71,7 @@ const isEnabled = (options: NotificationServiceOptions): boolean =>
 const normalizeLimit = (limit: number): number => {
 	if (!Number.isInteger(limit) || limit < 1 || limit > MAX_LIMIT)
 		throw new WSApiError(
-			'unknown',
+			"unknown",
 			`Notification limit must be between 1 and ${MAX_LIMIT}.`,
 		);
 	return limit;
@@ -81,20 +80,20 @@ const normalizeLimit = (limit: number): number => {
 const normalizeNotification = (raw: unknown): MemberNotification => {
 	if (
 		!isRecord(raw) ||
-		typeof raw.id !== 'string' ||
-		typeof raw.title !== 'string' ||
-		typeof raw.body !== 'string' ||
-		typeof raw.kind !== 'string' ||
-		!NOTIFICATION_KINDS.includes(raw.kind as Notification['kind']) ||
-		typeof raw.created_at !== 'string'
+		typeof raw.id !== "string" ||
+		typeof raw.title !== "string" ||
+		typeof raw.body !== "string" ||
+		typeof raw.kind !== "string" ||
+		!NOTIFICATION_KINDS.includes(raw.kind as Notification["kind"]) ||
+		typeof raw.created_at !== "string"
 	)
-		throw new Error('notifications contract');
+		throw new Error("notifications contract");
 
 	return {
 		id: raw.id,
 		title: raw.title,
 		body: raw.body,
-		kind: raw.kind as Notification['kind'],
+		kind: raw.kind as Notification["kind"],
 		entity_id: toNullableString(raw.entity_id),
 		link: toNullableString(raw.link),
 		read_at: toNullableString(raw.read_at),
@@ -103,18 +102,18 @@ const normalizeNotification = (raw: unknown): MemberNotification => {
 };
 
 export const normalizeNotifications = (raw: unknown): MemberNotification[] => {
-	if (!Array.isArray(raw)) throw new Error('notifications contract');
+	if (!Array.isArray(raw)) throw new Error("notifications contract");
 	return raw.map(normalizeNotification);
 };
 
 const toNullableBoolean = (value: unknown): boolean | null =>
-	typeof value === 'boolean' || value === null ? value : null;
+	typeof value === "boolean" || value === null ? value : null;
 
 export const normalizeNotificationPreferences = (
 	raw: unknown,
 ): NotificationPreferences => {
 	if (!isRecord(raw) || raw.ok !== true || !isRecord(raw.data))
-		throw new Error('notification preferences contract');
+		throw new Error("notification preferences contract");
 	const { data } = raw;
 	return {
 		trainingUpdates: toNullableBoolean(data.training_updates),
@@ -138,11 +137,11 @@ export const getMemberNotifications = async (
 	const session = requireMemberSession();
 	try {
 		const raw = await wsApi()
-			.get('notifications', {
+			.get("notifications", {
 				searchParams: {
-					select: 'id,title,body,kind,entity_id,link,read_at,created_at',
+					select: "id,title,body,kind,entity_id,link,read_at,created_at",
 					user_id: `eq.${session.user.id}`,
-					order: 'created_at.desc',
+					order: "created_at.desc",
 					limit: String(
 						normalizeLimit(options.limit ?? DEFAULT_LIMIT),
 					),
@@ -164,7 +163,7 @@ export const getMemberNotificationPreferences = async (
 	requireMemberSession();
 	try {
 		const raw = await wsRpc<unknown>(
-			'get_member_notification_preferences',
+			"get_member_notification_preferences",
 			{},
 		);
 		return normalizeNotificationPreferences(raw);
@@ -181,7 +180,7 @@ export const setMemberNotificationPreferences = async (
 	if (!isEnabled(options)) return;
 	requireMemberSession();
 	try {
-		await wsRpc('set_member_notification_preferences', {
+		await wsRpc("set_member_notification_preferences", {
 			p_preferences: toPreferencePayload(preferences),
 		});
 	} catch (error) {
@@ -197,9 +196,9 @@ export const markNotificationRead = async (
 	if (!isEnabled(options)) return;
 	requireMemberSession();
 	if (!notificationId.trim())
-		throw new WSApiError('unknown', 'Notification id is required.');
+		throw new WSApiError("unknown", "Notification id is required.");
 	try {
-		await wsRpc('mark_notification_read', { p_id: notificationId });
+		await wsRpc("mark_notification_read", { p_id: notificationId });
 	} catch (error) {
 		if (isUnavailable(error)) return;
 		throw error;
@@ -212,7 +211,7 @@ export const markAllNotificationsRead = async (
 	if (!isEnabled(options)) return;
 	requireMemberSession();
 	try {
-		await wsRpc('mark_all_notifications_read', {});
+		await wsRpc("mark_all_notifications_read", {});
 	} catch (error) {
 		if (isUnavailable(error)) return;
 		throw error;
@@ -227,8 +226,8 @@ export const registerNotificationDevice = async (
 	requireMemberSession();
 	if (!input.deviceToken.trim())
 		throw new WSApiError(
-			'unknown',
-			'Notification device token is required.',
+			"unknown",
+			"Notification device token is required.",
 		);
 	try {
 		const params: Record<string, unknown> = {
@@ -238,7 +237,7 @@ export const registerNotificationDevice = async (
 		if (input.deviceId !== undefined) params.p_device_id = input.deviceId;
 		if (input.appVersion !== undefined)
 			params.p_app_version = input.appVersion;
-		await wsRpc('register_member_notification_device', params);
+		await wsRpc("register_member_notification_device", params);
 	} catch (error) {
 		if (isUnavailable(error)) return;
 		throw error;

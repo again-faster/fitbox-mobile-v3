@@ -1,12 +1,11 @@
 import { Button, Row } from '@/components/atoms';
-import { MemberText } from '@/components/member';
 import { BookButton } from '@/components/molecules';
 import layout from '@/theme/layout';
 import { memberTheme } from '@/theme/member';
 import { Func } from '@/utils';
 import moment from 'moment';
 import { memo, useCallback, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 interface SessionActionButtonsProps {
 	classId: number;
@@ -105,13 +104,10 @@ const SessionActionButtons = ({
 	}, [islocked, isAttending, isWaitlist, spotsLeft, waitlistEnabled]);
 
 	return !subscribed ? (
-		<MemberText
-			variant="body"
-			style={[styles.warningTxt, styles.container]}
-		>
+		<Text style={[styles.warningTxt, styles.container]}>
 			This class is not included in your membership. Please speak with
 			your gym to upgrade.
-		</MemberText>
+		</Text>
 	) : (
 		<Row spacing="space-around" style={styles.container}>
 			<View style={layout.flex_1}>{renderLeftButton()}</View>

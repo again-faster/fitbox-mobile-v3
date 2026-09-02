@@ -339,7 +339,7 @@ const ScoreComponent = ({
 					payload = {
 						section_id: section.id,
 						value: saveMovements[0]?.value ?? 0,
-						reps: Number(saveMovements[0]?.reps) || 0,
+						reps: Number(saveMovements[0]?.reps) ?? 0,
 						comments: saveMovements[0]?.comments ?? '',
 					};
 				} else if (section.scoring_by === 'section') {

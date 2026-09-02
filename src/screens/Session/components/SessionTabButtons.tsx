@@ -4,7 +4,7 @@
  */
 
 import { memberTheme } from '@/theme/member';
-import { MemberText as Text } from '@/components/member';
+import { Text } from '@/components/atoms';
 import { SessionMemberAttendanceSchemaType } from '@/types/schemas/session';
 import { SessionTabsEnum } from '@/utils/Enum';
 import { memo } from 'react';

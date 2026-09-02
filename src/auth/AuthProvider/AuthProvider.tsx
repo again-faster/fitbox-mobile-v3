@@ -1,5 +1,4 @@
 import { deletePushToken, login } from '@/services/auth';
-import { resolveApiUrl } from '@/services/resolveApiUrl';
 import { LoginResponseSchemaType } from '@/types/schemas/response';
 import { UserSchemaType } from '@/types/schemas/user';
 import { Constant, Func } from '@/utils';
@@ -107,11 +106,7 @@ const AuthProvider = ({ children, storage }: Props) => {
 					pushToken,
 					loggedInUser.id,
 					Func.getEnv(
-						resolveApiUrl(
-							storage.getString('apiUrl'),
-							Constant.API_URL,
-							Constant.API_BASE_URLS.PROD,
-						),
+						storage.getString('apiUrl') || Constant.API_URL,
 					),
 				);
 			}
@@ -145,11 +140,7 @@ const AuthProvider = ({ children, storage }: Props) => {
 	};
 
 	const getApiUrl = (): string => {
-		return resolveApiUrl(
-			storage.getString('apiUrl'),
-			Constant.API_URL,
-			Constant.API_BASE_URLS.PROD,
-		);
+		return storage.getString('apiUrl') || Constant.API_URL; // default to Constant.API_URL if not set in storage
 	};
 
 	const value = useMemo(() => {

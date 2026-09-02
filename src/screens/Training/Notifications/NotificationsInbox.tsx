@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
-import type { StackScreenProps } from '@react-navigation/stack';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import moment from 'moment';
+import { useMemo } from "react";
+import type { StackScreenProps } from "@react-navigation/stack";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import moment from "moment";
 import {
 	ActivityIndicator,
 	FlatList,
@@ -10,23 +10,23 @@ import {
 	Text,
 	TouchableOpacity,
 	View,
-} from 'react-native';
-import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { MemberScreen } from '@/components/member';
-import { getStoredWSSession } from '@/services/workoutStudio/auth';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Ionicons from "react-native-vector-icons/MaterialCommunityIcons";
+import { getStoredWSSession } from "@/services/workoutStudio/auth";
 import {
 	getMemberNotifications,
 	markAllNotificationsRead,
 	markNotificationRead,
 	type MemberNotification,
-} from '@/services/workoutStudio/notifications';
-import { trainingTheme } from '@/theme/training';
-import type { TrainingStackParamList } from '@/types/navigation';
+} from "@/services/workoutStudio/notifications";
+import { trainingTheme } from "@/theme/training";
+import type { TrainingStackParamList } from "@/types/navigation";
 
-type Props = StackScreenProps<TrainingStackParamList, 'TrainingNotifications'>;
+type Props = StackScreenProps<TrainingStackParamList, "TrainingNotifications">;
 type NotificationSession = ReturnType<typeof getStoredWSSession>;
 
-export type NotificationInboxState = 'loading' | 'error' | 'empty' | 'ready';
+export type NotificationInboxState = "loading" | "error" | "empty" | "ready";
 
 export type NotificationInboxStateCopy = {
 	state: NotificationInboxState;
@@ -37,7 +37,7 @@ export type NotificationInboxStateCopy = {
 export const hasMemberNotificationSession = (
 	session: NotificationSession,
 ): boolean =>
-	session?.user.persona === 'member' &&
+	session?.user.persona === "member" &&
 	!!session.user.id &&
 	!!session.user.active_tenant_id;
 
@@ -48,28 +48,28 @@ export const shouldEnableNotificationQuery = (
 export const notificationInboxStateCopy = (
 	state: NotificationInboxState,
 ): NotificationInboxStateCopy => {
-	if (state === 'loading')
+	if (state === "loading")
 		return {
 			state,
-			title: 'Loading notifications',
-			detail: 'Checking your latest training updates.',
+			title: "Loading notifications",
+			detail: "Checking your latest training updates.",
 		};
-	if (state === 'error')
+	if (state === "error")
 		return {
 			state,
-			title: 'Notifications unavailable',
-			detail: 'We could not load your updates. Try again shortly.',
+			title: "Notifications unavailable",
+			detail: "We could not load your updates. Try again shortly.",
 		};
-	if (state === 'empty')
+	if (state === "empty")
 		return {
 			state,
 			title: "You're all caught up",
-			detail: 'New assignments, coach notes and training updates will appear here.',
+			detail: "New assignments, coach notes and training updates will appear here.",
 		};
 	return {
 		state,
-		title: 'Your updates',
-		detail: 'Recent notifications from your training.',
+		title: "Your updates",
+		detail: "Recent notifications from your training.",
 	};
 };
 
@@ -79,37 +79,36 @@ export const notificationInboxViewState = (
 	isError: boolean,
 	notifications: MemberNotification[] | undefined,
 ): NotificationInboxState => {
-	if (!enabled) return 'empty';
-	if (isLoading) return 'loading';
-	if (isError) return 'error';
-	if (!notifications || notifications.length === 0) return 'empty';
-	return 'ready';
+	if (!enabled) return "empty";
+	if (isLoading) return "loading";
+	if (isError) return "error";
+	if (!notifications || notifications.length === 0) return "empty";
+	return "ready";
 };
 
-const KIND_ICON: Record<MemberNotification['kind'], string> = {
-	assignment: 'dumbbell',
-	coach_note: 'message-text-outline',
-	reaction: 'heart-outline',
-	wellness_followup: 'heart-pulse',
-	weekly_recap: 'calendar-check-outline',
+const KIND_ICON: Record<MemberNotification["kind"], string> = {
+	assignment: "dumbbell",
+	coach_note: "message-text-outline",
+	reaction: "heart-outline",
+	wellness_followup: "heart-pulse",
 };
 
 const formatNotificationDate = (createdAt: string): string => {
 	const date = moment(createdAt);
-	return date.isValid() ? date.format('D MMM') : 'Date not available';
+	return date.isValid() ? date.format("D MMM") : "Date not available";
 };
 
 const notificationTime = (createdAt: string): string => {
 	const date = moment(createdAt);
 	return date.isValid()
-		? `${date.fromNow()} · ${date.format('D MMM')}`
-		: 'Date not available';
+		? `${date.fromNow()} · ${date.format("D MMM")}`
+		: "Date not available";
 };
 
 export const notificationAccessibilityLabel = (
 	notification: MemberNotification,
 ): string =>
-	`${notification.read_at ? 'Read' : 'Unread'} notification. ${notification.title}. ${notification.body}. Received ${formatNotificationDate(notification.created_at)}.`;
+	`${notification.read_at ? "Read" : "Unread"} notification. ${notification.title}. ${notification.body}. Received ${formatNotificationDate(notification.created_at)}.`;
 
 const NotificationsInbox = ({ navigation }: Props) => {
 	const queryClient = useQueryClient();
@@ -118,7 +117,7 @@ const NotificationsInbox = ({ navigation }: Props) => {
 	const tenantId = session?.user.active_tenant_id;
 	const queryEnabled = shouldEnableNotificationQuery(session);
 	const queryKey = useMemo(
-		() => ['ws-member-notifications', uid, tenantId] as const,
+		() => ["ws-member-notifications", uid, tenantId] as const,
 		[tenantId, uid],
 	);
 
@@ -145,9 +144,7 @@ const NotificationsInbox = ({ navigation }: Props) => {
 	});
 
 	const notifications = query.data;
-	const unread =
-		notifications?.filter((item: MemberNotification) => !item.read_at)
-			.length ?? 0;
+	const unread = notifications?.filter((item) => !item.read_at).length ?? 0;
 	const state = notificationInboxViewState(
 		queryEnabled,
 		query.isLoading,
@@ -166,14 +163,12 @@ const NotificationsInbox = ({ navigation }: Props) => {
 		)
 			markRead.mutate(notification.id);
 
-		if (notification.kind === 'assignment' && notification.entity_id) {
-			navigation.navigate('TrainingWorkoutDetail', {
+		if (notification.kind === "assignment" && notification.entity_id) {
+			navigation.navigate("TrainingWorkoutDetail", {
 				workoutId: notification.entity_id,
 			});
-		} else if (notification.kind === 'coach_note') {
-			navigation.navigate('TrainingCoachNotes');
-		} else if (notification.kind === 'weekly_recap') {
-			navigation.navigate('TrainingWeeklyRecap');
+		} else if (notification.kind === "coach_note") {
+			navigation.navigate("TrainingCoachNotes");
 		}
 	};
 
@@ -223,9 +218,7 @@ const NotificationsInbox = ({ navigation }: Props) => {
 						</Text>
 					</View>
 				</View>
-				{(item.kind === 'assignment' ||
-					item.kind === 'coach_note' ||
-					item.kind === 'weekly_recap') && (
+				{(item.kind === "assignment" || item.kind === "coach_note") && (
 					<Ionicons
 						name="chevron-right"
 						size={20}
@@ -259,11 +252,11 @@ const NotificationsInbox = ({ navigation }: Props) => {
 				</View>
 			</View>
 
-			{state === 'ready' && notifications && (
+			{state === "ready" && notifications && (
 				<View
 					style={styles.summaryCard}
 					accessibilityRole="summary"
-					accessibilityLabel={`Notifications. ${unread > 0 ? `${unread} unread` : 'All caught up'}.`}
+					accessibilityLabel={`Notifications. ${unread > 0 ? `${unread} unread` : "All caught up"}.`}
 				>
 					<View
 						style={[
@@ -272,7 +265,7 @@ const NotificationsInbox = ({ navigation }: Props) => {
 						]}
 					>
 						<Ionicons
-							name={unread > 0 ? 'bell-ring-outline' : 'check'}
+							name={unread > 0 ? "bell-ring-outline" : "check"}
 							size={27}
 							color={
 								unread > 0
@@ -283,12 +276,12 @@ const NotificationsInbox = ({ navigation }: Props) => {
 					</View>
 					<View style={styles.summaryCopy}>
 						<Text style={styles.summaryEyebrow}>
-							{unread > 0 ? 'YOUR UPDATES' : 'ALL CAUGHT UP'}
+							{unread > 0 ? "YOUR UPDATES" : "ALL CAUGHT UP"}
 						</Text>
 						<Text style={styles.summaryTitle}>
 							{unread > 0
-								? `${unread} unread ${unread === 1 ? 'notification' : 'notifications'}`
-								: 'Nothing new right now'}
+								? `${unread} unread ${unread === 1 ? "notification" : "notifications"}`
+								: "Nothing new right now"}
 						</Text>
 					</View>
 					{unread > 0 && (
@@ -313,7 +306,7 @@ const NotificationsInbox = ({ navigation }: Props) => {
 				</View>
 			)}
 
-			{state === 'ready' && notifications && (
+			{state === "ready" && notifications && (
 				<View style={styles.sectionHeading}>
 					<Text style={styles.sectionTitle}>Recent</Text>
 					<Text style={styles.sectionCount}>
@@ -331,8 +324,8 @@ const NotificationsInbox = ({ navigation }: Props) => {
 
 	const renderState = () => {
 		const signedOutCopy = {
-			title: 'Notifications unavailable',
-			detail: 'Sign in to view your training updates.',
+			title: "Notifications unavailable",
+			detail: "Sign in to view your training updates.",
 		};
 		const stateCopy = queryEnabled ? copy : signedOutCopy;
 		return (
@@ -344,7 +337,7 @@ const NotificationsInbox = ({ navigation }: Props) => {
 					accessibilityLabel={`${stateCopy.title}. ${stateCopy.detail}`}
 				>
 					<View style={styles.stateIcon}>
-						{state === 'loading' ? (
+						{state === "loading" ? (
 							<ActivityIndicator
 								size="large"
 								color={trainingTheme.colors.primary}
@@ -352,9 +345,9 @@ const NotificationsInbox = ({ navigation }: Props) => {
 						) : (
 							<Ionicons
 								name={
-									state === 'error'
-										? 'alert-circle-outline'
-										: 'bell-check-outline'
+									state === "error"
+										? "alert-circle-outline"
+										: "bell-check-outline"
 								}
 								size={38}
 								color={trainingTheme.colors.primary}
@@ -363,7 +356,7 @@ const NotificationsInbox = ({ navigation }: Props) => {
 					</View>
 					<Text style={styles.stateTitle}>{stateCopy.title}</Text>
 					<Text style={styles.stateBody}>{stateCopy.detail}</Text>
-					{state === 'error' && queryEnabled && (
+					{state === "error" && queryEnabled && (
 						<TouchableOpacity
 							accessibilityRole="button"
 							accessibilityLabel="Try again"
@@ -379,17 +372,13 @@ const NotificationsInbox = ({ navigation }: Props) => {
 	};
 
 	return (
-		<MemberScreen
-			style={styles.screen}
-			contentContainerStyle={styles.screenContent}
-			edges={['top']}
-		>
-			{state !== 'ready' ? (
+		<SafeAreaView style={styles.screen} edges={["top"]}>
+			{state !== "ready" ? (
 				renderState()
 			) : (
 				<FlatList
 					data={notifications ?? []}
-					keyExtractor={item => item.id}
+					keyExtractor={(item) => item.id}
 					ListHeaderComponent={header}
 					contentContainerStyle={styles.listContent}
 					showsVerticalScrollIndicator={false}
@@ -404,17 +393,16 @@ const NotificationsInbox = ({ navigation }: Props) => {
 					renderItem={renderNotification}
 				/>
 			)}
-		</MemberScreen>
+		</SafeAreaView>
 	);
 };
 
 const styles = StyleSheet.create({
 	screen: { flex: 1, backgroundColor: trainingTheme.colors.background },
-	screenContent: { paddingHorizontal: 0 },
 	listContent: { paddingBottom: trainingTheme.spacing.xxl },
 	pageHeader: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		paddingHorizontal: trainingTheme.spacing.lg,
 		paddingTop: trainingTheme.spacing.md,
 		paddingBottom: trainingTheme.spacing.lg,
@@ -427,14 +415,14 @@ const styles = StyleSheet.create({
 		backgroundColor: trainingTheme.colors.surface,
 		borderWidth: 1,
 		borderColor: trainingTheme.colors.border,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	headerCopy: { flex: 1 },
 	pageTitle: {
 		fontSize: 28,
 		lineHeight: 34,
-		fontWeight: '800',
+		fontWeight: "800",
 		color: trainingTheme.colors.text,
 	},
 	pageSubtitle: {
@@ -449,8 +437,8 @@ const styles = StyleSheet.create({
 		padding: trainingTheme.spacing.lg,
 		borderRadius: trainingTheme.radius.lg,
 		backgroundColor: trainingTheme.colors.primarySoft,
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: trainingTheme.spacing.md,
 	},
 	summaryIcon: {
@@ -458,22 +446,22 @@ const styles = StyleSheet.create({
 		height: 52,
 		borderRadius: trainingTheme.radius.md,
 		backgroundColor: trainingTheme.colors.surface,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	summaryIconCaughtUp: { backgroundColor: trainingTheme.colors.successSoft },
 	summaryCopy: { flex: 1 },
 	summaryEyebrow: {
 		fontSize: 11,
 		lineHeight: 15,
-		fontWeight: '800',
+		fontWeight: "800",
 		letterSpacing: 0.9,
 		color: trainingTheme.colors.primary,
 	},
 	summaryTitle: {
 		fontSize: 16,
 		lineHeight: 22,
-		fontWeight: '800',
+		fontWeight: "800",
 		color: trainingTheme.colors.text,
 		marginTop: 2,
 	},
@@ -481,18 +469,18 @@ const styles = StyleSheet.create({
 		minHeight: trainingTheme.touchTarget,
 		borderRadius: trainingTheme.radius.md,
 		backgroundColor: trainingTheme.colors.surface,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		paddingHorizontal: trainingTheme.spacing.md,
 	},
 	markAllText: {
 		fontSize: 12,
-		fontWeight: '800',
+		fontWeight: "800",
 		color: trainingTheme.colors.primary,
 	},
 	sectionHeading: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		marginHorizontal: trainingTheme.spacing.lg,
 		marginBottom: trainingTheme.spacing.md,
 		gap: trainingTheme.spacing.sm,
@@ -500,7 +488,7 @@ const styles = StyleSheet.create({
 	sectionTitle: {
 		fontSize: 20,
 		lineHeight: 26,
-		fontWeight: '800',
+		fontWeight: "800",
 		color: trainingTheme.colors.text,
 	},
 	sectionCount: {
@@ -510,9 +498,9 @@ const styles = StyleSheet.create({
 		backgroundColor: trainingTheme.colors.primarySoft,
 		fontSize: 13,
 		lineHeight: 26,
-		fontWeight: '800',
+		fontWeight: "800",
 		color: trainingTheme.colors.primary,
-		textAlign: 'center',
+		textAlign: "center",
 	},
 	card: {
 		backgroundColor: trainingTheme.colors.surface,
@@ -520,11 +508,11 @@ const styles = StyleSheet.create({
 		padding: trainingTheme.spacing.lg,
 		marginHorizontal: trainingTheme.spacing.lg,
 		marginBottom: trainingTheme.spacing.md,
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: trainingTheme.spacing.md,
 		borderWidth: 1,
-		borderColor: 'transparent',
+		borderColor: "transparent",
 		...trainingTheme.shadow,
 	},
 	cardUnread: { borderColor: trainingTheme.colors.primarySoft },
@@ -533,21 +521,21 @@ const styles = StyleSheet.create({
 		height: 48,
 		borderRadius: trainingTheme.radius.md,
 		backgroundColor: trainingTheme.colors.surfaceMuted,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 	},
 	itemIconUnread: { backgroundColor: trainingTheme.colors.primarySoft },
 	itemCopy: { flex: 1 },
 	titleRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: trainingTheme.spacing.sm,
 	},
 	itemTitle: {
 		flex: 1,
 		fontSize: 16,
 		lineHeight: 21,
-		fontWeight: '800',
+		fontWeight: "800",
 		color: trainingTheme.colors.text,
 	},
 	unreadDot: {
@@ -563,8 +551,8 @@ const styles = StyleSheet.create({
 		marginTop: 3,
 	},
 	timeRow: {
-		flexDirection: 'row',
-		alignItems: 'center',
+		flexDirection: "row",
+		alignItems: "center",
 		gap: trainingTheme.spacing.xs,
 		marginTop: trainingTheme.spacing.sm,
 	},
@@ -582,8 +570,8 @@ const styles = StyleSheet.create({
 	},
 	stateContainer: {
 		flex: 1,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		paddingHorizontal: trainingTheme.spacing.xxl,
 		paddingBottom: 80,
 	},
@@ -592,38 +580,34 @@ const styles = StyleSheet.create({
 		height: 84,
 		borderRadius: trainingTheme.radius.pill,
 		backgroundColor: trainingTheme.colors.primarySoft,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		marginBottom: trainingTheme.spacing.lg,
 	},
 	stateTitle: {
 		fontSize: 21,
 		lineHeight: 27,
-		fontWeight: '800',
+		fontWeight: "800",
 		color: trainingTheme.colors.text,
-		textAlign: 'center',
+		textAlign: "center",
 	},
 	stateBody: {
 		fontSize: 15,
 		lineHeight: 22,
 		color: trainingTheme.colors.textMuted,
-		textAlign: 'center',
+		textAlign: "center",
 		marginTop: trainingTheme.spacing.sm,
 	},
 	retryButton: {
 		minHeight: 50,
 		borderRadius: trainingTheme.radius.md,
 		backgroundColor: trainingTheme.colors.primary,
-		alignItems: 'center',
-		justifyContent: 'center',
+		alignItems: "center",
+		justifyContent: "center",
 		paddingHorizontal: trainingTheme.spacing.xl,
 		marginTop: trainingTheme.spacing.xl,
 	},
-	retryText: {
-		fontSize: 15,
-		fontWeight: '800',
-		color: trainingTheme.colors.surface,
-	},
+	retryText: { fontSize: 15, fontWeight: "800", color: "#FFFFFF" },
 });
 
 export default NotificationsInbox;

@@ -16,7 +16,7 @@ import {
 	View,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { MemberScreen } from '@/components/member';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { trainingTheme } from '@/theme/training';
 import SkeletonCard from '../components/SkeletonCard';
 
@@ -41,7 +41,7 @@ const WorkoutList = () => {
 	const sections = useMemo(() => {
 		if (!data) return [];
 		const grouped: Record<string, WorkoutAssignment[]> = {};
-		data.forEach((a: WorkoutAssignment) => {
+		data.forEach(a => {
 			const d = a.due_date;
 			if (!grouped[d]) grouped[d] = [];
 			grouped[d]!.push(a);
@@ -53,11 +53,7 @@ const WorkoutList = () => {
 	}, [data]);
 
 	return (
-		<MemberScreen
-			style={styles.screen}
-			contentContainerStyle={styles.screenContent}
-			edges={['top']}
-		>
+		<SafeAreaView style={styles.screen} edges={['top']}>
 			<View style={styles.header}>
 				<TouchableOpacity
 					accessibilityRole="button"
@@ -199,13 +195,12 @@ const WorkoutList = () => {
 					</TouchableOpacity>
 				)}
 			/>
-		</MemberScreen>
+		</SafeAreaView>
 	);
 };
 
 const styles = StyleSheet.create({
 	screen: { flex: 1, backgroundColor: trainingTheme.colors.background },
-	screenContent: { paddingHorizontal: 0 },
 	header: {
 		flexDirection: 'row',
 		alignItems: 'center',

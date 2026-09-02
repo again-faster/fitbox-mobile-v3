@@ -32,8 +32,6 @@ import {
 	useClassTrainingWorkout,
 } from './hooks/useClassTrainingWorkout';
 
-type SessionWaitlistMember = { calendar_event_id: number; user_id: number };
-
 const Session = ({ route, navigation }: ApplicationScreenProps) => {
 	const loggedInUser = useStore(state => state.loggedInUser);
 	const allowLeaderboards = useStore(state => state.allowLeaderboards);
@@ -127,7 +125,7 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 	const isWaitlist = useMemo(
 		() =>
 			!!session?.waitlist?.some(
-				(w: SessionWaitlistMember) =>
+				w =>
 					w.calendar_event_id === session?.id &&
 					w.user_id === loggedInUser?.id,
 			),
@@ -138,9 +136,7 @@ const Session = ({ route, navigation }: ApplicationScreenProps) => {
 		const waitlist = Array.isArray(session?.waitlist)
 			? session?.waitlist
 			: [];
-		const index = waitlist?.findIndex(
-			(w: SessionWaitlistMember) => w.user_id === loggedInUser?.id,
-		);
+		const index = waitlist?.findIndex(w => w.user_id === loggedInUser?.id);
 		return index !== -1 ? (index as number) + 1 : -1;
 	}, [session, loggedInUser]);
 

@@ -12,16 +12,9 @@ export const memberTheme = {
 		text: '#27272E',
 		textMuted: '#6F707A',
 		border: '#E8E7EF',
-		info: '#0085FF',
-		infoSoft: '#E8F1FF',
 		success: '#43A047',
-		successSoft: '#EAF7EC',
 		warning: '#FFB300',
-		warningSoft: '#FFF4DA',
 		danger: '#F44336',
-		dangerSoft: '#FDEDEC',
-		disabled: '#A5A5AF',
-		disabledSoft: '#F0F0F4',
 	},
 	spacing: {
 		xs: 4,
@@ -44,60 +37,6 @@ export const memberTheme = {
 		shadowOpacity: 0.08,
 		shadowRadius: 18,
 		elevation: 3,
-	},
-	typography: {
-		display: {
-			fontFamily: 'Inter-Variable',
-			fontSize: 32,
-			lineHeight: 38,
-			fontWeight: '800',
-		},
-		screenTitle: {
-			fontFamily: 'Inter-Variable',
-			fontSize: 28,
-			lineHeight: 34,
-			fontWeight: '800',
-		},
-		sectionTitle: {
-			fontFamily: 'Inter-Variable',
-			fontSize: 20,
-			lineHeight: 26,
-			fontWeight: '800',
-		},
-		body: {
-			fontFamily: 'Inter-Variable',
-			fontSize: 15,
-			lineHeight: 22,
-			fontWeight: '400',
-		},
-		label: {
-			fontFamily: 'Inter-Variable',
-			fontSize: 13,
-			lineHeight: 18,
-			fontWeight: '600',
-		},
-		meta: {
-			fontFamily: 'Inter-Variable',
-			fontSize: 12,
-			lineHeight: 18,
-			fontWeight: '400',
-		},
-		button: {
-			fontFamily: 'Inter-Variable',
-			fontSize: 15,
-			lineHeight: 20,
-			fontWeight: '700',
-		},
-	},
-	controls: {
-		minTouchTarget: 44,
-		primaryHeight: 48,
-		compactHeight: 40,
-	},
-	surfaces: {
-		cardPadding: 16,
-		sectionGap: 24,
-		screenGutter: 16,
 	},
 } as const;
 

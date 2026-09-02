@@ -1,31 +1,40 @@
 import type { PropsWithChildren } from 'react';
-import { type StyleProp, type ViewStyle } from 'react-native';
-import { MemberCard } from '@/components/member';
-import { memberTheme } from '@/theme/member';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
+import { trainingTheme } from '@/theme/training';
 
 type Props = PropsWithChildren<{
-	style?: StyleProp<ViewStyle>;
+	style?: ViewStyle | ViewStyle[];
 	accent?: 'primary' | 'success' | 'warning';
 }>;
 
 const accentColor = {
-	primary: memberTheme.colors.primary,
-	success: memberTheme.colors.success,
-	warning: memberTheme.colors.warning,
+	primary: trainingTheme.colors.primary,
+	success: trainingTheme.colors.success,
+	warning: trainingTheme.colors.warning,
 };
 
 const TrainingCard = ({ children, style, accent }: Props) => (
-	<MemberCard
+	<View
 		style={[
+			styles.card,
 			accent
 				? { borderLeftColor: accentColor[accent], borderLeftWidth: 4 }
 				: null,
 			style,
 		]}
-		elevated={false}
 	>
 		{children}
-	</MemberCard>
+	</View>
 );
+
+const styles = StyleSheet.create({
+	card: {
+		backgroundColor: trainingTheme.colors.surface,
+		borderColor: trainingTheme.colors.border,
+		borderWidth: StyleSheet.hairlineWidth,
+		borderRadius: trainingTheme.radius.md,
+		padding: trainingTheme.spacing.lg,
+	},
+});
 
 export default TrainingCard;

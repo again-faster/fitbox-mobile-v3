@@ -76,7 +76,7 @@ const BookingComposer = ({
 				? 'Book treatment'
 				: 'Book resource';
 
-	const slots = useQuery<BookingSlot[]>({
+	const slots = useQuery({
 		queryKey: [
 			'ws-booking-slots',
 			tenantId,
@@ -99,8 +99,7 @@ const BookingComposer = ({
 	const visible = useMemo(
 		() =>
 			(slots.data ?? []).filter(
-				(slot: BookingSlot) =>
-					moment(slot.startAt).format('YYYY-MM-DD') === date,
+				slot => moment(slot.startAt).format('YYYY-MM-DD') === date,
 			),
 		[date, slots.data],
 	);
@@ -207,7 +206,7 @@ const BookingComposer = ({
 				/>
 			) : (
 				<View style={styles.times}>
-					{visible.map((slot: BookingSlot) => {
+					{visible.map(slot => {
 						const active = selected?.startAt === slot.startAt;
 						return (
 							<TouchableOpacity
