@@ -1,6 +1,6 @@
-import { wsRpc } from './api';
-import { getStoredWSSession } from './auth';
-import { WSApiError } from './errors';
+import { wsRpc } from "./api";
+import { getStoredWSSession } from "./auth";
+import { WSApiError } from "./errors";
 
 export type WeeklyRecapWorkout = {
 	id: string;
@@ -42,39 +42,39 @@ const DEFAULT_ENGAGEMENT_WINDOW_DAYS = 28;
 const MAX_WINDOW_DAYS = 90;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
-	typeof value === 'object' && value !== null && !Array.isArray(value);
+	typeof value === "object" && value !== null && !Array.isArray(value);
 
 const isDateOnly = (value: unknown): value is string =>
-	typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+	typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
 
 const toNullableNumber = (value: unknown): number | null => {
 	if (value === undefined || value === null) return null;
-	if (typeof value !== 'number' || !Number.isFinite(value))
-		throw new Error('recap contract');
+	if (typeof value !== "number" || !Number.isFinite(value))
+		throw new Error("recap contract");
 	return value;
 };
 
 const toNullableString = (value: unknown): string | null => {
 	if (value === undefined || value === null) return null;
-	if (typeof value !== 'string') throw new Error('recap contract');
+	if (typeof value !== "string") throw new Error("recap contract");
 	return value;
 };
 
 const isUnavailable = (error: unknown): boolean =>
 	error instanceof WSApiError &&
-	['not_found', 'server', 'network', 'timeout'].includes(error.kind);
+	["not_found", "server", "network", "timeout"].includes(error.kind);
 
 const requireMemberSession = () => {
 	const session = getStoredWSSession();
 	if (!session)
 		throw new WSApiError(
-			'unauthorized',
-			'Your Training session has expired.',
+			"unauthorized",
+			"Your Training session has expired.",
 		);
-	if (session.user.persona !== 'member')
+	if (session.user.persona !== "member")
 		throw new WSApiError(
-			'forbidden',
-			'Weekly recap is available for members only.',
+			"forbidden",
+			"Weekly recap is available for members only.",
 		);
 	return session;
 };
@@ -89,7 +89,7 @@ const normalizeWindowDays = (windowDays: number): number => {
 		windowDays > MAX_WINDOW_DAYS
 	)
 		throw new WSApiError(
-			'unknown',
+			"unknown",
 			`Recap window must be between 1 and ${MAX_WINDOW_DAYS} days.`,
 		);
 	return windowDays;
@@ -102,7 +102,7 @@ const normalizeRange = (data: Record<string, unknown>) => {
 		!isDateOnly(data.window_end) ||
 		data.window_start > data.window_end
 	)
-		throw new Error('recap contract');
+		throw new Error("recap contract");
 	return {
 		asOfDate: data.as_of_date,
 		windowStart: data.window_start,
@@ -114,15 +114,15 @@ export const normalizeWeeklyRecapSnapshot = (
 	raw: unknown,
 ): WeeklyRecapSnapshot => {
 	if (!isRecord(raw) || raw.ok !== true || !isRecord(raw.data))
-		throw new Error('recap contract');
+		throw new Error("recap contract");
 
 	const { data } = raw;
 	const range = normalizeRange(data);
-	if (!Array.isArray(data.workouts)) throw new Error('recap contract');
+	if (!Array.isArray(data.workouts)) throw new Error("recap contract");
 
-	const workouts = data.workouts.map(item => {
-		if (!isRecord(item) || typeof item.id !== 'string')
-			throw new Error('recap contract');
+	const workouts = data.workouts.map((item) => {
+		if (!isRecord(item) || typeof item.id !== "string")
+			throw new Error("recap contract");
 		return {
 			id: item.id,
 			name: toNullableString(item.name),
@@ -147,7 +147,7 @@ export const normalizeEngagementSnapshot = (
 	raw: unknown,
 ): EngagementSnapshot => {
 	if (!isRecord(raw) || raw.ok !== true || !isRecord(raw.data))
-		throw new Error('recap contract');
+		throw new Error("recap contract");
 
 	const { data } = raw;
 	return {
@@ -161,7 +161,7 @@ export const normalizeEngagementSnapshot = (
 };
 
 export function getWeeklyRecapSnapshot(
-	options?: Omit<RecapOptions, 'enabled' | 'featureEnabled'> & {
+	options?: Omit<RecapOptions, "enabled" | "featureEnabled"> & {
 		enabled?: true;
 		featureEnabled?: true;
 	},
@@ -177,7 +177,7 @@ export function getWeeklyRecapSnapshot(
 	return (async () => {
 		requireMemberSession();
 		try {
-			const raw = await wsRpc<unknown>('member_weekly_recap_snapshot', {
+			const raw = await wsRpc<unknown>("member_weekly_recap_snapshot", {
 				p_window_days: normalizeWindowDays(
 					options.windowDays ?? DEFAULT_RECAP_WINDOW_DAYS,
 				),
@@ -191,7 +191,7 @@ export function getWeeklyRecapSnapshot(
 }
 
 export function getMemberEngagement(
-	options?: Omit<RecapOptions, 'enabled' | 'featureEnabled'> & {
+	options?: Omit<RecapOptions, "enabled" | "featureEnabled"> & {
 		enabled?: true;
 		featureEnabled?: true;
 	},
@@ -207,7 +207,7 @@ export function getMemberEngagement(
 	return (async () => {
 		requireMemberSession();
 		try {
-			const raw = await wsRpc<unknown>('member_engagement_snapshot', {
+			const raw = await wsRpc<unknown>("member_engagement_snapshot", {
 				p_window_days: normalizeWindowDays(
 					options.windowDays ?? DEFAULT_ENGAGEMENT_WINDOW_DAYS,
 				),

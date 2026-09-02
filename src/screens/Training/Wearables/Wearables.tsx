@@ -1,5 +1,4 @@
 import { mmkvStorage } from '@/storage';
-import { MemberScreen } from '@/components/member';
 import { trainingTheme } from '@/theme/training';
 import type { TrainingStackParamList } from '@/types/navigation';
 import type { StackScreenProps } from '@react-navigation/stack';
@@ -13,6 +12,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
 import { getStoredWSSession } from '@/services/workoutStudio/auth';
@@ -24,7 +24,6 @@ import {
 	type ReadinessResult,
 } from '@/services/workoutStudio/readiness';
 import TrainingState from '../components/TrainingState';
-import TrainingTabShell from '../Tabs/TrainingTabShell';
 
 type Props = StackScreenProps<TrainingStackParamList, 'TrainingWearables'>;
 type ProviderProps = {
@@ -100,7 +99,7 @@ export const wearablesReadinessCopy = (
 			score: 'Not available',
 			band: 'Not available',
 			confidence: 'Not available',
-			freshness: 'Not available',
+		freshness: 'Not available',
 			metric: null,
 			metrics: [],
 		};
@@ -129,19 +128,16 @@ export const wearablesReadinessCopy = (
 	);
 	const metric = scoreMetric ?? recoveryMetric ?? usefulMetrics[0] ?? null;
 	const hasReadinessScore =
-		metric !== null && metric.nativeReadinessScore !== null;
+	metric !== null && metric.nativeReadinessScore !== null;
 	const hasRecoveryScore =
-		metric !== null && metric.nativeRecoveryScore !== null;
-	let displayStatus: ReadinessCopy['status'];
-	if (hasReadinessScore) {
-		displayStatus = result.status;
-	} else if (hasRecoveryScore) {
-		displayStatus = 'recovery';
-	} else if (result.status === 'ready') {
-		displayStatus = 'baseline';
-	} else {
-		displayStatus = result.status;
-	}
+	metric !== null && metric.nativeRecoveryScore !== null;
+	const displayStatus = hasReadinessScore
+		? result.status
+		: hasRecoveryScore
+			? 'recovery'
+			: result.status === 'ready'
+				? 'baseline'
+				: result.status;
 	const stateCopy = {
 		ready: {
 			statusLabel: 'Ready',
@@ -153,7 +149,8 @@ export const wearablesReadinessCopy = (
 		baseline: {
 			statusLabel: 'Baseline',
 			title: 'Building your baseline',
-			detail: 'More connected data is needed before a readiness score is available.',
+			detail:
+				'More connected data is needed before a readiness score is available.',
 			band: 'Baseline',
 			confidence: 'Building',
 		},
@@ -167,7 +164,8 @@ export const wearablesReadinessCopy = (
 		recovery: {
 			statusLabel: 'Recovery available',
 			title: 'Recovery data available',
-			detail: 'Recovery data is available, but a readiness score is not available yet.',
+			detail:
+				'Recovery data is available, but a readiness score is not available yet.',
 			band: 'Recovery available',
 			confidence: 'Score not available',
 		},
@@ -213,9 +211,7 @@ export const WearablesReadinessSummary = ({
 				<Text style={styles.providerDescription}>{copy.title}</Text>
 				<Text style={styles.readinessDetail}>{copy.detail}</Text>
 				<View style={styles.readinessStats}>
-					<Text style={styles.readinessMeta}>
-						Status {copy.statusLabel}
-					</Text>
+					<Text style={styles.readinessMeta}>Status {copy.statusLabel}</Text>
 					<Text style={styles.readinessMeta}>Score {copy.score}</Text>
 					<Text style={styles.readinessMeta}>Band {copy.band}</Text>
 					<Text style={styles.readinessMeta}>
@@ -258,9 +254,7 @@ export const ProviderNativeStatus = ({
 					size={22}
 					color={trainingTheme.colors.primary}
 				/>
-				<Text style={styles.nativeStatusTitle}>
-					Provider-native status
-				</Text>
+				<Text style={styles.nativeStatusTitle}>Provider-native status</Text>
 			</View>
 			<Text style={styles.nativeStatusText}>{connectionStatus}</Text>
 			<Text style={styles.nativeStatusText}>{metricText}</Text>
@@ -373,20 +367,15 @@ const Wearables = ({ navigation }: Props) => {
 		? wearablesReadinessCopy(readinessResult)
 		: null;
 	const readinessMetrics = readinessCopy?.metrics ?? [];
-	let nativeConnectionStatus = 'Health Connect not connected';
-	if (Platform.OS === 'ios') {
-		nativeConnectionStatus = appleConnected
-			? 'Apple Health connected'
-			: 'Apple Health not connected';
-	}
+	const nativeConnectionStatus =
+		Platform.OS === 'ios'
+			? appleConnected
+				? 'Apple Health connected'
+				: 'Apple Health not connected'
+			: 'Health Connect not connected';
 
 	return (
-		<MemberScreen
-			style={styles.screen}
-			contentContainerStyle={styles.screenContent}
-			edges={['top']}
-		>
-			<TrainingTabShell selectedTab="readiness" navigation={navigation} />
+		<SafeAreaView style={styles.screen} edges={['top']}>
 			<View style={styles.header}>
 				<TouchableOpacity
 					accessibilityRole="button"
@@ -520,13 +509,12 @@ const Wearables = ({ navigation }: Props) => {
 					connectionStatus={nativeConnectionStatus}
 				/>
 			</ScrollView>
-		</MemberScreen>
+		</SafeAreaView>
 	);
 };
 
 const styles = StyleSheet.create({
 	screen: { flex: 1, backgroundColor: trainingTheme.colors.background },
-	screenContent: { paddingHorizontal: 0 },
 	header: {
 		flexDirection: 'row',
 		alignItems: 'center',

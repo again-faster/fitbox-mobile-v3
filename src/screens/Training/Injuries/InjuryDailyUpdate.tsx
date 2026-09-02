@@ -17,7 +17,7 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
-import { MemberScreen } from '@/components/member';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type Props = TrainingStackScreenProps<'TrainingInjuryDailyUpdate'>;
@@ -175,11 +175,7 @@ const InjuryDailyUpdate = ({ navigation, route }: Props) => {
 	};
 
 	return (
-		<MemberScreen
-			style={styles.screen}
-			contentContainerStyle={{ paddingHorizontal: 0 }}
-			edges={['top']}
-		>
+		<SafeAreaView style={styles.screen} edges={['top']}>
 			<View style={styles.header}>
 				<TouchableOpacity
 					accessibilityRole="button"
@@ -333,11 +329,7 @@ const InjuryDailyUpdate = ({ navigation, route }: Props) => {
 					onPress={() => void handleSubmit()}
 					disabled={submitting}
 				>
-					<Ionicons
-						name="check"
-						size={21}
-						color={trainingTheme.colors.surface}
-					/>
+					<Ionicons name="check" size={21} color="#FFFFFF" />
 					<Text style={styles.submitText}>
 						{submitting ? 'Saving…' : 'Save today’s update'}
 					</Text>
@@ -354,7 +346,7 @@ const InjuryDailyUpdate = ({ navigation, route }: Props) => {
 					<Text style={styles.toastText}>Update logged.</Text>
 				</View>
 			)}
-		</MemberScreen>
+		</SafeAreaView>
 	);
 };
 
@@ -576,11 +568,7 @@ const styles = StyleSheet.create({
 		gap: trainingTheme.spacing.sm,
 	},
 	submitButtonDisabled: { opacity: 0.55 },
-	submitText: {
-		fontSize: 16,
-		fontWeight: '800',
-		color: trainingTheme.colors.surface,
-	},
+	submitText: { fontSize: 16, fontWeight: '800', color: '#FFFFFF' },
 	toast: {
 		position: 'absolute',
 		left: trainingTheme.spacing.lg,

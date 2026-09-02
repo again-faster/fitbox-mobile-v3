@@ -1,29 +1,13 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from "react-native";
 
-import { memberTheme } from '@/theme/member';
+import { memberTheme } from "@/theme/member";
 
-import DashboardActionButton from './DashboardActionButton';
-
-export type DashboardExploreDestination =
-	| { tab: 'Calendar' | 'Shop' }
-	| {
-			tab: 'TrainingStack';
-			screen: 'TrainingPT' | 'TrainingResults';
-	  };
-
-export interface DashboardExploreAction {
-	id: string;
-	icon: string;
-	text: string;
-	destination: DashboardExploreDestination;
-}
-
-export type DashboardExploreNavigation =
-	| { screen: 'Calendar' | 'Shop' }
-	| {
-			screen: 'TrainingStack';
-			params: { screen: 'TrainingPT' | 'TrainingResults' };
-	  };
+import {
+	DASHBOARD_EXPLORE_GRID_GAP,
+	getDashboardExploreColumnCount,
+	orderDashboardExploreItems,
+} from "./DashboardExplore";
+import DashboardActionButton from "./DashboardActionButton";
 
 export interface DashboardActionGridItem {
 	id: string | number;
@@ -32,98 +16,76 @@ export interface DashboardActionGridItem {
 	onPress: () => void;
 }
 
-const groupClassesAction: DashboardExploreAction = {
-	id: 'group-classes',
-	icon: 'users',
-	text: 'Group Classes',
-	destination: { tab: 'Calendar' },
-};
-
-const personalTrainingAction: DashboardExploreAction = {
-	id: 'personal-training',
-	icon: 'user-clock',
-	text: 'Personal Training',
-	destination: { tab: 'TrainingStack', screen: 'TrainingPT' },
-};
-
-const leaderboardAction: DashboardExploreAction = {
-	id: 'leaderboard',
-	icon: 'trophy',
-	text: 'Leaderboard',
-	destination: { tab: 'TrainingStack', screen: 'TrainingResults' },
-};
-
-const extrasAction: DashboardExploreAction = {
-	id: 'extras',
-	icon: 'shopping-bag',
-	text: 'Extras',
-	destination: { tab: 'Shop' },
-};
-
-const allClassesAction: DashboardExploreAction = {
-	id: 'all-classes',
-	icon: 'calendar-alt',
-	text: 'All classes',
-	destination: { tab: 'Calendar' },
-};
-
-export const getDashboardExploreActions = (
-	hasShop: boolean,
-	classesAvailable = true,
-	bookingsAvailable = true,
-	resultsAvailable = true,
-): DashboardExploreAction[] => [
-	...(classesAvailable ? [groupClassesAction] : []),
-	...(bookingsAvailable ? [personalTrainingAction] : []),
-	...(resultsAvailable ? [leaderboardAction] : []),
-	...(hasShop ? [extrasAction] : []),
-	...(classesAvailable ? [allClassesAction] : []),
-];
-
-export const getDashboardExploreNavigation = (
-	destination: DashboardExploreDestination,
-): DashboardExploreNavigation =>
-	destination.tab === 'TrainingStack'
-		? {
-				screen: 'TrainingStack',
-				params: { screen: destination.screen },
-			}
-		: { screen: destination.tab };
+export const orderDashboardGridItems = (
+	actions: readonly DashboardActionGridItem[],
+	columns: 2 | 3,
+): DashboardActionGridItem[] =>
+	orderDashboardExploreItems(
+		actions,
+		columns,
+		(action) => action.id === "leaderboard",
+	);
 
 interface DashboardActionGridProps {
 	actions: readonly DashboardActionGridItem[];
+	availableWidth?: number;
 }
 
-const DashboardActionGrid = ({ actions }: DashboardActionGridProps) => (
-	<View testID="dashboard-action-grid" style={styles.grid}>
-		{actions.map(action => (
-			<View
-				key={action.id}
-				testID={`dashboard-action-cell-${action.id}`}
-				style={styles.cell}
-			>
-				<DashboardActionButton
-					icon={action.icon}
-					text={action.text}
-					onPress={action.onPress}
-				/>
-			</View>
-		))}
-	</View>
-);
+const DashboardActionGrid = ({
+	actions,
+	availableWidth,
+}: DashboardActionGridProps) => {
+	const { width: windowWidth } = useWindowDimensions();
+	const contentWidth =
+		availableWidth ?? windowWidth - memberTheme.spacing.lg * 2;
+	const columns = getDashboardExploreColumnCount(
+		actions.length,
+		contentWidth,
+	);
+	const orderedActions = orderDashboardGridItems(actions, columns);
+	const tileWidth =
+		(contentWidth - DASHBOARD_EXPLORE_GRID_GAP * (columns - 1)) / columns;
+
+	return (
+		<View testID="dashboard-action-grid" style={styles.grid}>
+			{orderedActions.map((action) => (
+				<View
+					key={action.id}
+					testID={`dashboard-action-cell-${action.id}`}
+					style={[
+						styles.cell,
+						{ width: tileWidth },
+						action.id === "leaderboard" &&
+						orderedActions.length === 1
+							? styles.onlyLeaderboardCell
+							: undefined,
+					]}
+				>
+					<DashboardActionButton
+						icon={action.icon}
+						text={action.text}
+						onPress={action.onPress}
+						compact={columns === 3}
+					/>
+				</View>
+			))}
+		</View>
+	);
+};
 
 const styles = StyleSheet.create({
 	grid: {
-		width: '100%',
+		width: "100%",
 		minWidth: 0,
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		justifyContent: 'space-between',
+		flexDirection: "row",
+		flexWrap: "wrap",
+		gap: DASHBOARD_EXPLORE_GRID_GAP,
 	},
 	cell: {
-		width: '48%',
 		minWidth: 0,
-		marginBottom: memberTheme.spacing.md,
+	},
+	onlyLeaderboardCell: {
+		marginLeft: "auto",
 	},
 });
 

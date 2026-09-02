@@ -72,7 +72,7 @@ const TrainingProfile = ({ navigation }: Props) => {
 	const filtered = useMemo(() => {
 		const needle = search.trim().toLowerCase();
 		return needle
-			? (movements.data ?? []).filter((item: Movement) =>
+			? (movements.data ?? []).filter(item =>
 					item.name.toLowerCase().includes(needle),
 				)
 			: (movements.data ?? []);

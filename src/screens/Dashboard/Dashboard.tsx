@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import useAuth from '@/auth/hooks/useAuth';
+import useAuth from "@/auth/hooks/useAuth";
 import {
 	Avatar,
 	Row,
@@ -8,59 +8,59 @@ import {
 	SkeletonView,
 	Spacer,
 	Text,
-} from '@/components/atoms';
-import { MemberProgressRing } from '@/components/member';
-import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
-import useSwitchableUsers from '@/hooks/useSwitchableUsers';
-import { navigate } from '@/navigators/NavigationRef';
+} from "@/components/atoms";
+import { MemberProgressRing } from "@/components/member";
+import { useWorkoutStudio } from "@/context/WorkoutStudioProvider";
+import useSwitchableUsers from "@/hooks/useSwitchableUsers";
+import { navigate } from "@/navigators/NavigationRef";
 import {
 	filterMemberSurfaceEntries,
 	shouldShowMemberSurface,
-} from '@/screens/Training/features/memberFeatureRoutes';
-import { betaActive, savePushToken } from '@/services/auth';
-import { getGymClasses, getGymVenues } from '@/services/gym';
-import { getAttendanceReport } from '@/services/leaderboards';
-import getWorkouts from '@/services/leaderboards/getWorkouts';
-import { getAnnouncements, getConversationMessages } from '@/services/message';
-import { getClassFilters } from '@/services/session';
+} from "@/screens/Training/features/memberFeatureRoutes";
+import { betaActive, savePushToken } from "@/services/auth";
+import { getGymClasses, getGymVenues } from "@/services/gym";
+import { getAttendanceReport } from "@/services/leaderboards";
+import getWorkouts from "@/services/leaderboards/getWorkouts";
+import { getAnnouncements, getConversationMessages } from "@/services/message";
+import { getClassFilters } from "@/services/session";
 import {
 	getBookedSessions,
 	getFailedPayments,
 	getUserGymInfo,
-} from '@/services/users';
-import { mmkvStorage } from '@/storage';
-import { useTheme } from '@/theme';
-import { config } from '@/theme/_config';
-import layout from '@/theme/layout';
-import { memberTheme } from '@/theme/member';
-import resources from '@/theme/resources';
-import { ApplicationStackParamList } from '@/types/navigation';
-import { GymVenueType } from '@/types/schemas/gym';
-import { AnnouncementsItemType } from '@/types/schemas/message';
-import { NotificationSettingsState } from '@/types/schemas/notifications';
-import { FailedInvoicesType } from '@/types/schemas/payment';
-import { LoginResponseSchemaType } from '@/types/schemas/response';
+} from "@/services/users";
+import { mmkvStorage } from "@/storage";
+import { useTheme } from "@/theme";
+import { config } from "@/theme/_config";
+import layout from "@/theme/layout";
+import { memberTheme } from "@/theme/member";
+import resources from "@/theme/resources";
+import { ApplicationStackParamList } from "@/types/navigation";
+import { GymVenueType } from "@/types/schemas/gym";
+import { AnnouncementsItemType } from "@/types/schemas/message";
+import { NotificationSettingsState } from "@/types/schemas/notifications";
+import { FailedInvoicesType } from "@/types/schemas/payment";
+import { LoginResponseSchemaType } from "@/types/schemas/response";
 import {
 	ClassFiltersDataType,
 	WorkoutSchemaType,
-} from '@/types/schemas/session';
-import { UserSchemaType } from '@/types/schemas/user';
-import { Constant, Func, Say } from '@/utils';
-import NotificationService from '@/utils/NotificationService';
-import { ICatchError } from '@/utils/Say';
-import useStore from '@/zustand/Store';
-import { ClassFilter, VenueFilter } from '@/zustand/interface/SessionInterface';
-import messaging, { firebase } from '@react-native-firebase/messaging';
+} from "@/types/schemas/session";
+import { UserSchemaType } from "@/types/schemas/user";
+import { Constant, Func, Say } from "@/utils";
+import NotificationService from "@/utils/NotificationService";
+import { ICatchError } from "@/utils/Say";
+import useStore from "@/zustand/Store";
+import { ClassFilter, VenueFilter } from "@/zustand/interface/SessionInterface";
+import messaging, { firebase } from "@react-native-firebase/messaging";
 import {
 	NavigationProp,
 	useFocusEffect,
 	useIsFocused,
 	useNavigation,
-} from '@react-navigation/native';
-import { isArray, isEmpty } from 'lodash';
-import moment from 'moment-timezone';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+} from "@react-navigation/native";
+import { isArray, isEmpty } from "lodash";
+import moment from "moment-timezone";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	Alert,
 	AppState,
@@ -73,28 +73,28 @@ import {
 	TouchableOpacity,
 	TextStyle,
 	View,
-} from 'react-native';
-import DeviceInfo from 'react-native-device-info';
-import { RESULTS, checkNotifications } from 'react-native-permissions';
-import PushNotification from 'react-native-push-notification';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { BookedSessionCardProps } from './components/BookedSessionCard';
-import DashboardActionGrid, {
-	getDashboardExploreActions,
-	getDashboardExploreNavigation,
-	type DashboardExploreAction,
-} from './components/DashboardActionGrid';
-import DashboardAttendanceRow from './components/DashboardAttendanceRow';
-import DashboardAttendanceMetric from './components/DashboardAttendanceMetric';
-import DashboardHeader from './components/DashboardHeader';
-import DashboardUpcomingSection from './components/DashboardUpcomingSection';
-import FailedInvoicesModal from './components/FailedInvoicesModal';
-import LoggedInUserInfo from './components/LoggedInUserInfo';
-import LoginNotification from './components/LoginNotification';
-import RequiredFieldsModal from './components/RequiredFieldsModal';
+} from "react-native";
+import DeviceInfo from "react-native-device-info";
+import { RESULTS, checkNotifications } from "react-native-permissions";
+import PushNotification from "react-native-push-notification";
+import { SafeAreaView } from "react-native-safe-area-context";
+import Icon from "react-native-vector-icons/Ionicons";
+import { BookedSessionCardProps } from "./components/BookedSessionCard";
+import DashboardActionGrid from "./components/DashboardActionGrid";
+import DashboardAttendanceRow from "./components/DashboardAttendanceRow";
+import DashboardAttendanceMetric from "./components/DashboardAttendanceMetric";
+import DashboardHeader from "./components/DashboardHeader";
+import DashboardUpcomingSection from "./components/DashboardUpcomingSection";
+import {
+	ensureLeaderboardClassFilter,
+	getDashboardExploreActionDefinitions,
+} from "./components/DashboardExplore";
+import FailedInvoicesModal from "./components/FailedInvoicesModal";
+import LoggedInUserInfo from "./components/LoggedInUserInfo";
+import LoginNotification from "./components/LoginNotification";
+import RequiredFieldsModal from "./components/RequiredFieldsModal";
 
-const { height } = Dimensions.get('window');
+const { height } = Dimensions.get("window");
 const { metrics } = config;
 
 // const isAndroid = Platform.OS === 'ios';
@@ -102,7 +102,7 @@ const { metrics } = config;
 // interface DashboardProps { }
 
 const Dashboard = () => {
-	const { t } = useTranslation(['dashboard']);
+	const { t } = useTranslation(["dashboard"]);
 	const isFocused = useIsFocused();
 	const { user, getApiUrl, signOut, updateUser } = useAuth();
 	const { isEnabled } = useWorkoutStudio();
@@ -114,7 +114,7 @@ const Dashboard = () => {
 	// const headerHeight = useHeaderHeight();
 	const { variant } = useTheme();
 
-	const headerMarginTop = Platform.OS === 'ios' && Platform.isPad ? 50 : 0;
+	const headerMarginTop = Platform.OS === "ios" && Platform.isPad ? 50 : 0;
 
 	const url = getApiUrl();
 
@@ -123,7 +123,6 @@ const Dashboard = () => {
 
 	const {
 		setAppState,
-		shopUrl,
 		classFilters,
 		venueFilters,
 		pushToken,
@@ -143,9 +142,8 @@ const Dashboard = () => {
 		loggedInUser,
 		setLoggedInUser,
 		teamId,
-	} = useStore(state => ({
+	} = useStore((state) => ({
 		setAppState: state.setAppState,
-		shopUrl: state.shopUrl,
 		classFilters: state.classFilters,
 		venueFilters: state.venueFilters,
 		setClassFilters: state.setClassFilters,
@@ -172,8 +170,8 @@ const Dashboard = () => {
 	const [failedInvoicesRefreshing, setFailedInvoicesRefreshing] =
 		useState<boolean>(true);
 	const [refreshing, setRefreshing] = useState<boolean>(true);
-	const [gymBanner, setGymBanner] = useState<string>('');
-	const [gymLogo, setGymLogo] = useState<string>('');
+	const [gymBanner, setGymBanner] = useState<string>("");
+	const [gymLogo, setGymLogo] = useState<string>("");
 	const [showAttendanceReport, setShowAttendanceReport] =
 		useState<boolean>(false);
 	const [monthlyAttendanceGoal, setMonthlyAttendanceGoal] = useState<
@@ -200,22 +198,19 @@ const Dashboard = () => {
 		useState<boolean>(false);
 
 	const { hasSwitchableUsers } = useSwitchableUsers();
-	const classesEnabled = isEnabled('classes');
+	const classesEnabled = isEnabled("classes");
 	const showBookingsEntryPoints = shouldShowMemberSurface(
-		'Bookings',
+		"Bookings",
 		classesEnabled,
 	);
 	const showSessionEntryPoints = shouldShowMemberSurface(
-		'Session',
+		"Session",
 		classesEnabled,
 	);
 	const classEntryPointsAvailable = shouldShowMemberSurface(
-		'Calendar',
+		"Calendar",
 		classesEnabled,
 	);
-	const bookingEntryPointsAvailable =
-		isEnabled('bookings') || isEnabled('my_bookings');
-	const resultsEntryPointsAvailable = isEnabled('results');
 
 	const attendanceGoalKey = useMemo(() => {
 		const memberId = loggedInUser?.user_data.user_id;
@@ -254,7 +249,7 @@ const Dashboard = () => {
 	};
 
 	const fetchWorkouts = () =>
-		getWorkouts().then(res =>
+		getWorkouts().then((res) =>
 			setWorkoutData({
 				benchmark: res.data.benchmark as WorkoutSchemaType[],
 				favorite: res.data.favorite as WorkoutSchemaType[],
@@ -263,20 +258,20 @@ const Dashboard = () => {
 
 	const checkBetaActive = () => {
 		betaActive()
-			.then(res => {
+			.then((res) => {
 				if (res.status === 404) {
 					Alert.alert(
-						'Beta Over',
-						'The Beta phase is now over. We appreciate your feedback and supprt!',
+						"Beta Over",
+						"The Beta phase is now over. We appreciate your feedback and supprt!",
 						[
 							{
-								text: 'Logout',
+								text: "Logout",
 								onPress: () => {
 									signOut();
 
 									navigationTest.reset({
 										index: 0,
-										routes: [{ name: 'Landing' }],
+										routes: [{ name: "Landing" }],
 									});
 								},
 							},
@@ -284,9 +279,9 @@ const Dashboard = () => {
 					);
 				}
 			})
-			.catch(error => {
+			.catch((error) => {
 				// eslint-disable-next-line no-console
-				console.log('checkBetaActive: ', error);
+				console.log("checkBetaActive: ", error);
 			});
 	};
 
@@ -338,45 +333,45 @@ const Dashboard = () => {
 				loggedInUser?.user_data.waiver_accepted
 			) {
 				void Say.okThen(
-					'Please review the waiver to continue',
-					'Waiver Updated',
+					"Please review the waiver to continue",
+					"Waiver Updated",
 				).then(() => {
 					updateUser({
 						...loggedInUser?.user_data,
 						waiver_accepted: res.user_data.waiver_accepted,
 					});
-					navigate('Startup');
+					navigate("Startup");
 				});
 			}
 
 			const { gym_info: gymInfo, user_data: userData } = res;
 			setAppState(
-				'emptyRequiredFields',
+				"emptyRequiredFields",
 				parseEmptyRequiredFields(
 					gymInfo.required_profile_fields,
 					user?.user_data as UserSchemaType,
 				),
 			);
 			// setAppState('gymParameters', gymInfo.gymParams);
-			setAppState('teamId', gymInfo.gym_lookup);
-			setAppState('shopUrl', gymInfo.online_store);
-			setAppState('storeSignature', userData.store_signature || '');
+			setAppState("teamId", gymInfo.gym_lookup);
+			setAppState("shopUrl", gymInfo.online_store);
+			setAppState("storeSignature", userData.store_signature || "");
 			setAppState(
-				'storeSignatureExpiry',
+				"storeSignatureExpiry",
 				userData.store_signature_expiry || 0,
 			);
-			setAppState('stripeCustomerId', userData.stripe_customer_id || '');
-			setAppState('unreadMessages', gymInfo.num_of_unread_messages);
-			setAppState('unreadMessageCallback', initializeAppStates);
-			setAppState('allowLeaderboards', !!gymInfo.allow_leaderboards);
-			setAppState('allowComments', !!gymInfo.allow_leaderboards_comment);
-			setAppState('appForceUpdate', !!gymInfo.mobile_force_update);
-			setAppState('logo', gymInfo.logo);
-			setAppState('countryCode', gymInfo.country);
+			setAppState("stripeCustomerId", userData.stripe_customer_id || "");
+			setAppState("unreadMessages", gymInfo.num_of_unread_messages);
+			setAppState("unreadMessageCallback", initializeAppStates);
+			setAppState("allowLeaderboards", !!gymInfo.allow_leaderboards);
+			setAppState("allowComments", !!gymInfo.allow_leaderboards_comment);
+			setAppState("appForceUpdate", !!gymInfo.mobile_force_update);
+			setAppState("logo", gymInfo.logo);
+			setAppState("countryCode", gymInfo.country);
 
 			// set gym logo and banner
 			setGymLogo(gymInfo.logo);
-			setGymBanner(String(gymInfo.banner ?? ''));
+			setGymBanner(String(gymInfo.banner ?? ""));
 
 			setShowAttendanceReport(gymInfo.allow_attendance_report);
 			setAttendanceFilter(gymInfo.mobile_dashboard_type);
@@ -409,7 +404,7 @@ const Dashboard = () => {
 		} catch (e) {
 			Say.err(e as ICatchError);
 		}
-		setCurrentNotificationIndex(prev => prev + 1);
+		setCurrentNotificationIndex((prev) => prev + 1);
 	};
 
 	const resetCurrentIndex = async () => {
@@ -430,10 +425,10 @@ const Dashboard = () => {
 	) => {
 		const emptyRequiredFields: string[] = [];
 
-		requiredFields.forEach(field => {
+		requiredFields.forEach((field) => {
 			if (userData) {
 				if (
-					field === 'dob' &&
+					field === "dob" &&
 					!moment.tz(userData[field]?.date, timezone).isValid()
 				) {
 					emptyRequiredFields.push(field);
@@ -442,7 +437,7 @@ const Dashboard = () => {
 				if (isEmpty(userData[field as keyof UserSchemaType])) {
 					if (
 						typeof userData[field as keyof UserSchemaType] !==
-						'number'
+						"number"
 					) {
 						emptyRequiredFields.push(field);
 					}
@@ -463,7 +458,7 @@ const Dashboard = () => {
 			enabled: notificationsEnabled,
 		};
 
-		setAppState('notifSettings', settings);
+		setAppState("notifSettings", settings);
 
 		return notificationsEnabled;
 	};
@@ -488,7 +483,7 @@ const Dashboard = () => {
 			enabled: notificationsEnabled,
 		};
 
-		setAppState('notifSettings', notificationSettings);
+		setAppState("notifSettings", notificationSettings);
 	};
 
 	const getFailedInvoices = async () => {
@@ -520,10 +515,10 @@ const Dashboard = () => {
 
 			if (res.data && res.data.length > 0) {
 				// Parse the response data
-				res.data.forEach(session => {
+				res.data.forEach((session) => {
 					if (
 						moment(session.calendar_event.end_datetime)
-							.add(30, 'minutes')
+							.add(30, "minutes")
 							.isAfter()
 					) {
 						memberSessions.push({
@@ -547,8 +542,8 @@ const Dashboard = () => {
 			}
 
 			if (res.staffSessions && res.staffSessions.length > 0) {
-				res.staffSessions.forEach(session => {
-					if (moment(session.start).add(30, 'minutes').isAfter()) {
+				res.staffSessions.forEach((session) => {
+					if (moment(session.start).add(30, "minutes").isAfter()) {
 						memberSessions.push({
 							id: session.id,
 							startTime: session.start,
@@ -575,7 +570,7 @@ const Dashboard = () => {
 				return startA && startB && startA > startB ? 1 : -1;
 			});
 
-			setAppState('upcomingSessionsState', memberSessions);
+			setAppState("upcomingSessionsState", memberSessions);
 			setRefreshing(false);
 
 			setUpcomingSessionsIsLoading(false);
@@ -588,13 +583,13 @@ const Dashboard = () => {
 	};
 
 	const setLocalNotifications = (sessions: BookedSessionCardProps[]) =>
-		sessions.map(session => {
+		sessions.map((session) => {
 			const schedule = moment.tz(session.startTime, timezone);
 
 			if (schedule.isBefore()) return null;
 
 			const notificationData = {
-				screen: 'Session',
+				screen: "Session",
 				session: {
 					...session,
 					title: session.title,
@@ -602,9 +597,9 @@ const Dashboard = () => {
 			};
 
 			PushNotification.localNotificationSchedule({
-				channelId: 'session-start',
+				channelId: "session-start",
 				title: session.title,
-				message: 'Your session is about to start',
+				message: "Your session is about to start",
 				date: schedule.toDate(),
 				data: notificationData,
 				userInfo: {
@@ -630,12 +625,12 @@ const Dashboard = () => {
 					const res = await savePushToken(
 						token,
 						user?.user_data.user_id as number,
-						Platform.OS === 'android' ? 'android' : 'ios',
+						Platform.OS === "android" ? "android" : "ios",
 						Func.getEnv(url),
 					);
 
 					if (res.status === 200) {
-						setAppState('pushToken', token);
+						setAppState("pushToken", token);
 					}
 				} catch (e) {
 					// console.log('Token not saved');
@@ -679,10 +674,10 @@ const Dashboard = () => {
 	// }, [notifSettings]);
 
 	const onMountTasks = async () => {
-		setAppState('showConfetti', false);
+		setAppState("showConfetti", false);
 		await savePushNotificationToken();
 		await initializeNotificationSettings();
-		AppState.addEventListener('change', () => {
+		AppState.addEventListener("change", () => {
 			void checkNotificationStatus();
 		});
 	};
@@ -690,8 +685,8 @@ const Dashboard = () => {
 	// get filter options every gym switch
 	useEffect(() => {
 		if (joiningOtherGym) {
-			navigate('SwitchGym');
-			setAppState('joiningOtherGym', false);
+			navigate("SwitchGym");
+			setAppState("joiningOtherGym", false);
 		}
 		void fetchFilterOptions();
 		void onMountTasks();
@@ -706,19 +701,19 @@ const Dashboard = () => {
 		const version = DeviceInfo.getVersion();
 		const key = `hasPressedAttendanceReport_${version}`;
 		mmkvStorage.set(key, true);
-		navigate('Attendance');
+		navigate("Attendance");
 	};
 
 	const fetchAttendanceReport = () => {
 		setAttendanceReportIsLoading(true);
 		try {
 			getAttendanceReport(user?.user_data.user_id as number)
-				.then(res => {
+				.then((res) => {
 					if (!res.error) {
-						setAppState('attendanceReportState', res.data);
+						setAppState("attendanceReportState", res.data);
 					}
 				})
-				.catch(err => {
+				.catch((err) => {
 					Say.err(err as ICatchError);
 				});
 		} catch (e) {
@@ -730,15 +725,15 @@ const Dashboard = () => {
 
 	const fetchFilterOptions = () => {
 		const selectedVenueIds = venueFilters
-			.filter(v => v.is_selected)
-			.map(v => v.id);
+			.filter((v) => v.is_selected)
+			.map((v) => v.id);
 		const selectedClassIds = classFilters
-			.filter(c => c.is_selected)
-			.map(c => c.id);
+			.filter((c) => c.is_selected)
+			.map((c) => c.id);
 
 		// fetch venues
 		getGymVenues()
-			.then(res => {
+			.then((res) => {
 				if (isArray(res)) {
 					const venueFilterList: VenueFilter[] = res.map(
 						(c: GymVenueType) => {
@@ -753,8 +748,8 @@ const Dashboard = () => {
 					// add "No location" filter
 					venueFilterList.unshift({
 						id: -1,
-						name: 'No location',
-						location: 'Show classes without a location',
+						name: "No location",
+						location: "Show classes without a location",
 						is_selected: false,
 					});
 
@@ -762,14 +757,14 @@ const Dashboard = () => {
 					setVenueFilters(venueFilterList);
 				}
 			})
-			.catch(err => {
+			.catch((err) => {
 				Say.err(err as ICatchError);
 			});
 
 		getGymClasses()
-			.then(res => {
+			.then((res) => {
 				if (!res.error) {
-					const classFilterList: ClassFilter[] = res.data.map(c => {
+					const classFilterList: ClassFilter[] = res.data.map((c) => {
 						return {
 							...c,
 							is_selected:
@@ -783,29 +778,22 @@ const Dashboard = () => {
 					throw new Error(res.message);
 				}
 			})
-			.catch(err => {
+			.catch((err) => {
 				Say.err(err as ICatchError);
 			});
 	};
 
 	const getClassFiltersFn = async () => {
-		const leaderboards = {
-			classIds: [],
-			id: 0,
-			isDefault: 0,
-			locationIds: [],
-			name: 'Leaderboard',
-		};
-
 		try {
 			const res = await getClassFilters();
-			const newResData = res.data;
-			newResData.splice(1, 0, leaderboards);
-			setAppState('classFiltersDataState', newResData);
+			const normalizedClassFilters = ensureLeaderboardClassFilter(
+				res.data,
+			);
+			setAppState("classFiltersDataState", normalizedClassFilters);
 			const defaultItem = res.data.find(
-				item =>
+				(item) =>
 					item.isDefault === 1 ||
-					(typeof item.isDefault === 'boolean' &&
+					(typeof item.isDefault === "boolean" &&
 						item.isDefault === true),
 			);
 			if (defaultItem) {
@@ -820,7 +808,7 @@ const Dashboard = () => {
 		}
 	};
 
-	let avatarImage = '';
+	let avatarImage = "";
 
 	if (user?.user_data.profile_image) {
 		if (user?.user_data.profile_image.includes(Constant.API_URL)) {
@@ -832,118 +820,87 @@ const Dashboard = () => {
 		avatarImage = `https://avatars.githubusercontent.com/u/15073128?v=${moment().toISOString()}`;
 	}
 
-	const onActionButtonClick = (navTo: string) => {
-		if (navTo === 'calendar') {
-			navigate('Calendar');
-		} else if (navTo === 'results') {
-			navigate('Main', {
-				screen: 'TrainingStack',
-				params: { screen: 'TrainingResults' },
-			});
-		}
-	};
-
-	const exploreActions = useMemo(
-		() =>
-			getDashboardExploreActions(
-				Boolean(shopUrl),
-				classEntryPointsAvailable,
-				bookingEntryPointsAvailable,
-				resultsEntryPointsAvailable,
-			),
-		[
-			bookingEntryPointsAvailable,
-			classEntryPointsAvailable,
-			resultsEntryPointsAvailable,
-			shopUrl,
-		],
+	const normalizedClassFiltersData = useMemo(
+		() => ensureLeaderboardClassFilter(classFiltersDataState),
+		[classFiltersDataState],
 	);
-
-	const onExploreActionPress = (action: DashboardExploreAction) => {
-		if (action.destination.tab === 'TrainingStack') {
-			navigate('Main', {
-				screen: 'TrainingStack',
-				params: { screen: action.destination.screen },
-			});
-			return;
-		}
-
-		navigate('Main', getDashboardExploreNavigation(action.destination));
-	};
 
 	const visiblePresetFilters = useMemo(
 		() =>
 			filterMemberSurfaceEntries(
-				classFiltersDataState.map(item => ({
+				normalizedClassFiltersData.map((item) => ({
 					item,
 					route:
-						item.name === 'Leaderboard'
-							? ('TrainingResults' as const)
-							: ('Calendar' as const),
+						item.name === "Leaderboard"
+							? ("TrainingResults" as const)
+							: ("Calendar" as const),
 				})),
 				classEntryPointsAvailable,
 			).map(({ item }) => item),
-		[classFiltersDataState, classEntryPointsAvailable],
+		[normalizedClassFiltersData, classEntryPointsAvailable],
 	);
 
-	const onPresetFilterClick = (data: ClassFiltersDataType) => {
-		let updatedClassFilter = [];
-		let updatedVenueFilter = [];
+	const onPresetFilterClick = useCallback(
+		(data: ClassFiltersDataType) => {
+			const classIdsSet = new Set(data.classIds);
+			const locationIdsSet = new Set(data.locationIds);
 
-		const classIdsSet = new Set(data.classIds);
-		const locationIdsSet = new Set(data.locationIds);
+			const updatedClassFilter = classFilters.map((item) => ({
+				...item,
+				is_selected: !!classIdsSet.has(item.id as number),
+			}));
 
-		updatedClassFilter = classFilters.map(item => ({
-			...item,
-			is_selected: !!classIdsSet.has(item.id as number),
-		}));
+			const updatedVenueFilter = venueFilters.map((item) => ({
+				...item,
+				is_selected: !!locationIdsSet.has(item.id as number),
+			}));
 
-		updatedVenueFilter = venueFilters.map(item => ({
-			...item,
-			is_selected: !!locationIdsSet.has(item.id as number),
-		}));
+			setClassFilters(updatedClassFilter);
+			setClassFiltersToApply(updatedClassFilter);
+			setVenueFilters(updatedVenueFilter);
+			setVenueFiltersToApply(updatedVenueFilter);
 
-		setClassFilters(updatedClassFilter);
-		setClassFiltersToApply(updatedClassFilter);
-		setVenueFilters(updatedVenueFilter);
-		setVenueFiltersToApply(updatedVenueFilter);
+			setHeaderTitle(data.name);
+			navigate("Calendar");
+		},
+		[
+			classFilters,
+			setClassFilters,
+			setClassFiltersToApply,
+			setHeaderTitle,
+			setVenueFilters,
+			setVenueFiltersToApply,
+			venueFilters,
+		],
+	);
 
-		setHeaderTitle(data.name);
-		navigate('Calendar');
-	};
-
-	const renderPresetFilter = (item: ClassFiltersDataType) => {
-		const isLeaderboard = item.name === 'Leaderboard';
-		const onPress = isLeaderboard
-			? () => onActionButtonClick('results')
-			: () => onPresetFilterClick(item);
-
-		return (
-			<TouchableOpacity
-				key={isLeaderboard ? 'leaderboard' : item.id}
-				onPress={onPress}
-				accessibilityRole="button"
-				accessibilityLabel={`Class filter ${item.name}`}
-				style={styles.filterChip}
-			>
-				<Icon
-					name={isLeaderboard ? 'trophy-outline' : 'calendar-outline'}
-					size={18}
-					color={memberTheme.colors.primary}
-				/>
-				<Text size="sm" style={styles.filterChipText} numberOfLines={1}>
-					{item.name}
-				</Text>
-			</TouchableOpacity>
-		);
-	};
+	const exploreActions = useMemo(
+		() =>
+			getDashboardExploreActionDefinitions(visiblePresetFilters).map(
+				(action) => ({
+					id: action.id,
+					icon: action.icon,
+					text: action.text,
+					onPress:
+						action.entry.name === "Leaderboard"
+							? () => {
+									navigate("Main", {
+										screen: "TrainingStack",
+										params: { screen: "TrainingResults" },
+									});
+								}
+							: () => onPresetFilterClick(action.entry),
+				}),
+			),
+		[onPresetFilterClick, visiblePresetFilters],
+	);
 
 	const monthAttendance = attendanceReportState.monthToDate ?? 0;
 	const monthlyGoalProgress = monthlyAttendanceGoal
 		? Math.min(monthAttendance / monthlyAttendanceGoal, 1)
 		: 0;
-	const renderedAttendanceMetricCount = ['month', 'year', 'alltime'].filter(
-		metric => attendanceFilter.includes(metric),
+	const renderedAttendanceMetricCount = ["month", "year", "alltime"].filter(
+		(metric) => attendanceFilter.includes(metric),
 	).length;
 	const compactMonthlyGoalMetric = Boolean(
 		monthlyAttendanceGoal && renderedAttendanceMetricCount === 3,
@@ -965,8 +922,8 @@ const Dashboard = () => {
 				>
 					<View style={styles.greetingCopy}>
 						<Text bold size="xxl">
-							{t('dashboard:sessions.member.greeting', {
-								name: user?.user_data.first_name ?? '',
+							{t("dashboard:sessions.member.greeting", {
+								name: user?.user_data.first_name ?? "",
 							})}
 						</Text>
 						<Text size="md" style={styles.greetingSubtitle}>
@@ -977,7 +934,7 @@ const Dashboard = () => {
 					{hasSwitchableUsers ? (
 						<TouchableOpacity
 							activeOpacity={1}
-							onPress={() => navigate('SwitchUser')}
+							onPress={() => navigate("SwitchUser")}
 						>
 							<Avatar source={avatarImage} />
 							<Icon
@@ -1009,7 +966,7 @@ const Dashboard = () => {
 								accessibilityLabel="View attendance details"
 							>
 								<DashboardAttendanceRow>
-									{attendanceFilter.includes('month') && (
+									{attendanceFilter.includes("month") && (
 										<DashboardAttendanceMetric
 											compact={compactMonthlyGoalMetric}
 											value={
@@ -1019,8 +976,8 @@ const Dashboard = () => {
 											}
 											label={
 												monthlyAttendanceGoal
-													? 'monthly goal'
-													: 'this month'
+													? "monthly goal"
+													: "this month"
 											}
 											valueStyle={monthlyGoalValueStyle}
 										>
@@ -1066,7 +1023,7 @@ const Dashboard = () => {
 										</DashboardAttendanceMetric>
 									)}
 
-									{attendanceFilter.includes('year') && (
+									{attendanceFilter.includes("year") && (
 										<DashboardAttendanceMetric
 											value={String(
 												attendanceReportState.yearToDate,
@@ -1082,7 +1039,7 @@ const Dashboard = () => {
 										</DashboardAttendanceMetric>
 									)}
 
-									{attendanceFilter.includes('alltime') && (
+									{attendanceFilter.includes("alltime") && (
 										<DashboardAttendanceMetric
 											value={String(
 												attendanceReportState.lifetime,
@@ -1116,7 +1073,7 @@ const Dashboard = () => {
 							sessions={upcomingSessionsState}
 							onViewAll={
 								showBookingsEntryPoints
-									? () => navigate('Bookings')
+									? () => navigate("Bookings")
 									: undefined
 							}
 						/>
@@ -1135,29 +1092,7 @@ const Dashboard = () => {
 								Explore
 							</Text>
 						</View>
-						<DashboardActionGrid
-							actions={exploreActions.map(action => ({
-								...action,
-								onPress: () => onExploreActionPress(action),
-							}))}
-						/>
-
-						{visiblePresetFilters.some(
-							item => item.name !== 'Leaderboard',
-						) ? (
-							<View style={styles.classFiltersSection}>
-								<Text bold style={styles.classFiltersHeading}>
-									Class filters
-								</Text>
-								<View style={styles.filterChips}>
-									{visiblePresetFilters
-										.filter(
-											item => item.name !== 'Leaderboard',
-										)
-										.map(renderPresetFilter)}
-								</View>
-							</View>
-						) : null}
+						<DashboardActionGrid actions={exploreActions} />
 					</>
 				)}
 			</>
@@ -1167,7 +1102,7 @@ const Dashboard = () => {
 	return (
 		<SafeAreaView style={[layout.flex_1, styles.screen]}>
 			<StatusBar
-				barStyle={variant === 'dark' ? 'light-content' : 'dark-content'}
+				barStyle={variant === "dark" ? "light-content" : "dark-content"}
 			/>
 			{/* TODO: If banner doesn't update include versioning of image to apply changes */}
 			<DashboardHeader banner={gymBanner} logo={gymLogo} />
@@ -1242,10 +1177,10 @@ const styles = StyleSheet.create({
 		paddingHorizontal: memberTheme.spacing.lg,
 		paddingTop: memberTheme.spacing.lg,
 		paddingBottom: metrics.xl,
-		justifyContent: 'space-between',
+		justifyContent: "space-between",
 	},
 	greetingRow: {
-		alignItems: 'flex-start',
+		alignItems: "flex-start",
 		marginBottom: memberTheme.spacing.md,
 	},
 	greetingCopy: {
@@ -1304,43 +1239,13 @@ const styles = StyleSheet.create({
 		lineHeight: 16,
 	},
 	switchIcon: {
-		position: 'absolute',
+		position: "absolute",
 		right: 0,
 		bottom: 0,
 		borderRadius: 10,
 		padding: 3,
 		fontSize: config.fonts.metrics.xs,
 		...layout.shadowLight,
-	},
-	classFiltersSection: {
-		marginTop: memberTheme.spacing.sm,
-	},
-	classFiltersHeading: {
-		marginBottom: memberTheme.spacing.sm,
-		color: memberTheme.colors.primaryInk,
-	},
-	filterChips: {
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		gap: memberTheme.spacing.sm,
-	},
-	filterChip: {
-		maxWidth: '100%',
-		minHeight: 40,
-		flexDirection: 'row',
-		alignItems: 'center',
-		borderRadius: memberTheme.radius.pill,
-		borderWidth: 1,
-		borderColor: memberTheme.colors.border,
-		backgroundColor: memberTheme.colors.surface,
-		paddingHorizontal: memberTheme.spacing.md,
-		paddingVertical: memberTheme.spacing.sm,
-		...memberTheme.shadow,
-	},
-	filterChipText: {
-		marginLeft: memberTheme.spacing.xs,
-		color: memberTheme.colors.primaryInk,
-		flexShrink: 1,
 	},
 });
 

@@ -1,7 +1,7 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { MemberButton, MemberText } from '@/components/member';
-import { memberTheme } from '@/theme/member';
+import { trainingTheme } from '@/theme/training';
+import PrimaryButton from './PrimaryButton';
 
 type Props = {
 	kind: 'empty' | 'error' | 'offline';
@@ -29,18 +29,14 @@ const TrainingState = ({
 			<Ionicons
 				name={iconFor[kind]}
 				size={28}
-				color={memberTheme.colors.textMuted}
+				color={trainingTheme.colors.textMuted}
 			/>
 		</View>
-		<MemberText variant="sectionTitle" style={styles.title}>
-			{title}
-		</MemberText>
-		<MemberText variant="body" muted style={styles.message}>
-			{message}
-		</MemberText>
+		<Text style={styles.title}>{title}</Text>
+		<Text style={styles.message}>{message}</Text>
 		{actionLabel && onAction ? (
 			<View style={styles.action}>
-				<MemberButton label={actionLabel} onPress={onAction} />
+				<PrimaryButton label={actionLabel} onPress={onAction} />
 			</View>
 		) : null}
 	</View>
@@ -49,26 +45,34 @@ const TrainingState = ({
 const styles = StyleSheet.create({
 	container: {
 		alignItems: 'center',
-		padding: memberTheme.spacing.xl,
-		gap: memberTheme.spacing.sm,
+		padding: trainingTheme.spacing.xl,
+		gap: trainingTheme.spacing.sm,
 	},
 	iconCircle: {
 		width: 56,
 		height: 56,
-		borderRadius: memberTheme.radius.pill,
-		backgroundColor: memberTheme.colors.surfaceSoft,
+		borderRadius: trainingTheme.radius.pill,
+		backgroundColor: trainingTheme.colors.surfaceMuted,
 		alignItems: 'center',
 		justifyContent: 'center',
-		marginBottom: memberTheme.spacing.xs,
+		marginBottom: trainingTheme.spacing.xs,
 	},
 	title: {
+		color: trainingTheme.colors.text,
+		fontFamily: 'Inter-Variable',
+		fontSize: 18,
+		fontWeight: '700',
 		textAlign: 'center',
 	},
 	message: {
+		color: trainingTheme.colors.textMuted,
+		fontFamily: 'Inter-Variable',
+		fontSize: 14,
+		lineHeight: 21,
 		textAlign: 'center',
 		maxWidth: 320,
 	},
-	action: { minWidth: 180, marginTop: memberTheme.spacing.md },
+	action: { minWidth: 180, marginTop: trainingTheme.spacing.md },
 });
 
 export default TrainingState;

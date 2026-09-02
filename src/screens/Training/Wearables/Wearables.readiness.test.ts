@@ -1,3 +1,5 @@
+jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
+
 import { createElement } from 'react';
 import { render } from '@testing-library/react-native';
 import type {
@@ -10,8 +12,6 @@ import {
 	WearablesReadinessSummary,
 	wearablesReadinessCopy,
 } from './Wearables';
-
-jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
 
 const metric: ReadinessMetric = {
 	provider: 'apple_health',
@@ -53,7 +53,8 @@ const resultFor = (status: ReadinessResult['status']): ReadinessResult => {
 		};
 	return {
 		status,
-		data: status === 'empty' ? { ...snapshot, metrics: [] } : snapshot,
+		data:
+			status === 'empty' ? { ...snapshot, metrics: [] } : snapshot,
 		error: null,
 		asOfDate: snapshot.asOfDate,
 	};
@@ -181,10 +182,6 @@ describe('Wearables readiness presentation', () => {
 		).toBeTruthy();
 		expect(native.getByText('Apple Health connected')).toBeTruthy();
 		expect(native.getByText(/Native readiness 81/)).toBeTruthy();
-		expect(
-			native.getByLabelText(
-				/Provider-native status.*Native readiness 81/,
-			),
-		).toBeTruthy();
+		expect(native.getByLabelText(/Provider-native status.*Native readiness 81/)).toBeTruthy();
 	});
 });

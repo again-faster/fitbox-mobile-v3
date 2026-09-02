@@ -530,15 +530,8 @@ const ToggleRow = ({
 			accessibilityLabel={`Include ${label}`}
 			value={value}
 			onValueChange={onChange}
-			trackColor={{
-				false: trainingTheme.colors.border,
-				true: trainingTheme.colors.primarySoft,
-			}}
-			thumbColor={
-				value
-					? trainingTheme.colors.primary
-					: trainingTheme.colors.surface
-			}
+			trackColor={{ false: trainingTheme.colors.border, true: '#91A8FF' }}
+			thumbColor={value ? trainingTheme.colors.primary : '#FFFFFF'}
 		/>
 	</View>
 );

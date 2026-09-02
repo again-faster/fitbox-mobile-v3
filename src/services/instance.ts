@@ -4,7 +4,6 @@ import { Constant } from '@/utils';
 import ky from 'ky';
 import DeviceInfo from 'react-native-device-info';
 import SimpleToast from 'react-native-simple-toast';
-import { resolveApiUrl } from './resolveApiUrl';
 
 /**
  * Get the API token from the storage
@@ -22,12 +21,7 @@ export const getApiToken = () =>
  * Get the API URL from the storage
  * @returns API URL
  */
-export const getApiUrl = () =>
-	resolveApiUrl(
-		mmkvStorage.getString('apiUrl'),
-		Constant.API_URL,
-		Constant.API_BASE_URLS.PROD,
-	);
+export const getApiUrl = () => mmkvStorage.getString('apiUrl');
 
 const url = getApiUrl();
 const getTimeout = () => {
@@ -49,7 +43,7 @@ const getTimeout = () => {
  */
 export const instance = () =>
 	ky.extend({
-		prefixUrl: getApiUrl(),
+		prefixUrl: getApiUrl() || Constant.API_URL,
 		headers: {
 			Accept: 'application/json',
 		},
@@ -62,7 +56,7 @@ export const instance = () =>
  */
 export const securedInstance = (timeout?: number) =>
 	ky.extend({
-		prefixUrl: getApiUrl(),
+		prefixUrl: getApiUrl() || Constant.API_URL,
 		searchParams: {
 			api_key: getApiToken() || '',
 		},

@@ -56,7 +56,7 @@ const CoachNotes = () => {
 		},
 	});
 
-	const unread = data?.filter((n: CoachNote) => !n.read_at).length ?? 0;
+	const unread = data?.filter(n => !n.read_at).length ?? 0;
 
 	return (
 		<FlatList
