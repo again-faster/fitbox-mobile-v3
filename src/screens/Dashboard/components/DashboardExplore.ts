@@ -1,11 +1,11 @@
-import type { ClassFiltersDataType } from "@/types/schemas/session";
+import type { ClassFiltersDataType } from '@/types/schemas/session';
 
 const createLeaderboardClassFilter = (): ClassFiltersDataType => ({
 	classIds: [],
 	id: 0,
 	isDefault: false,
 	locationIds: [],
-	name: "Leaderboard",
+	name: 'Leaderboard',
 });
 
 export const LEADERBOARD_CLASS_FILTER = createLeaderboardClassFilter();
@@ -16,7 +16,7 @@ export const DASHBOARD_EXPLORE_GRID_GAP = 12;
 export const ensureLeaderboardClassFilter = (
 	entries: readonly ClassFiltersDataType[],
 ): ClassFiltersDataType[] => [
-	...entries.filter((entry) => entry.name !== LEADERBOARD_CLASS_FILTER.name),
+	...entries.filter(entry => entry.name !== LEADERBOARD_CLASS_FILTER.name),
 	createLeaderboardClassFilter(),
 ];
 
@@ -33,7 +33,7 @@ export const orderDashboardExploreItems = <T>(
 	isLeaderboard: (item: T) => boolean,
 ): T[] => {
 	const leaderboardItem = items.find(isLeaderboard);
-	const configuredItems = items.filter((item) => !isLeaderboard(item));
+	const configuredItems = items.filter(item => !isLeaderboard(item));
 
 	if (!leaderboardItem) return [...configuredItems];
 
@@ -48,12 +48,12 @@ export const orderDashboardExploreItems = <T>(
 export const getDashboardExploreActionDefinitions = (
 	entries: readonly ClassFiltersDataType[],
 ): DashboardExploreActionDefinition[] =>
-	ensureLeaderboardClassFilter(entries).map((entry) => ({
+	ensureLeaderboardClassFilter(entries).map(entry => ({
 		id:
-			entry.name === "Leaderboard"
-				? "leaderboard"
+			entry.name === 'Leaderboard'
+				? 'leaderboard'
 				: `class-filter-${entry.id}`,
-		icon: entry.name === "Leaderboard" ? "trophy" : "calendar-alt",
+		icon: entry.name === 'Leaderboard' ? 'trophy' : 'calendar-alt',
 		text: entry.name,
 		entry,
 	}));
@@ -75,5 +75,5 @@ export const orderDashboardExploreEntries = (
 	orderDashboardExploreItems(
 		entries,
 		columns,
-		(entry) => entry.name === LEADERBOARD_CLASS_FILTER.name,
+		entry => entry.name === LEADERBOARD_CLASS_FILTER.name,
 	);
