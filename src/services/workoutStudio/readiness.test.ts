@@ -264,22 +264,24 @@ describe('member readiness service', () => {
 	});
 
 	it('returns empty, baseline, and ready result shapes with server-owned dates', async () => {
-		await ([
-			['empty', { metrics: [] }],
+		await (
 			[
-				'baseline',
-				{
-					metrics: [
-						{
-							...response.data.metrics[0],
-							readiness_score: null,
-							recovery_score: null,
-						},
-					],
-				},
-			],
-			['ready', response.data],
-		] as const).reduce(async (previous, [status, data]) => {
+				['empty', { metrics: [] }],
+				[
+					'baseline',
+					{
+						metrics: [
+							{
+								...response.data.metrics[0],
+								readiness_score: null,
+								recovery_score: null,
+							},
+						],
+					},
+				],
+				['ready', response.data],
+			] as const
+		).reduce(async (previous, [status, data]) => {
 			await previous;
 			mockedWsRpc.mockResolvedValue({
 				...response,

@@ -97,8 +97,7 @@ export const readinessCopy = (result: ReadinessResult) => {
 		},
 		baseline: {
 			title: 'Building your baseline',
-			detail:
-				'More connected data is needed before a readiness score is available.',
+			detail: 'More connected data is needed before a readiness score is available.',
 			band: 'Baseline',
 			confidence: 'Building',
 		},
