@@ -264,7 +264,7 @@ describe('member readiness service', () => {
 	});
 
 	it('returns empty, baseline, and ready result shapes with server-owned dates', async () => {
-		for (const [status, data] of [
+		await ([
 			['empty', { metrics: [] }],
 			[
 				'baseline',
@@ -279,7 +279,8 @@ describe('member readiness service', () => {
 				},
 			],
 			['ready', response.data],
-		] as const) {
+		] as const).reduce(async (previous, [status, data]) => {
+			await previous;
 			mockedWsRpc.mockResolvedValue({
 				...response,
 				data: { ...response.data, ...data },
@@ -291,7 +292,7 @@ describe('member readiness service', () => {
 			expect(result.error).toBeNull();
 			if (result.status !== 'error' && result.status !== 'loading')
 				expect(result.data.windowStart).toBe('2026-08-06');
-		}
+		}, Promise.resolve());
 	});
 
 	it('returns typed errors for disabled features and unavailable endpoints', async () => {

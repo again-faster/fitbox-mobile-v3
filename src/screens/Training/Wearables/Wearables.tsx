@@ -131,13 +131,11 @@ export const wearablesReadinessCopy = (
 		metric !== null && metric.nativeReadinessScore !== null;
 	const hasRecoveryScore =
 		metric !== null && metric.nativeRecoveryScore !== null;
-	const displayStatus = hasReadinessScore
-		? result.status
-		: hasRecoveryScore
-			? 'recovery'
-			: result.status === 'ready'
-				? 'baseline'
-				: result.status;
+	let displayStatus: ReadinessCopy['status'] = result.status;
+	if (!hasReadinessScore) {
+		if (hasRecoveryScore) displayStatus = 'recovery';
+		else if (result.status === 'ready') displayStatus = 'baseline';
+	}
 	const stateCopy = {
 		ready: {
 			statusLabel: 'Ready',
@@ -369,12 +367,12 @@ const Wearables = ({ navigation }: Props) => {
 		? wearablesReadinessCopy(readinessResult)
 		: null;
 	const readinessMetrics = readinessCopy?.metrics ?? [];
-	const nativeConnectionStatus =
-		Platform.OS === 'ios'
-			? appleConnected
-				? 'Apple Health connected'
-				: 'Apple Health not connected'
-			: 'Health Connect not connected';
+	let nativeConnectionStatus = 'Health Connect not connected';
+	if (Platform.OS === 'ios') {
+		nativeConnectionStatus = appleConnected
+			? 'Apple Health connected'
+			: 'Apple Health not connected';
+	}
 
 	return (
 		<SafeAreaView style={styles.screen} edges={['top']}>
