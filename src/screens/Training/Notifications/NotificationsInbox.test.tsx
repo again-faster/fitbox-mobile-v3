@@ -1,18 +1,3 @@
-jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
-jest.mock('@/services/workoutStudio/notifications', () => ({
-	getMemberNotifications: jest.fn(),
-	markAllNotificationsRead: jest.fn(),
-	markNotificationRead: jest.fn(),
-}));
-jest.mock('@/services/workoutStudio/auth', () => ({
-	getStoredWSSession: jest.fn(),
-}));
-jest.mock('@tanstack/react-query', () => ({
-	useMutation: jest.fn(),
-	useQuery: jest.fn(),
-	useQueryClient: jest.fn(),
-}));
-
 import { createElement } from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -27,6 +12,21 @@ import NotificationsInbox, {
 	notificationAccessibilityLabel,
 	shouldEnableNotificationQuery,
 } from './NotificationsInbox';
+
+jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
+jest.mock('@/services/workoutStudio/notifications', () => ({
+	getMemberNotifications: jest.fn(),
+	markAllNotificationsRead: jest.fn(),
+	markNotificationRead: jest.fn(),
+}));
+jest.mock('@/services/workoutStudio/auth', () => ({
+	getStoredWSSession: jest.fn(),
+}));
+jest.mock('@tanstack/react-query', () => ({
+	useMutation: jest.fn(),
+	useQuery: jest.fn(),
+	useQueryClient: jest.fn(),
+}));
 
 const mockedUseMutation = jest.mocked(useMutation);
 const mockedUseQuery = jest.mocked(useQuery);
