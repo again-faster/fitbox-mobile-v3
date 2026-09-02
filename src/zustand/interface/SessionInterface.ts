@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { GymClassType, GymVenueType } from '@/types/schemas/gym';
 import {
 	ClassFiltersDataType,
