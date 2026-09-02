@@ -1,5 +1,3 @@
-jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
-
 import { createElement } from 'react';
 import { render } from '@testing-library/react-native';
 import type {
@@ -12,6 +10,8 @@ import {
 	WearablesReadinessSummary,
 	wearablesReadinessCopy,
 } from './Wearables';
+
+jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
 
 const metric: ReadinessMetric = {
 	provider: 'apple_health',

@@ -1,5 +1,3 @@
-jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
-
 import { createElement } from 'react';
 import { render } from '@testing-library/react-native';
 import type {
@@ -16,6 +14,8 @@ import {
 	readinessHistoryCopy,
 	summarizeProgress,
 } from './Progress';
+
+jest.mock('react-native-vector-icons/MaterialCommunityIcons', () => 'Icon');
 
 const metrics: ReadinessMetric[] = [
 	{
