@@ -40,7 +40,6 @@ import {
 	createStackNavigator,
 } from '@react-navigation/stack';
 
-import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
 import VersionCheck from 'react-native-version-check';
 
 import { SwitchGym, SwitchUser, WODAddAttendance } from '@/modals';
@@ -78,9 +77,8 @@ import { Constant, Func } from '@/utils';
 import useStore from '@/zustand/Store';
 import { StripeProvider } from '@stripe/stripe-react-native';
 import LottieView from 'lottie-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-	Animated,
 	Dimensions,
 	Platform,
 	StyleSheet,
@@ -88,7 +86,6 @@ import {
 	View,
 } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
-import { Badge } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import confettiAnimation from '../theme/animations/confetti.json';
 import DashboardStackNavigator, { ResetToDashboard } from './DashboardStack';
@@ -97,6 +94,7 @@ import TrainingStackNavigator from './TrainingStack';
 import { navigationRef } from './NavigationRef';
 import HeaderCloseButton from './components/HeaderCloseButton';
 import { CommonHeaderOptions, TabHeaderOptions } from './utils/options';
+import { tabBarIconRender } from './tabBarIcon';
 import { shouldCheckMinimumVersion } from './updatePolicy';
 
 const linking: LinkingOptions<ApplicationStackParamList> = {
@@ -141,15 +139,6 @@ const linking: LinkingOptions<ApplicationStackParamList> = {
 	},
 };
 
-const icons: Record<keyof MainTabParamList, string> = {
-	DashboardStack: 'home',
-	Calendar: 'calendar-month-outline',
-	InboxStack: 'chat',
-	Shop: 'cart',
-	MenuTab: 'menu',
-	TrainingStack: 'dumbbell',
-};
-
 const tabLabels: Record<keyof MainTabParamList, string> = {
 	DashboardStack: 'Home',
 	Calendar: 'Schedule',
@@ -161,114 +150,6 @@ const tabLabels: Record<keyof MainTabParamList, string> = {
 
 const TAB_BAR_CONTENT_HEIGHT = 60;
 const TAB_BAR_VERTICAL_PADDING = 6;
-
-const AnimatedCartIcon = ({
-	name,
-	size,
-	color,
-}: {
-	name: string;
-	size: number;
-	color: string;
-}) => {
-	const anim = useRef(new Animated.Value(0)).current;
-
-	useEffect(() => {
-		const wiggle = Animated.loop(
-			Animated.sequence([
-				Animated.delay(3000),
-				Animated.timing(anim, {
-					toValue: 1,
-					duration: 80,
-					useNativeDriver: true,
-				}),
-				Animated.timing(anim, {
-					toValue: -1,
-					duration: 80,
-					useNativeDriver: true,
-				}),
-				Animated.timing(anim, {
-					toValue: 1,
-					duration: 80,
-					useNativeDriver: true,
-				}),
-				Animated.timing(anim, {
-					toValue: -1,
-					duration: 80,
-					useNativeDriver: true,
-				}),
-				Animated.timing(anim, {
-					toValue: 1,
-					duration: 80,
-					useNativeDriver: true,
-				}),
-				Animated.timing(anim, {
-					toValue: -1,
-					duration: 80,
-					useNativeDriver: true,
-				}),
-				Animated.timing(anim, {
-					toValue: 0,
-					duration: 80,
-					useNativeDriver: true,
-				}),
-			]),
-		);
-		wiggle.start();
-		return () => wiggle.stop();
-	}, [anim]);
-
-	const rotate = anim.interpolate({
-		inputRange: [-1, 1],
-		outputRange: ['-20deg', '20deg'],
-	});
-
-	return (
-		<Animated.View style={{ transform: [{ rotate }] }}>
-			<Ionicons name={name} size={size} color={color} />
-		</Animated.View>
-	);
-};
-
-const tabBarIconRender = ({
-	route,
-	color,
-	size,
-	loading,
-	unreadMessages,
-}: {
-	route: keyof MainTabParamList;
-	color: string;
-	size: number;
-	loading: boolean;
-	unreadMessages?: number;
-}) => {
-	if (loading) return <Loader size="xl" />;
-
-	if (route === 'InboxStack') {
-		return (
-			<>
-				<Ionicons name={icons[route]} size={size} color={color} />
-				<Badge
-					visible={Number(unreadMessages) > 0}
-					size={14}
-					style={styles.badgeStyle}
-					allowFontScaling={false}
-				>
-					{unreadMessages}
-				</Badge>
-			</>
-		);
-	}
-
-	if (route === 'Shop') {
-		return (
-			<AnimatedCartIcon name={icons[route]} size={size} color={color} />
-		);
-	}
-
-	return <Ionicons name={icons[route]} size={size} color={color} />;
-};
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const MainTabNavigator = () => {
@@ -986,12 +867,6 @@ const ApplicationNavigator = () => {
 };
 
 const styles = StyleSheet.create({
-	badgeStyle: {
-		position: 'absolute',
-		top: 10,
-		right: Platform.OS === 'ios' && Platform.isPad ? -5 : 23,
-		backgroundColor: config.colors.brand,
-	},
 	lottieStyle: {
 		width: '100%',
 		height: '100%',
