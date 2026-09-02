@@ -1,13 +1,13 @@
-import { StyleSheet, View, useWindowDimensions } from "react-native";
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 
-import { memberTheme } from "@/theme/member";
+import { memberTheme } from '@/theme/member';
 
 import {
 	DASHBOARD_EXPLORE_GRID_GAP,
 	getDashboardExploreColumnCount,
 	orderDashboardExploreItems,
-} from "./DashboardExplore";
-import DashboardActionButton from "./DashboardActionButton";
+} from './DashboardExplore';
+import DashboardActionButton from './DashboardActionButton';
 
 export interface DashboardActionGridItem {
 	id: string | number;
@@ -23,7 +23,7 @@ export const orderDashboardGridItems = (
 	orderDashboardExploreItems(
 		actions,
 		columns,
-		(action) => action.id === "leaderboard",
+		action => action.id === 'leaderboard',
 	);
 
 interface DashboardActionGridProps {
@@ -48,14 +48,14 @@ const DashboardActionGrid = ({
 
 	return (
 		<View testID="dashboard-action-grid" style={styles.grid}>
-			{orderedActions.map((action) => (
+			{orderedActions.map(action => (
 				<View
 					key={action.id}
 					testID={`dashboard-action-cell-${action.id}`}
 					style={[
 						styles.cell,
 						{ width: tileWidth },
-						action.id === "leaderboard" &&
+						action.id === 'leaderboard' &&
 						orderedActions.length === 1
 							? styles.onlyLeaderboardCell
 							: undefined,
@@ -75,17 +75,17 @@ const DashboardActionGrid = ({
 
 const styles = StyleSheet.create({
 	grid: {
-		width: "100%",
+		width: '100%',
 		minWidth: 0,
-		flexDirection: "row",
-		flexWrap: "wrap",
+		flexDirection: 'row',
+		flexWrap: 'wrap',
 		gap: DASHBOARD_EXPLORE_GRID_GAP,
 	},
 	cell: {
 		minWidth: 0,
 	},
 	onlyLeaderboardCell: {
-		marginLeft: "auto",
+		marginLeft: 'auto',
 	},
 });
 

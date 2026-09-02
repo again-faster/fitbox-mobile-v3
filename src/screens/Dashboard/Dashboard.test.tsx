@@ -1,54 +1,54 @@
-import { fireEvent, render } from "@testing-library/react-native";
-import type { ReactNode } from "react";
+import { fireEvent, render } from '@testing-library/react-native';
+import type { ReactNode } from 'react';
 
-import useAuth from "@/auth/hooks/useAuth";
-import { useWorkoutStudio } from "@/context/WorkoutStudioProvider";
-import useSwitchableUsers from "@/hooks/useSwitchableUsers";
-import { navigate } from "@/navigators/NavigationRef";
-import { useTheme } from "@/theme";
-import type { ClassFiltersDataType } from "@/types/schemas/session";
-import useStore from "@/zustand/Store";
+import useAuth from '@/auth/hooks/useAuth';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
+import useSwitchableUsers from '@/hooks/useSwitchableUsers';
+import { navigate } from '@/navigators/NavigationRef';
+import { useTheme } from '@/theme';
+import type { ClassFiltersDataType } from '@/types/schemas/session';
+import useStore from '@/zustand/Store';
 import {
 	useFocusEffect,
 	useIsFocused,
 	useNavigation,
-} from "@react-navigation/native";
+} from '@react-navigation/native';
 
-import Dashboard from "./Dashboard";
+import Dashboard from './Dashboard';
 
-jest.mock("@/auth/hooks/useAuth", () => ({
+jest.mock('@/auth/hooks/useAuth', () => ({
 	__esModule: true,
 	default: jest.fn(),
 }));
 
-jest.mock("@/context/WorkoutStudioProvider", () => ({
+jest.mock('@/context/WorkoutStudioProvider', () => ({
 	useWorkoutStudio: jest.fn(),
 }));
 
-jest.mock("@/hooks/useSwitchableUsers", () => ({
+jest.mock('@/hooks/useSwitchableUsers', () => ({
 	__esModule: true,
 	default: jest.fn(),
 }));
 
-jest.mock("@/navigators/NavigationRef", () => ({
+jest.mock('@/navigators/NavigationRef', () => ({
 	navigate: jest.fn(),
 }));
 
-jest.mock("@/theme", () => ({
+jest.mock('@/theme', () => ({
 	useTheme: jest.fn(),
 }));
 
-jest.mock("@/zustand/Store", () => ({
+jest.mock('@/zustand/Store', () => ({
 	__esModule: true,
 	default: jest.fn(),
 }));
 
-jest.mock("@/components/atoms", () => {
+jest.mock('@/components/atoms', () => {
 	const {
 		ScrollView: NativeScrollView,
 		Text: NativeText,
 		View: NativeView,
-	} = jest.requireActual<typeof import("react-native")>("react-native");
+	} = jest.requireActual<typeof import('react-native')>('react-native');
 
 	const MockText = ({ children }: { children?: ReactNode }) => (
 		<NativeText>{children}</NativeText>
@@ -70,31 +70,31 @@ jest.mock("@/components/atoms", () => {
 	};
 });
 
-jest.mock("@/components/member", () => ({
+jest.mock('@/components/member', () => ({
 	MemberProgressRing: () => null,
 }));
 
-jest.mock("@/storage", () => ({
+jest.mock('@/storage', () => ({
 	mmkvStorage: {
 		getNumber: jest.fn(),
 		set: jest.fn(),
 	},
 }));
 
-jest.mock("@/utils/NotificationService", () => ({
+jest.mock('@/utils/NotificationService', () => ({
 	__esModule: true,
 	default: {
 		setGymFetcher: jest.fn(),
 	},
 }));
 
-jest.mock("@/services/auth", () => ({
+jest.mock('@/services/auth', () => ({
 	__esModule: true,
 	betaActive: jest.fn(),
 	savePushToken: jest.fn(),
 }));
 
-jest.mock("@/services/gym", () => {
+jest.mock('@/services/gym', () => {
 	const pending = () => new Promise<never>(() => undefined);
 
 	return {
@@ -103,11 +103,11 @@ jest.mock("@/services/gym", () => {
 	};
 });
 
-jest.mock("@/services/leaderboards", () => ({
+jest.mock('@/services/leaderboards', () => ({
 	getAttendanceReport: jest.fn(),
 }));
 
-jest.mock("@/services/leaderboards/getWorkouts", () => {
+jest.mock('@/services/leaderboards/getWorkouts', () => {
 	const pending = () => new Promise<never>(() => undefined);
 
 	return {
@@ -116,22 +116,22 @@ jest.mock("@/services/leaderboards/getWorkouts", () => {
 	};
 });
 
-jest.mock("@/services/message", () => ({
+jest.mock('@/services/message', () => ({
 	getAnnouncements: jest.fn(),
 	getConversationMessages: jest.fn(),
 }));
 
-jest.mock("@/services/session", () => ({
+jest.mock('@/services/session', () => ({
 	getClassFilters: jest.fn(),
 }));
 
-jest.mock("@/services/users", () => ({
+jest.mock('@/services/users', () => ({
 	getBookedSessions: jest.fn(),
 	getFailedPayments: jest.fn(),
 	getUserGymInfo: jest.fn(),
 }));
 
-jest.mock("@react-native-firebase/messaging", () => ({
+jest.mock('@react-native-firebase/messaging', () => ({
 	__esModule: true,
 	default: Object.assign(
 		jest.fn(() => ({
@@ -139,18 +139,18 @@ jest.mock("@react-native-firebase/messaging", () => ({
 		})),
 		{
 			AuthorizationStatus: {
-				AUTHORIZED: "authorized",
-				PROVISIONAL: "provisional",
+				AUTHORIZED: 'authorized',
+				PROVISIONAL: 'provisional',
 			},
 		},
 	),
 	firebase: { app: jest.fn() },
 }));
 
-jest.mock("@react-navigation/native", () => {
+jest.mock('@react-navigation/native', () => {
 	const actualNavigation = jest.requireActual<
-		typeof import("@react-navigation/native")
-	>("@react-navigation/native");
+		typeof import('@react-navigation/native')
+	>('@react-navigation/native');
 
 	return {
 		...actualNavigation,
@@ -160,16 +160,16 @@ jest.mock("@react-navigation/native", () => {
 	};
 });
 
-jest.mock("react-i18next", () => ({
+jest.mock('react-i18next', () => ({
 	useTranslation: jest.fn(),
 }));
 
-jest.mock("react-native-permissions", () => ({
-	RESULTS: { GRANTED: "granted", DENIED: "denied" },
+jest.mock('react-native-permissions', () => ({
+	RESULTS: { GRANTED: 'granted', DENIED: 'denied' },
 	checkNotifications: jest.fn(),
 }));
 
-jest.mock("react-native-push-notification", () => ({
+jest.mock('react-native-push-notification', () => ({
 	__esModule: true,
 	default: {
 		cancelAllLocalNotifications: jest.fn(),
@@ -177,9 +177,9 @@ jest.mock("react-native-push-notification", () => ({
 	},
 }));
 
-jest.mock("react-native-safe-area-context", () => {
+jest.mock('react-native-safe-area-context', () => {
 	const { View: NativeView } =
-		jest.requireActual<typeof import("react-native")>("react-native");
+		jest.requireActual<typeof import('react-native')>('react-native');
 
 	return {
 		SafeAreaView: ({ children }: { children?: ReactNode }) => (
@@ -188,11 +188,11 @@ jest.mock("react-native-safe-area-context", () => {
 	};
 });
 
-jest.mock("react-native-vector-icons/FontAwesome5", () => "Icon");
-jest.mock("react-native-vector-icons/Ionicons", () => "Icon");
+jest.mock('react-native-vector-icons/FontAwesome5', () => 'Icon');
+jest.mock('react-native-vector-icons/Ionicons', () => 'Icon');
 
-jest.mock("./components/DashboardHeader", () => () => null);
-jest.mock("./components/LoggedInUserInfo", () => () => null);
+jest.mock('./components/DashboardHeader', () => () => null);
+jest.mock('./components/LoggedInUserInfo', () => () => null);
 
 const mockedUseAuth = useAuth as unknown as jest.Mock;
 const mockedUseStore = useStore as unknown as jest.Mock;
@@ -203,16 +203,16 @@ const mockedNavigate = navigate as jest.Mock;
 const mockedUseFocusEffect = useFocusEffect as jest.Mock;
 const mockedUseIsFocused = useIsFocused as jest.Mock;
 const mockedUseNavigation = useNavigation as jest.Mock;
-const mockedUseTranslation = require("react-i18next")
+const mockedUseTranslation = require('react-i18next')
 	.useTranslation as jest.Mock;
 
 const user = {
 	user_data: {
-		dob: { timezone: "Australia/Brisbane" },
-		email: "member@example.com",
-		first_name: "Test",
-		last_name: "Member",
-		profile_image: "https://example.com/member.png",
+		dob: { timezone: 'Australia/Brisbane' },
+		email: 'member@example.com',
+		first_name: 'Test',
+		last_name: 'Member',
+		profile_image: 'https://example.com/member.png',
 		user_id: 42,
 	},
 };
@@ -221,15 +221,15 @@ const classFilters = [
 	{
 		id: 101,
 		is_selected: false,
-		location: "Main gym",
-		name: "Group Classes",
+		location: 'Main gym',
+		name: 'Group Classes',
 	},
-	{ id: 102, is_selected: true, location: "Main gym", name: "Sauna" },
+	{ id: 102, is_selected: true, location: 'Main gym', name: 'Sauna' },
 ];
 
 const venueFilters = [
-	{ id: 201, is_selected: false, location: "Brisbane", name: "Main gym" },
-	{ id: 202, is_selected: true, location: "Brisbane", name: "Recovery room" },
+	{ id: 201, is_selected: false, location: 'Brisbane', name: 'Main gym' },
+	{ id: 202, is_selected: true, location: 'Brisbane', name: 'Recovery room' },
 ];
 
 const classFiltersDataState: ClassFiltersDataType[] = [
@@ -238,21 +238,21 @@ const classFiltersDataState: ClassFiltersDataType[] = [
 		id: 1,
 		isDefault: true,
 		locationIds: [201],
-		name: "Group Classes",
+		name: 'Group Classes',
 	},
 	{
 		classIds: [102],
 		id: 2,
 		isDefault: false,
 		locationIds: [202],
-		name: "Sauna",
+		name: 'Sauna',
 	},
 	{
 		classIds: [],
 		id: 3,
 		isDefault: false,
 		locationIds: [],
-		name: "Leaderboard",
+		name: 'Leaderboard',
 	},
 ];
 
@@ -272,7 +272,7 @@ const storeState = {
 	joiningOtherGym: false,
 	loggedInUser: user,
 	notifSettings: { enabled: false, settings: {} },
-	pushToken: "",
+	pushToken: '',
 	setAppState,
 	setClassFilters,
 	setClassFiltersToApply,
@@ -293,7 +293,7 @@ beforeEach(() => {
 	jest.clearAllMocks();
 
 	mockedUseAuth.mockReturnValue({
-		getApiUrl: () => "https://fitbox.iq",
+		getApiUrl: () => 'https://fitbox.iq',
 		signOut: jest.fn(),
 		updateUser: jest.fn(),
 		user,
@@ -311,11 +311,11 @@ beforeEach(() => {
 		fromParent: false,
 		hasSwitchableUsers: false,
 	});
-	mockedUseTheme.mockReturnValue({ variant: "light" });
+	mockedUseTheme.mockReturnValue({ variant: 'light' });
 	mockedUseTranslation.mockReturnValue({
 		t: (key: string, options?: { name?: string }) =>
-			key === "dashboard:sessions.member.greeting"
-				? `Hi ${options?.name ?? ""}`
+			key === 'dashboard:sessions.member.greeting'
+				? `Hi ${options?.name ?? ''}`
 				: key,
 	});
 	mockedUseWorkoutStudio.mockReturnValue({
@@ -324,16 +324,16 @@ beforeEach(() => {
 	mockedUseFocusEffect.mockImplementation(() => undefined);
 });
 
-describe("Dashboard explore interactions", () => {
-	it("renders configured class filters and applies a selected filter before navigating to Calendar", () => {
+describe('Dashboard explore interactions', () => {
+	it('renders configured class filters and applies a selected filter before navigating to Calendar', () => {
 		const screen = renderDashboard();
 
 		expect(
-			screen.getByRole("button", { name: "Group Classes" }),
+			screen.getByRole('button', { name: 'Group Classes' }),
 		).toBeTruthy();
-		expect(screen.getByRole("button", { name: "Sauna" })).toBeTruthy();
+		expect(screen.getByRole('button', { name: 'Sauna' })).toBeTruthy();
 
-		fireEvent.press(screen.getByRole("button", { name: "Group Classes" }));
+		fireEvent.press(screen.getByRole('button', { name: 'Group Classes' }));
 
 		expect(setClassFilters).toHaveBeenCalledWith([
 			{ ...classFilters[0], is_selected: true },
@@ -351,26 +351,26 @@ describe("Dashboard explore interactions", () => {
 			{ ...venueFilters[0], is_selected: true },
 			{ ...venueFilters[1], is_selected: false },
 		]);
-		expect(setHeaderTitle).toHaveBeenCalledWith("Group Classes");
-		expect(mockedNavigate).toHaveBeenCalledWith("Calendar");
+		expect(setHeaderTitle).toHaveBeenCalledWith('Group Classes');
+		expect(mockedNavigate).toHaveBeenCalledWith('Calendar');
 	});
 
-	it("routes Leaderboard to TrainingResults", () => {
+	it('routes Leaderboard to TrainingResults', () => {
 		const screen = renderDashboard();
 
 		expect(
-			screen.getByRole("button", { name: "Leaderboard" }),
+			screen.getByRole('button', { name: 'Leaderboard' }),
 		).toBeTruthy();
 
-		fireEvent.press(screen.getByRole("button", { name: "Leaderboard" }));
+		fireEvent.press(screen.getByRole('button', { name: 'Leaderboard' }));
 
-		expect(mockedNavigate).toHaveBeenCalledWith("Main", {
-			params: { screen: "TrainingResults" },
-			screen: "TrainingStack",
+		expect(mockedNavigate).toHaveBeenCalledWith('Main', {
+			params: { screen: 'TrainingResults' },
+			screen: 'TrainingStack',
 		});
 	});
 
-	it("does not render the obsolete Class filters section", () => {
+	it('does not render the obsolete Class filters section', () => {
 		const screen = renderDashboard();
 
 		expect(screen.queryByText(/class filters/i)).toBeNull();

@@ -93,6 +93,6 @@ export type {
 	ClassItem,
 	ClassItemData,
 	SessionStateInterface,
-	VenueFilter
+	VenueFilter,
 };
 export default SessionInterface;

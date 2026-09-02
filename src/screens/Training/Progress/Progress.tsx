@@ -1,5 +1,5 @@
 /* eslint-disable no-nested-ternary */
-import { useMemo, useState } from "react";
+import { useMemo, useState } from 'react';
 import {
 	RefreshControl,
 	ScrollView,
@@ -7,33 +7,33 @@ import {
 	Text,
 	TouchableOpacity,
 	View,
-} from "react-native";
-import Ionicons from "react-native-vector-icons/MaterialCommunityIcons";
-import type { StackScreenProps } from "@react-navigation/stack";
-import { useQuery } from "@tanstack/react-query";
-import moment from "moment";
-import { useWorkoutStudio } from "@/context/WorkoutStudioProvider";
-import { wsApi } from "@/services/workoutStudio/api";
-import { getStoredWSSession } from "@/services/workoutStudio/auth";
+} from 'react-native';
+import Ionicons from 'react-native-vector-icons/MaterialCommunityIcons';
+import type { StackScreenProps } from '@react-navigation/stack';
+import { useQuery } from '@tanstack/react-query';
+import moment from 'moment';
+import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
+import { wsApi } from '@/services/workoutStudio/api';
+import { getStoredWSSession } from '@/services/workoutStudio/auth';
 import {
 	createLoadingReadinessResult,
 	getMemberReadiness,
 	type ProviderId,
 	type ReadinessMetric,
 	type ReadinessResult,
-} from "@/services/workoutStudio/readiness";
-import type { TrainingStackParamList } from "@/types/navigation";
-import { trainingTheme } from "@/theme/training";
-import SkeletonCard from "../components/SkeletonCard";
-import TrainingState from "../components/TrainingState";
+} from '@/services/workoutStudio/readiness';
+import type { TrainingStackParamList } from '@/types/navigation';
+import { trainingTheme } from '@/theme/training';
+import SkeletonCard from '../components/SkeletonCard';
+import TrainingState from '../components/TrainingState';
 import {
 	buildProgressContent,
 	shouldRenderProgressScreen,
 	type ProgressContent,
-} from "./progressFeatures";
+} from './progressFeatures';
 
-type Props = StackScreenProps<TrainingStackParamList, "TrainingProgress">;
-type Range = "30" | "90" | "365" | "all";
+type Props = StackScreenProps<TrainingStackParamList, 'TrainingProgress'>;
+type Range = '30' | '90' | '365' | 'all';
 export type ProgressResult = {
 	id: string;
 	workout_id: string;
@@ -52,7 +52,7 @@ export type ProgressTotals = {
 };
 
 const hasMetricValue = (value: number | null | undefined): value is number =>
-	typeof value === "number" && Number.isFinite(value);
+	typeof value === 'number' && Number.isFinite(value);
 
 const sumPresent = (
 	values: Array<number | null | undefined>,
@@ -67,8 +67,8 @@ export const summarizeProgress = (
 	rows: ProgressResult[],
 	prs: number,
 ): ProgressTotals => {
-	const seconds = sumPresent(rows.map((item) => item.duration_seconds));
-	const volume = sumPresent(rows.map((item) => item.total_volume_kg));
+	const seconds = sumPresent(rows.map(item => item.duration_seconds));
+	const volume = sumPresent(rows.map(item => item.total_volume_kg));
 	return {
 		workouts: rows.length,
 		minutes: seconds === null ? null : Math.round(seconds / 60),
@@ -86,14 +86,14 @@ export type ProgressActivityCopy = {
 export const progressActivityCopy = (
 	item: Pick<
 		ProgressResult,
-		"completed_at" | "duration_seconds" | "workouts"
+		'completed_at' | 'duration_seconds' | 'workouts'
 	>,
 ): ProgressActivityCopy => {
-	const name = item.workouts?.name?.trim() || "Workout";
-	const date = moment(item.completed_at).format("ddd, D MMM");
+	const name = item.workouts?.name?.trim() || 'Workout';
+	const date = moment(item.completed_at).format('ddd, D MMM');
 	const duration = hasMetricValue(item.duration_seconds)
 		? `${Math.round(item.duration_seconds / 60)} min`
-		: "Duration not available";
+		: 'Duration not available';
 	return {
 		name,
 		detail: `${date} · ${duration}`,
@@ -101,13 +101,13 @@ export const progressActivityCopy = (
 	};
 };
 const RANGES: Array<{ key: Range; label: string }> = [
-	{ key: "30", label: "30D" },
-	{ key: "90", label: "90D" },
-	{ key: "365", label: "1Y" },
-	{ key: "all", label: "All" },
+	{ key: '30', label: '30D' },
+	{ key: '90', label: '90D' },
+	{ key: '365', label: '1Y' },
+	{ key: 'all', label: 'All' },
 ];
 
-type ProgressScreenProps = Pick<Props, "navigation"> & {
+type ProgressScreenProps = Pick<Props, 'navigation'> & {
 	content: ProgressContent;
 	readinessFeatureEnabled: boolean;
 };
@@ -125,12 +125,12 @@ export const hasAuthenticatedProgressSession = (
 ): boolean => !!session?.user.id && !!session?.user.active_tenant_id;
 
 const providerNames: Record<ProviderId, string> = {
-	apple_health: "Apple Health",
-	health_connect: "Health Connect",
-	whoop: "WHOOP",
-	garmin: "Garmin",
-	fitbit: "Fitbit",
-	strava: "Strava",
+	apple_health: 'Apple Health',
+	health_connect: 'Health Connect',
+	whoop: 'WHOOP',
+	garmin: 'Garmin',
+	fitbit: 'Fitbit',
+	strava: 'Strava',
 };
 
 export type ReadinessHistoryPoint = {
@@ -139,7 +139,7 @@ export type ReadinessHistoryPoint = {
 };
 
 export type ReadinessHistoryCopy = {
-	status: ReadinessResult["status"];
+	status: ReadinessResult['status'];
 	statusLabel: string;
 	title: string;
 	detail: string;
@@ -152,8 +152,8 @@ export type ReadinessHistoryCopy = {
 
 export const formatNativeMetric = (
 	value: number | null | undefined,
-	suffix = "",
-): string => (hasMetricValue(value) ? `${value}${suffix}` : "Not available");
+	suffix = '',
+): string => (hasMetricValue(value) ? `${value}${suffix}` : 'Not available');
 
 const hasNativeMetric = (metric: ReadinessMetric): boolean =>
 	hasMetricValue(metric.sleepMinutes) ||
@@ -168,27 +168,27 @@ const formatScore = (score: number | null | undefined): string =>
 export const readinessHistoryCopy = (
 	result: ReadinessResult,
 ): ReadinessHistoryCopy => {
-	if (result.status === "loading")
+	if (result.status === 'loading')
 		return {
 			status: result.status,
-			statusLabel: "Loading",
-			title: "Loading readiness history",
-			detail: "Checking your recent readiness signals.",
-			confidence: "Not available",
-			freshness: "Not available",
-			trend: "Not available",
+			statusLabel: 'Loading',
+			title: 'Loading readiness history',
+			detail: 'Checking your recent readiness signals.',
+			confidence: 'Not available',
+			freshness: 'Not available',
+			trend: 'Not available',
 			points: [],
 			nativeMetrics: [],
 		};
-	if (result.status === "error")
+	if (result.status === 'error')
 		return {
 			status: result.status,
-			statusLabel: "Error",
-			title: "Readiness history unavailable",
+			statusLabel: 'Error',
+			title: 'Readiness history unavailable',
 			detail: result.error.message,
-			confidence: "Not available",
-			freshness: "Not available",
-			trend: "Not available",
+			confidence: 'Not available',
+			freshness: 'Not available',
+			trend: 'Not available',
 			points: [],
 			nativeMetrics: [],
 		};
@@ -199,21 +199,21 @@ export const readinessHistoryCopy = (
 	const points: ReadinessHistoryPoint[] = [];
 	const nativeMetrics = sortedMetrics.filter(hasNativeMetric).slice(-7);
 
-	let statusLabel = "Empty";
-	let title = "No readiness history yet";
-	let detail = "Connect a supported provider to add recovery context.";
-	let confidence = "Not available";
-	if (result.status === "ready") {
-		statusLabel = "Unavailable";
-		title = "Fitbox readiness unavailable";
+	let statusLabel = 'Empty';
+	let title = 'No readiness history yet';
+	let detail = 'Connect a supported provider to add recovery context.';
+	let confidence = 'Not available';
+	if (result.status === 'ready') {
+		statusLabel = 'Unavailable';
+		title = 'Fitbox readiness unavailable';
 		detail =
-			"No Fitbox readiness score is available in this window. Provider-native scores are shown separately.";
-	} else if (result.status === "baseline") {
-		statusLabel = "Baseline";
-		title = "Building your baseline";
+			'No Fitbox readiness score is available in this window. Provider-native scores are shown separately.';
+	} else if (result.status === 'baseline') {
+		statusLabel = 'Baseline';
+		title = 'Building your baseline';
 		detail =
-			"More connected data is needed before a readiness score is available.";
-		confidence = "Building";
+			'More connected data is needed before a readiness score is available.';
+		confidence = 'Building';
 	}
 
 	return {
@@ -222,8 +222,8 @@ export const readinessHistoryCopy = (
 		title,
 		detail,
 		confidence,
-		freshness: "Not available",
-		trend: "Not available",
+		freshness: 'Not available',
+		trend: 'Not available',
 		points,
 		nativeMetrics,
 	};
@@ -279,7 +279,7 @@ export const ProgressReadinessHistory = ({
 							<Text style={styles.historyDate}>{point.date}</Text>
 							<Text style={styles.historyScore}>
 								{point.score === null
-									? "Score not available"
+									? 'Score not available'
 									: `Score ${formatScore(point.score)}`}
 							</Text>
 						</View>
@@ -296,33 +296,33 @@ export const ProgressReadinessHistory = ({
 						No provider-native metrics available.
 					</Text>
 				) : (
-					copy.nativeMetrics.map((metric) => (
+					copy.nativeMetrics.map(metric => (
 						<View
 							key={`${metric.provider}-${metric.asOfDate}`}
 							style={styles.nativeMetricRow}
 						>
 							<Text style={styles.nativeMetricProvider}>
-								{providerNames[metric.provider]} ·{" "}
+								{providerNames[metric.provider]} ·{' '}
 								{metric.asOfDate}
 							</Text>
 							<Text style={styles.nativeMetricsText}>
-								Native readiness{" "}
+								Native readiness{' '}
 								{formatNativeMetric(
 									metric.nativeReadinessScore,
-								)}{" "}
-								· Recovery{" "}
+								)}{' '}
+								· Recovery{' '}
 								{formatScore(metric.nativeRecoveryScore)} ·
-								Sleep{" "}
+								Sleep{' '}
 								{!hasMetricValue(metric.sleepMinutes)
-									? "Not available"
-									: `${metric.sleepMinutes} min`}{" "}
-								· HRV{" "}
+									? 'Not available'
+									: `${metric.sleepMinutes} min`}{' '}
+								· HRV{' '}
 								{!hasMetricValue(metric.hrvMs)
-									? "Not available"
+									? 'Not available'
 									: `${metric.hrvMs} ms`}
-								· Resting HR{" "}
+								· Resting HR{' '}
 								{!hasMetricValue(metric.restingHr)
-									? "Not available"
+									? 'Not available'
 									: `${metric.restingHr} bpm`}
 							</Text>
 						</View>
@@ -351,7 +351,7 @@ const Progress = ({ navigation }: Props) => {
 		<ProgressScreen
 			navigation={navigation}
 			content={content}
-			readinessFeatureEnabled={isEnabled("wearables")}
+			readinessFeatureEnabled={isEnabled('wearables')}
 		/>
 	);
 };
@@ -366,22 +366,22 @@ const ProgressScreen = ({
 	const hasAuthenticatedSession = hasAuthenticatedProgressSession(session);
 	const readinessQueryEnabled =
 		readinessFeatureEnabled && hasAuthenticatedSession;
-	const [range, setRange] = useState<Range>("90");
+	const [range, setRange] = useState<Range>('90');
 	const from =
-		range === "all"
+		range === 'all'
 			? null
-			: moment().subtract(Number(range), "days").toISOString();
+			: moment().subtract(Number(range), 'days').toISOString();
 	const results = useQuery({
-		queryKey: ["ws-progress-results", uid, range],
+		queryKey: ['ws-progress-results', uid, range],
 		queryFn: () =>
 			wsApi()
-				.get("workout_results", {
+				.get('workout_results', {
 					searchParams: {
-						select: "id,workout_id,completed_at,duration_seconds,total_volume_kg,workouts(name)",
+						select: 'id,workout_id,completed_at,duration_seconds,total_volume_kg,workouts(name)',
 						athlete_id: `eq.${uid}`,
 						...(from ? { completed_at: `gte.${from}` } : {}),
-						order: "completed_at.desc",
-						limit: "1000",
+						order: 'completed_at.desc',
+						limit: '1000',
 					},
 				})
 				.json<ProgressResult[]>(),
@@ -389,19 +389,19 @@ const ProgressScreen = ({
 		staleTime: 120_000,
 	});
 	const prs = useQuery({
-		queryKey: ["ws-progress-prs", uid, range],
+		queryKey: ['ws-progress-prs', uid, range],
 		queryFn: () =>
 			wsApi()
-				.get("athlete_rms", {
+				.get('athlete_rms', {
 					searchParams: {
-						select: "id,achieved_on",
+						select: 'id,achieved_on',
 						athlete_id: `eq.${uid}`,
 						...(from
 							? {
-									achieved_on: `gte.${moment(from).format("YYYY-MM-DD")}`,
+									achieved_on: `gte.${moment(from).format('YYYY-MM-DD')}`,
 								}
 							: {}),
-						limit: "1000",
+						limit: '1000',
 					},
 				})
 				.json<ProgressRM[]>(),
@@ -410,7 +410,7 @@ const ProgressScreen = ({
 	});
 	const readinessQuery = useQuery<ReadinessResult>({
 		queryKey: [
-			"ws-member-readiness-progress",
+			'ws-member-readiness-progress',
 			session?.user.id,
 			session?.user.active_tenant_id,
 		],
@@ -471,7 +471,7 @@ const ProgressScreen = ({
 				A simple view of your training consistency and output.
 			</Text>
 			<View style={styles.rangeRow}>
-				{RANGES.map((item) => (
+				{RANGES.map(item => (
 					<TouchableOpacity
 						key={item.key}
 						accessibilityRole="button"
@@ -522,7 +522,7 @@ const ProgressScreen = ({
 							<View style={styles.kpi}>
 								<Text style={styles.kpiValue}>
 									{totals.minutes === null
-										? "Not available"
+										? 'Not available'
 										: totals.minutes.toLocaleString()}
 								</Text>
 								<Text style={styles.kpiLabel}>Minutes</Text>
@@ -530,7 +530,7 @@ const ProgressScreen = ({
 							<View style={styles.kpi}>
 								<Text style={styles.kpiValue}>
 									{totals.volume === null
-										? "Not available"
+										? 'Not available'
 										: totals.volume.toLocaleString()}
 								</Text>
 								<Text style={styles.kpiLabel}>Kg volume</Text>
@@ -547,7 +547,7 @@ const ProgressScreen = ({
 						<>
 							<Text style={styles.sectionTitle}>Explore</Text>
 							<View style={styles.linkCard}>
-								{content.links.map((item) => (
+								{content.links.map(item => (
 									<TouchableOpacity
 										key={item.route}
 										accessibilityRole="button"
@@ -593,7 +593,7 @@ const ProgressScreen = ({
 									message="Choose a longer time range or complete your next workout."
 								/>
 							) : (
-								results.data?.slice(0, 5).map((item) => (
+								results.data?.slice(0, 5).map(item => (
 									<TouchableOpacity
 										key={item.id}
 										style={styles.activity}
@@ -604,7 +604,7 @@ const ProgressScreen = ({
 										}
 										onPress={() =>
 											navigation.navigate(
-												"TrainingResultDetail",
+												'TrainingResultDetail',
 												{ workoutResultId: item.id },
 											)
 										}
@@ -648,7 +648,7 @@ const styles = StyleSheet.create({
 	title: {
 		color: trainingTheme.colors.text,
 		fontSize: 26,
-		fontWeight: "700",
+		fontWeight: '700',
 	},
 	subtitle: {
 		color: trainingTheme.colors.textMuted,
@@ -664,23 +664,23 @@ const styles = StyleSheet.create({
 		gap: 8,
 	},
 	readinessHeader: {
-		flexDirection: "row",
-		alignItems: "center",
+		flexDirection: 'row',
+		alignItems: 'center',
 		gap: 10,
 	},
 	readinessIcon: {
 		width: 42,
 		height: 42,
 		borderRadius: 12,
-		alignItems: "center",
-		justifyContent: "center",
+		alignItems: 'center',
+		justifyContent: 'center',
 		backgroundColor: trainingTheme.colors.primarySoft,
 	},
 	readinessCopy: { flex: 1 },
 	readinessTitle: {
 		color: trainingTheme.colors.text,
 		fontSize: 16,
-		fontWeight: "700",
+		fontWeight: '700',
 	},
 	readinessSubtitle: {
 		color: trainingTheme.colors.textMuted,
@@ -693,8 +693,8 @@ const styles = StyleSheet.create({
 		lineHeight: 18,
 	},
 	readinessStats: {
-		flexDirection: "row",
-		flexWrap: "wrap",
+		flexDirection: 'row',
+		flexWrap: 'wrap',
 		gap: 8,
 	},
 	readinessMeta: {
@@ -709,8 +709,8 @@ const styles = StyleSheet.create({
 		gap: 4,
 	},
 	historyRow: {
-		flexDirection: "row",
-		justifyContent: "space-between",
+		flexDirection: 'row',
+		justifyContent: 'space-between',
 		gap: 8,
 	},
 	historyDate: {
@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
 	historyScore: {
 		color: trainingTheme.colors.text,
 		fontSize: 11,
-		fontWeight: "600",
+		fontWeight: '600',
 	},
 	nativeMetricsCard: {
 		marginTop: 4,
@@ -732,13 +732,13 @@ const styles = StyleSheet.create({
 	nativeMetricsTitle: {
 		color: trainingTheme.colors.text,
 		fontSize: 12,
-		fontWeight: "700",
+		fontWeight: '700',
 	},
 	nativeMetricRow: { gap: 2 },
 	nativeMetricProvider: {
 		color: trainingTheme.colors.text,
 		fontSize: 11,
-		fontWeight: "600",
+		fontWeight: '600',
 	},
 	nativeMetricsText: {
 		color: trainingTheme.colors.textMuted,
@@ -746,7 +746,7 @@ const styles = StyleSheet.create({
 		lineHeight: 16,
 	},
 	rangeRow: {
-		flexDirection: "row",
+		flexDirection: 'row',
 		padding: 4,
 		borderRadius: 12,
 		backgroundColor: trainingTheme.colors.surfaceMuted,
@@ -754,22 +754,22 @@ const styles = StyleSheet.create({
 	rangeButton: {
 		flex: 1,
 		minHeight: 40,
-		alignItems: "center",
-		justifyContent: "center",
+		alignItems: 'center',
+		justifyContent: 'center',
 		borderRadius: 9,
 	},
 	rangeSelected: { backgroundColor: trainingTheme.colors.surface },
 	rangeLabel: {
 		color: trainingTheme.colors.textMuted,
 		fontSize: 13,
-		fontWeight: "600",
+		fontWeight: '600',
 	},
 	rangeLabelSelected: { color: trainingTheme.colors.primary },
-	kpiGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+	kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
 	kpi: {
-		width: "48%",
+		width: '48%',
 		minHeight: 92,
-		justifyContent: "center",
+		justifyContent: 'center',
 		padding: 14,
 		borderRadius: 16,
 		backgroundColor: trainingTheme.colors.surface,
@@ -779,7 +779,7 @@ const styles = StyleSheet.create({
 	kpiValue: {
 		color: trainingTheme.colors.text,
 		fontSize: 23,
-		fontWeight: "700",
+		fontWeight: '700',
 	},
 	kpiLabel: {
 		color: trainingTheme.colors.textMuted,
@@ -789,7 +789,7 @@ const styles = StyleSheet.create({
 	sectionTitle: {
 		color: trainingTheme.colors.text,
 		fontSize: 17,
-		fontWeight: "700",
+		fontWeight: '700',
 		marginTop: 4,
 	},
 	linkCard: {
@@ -797,12 +797,12 @@ const styles = StyleSheet.create({
 		backgroundColor: trainingTheme.colors.surface,
 		borderWidth: 1,
 		borderColor: trainingTheme.colors.border,
-		overflow: "hidden",
+		overflow: 'hidden',
 	},
 	linkRow: {
 		minHeight: 65,
-		flexDirection: "row",
-		alignItems: "center",
+		flexDirection: 'row',
+		alignItems: 'center',
 		gap: 12,
 		paddingHorizontal: 14,
 		borderBottomWidth: StyleSheet.hairlineWidth,
@@ -812,7 +812,7 @@ const styles = StyleSheet.create({
 	linkLabel: {
 		color: trainingTheme.colors.text,
 		fontSize: 15,
-		fontWeight: "600",
+		fontWeight: '600',
 	},
 	linkDetail: {
 		color: trainingTheme.colors.textMuted,
@@ -821,8 +821,8 @@ const styles = StyleSheet.create({
 	},
 	activity: {
 		minHeight: 64,
-		flexDirection: "row",
-		alignItems: "center",
+		flexDirection: 'row',
+		alignItems: 'center',
 		gap: 12,
 		padding: 14,
 		borderRadius: 14,

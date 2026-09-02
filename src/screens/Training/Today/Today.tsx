@@ -63,10 +63,8 @@ const latestReadinessMetric = (
 		right.asOfDate.localeCompare(left.asOfDate),
 	)[0] ?? null;
 
-const formatReadinessMetric = (
-	value: number | null,
-	suffix = '',
-): string => (value === null ? 'Not available' : `${value}${suffix}`);
+const formatReadinessMetric = (value: number | null, suffix = ''): string =>
+	value === null ? 'Not available' : `${value}${suffix}`;
 
 export const readinessCopy = (result: ReadinessResult) => {
 	if (result.status === 'loading')
