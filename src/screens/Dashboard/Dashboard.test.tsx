@@ -1,5 +1,6 @@
 import { fireEvent, render } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import useAuth from '@/auth/hooks/useAuth';
 import { useWorkoutStudio } from '@/context/WorkoutStudioProvider';
@@ -95,7 +96,7 @@ jest.mock('@/services/auth', () => ({
 }));
 
 jest.mock('@/services/gym', () => {
-	const pending = () => new Promise<never>(() => undefined);
+	const pending = () => new Promise<never>(() => {});
 
 	return {
 		getGymClasses: jest.fn(pending),
@@ -108,7 +109,7 @@ jest.mock('@/services/leaderboards', () => ({
 }));
 
 jest.mock('@/services/leaderboards/getWorkouts', () => {
-	const pending = () => new Promise<never>(() => undefined);
+	const pending = () => new Promise<never>(() => {});
 
 	return {
 		__esModule: true,
@@ -135,7 +136,7 @@ jest.mock('@react-native-firebase/messaging', () => ({
 	__esModule: true,
 	default: Object.assign(
 		jest.fn(() => ({
-			requestPermission: () => new Promise<never>(() => undefined),
+			requestPermission: () => new Promise<never>(() => {}),
 		})),
 		{
 			AuthorizationStatus: {
@@ -203,8 +204,7 @@ const mockedNavigate = navigate as jest.Mock;
 const mockedUseFocusEffect = useFocusEffect as jest.Mock;
 const mockedUseIsFocused = useIsFocused as jest.Mock;
 const mockedUseNavigation = useNavigation as jest.Mock;
-const mockedUseTranslation = require('react-i18next')
-	.useTranslation as jest.Mock;
+const mockedUseTranslation = useTranslation as unknown as jest.Mock;
 
 const user = {
 	user_data: {
