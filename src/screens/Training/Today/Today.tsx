@@ -44,6 +44,7 @@ import OfflineBanner from '../components/OfflineBanner';
 import TrainingState from '../components/TrainingState';
 import { useTrainingConnectivity } from '../hooks/useTrainingConnectivity';
 import { shouldShowTodayProgressCard } from '../Progress/progressFeatures';
+
 type Nav = StackNavigationProp<TrainingStackParamList>;
 
 const providerNames: Record<ProviderId, string> = {
