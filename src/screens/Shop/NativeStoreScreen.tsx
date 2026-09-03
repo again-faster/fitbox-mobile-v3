@@ -40,20 +40,20 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 type NativeStoreScreenProps = {
-  identity: NativeCommerceIdentity;
-  initialStore?: NativeStoreResponse | null;
-  countryCode?: string;
-  isTestMode?: boolean;
+	identity: NativeCommerceIdentity;
+	initialStore?: NativeStoreResponse | null;
+	countryCode?: string;
+	isTestMode?: boolean;
 };
 
 type ShippingAddressForm = {
-  first_name: string;
-  last_name: string;
-  line_1: string;
-  city: string;
-  state: string;
-  postal_code: string;
-  country_code: string;
+	first_name: string;
+	last_name: string;
+	line_1: string;
+	city: string;
+	state: string;
+	postal_code: string;
+	country_code: string;
 };
 
 const money = (value: { minor: number; currency: string }) =>
