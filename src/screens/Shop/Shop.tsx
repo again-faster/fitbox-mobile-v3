@@ -56,10 +56,18 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 	const [hasTriggeredPay, setHasTriggeredPay] = useState(false);
 	const [canGoBack, setCanGoBack] = useState(false);
 	const [showBackButton, setShowBackButton] = useState(false);
-	const [nativeStore, setNativeStore] = useState<NativeStoreResponse | null>(null);
+	const [nativeStore, setNativeStore] = useState<NativeStoreResponse | null>(
+		null,
+	);
 	const [nativeStoreChecked, setNativeStoreChecked] = useState(false);
 	const nativeIdentity = useMemo<NativeCommerceIdentity | null>(() => {
-		if (!teamId || !user?.user_data.email || !storeSignature || !storeSignatureExpiry) return null;
+		if (
+			!teamId ||
+			!user?.user_data.email ||
+			!storeSignature ||
+			!storeSignatureExpiry
+		)
+			return null;
 		return {
 			email: user.user_data.email,
 			first: user.user_data.first_name ?? '',
@@ -155,24 +163,32 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 
 		let active = true;
 		setNativeStoreChecked(false);
-		void nativeCommerce.getStore(nativeIdentity)
+		void nativeCommerce
+			.getStore(nativeIdentity)
 			.then(response => {
 				if (!active) return;
-				if (response.store_mode === 'native' || response.store_mode === 'shadow') {
+				if (
+					response.store_mode === 'native' ||
+					response.store_mode === 'shadow'
+				) {
 					setNativeStore(response);
 					return;
 				}
 				// Legacy and paused responses are explicit fallback evidence. The
 				// existing configured WebView remains the safe presentation path.
 				const fallback = response as NativeStoreFallbackResponse;
-				if (fallback.fallback_url && fallback.fallback_url !== shopUrl) {
+				if (
+					fallback.fallback_url &&
+					fallback.fallback_url !== shopUrl
+				) {
 					setState('shopUrl', fallback.fallback_url);
 				}
 			})
 			.catch(error => {
 				// A 404 means this gym has not been cut over. Other failures also
 				// retain the legacy WebView so a temporary native outage is safe.
-				if (error?.status !== 404) console.warn('Native store probe failed:', error);
+				if (error?.status !== 404)
+					console.warn('Native store probe failed:', error);
 			})
 			.finally(() => {
 				if (active) setNativeStoreChecked(true);
@@ -321,14 +337,24 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 		return (
 			<SafeScreen>
 				<View style={styles.loadingView}>
-					<ActivityIndicator size="large" color={config.colors.brand} />
+					<ActivityIndicator
+						size="large"
+						color={config.colors.brand}
+					/>
 				</View>
 			</SafeScreen>
 		);
 	}
 
 	if (!orderKey && nativeIdentity && nativeStore) {
-		return <NativeStoreScreen identity={nativeIdentity} initialStore={nativeStore} countryCode={countryCode} isTestMode={currentApi !== Constant.API_BASE_URLS.PROD} />;
+		return (
+			<NativeStoreScreen
+				identity={nativeIdentity}
+				initialStore={nativeStore}
+				countryCode={countryCode}
+				isTestMode={currentApi !== Constant.API_BASE_URLS.PROD}
+			/>
+		);
 	}
 
 	return (
