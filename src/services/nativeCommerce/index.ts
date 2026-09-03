@@ -47,6 +47,10 @@ export type NativeStoreFallbackResponse = {
   currency?: string;
 };
 
+export const isNativeStoreResponse = (
+  response: NativeStoreResponse | NativeStoreFallbackResponse,
+): response is NativeStoreResponse => response.store_mode === 'shadow' || response.store_mode === 'native';
+
 export type NativeCartLine = {
   line_id: string;
   variant_id: string;
