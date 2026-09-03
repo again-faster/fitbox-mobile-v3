@@ -1,4 +1,3 @@
-import { describe, expect, it } from '@jest/globals';
 import { addCartLine, removeCartLine, setCartLineQuantity } from './cart';
 
 describe('native commerce cart operations', () => {

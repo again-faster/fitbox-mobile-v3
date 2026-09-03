@@ -21,13 +21,14 @@ import {
 import DeviceInfo from 'react-native-device-info';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import WebView from 'react-native-webview';
-import NativeStoreScreen from './NativeStoreScreen';
 import {
+	NativeCommerceError,
 	nativeCommerce,
 	type NativeStoreFallbackResponse,
 	type NativeStoreResponse,
 } from '@/services/nativeCommerce';
 import type { NativeCommerceIdentity } from '@/services/nativeCommerce/protocol';
+import NativeStoreScreen from './NativeStoreScreen';
 
 const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 	const ref = useRef<WebView>(null);
@@ -156,43 +157,45 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 	}, [orderKey]);
 
 	useEffect(() => {
+		let active = true;
 		if (orderKey || !nativeIdentity) {
 			setNativeStoreChecked(true);
-			return;
+		} else {
+			setNativeStoreChecked(false);
+			void nativeCommerce
+				.getStore(nativeIdentity)
+				.then(response => {
+					if (!active) return;
+					if (
+						response.store_mode === 'native' ||
+						response.store_mode === 'shadow'
+					) {
+						setNativeStore(response);
+						return;
+					}
+					// Legacy and paused responses are explicit fallback evidence. The
+					// existing configured WebView remains the safe presentation path.
+					const fallback = response as NativeStoreFallbackResponse;
+					if (
+						fallback.fallback_url &&
+						fallback.fallback_url !== shopUrl
+					) {
+						setState('shopUrl', fallback.fallback_url);
+					}
+				})
+				.catch(error => {
+					// A 404 means this gym has not been cut over. Other failures also
+					// retain the legacy WebView so a temporary native outage is safe.
+					if (
+						!(error instanceof NativeCommerceError) ||
+						error.status !== 404
+					)
+						console.warn('Native store probe failed:', error);
+				})
+				.finally(() => {
+					if (active) setNativeStoreChecked(true);
+				});
 		}
-
-		let active = true;
-		setNativeStoreChecked(false);
-		void nativeCommerce
-			.getStore(nativeIdentity)
-			.then(response => {
-				if (!active) return;
-				if (
-					response.store_mode === 'native' ||
-					response.store_mode === 'shadow'
-				) {
-					setNativeStore(response);
-					return;
-				}
-				// Legacy and paused responses are explicit fallback evidence. The
-				// existing configured WebView remains the safe presentation path.
-				const fallback = response as NativeStoreFallbackResponse;
-				if (
-					fallback.fallback_url &&
-					fallback.fallback_url !== shopUrl
-				) {
-					setState('shopUrl', fallback.fallback_url);
-				}
-			})
-			.catch(error => {
-				// A 404 means this gym has not been cut over. Other failures also
-				// retain the legacy WebView so a temporary native outage is safe.
-				if (error?.status !== 404)
-					console.warn('Native store probe failed:', error);
-			})
-			.finally(() => {
-				if (active) setNativeStoreChecked(true);
-			});
 
 		return () => {
 			active = false;
