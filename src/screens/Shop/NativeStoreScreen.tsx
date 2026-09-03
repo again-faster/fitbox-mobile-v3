@@ -68,7 +68,7 @@ const storeLayout = {
 } as const;
 
 type StoreTextRole = 'screenTitle' | 'sectionTitle' | 'body' | 'label' | 'meta' | 'button';
-type StoreTextProps = Omit<TextProps, 'style'> & {
+type StoreTextProps = Omit<TextProps, 'role' | 'style'> & {
   role?: StoreTextRole;
   muted?: boolean;
   style?: StyleProp<TextStyle>;
