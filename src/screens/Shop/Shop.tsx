@@ -21,6 +21,7 @@ import {
 import DeviceInfo from 'react-native-device-info';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import WebView from 'react-native-webview';
+import { getApiToken } from '@/services/instance';
 import {
 	NativeCommerceError,
 	nativeCommerce,
@@ -76,6 +77,7 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 			expiry: storeSignatureExpiry,
 			signature: storeSignature,
 			gymId: teamId,
+			memberToken: getApiToken(),
 		};
 	}, [storeSignature, storeSignatureExpiry, teamId, user]);
 
