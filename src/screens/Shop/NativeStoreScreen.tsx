@@ -1,7 +1,8 @@
-import { MemberButton, MemberCard, MemberPill, MemberScreen, MemberStatusPill, MemberText } from '@/components/member';
+import { MemberCard, MemberPill } from '@/components/member';
 import {
   nativeCommerce,
   NativeCommerceError,
+  isNativeStoreResponse,
   type NativeCartResponse,
   type NativeCheckoutResponse,
   type NativeOrderDetail,
@@ -17,6 +18,7 @@ import {
 import type { NativeCommerceIdentity } from '@/services/nativeCommerce/protocol';
 import { memberTheme } from '@/theme/member';
 import { useStripe } from '@stripe/stripe-react-native';
+import type { PropsWithChildren } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -27,9 +29,15 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
+  Text,
   TextInput,
+  type StyleProp,
+  type TextProps,
+  type TextStyle,
+  type ViewStyle,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type NativeStoreScreenProps = {
   identity: NativeCommerceIdentity;
@@ -52,6 +60,92 @@ const money = (value: { minor: number; currency: string }) =>
   `${value.currency} ${(value.minor / 100).toFixed(2)}`;
 
 const primaryVariant = (product: NativeStoreProduct) => product.variants[0] ?? null;
+
+const storeLayout = {
+  screenGutter: memberTheme.spacing.lg,
+  minTouchTarget: 44,
+  primaryHeight: 48,
+} as const;
+
+type StoreTextRole = 'screenTitle' | 'sectionTitle' | 'body' | 'label' | 'meta' | 'button';
+type StoreTextProps = Omit<TextProps, 'style'> & {
+  role?: StoreTextRole;
+  muted?: boolean;
+  style?: StyleProp<TextStyle>;
+};
+
+const StoreText = ({ role = 'body', muted = false, style, ...props }: StoreTextProps) => {
+  const roleStyle = role === 'screenTitle'
+    ? styles.screenTitleText
+    : role === 'sectionTitle'
+      ? styles.sectionTitleText
+      : role === 'label'
+        ? styles.labelText
+        : role === 'meta'
+          ? styles.metaText
+          : role === 'button'
+            ? styles.buttonText
+            : styles.bodyText;
+
+  return <Text {...props} style={[styles.storeText, roleStyle, muted && styles.mutedText, style]} />;
+};
+
+type StoreScreenProps = PropsWithChildren<{
+  style?: StyleProp<ViewStyle>;
+  contentContainerStyle?: StyleProp<ViewStyle>;
+}>;
+
+const StoreScreen = ({ children, style, contentContainerStyle }: StoreScreenProps) => (
+  <SafeAreaView style={[styles.screen, style]}>
+    <View style={[styles.screenContainer, contentContainerStyle]}>{children}</View>
+  </SafeAreaView>
+);
+
+type StoreButtonProps = {
+  label: string;
+  compact?: boolean;
+  disabled?: boolean;
+  onPress: () => void;
+  style?: StyleProp<ViewStyle>;
+  testID?: string;
+};
+
+const StoreButton = ({ label, compact = false, disabled = false, onPress, style, testID }: StoreButtonProps) => (
+  <Pressable
+    testID={testID}
+    onPress={onPress}
+    disabled={disabled}
+    accessibilityRole="button"
+    accessibilityLabel={label}
+    accessibilityState={{ disabled }}
+    style={[styles.storeButton, compact ? styles.compactButton : styles.primaryButton, disabled && styles.disabledButton, style]}
+  >
+    <StoreText role="button" style={disabled ? styles.disabledButtonText : styles.primaryButtonText}>{label}</StoreText>
+  </Pressable>
+);
+
+type StoreStatus = 'default' | 'success' | 'warning' | 'danger' | 'info';
+
+const statusPalette: Record<StoreStatus, { background: string; foreground: string }> = {
+  default: { background: memberTheme.colors.surfaceSoft, foreground: memberTheme.colors.primaryInk },
+  success: { background: '#EAF7EC', foreground: memberTheme.colors.success },
+  warning: { background: '#FFF4DA', foreground: memberTheme.colors.warning },
+  danger: { background: '#FDEDEC', foreground: memberTheme.colors.danger },
+  info: { background: '#E8F1FF', foreground: '#0085FF' },
+};
+
+const StoreStatusPill = ({ label, status = 'default' }: { label: string; status?: StoreStatus }) => (
+  <View style={[styles.statusPill, { backgroundColor: statusPalette[status].background }]} accessible accessibilityRole="text" accessibilityLabel={label}>
+    <StoreText role="label" style={{ color: statusPalette[status].foreground }}>{label}</StoreText>
+  </View>
+);
+
+// Preview branches deliberately keep the shared member refresh out. These local
+// aliases keep the new store screen compatible with that stable preview surface.
+const MemberButton = StoreButton;
+const MemberScreen = StoreScreen;
+const MemberStatusPill = StoreStatusPill;
+const MemberText = StoreText;
 
 export default function NativeStoreScreen({ identity, initialStore, countryCode, isTestMode = false }: NativeStoreScreenProps) {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
@@ -96,7 +190,7 @@ export default function NativeStoreScreen({ identity, initialStore, countryCode,
         nativeCommerce.getStore(identity, search || undefined, category),
         nativeCommerce.getCart(identity),
       ]);
-      if (nextStore.store_mode === 'legacy' || nextStore.store_mode === 'paused') {
+      if (!isNativeStoreResponse(nextStore)) {
         throw new NativeCommerceError('legacy_fallback', 'This gym is still using its existing store.', 404);
       }
       setStore(nextStore);
@@ -330,7 +424,7 @@ export default function NativeStoreScreen({ identity, initialStore, countryCode,
 }
 
 function statusLabel(status: string): string {
-  return status.replaceAll('_', ' ').replace(/\b\w/g, character => character.toUpperCase());
+  return status.replace(/_/g, ' ').replace(/\b\w/g, (character: string) => character.toUpperCase());
 }
 
 function statusKind(status: string): 'default' | 'success' | 'warning' | 'danger' | 'info' {
@@ -482,20 +576,37 @@ function CheckoutPanel({
 }
 
 const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: memberTheme.colors.background },
+  screenContainer: { flex: 1, paddingHorizontal: storeLayout.screenGutter },
+  storeText: { color: memberTheme.colors.text },
+  screenTitleText: { fontSize: 28, lineHeight: 34, fontWeight: '800' },
+  sectionTitleText: { fontSize: 20, lineHeight: 26, fontWeight: '800' },
+  bodyText: { fontSize: 15, lineHeight: 22 },
+  labelText: { fontSize: 13, lineHeight: 18, fontWeight: '600' },
+  metaText: { fontSize: 12, lineHeight: 18 },
+  buttonText: { fontSize: 15, lineHeight: 20, fontWeight: '700' },
+  mutedText: { color: memberTheme.colors.textMuted },
+  storeButton: { minHeight: storeLayout.minTouchTarget, paddingHorizontal: memberTheme.spacing.lg, borderRadius: memberTheme.radius.pill, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
+  primaryButton: { minHeight: storeLayout.primaryHeight, backgroundColor: memberTheme.colors.primary },
+  compactButton: { minHeight: storeLayout.minTouchTarget },
+  primaryButtonText: { color: memberTheme.colors.surface },
+  disabledButton: { backgroundColor: '#F0F0F4', borderColor: '#A5A5AF' },
+  disabledButtonText: { color: '#A5A5AF' },
+  statusPill: { minHeight: 40, paddingHorizontal: memberTheme.spacing.md, borderRadius: memberTheme.radius.pill, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-start' },
   screenContent: { paddingHorizontal: 0 },
   listContent: { paddingBottom: memberTheme.spacing.xxl },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: memberTheme.spacing.md },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: memberTheme.spacing.xl },
   message: { marginTop: memberTheme.spacing.md, textAlign: 'center' },
   shadowNotice: { color: memberTheme.colors.warning, marginTop: memberTheme.spacing.xs },
-  headerRow: { paddingHorizontal: memberTheme.surfaces.screenGutter, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: memberTheme.spacing.lg },
+  headerRow: { paddingHorizontal: storeLayout.screenGutter, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: memberTheme.spacing.lg },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: memberTheme.spacing.sm },
   ordersButton: { borderColor: memberTheme.colors.border, borderWidth: 1, borderRadius: memberTheme.radius.pill, paddingHorizontal: memberTheme.spacing.md, paddingVertical: memberTheme.spacing.sm },
   cartButton: { backgroundColor: memberTheme.colors.primaryDeep, borderRadius: memberTheme.radius.pill, paddingHorizontal: memberTheme.spacing.md, paddingVertical: memberTheme.spacing.sm },
   cartButtonText: { color: memberTheme.colors.surface },
-  search: { marginHorizontal: memberTheme.surfaces.screenGutter, backgroundColor: memberTheme.colors.surface, borderColor: memberTheme.colors.border, borderWidth: 1, borderRadius: memberTheme.radius.pill, paddingHorizontal: memberTheme.spacing.lg, minHeight: memberTheme.controls.primaryHeight, color: memberTheme.colors.ink },
-  categoryList: { paddingHorizontal: memberTheme.surfaces.screenGutter, gap: memberTheme.spacing.sm, paddingVertical: memberTheme.spacing.lg },
-  columns: { paddingHorizontal: memberTheme.surfaces.screenGutter, gap: memberTheme.spacing.md },
+  search: { marginHorizontal: storeLayout.screenGutter, backgroundColor: memberTheme.colors.surface, borderColor: memberTheme.colors.border, borderWidth: 1, borderRadius: memberTheme.radius.pill, paddingHorizontal: memberTheme.spacing.lg, minHeight: storeLayout.primaryHeight, color: memberTheme.colors.ink },
+  categoryList: { paddingHorizontal: storeLayout.screenGutter, gap: memberTheme.spacing.sm, paddingVertical: memberTheme.spacing.lg },
+  columns: { paddingHorizontal: storeLayout.screenGutter, gap: memberTheme.spacing.md },
   productCard: { flex: 1, padding: memberTheme.spacing.md, marginBottom: memberTheme.spacing.md, minWidth: 0 },
   productImage: { width: '100%', aspectRatio: 1, borderRadius: memberTheme.radius.md, backgroundColor: memberTheme.colors.surfaceSoft, marginBottom: memberTheme.spacing.md },
   productImagePlaceholder: { width: '100%', aspectRatio: 1, borderRadius: memberTheme.radius.md, backgroundColor: memberTheme.colors.surfaceSoft, alignItems: 'center', justifyContent: 'center', marginBottom: memberTheme.spacing.md },
@@ -503,7 +614,7 @@ const styles = StyleSheet.create({
   detailsButton: { paddingVertical: memberTheme.spacing.sm },
   addButton: { marginTop: memberTheme.spacing.sm, width: '100%' },
   emptyProducts: { alignItems: 'center', padding: memberTheme.spacing.xxl },
-  inlineError: { marginHorizontal: memberTheme.surfaces.screenGutter, color: memberTheme.colors.danger },
+  inlineError: { marginHorizontal: storeLayout.screenGutter, color: memberTheme.colors.danger },
   cartPanel: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: memberTheme.colors.surface, borderTopLeftRadius: memberTheme.radius.xl, borderTopRightRadius: memberTheme.radius.xl, borderColor: memberTheme.colors.border, borderWidth: 1, padding: memberTheme.spacing.xl, ...memberTheme.shadow },
   productDetailPanel: { position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '90%', backgroundColor: memberTheme.colors.surface, borderTopLeftRadius: memberTheme.radius.xl, borderTopRightRadius: memberTheme.radius.xl, borderColor: memberTheme.colors.border, borderWidth: 1, padding: memberTheme.spacing.xl, ...memberTheme.shadow },
   detailContent: { paddingBottom: memberTheme.spacing.xl },
@@ -516,7 +627,7 @@ const styles = StyleSheet.create({
   cartLineCopy: { flex: 1, gap: memberTheme.spacing.xs },
   cartLineActions: { alignItems: 'flex-end', gap: memberTheme.spacing.xs },
   quantityControls: { alignItems: 'center', flexDirection: 'row', gap: memberTheme.spacing.sm },
-  quantityButton: { alignItems: 'center', borderColor: memberTheme.colors.border, borderRadius: memberTheme.radius.pill, borderWidth: 1, height: memberTheme.controls.minTouchTarget, justifyContent: 'center', width: memberTheme.controls.minTouchTarget },
+  quantityButton: { alignItems: 'center', borderColor: memberTheme.colors.border, borderRadius: memberTheme.radius.pill, borderWidth: 1, height: storeLayout.minTouchTarget, justifyContent: 'center', width: storeLayout.minTouchTarget },
   removeLink: { color: memberTheme.colors.danger },
   shippingGroups: { borderTopColor: memberTheme.colors.border, borderTopWidth: 1, marginTop: memberTheme.spacing.lg, paddingTop: memberTheme.spacing.md },
   shippingGroup: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: memberTheme.spacing.sm },
@@ -530,7 +641,7 @@ const styles = StyleSheet.create({
   checkoutPanel: { position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '88%', backgroundColor: memberTheme.colors.surface, borderTopLeftRadius: memberTheme.radius.xl, borderTopRightRadius: memberTheme.radius.xl, borderColor: memberTheme.colors.border, borderWidth: 1, padding: memberTheme.spacing.xl, ...memberTheme.shadow },
   checkoutContent: { paddingBottom: memberTheme.spacing.xl },
   field: { marginBottom: memberTheme.spacing.md },
-  fieldInput: { marginTop: memberTheme.spacing.xs, backgroundColor: memberTheme.colors.surface, borderColor: memberTheme.colors.border, borderWidth: 1, borderRadius: memberTheme.radius.md, minHeight: memberTheme.controls.primaryHeight, paddingHorizontal: memberTheme.spacing.md, color: memberTheme.colors.ink },
+  fieldInput: { marginTop: memberTheme.spacing.xs, backgroundColor: memberTheme.colors.surface, borderColor: memberTheme.colors.border, borderWidth: 1, borderRadius: memberTheme.radius.md, minHeight: storeLayout.primaryHeight, paddingHorizontal: memberTheme.spacing.md, color: memberTheme.colors.ink },
   checkoutError: { marginTop: memberTheme.spacing.md, color: memberTheme.colors.danger },
   ordersPanel: { position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '88%', backgroundColor: memberTheme.colors.surface, borderTopLeftRadius: memberTheme.radius.xl, borderTopRightRadius: memberTheme.radius.xl, borderColor: memberTheme.colors.border, borderWidth: 1, padding: memberTheme.spacing.xl, ...memberTheme.shadow },
   panelActions: { flexDirection: 'row', gap: memberTheme.spacing.lg },

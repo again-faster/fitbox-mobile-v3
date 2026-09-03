@@ -4,6 +4,7 @@ import {
   nativeCommerceEndpoint,
   parseNativeCommerceResponse,
 } from './protocol';
+import { isNativeStoreResponse } from './index';
 
 describe('native commerce mobile protocol', () => {
   it('builds headers from the existing Fitbox signed store session', () => {
@@ -64,5 +65,14 @@ describe('native commerce mobile protocol', () => {
     expect(() => parseNativeCommerceResponse('cart.get', {
       request_id: 'r2', gym_id: 231, version: 1, lines: [], subtotal: { currency: 'AUD', minor: 0 }, shipping_groups: [{ supplier_key: 'abco' }],
     })).toThrow('Invalid native commerce response');
+  });
+
+  it('narrows store responses without treating a legacy fallback as a catalogue', () => {
+    expect(isNativeStoreResponse({
+      request_id: 'r1', gym_id: 231, store_mode: 'shadow', currency: 'AUD', products: [], categories: [], next_cursor: null,
+    })).toBe(true);
+    expect(isNativeStoreResponse({
+      request_id: 'r2', gym_id: 231, store_mode: 'legacy', fallback_url: 'https://store.fitbox.iq/evolutionfit',
+    })).toBe(false);
   });
 });
