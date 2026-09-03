@@ -21,21 +21,21 @@ import { useStripe } from '@stripe/stripe-react-native';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  Linking,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  type StyleProp,
-  type TextProps,
-  type TextStyle,
-  type ViewStyle,
-  View,
+	ActivityIndicator,
+	FlatList,
+	Image,
+	Linking,
+	Pressable,
+	RefreshControl,
+	ScrollView,
+	StyleSheet,
+	Text,
+	TextInput,
+	type StyleProp,
+	type TextProps,
+	type TextStyle,
+	type ViewStyle,
+	View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
