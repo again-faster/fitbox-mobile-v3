@@ -18,7 +18,7 @@ import {
 import type { NativeCommerceIdentity } from '@/services/nativeCommerce/protocol';
 import { memberTheme } from '@/theme/member';
 import { useStripe } from '@stripe/stripe-react-native';
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
 	ActivityIndicator,
@@ -62,6 +62,16 @@ const money = (value: { minor: number; currency: string }) =>
 const primaryVariant = (product: NativeStoreProduct) =>
 	product.variants[0] ?? null;
 
+const addButtonLabel = (
+	busy: boolean,
+	unavailable: boolean,
+	defaultLabel = 'Add to cart',
+): string => {
+	if (busy) return 'Adding…';
+	if (unavailable) return 'Unavailable';
+	return defaultLabel;
+};
+
 const storeLayout = {
 	screenGutter: memberTheme.spacing.lg,
 	minTouchTarget: 44,
@@ -76,29 +86,35 @@ type StoreTextRole =
 	| 'meta'
 	| 'button';
 type StoreTextProps = Omit<TextProps, 'role' | 'style'> & {
-	role?: StoreTextRole;
+	textRole?: StoreTextRole;
 	muted?: boolean;
 	style?: StyleProp<TextStyle>;
 };
 
+const getStoreTextStyle = (textRole: StoreTextRole): TextStyle => {
+	switch (textRole) {
+		case 'screenTitle':
+			return styles.screenTitleText;
+		case 'sectionTitle':
+			return styles.sectionTitleText;
+		case 'label':
+			return styles.labelText;
+		case 'meta':
+			return styles.metaText;
+		case 'button':
+			return styles.buttonText;
+		default:
+			return styles.bodyText;
+	}
+};
+
 const StoreText = ({
-	role = 'body',
+	textRole = 'body',
 	muted = false,
 	style,
 	...props
 }: StoreTextProps) => {
-	const roleStyle =
-		role === 'screenTitle'
-			? styles.screenTitleText
-			: role === 'sectionTitle'
-				? styles.sectionTitleText
-				: role === 'label'
-					? styles.labelText
-					: role === 'meta'
-						? styles.metaText
-						: role === 'button'
-							? styles.buttonText
-							: styles.bodyText;
+	const roleStyle = getStoreTextStyle(textRole);
 
 	return (
 		<Text
@@ -162,7 +178,7 @@ const StoreButton = ({
 		]}
 	>
 		<StoreText
-			role="button"
+			textRole="button"
 			style={
 				disabled ? styles.disabledButtonText : styles.primaryButtonText
 			}
@@ -205,7 +221,7 @@ const StoreStatusPill = ({
 		accessibilityLabel={label}
 	>
 		<StoreText
-			role="label"
+			textRole="label"
 			style={{ color: statusPalette[status].foreground }}
 		>
 			{label}
@@ -220,12 +236,12 @@ const MemberScreen = StoreScreen;
 const MemberStatusPill = StoreStatusPill;
 const MemberText = StoreText;
 
-export default function NativeStoreScreen({
+const NativeStoreScreen = ({
 	identity,
 	initialStore,
 	countryCode,
 	isTestMode = false,
-}: NativeStoreScreenProps) {
+}: NativeStoreScreenProps) => {
 	const { initPaymentSheet, presentPaymentSheet } = useStripe();
 	const [store, setStore] = useState<NativeStoreResponse | null>(
 		initialStore ?? null,
@@ -503,14 +519,17 @@ export default function NativeStoreScreen({
 				`Order #${prepared.order_number} submitted. We’ll update you when it ships.`,
 			);
 		} catch (cause) {
-			setCheckoutError(
+			let message = 'Could not complete checkout.';
+			if (
 				cause instanceof NativeCommerceError &&
-					cause.code === 'shipping_unavailable'
-					? 'We cannot ship this cart to that country yet. Please check your country or try again later.'
-					: cause instanceof Error
-						? cause.message
-						: 'Could not complete checkout.',
-			);
+				cause.code === 'shipping_unavailable'
+			) {
+				message =
+					'We cannot ship this cart to that country yet. Please check your country or try again later.';
+			} else if (cause instanceof Error) {
+				message = cause.message;
+			}
+			setCheckoutError(message);
 		} finally {
 			setCheckoutBusy(false);
 		}
@@ -534,13 +553,69 @@ export default function NativeStoreScreen({
 		return (
 			<MemberScreen>
 				<View style={styles.empty}>
-					<MemberText role="screenTitle">Gym store</MemberText>
+					<MemberText textRole="screenTitle">Gym store</MemberText>
 					<MemberText muted style={styles.message}>
 						{error}
 					</MemberText>
 				</View>
 			</MemberScreen>
 		);
+	}
+
+	let activePanel: ReactNode = null;
+	if (ordersOpen) {
+		activePanel = (
+			<OrdersPanel
+				orders={orders}
+				loading={ordersLoading}
+				error={ordersError}
+				selectedOrder={selectedOrder}
+				selectedOrderLoading={selectedOrderLoading}
+				onClose={() => {
+					setOrdersOpen(false);
+					setSelectedOrder(null);
+					setOrdersError(null);
+				}}
+				onRefresh={() => void loadOrders()}
+				onSelect={order => void selectOrder(order)}
+				onBack={() => {
+					setSelectedOrder(null);
+					setOrdersError(null);
+				}}
+			/>
+		);
+	} else if (cartOpen) {
+		if (checkoutOpen) {
+			activePanel = (
+				<CheckoutPanel
+					address={shippingAddress}
+					busy={checkoutBusy}
+					error={checkoutError}
+					onChange={updateAddress}
+					onBack={() => {
+						setCheckoutOpen(false);
+						setCheckoutError(null);
+					}}
+					onCheckout={() => void checkout()}
+				/>
+			);
+		} else {
+			activePanel = (
+				<CartSummary
+					cart={cart}
+					busyVariantId={busyVariantId}
+					onClose={() => setCartOpen(false)}
+					onUpdateQuantity={(variantId, quantity) =>
+						void updateCartQuantity(variantId, quantity)
+					}
+					onRemove={variantId => void removeFromCart(variantId)}
+					onCheckout={() => {
+						setCheckoutOpen(true);
+						setCheckoutError(null);
+					}}
+				/>
+			);
+		}
 	}
 
 	return (
@@ -562,7 +637,7 @@ export default function NativeStoreScreen({
 					<>
 						<View style={styles.headerRow}>
 							<View>
-								<MemberText role="screenTitle">
+								<MemberText textRole="screenTitle">
 									Gym store
 								</MemberText>
 								<MemberText muted>
@@ -585,7 +660,7 @@ export default function NativeStoreScreen({
 									accessibilityRole="button"
 									accessibilityLabel="View your orders"
 								>
-									<MemberText role="button">
+									<MemberText textRole="button">
 										Orders
 									</MemberText>
 								</Pressable>
@@ -600,7 +675,7 @@ export default function NativeStoreScreen({
 									accessibilityLabel={`Cart, ${cartCount} items`}
 								>
 									<MemberText
-										role="button"
+										textRole="button"
 										style={styles.cartButtonText}
 									>
 										Cart {cartCount}
@@ -655,7 +730,7 @@ export default function NativeStoreScreen({
 				)}
 				ListEmptyComponent={
 					<View style={styles.emptyProducts}>
-						<MemberText role="sectionTitle">
+						<MemberText textRole="sectionTitle">
 							No products found
 						</MemberText>
 						<MemberText muted>
@@ -685,57 +760,12 @@ export default function NativeStoreScreen({
 					}}
 				/>
 			) : null}
-			{ordersOpen ? (
-				<OrdersPanel
-					orders={orders}
-					loading={ordersLoading}
-					error={ordersError}
-					selectedOrder={selectedOrder}
-					selectedOrderLoading={selectedOrderLoading}
-					onClose={() => {
-						setOrdersOpen(false);
-						setSelectedOrder(null);
-						setOrdersError(null);
-					}}
-					onRefresh={() => void loadOrders()}
-					onSelect={order => void selectOrder(order)}
-					onBack={() => {
-						setSelectedOrder(null);
-						setOrdersError(null);
-					}}
-				/>
-			) : cartOpen ? (
-				checkoutOpen ? (
-					<CheckoutPanel
-						address={shippingAddress}
-						busy={checkoutBusy}
-						error={checkoutError}
-						onChange={updateAddress}
-						onBack={() => {
-							setCheckoutOpen(false);
-							setCheckoutError(null);
-						}}
-						onCheckout={() => void checkout()}
-					/>
-				) : (
-					<CartSummary
-						cart={cart}
-						busyVariantId={busyVariantId}
-						onClose={() => setCartOpen(false)}
-						onUpdateQuantity={(variantId, quantity) =>
-							void updateCartQuantity(variantId, quantity)
-						}
-						onRemove={variantId => void removeFromCart(variantId)}
-						onCheckout={() => {
-							setCheckoutOpen(true);
-							setCheckoutError(null);
-						}}
-					/>
-				)
-			) : null}
+			{activePanel}
 		</MemberScreen>
 	);
-}
+};
+
+export default NativeStoreScreen;
 
 function statusLabel(status: string): string {
 	return status
@@ -766,7 +796,7 @@ function statusKind(
 	return 'default';
 }
 
-function OrdersPanel({
+const OrdersPanel = ({
 	orders,
 	loading,
 	error,
@@ -786,17 +816,78 @@ function OrdersPanel({
 	onRefresh: () => void;
 	onSelect: (order: NativeOrderSummary) => void;
 	onBack: () => void;
-}) {
+}) => {
+	let orderContent: ReactNode;
+	if (selectedOrder) {
+		orderContent = (
+			<OrderDetailView
+				order={selectedOrder}
+				loading={selectedOrderLoading}
+			/>
+		);
+	} else if (loading) {
+		orderContent = (
+			<View style={styles.ordersLoading}>
+				<ActivityIndicator
+					size="small"
+					color={memberTheme.colors.primary}
+				/>
+				<MemberText muted>Loading your orders…</MemberText>
+			</View>
+		);
+	} else if (orders.length > 0) {
+		orderContent = orders.map(order => (
+			<Pressable
+				key={order.order_id}
+				onPress={() => onSelect(order)}
+				style={styles.orderRow}
+				accessibilityRole="button"
+				accessibilityLabel={`Order ${order.order_number}, ${statusLabel(order.status)}`}
+			>
+				<View style={styles.orderRowCopy}>
+					<MemberText textRole="label">
+						Order #{order.order_number}
+					</MemberText>
+					<MemberText muted>
+						{new Date(order.created_at).toLocaleDateString()}
+					</MemberText>
+					<View style={styles.orderPills}>
+						<MemberStatusPill
+							label={statusLabel(order.status)}
+							status={statusKind(order.status)}
+						/>
+						<MemberStatusPill
+							label={statusLabel(order.fulfillment_status)}
+							status={statusKind(order.fulfillment_status)}
+						/>
+					</View>
+				</View>
+				<MemberText textRole="label">{money(order.total)} ›</MemberText>
+			</Pressable>
+		));
+	} else {
+		orderContent = (
+			<View style={styles.ordersEmpty}>
+				<MemberText textRole="sectionTitle">No orders yet</MemberText>
+				<MemberText muted>
+					Your native store orders will appear here.
+				</MemberText>
+			</View>
+		);
+	}
+
 	return (
 		<View style={styles.ordersPanel}>
 			<View style={styles.cartHeader}>
 				<View>
 					{selectedOrder ? (
 						<Pressable onPress={onBack}>
-							<MemberText role="button">‹ All orders</MemberText>
+							<MemberText textRole="button">
+								‹ All orders
+							</MemberText>
 						</Pressable>
 					) : null}
-					<MemberText role="sectionTitle">
+					<MemberText textRole="sectionTitle">
 						{selectedOrder
 							? `Order #${selectedOrder.order_number}`
 							: 'Your orders'}
@@ -804,10 +895,10 @@ function OrdersPanel({
 				</View>
 				<View style={styles.panelActions}>
 					<Pressable onPress={onRefresh}>
-						<MemberText role="button">Refresh</MemberText>
+						<MemberText textRole="button">Refresh</MemberText>
 					</Pressable>
 					<Pressable onPress={onClose}>
-						<MemberText role="button">Close</MemberText>
+						<MemberText textRole="button">Close</MemberText>
 					</Pressable>
 				</View>
 			</View>
@@ -820,79 +911,69 @@ function OrdersPanel({
 						{error}
 					</MemberText>
 				) : null}
-				{selectedOrder ? (
-					<OrderDetailView
-						order={selectedOrder}
-						loading={selectedOrderLoading}
-					/>
-				) : loading ? (
-					<View style={styles.ordersLoading}>
-						<ActivityIndicator
-							size="small"
-							color={memberTheme.colors.primary}
-						/>
-						<MemberText muted>Loading your orders…</MemberText>
-					</View>
-				) : orders.length ? (
-					orders.map(order => (
-						<Pressable
-							key={order.order_id}
-							onPress={() => onSelect(order)}
-							style={styles.orderRow}
-							accessibilityRole="button"
-							accessibilityLabel={`Order ${order.order_number}, ${statusLabel(order.status)}`}
-						>
-							<View style={styles.orderRowCopy}>
-								<MemberText role="label">
-									Order #{order.order_number}
-								</MemberText>
-								<MemberText muted>
-									{new Date(
-										order.created_at,
-									).toLocaleDateString()}
-								</MemberText>
-								<View style={styles.orderPills}>
-									<MemberStatusPill
-										label={statusLabel(order.status)}
-										status={statusKind(order.status)}
-									/>
-									<MemberStatusPill
-										label={statusLabel(
-											order.fulfillment_status,
-										)}
-										status={statusKind(
-											order.fulfillment_status,
-										)}
-									/>
-								</View>
-							</View>
-							<MemberText role="label">
-								{money(order.total)} ›
-							</MemberText>
-						</Pressable>
-					))
-				) : (
-					<View style={styles.ordersEmpty}>
-						<MemberText role="sectionTitle">
-							No orders yet
-						</MemberText>
-						<MemberText muted>
-							Your native store orders will appear here.
-						</MemberText>
-					</View>
-				)}
+				{orderContent}
 			</ScrollView>
 		</View>
 	);
-}
+};
 
-function OrderDetailView({
+const OrderDetailView = ({
 	order,
 	loading,
 }: {
 	order: NativeOrderDetail;
 	loading: boolean;
-}) {
+}) => {
+	let deliveryContent: ReactNode;
+	if (loading) {
+		deliveryContent = (
+			<ActivityIndicator
+				size="small"
+				color={memberTheme.colors.primary}
+			/>
+		);
+	} else if (order.fulfillment_groups.length > 0) {
+		deliveryContent = order.fulfillment_groups.map(group => (
+			<View
+				key={group.fulfillment_group_id}
+				style={styles.fulfillmentCard}
+			>
+				<View style={styles.fulfillmentHeader}>
+					<MemberText textRole="label">
+						{group.supplier_name || 'Supplier fulfilment'}
+					</MemberText>
+					<MemberStatusPill
+						label={statusLabel(group.status)}
+						status={statusKind(group.status)}
+					/>
+				</View>
+				{group.tracking_number ? (
+					<MemberText muted>
+						Tracking: {group.tracking_number}
+					</MemberText>
+				) : null}
+				{group.tracking_url ? (
+					<Pressable
+						onPress={() =>
+							void Linking.openURL(group.tracking_url!)
+						}
+					>
+						<MemberText
+							textRole="button"
+							style={styles.trackingLink}
+						>
+							Track shipment
+						</MemberText>
+					</Pressable>
+				) : null}
+			</View>
+		));
+	} else {
+		deliveryContent = (
+			<MemberText muted>Your order is being prepared.</MemberText>
+		);
+	}
+
 	return (
 		<View>
 			<View style={styles.orderSummary}>
@@ -909,11 +990,11 @@ function OrderDetailView({
 				<MemberText muted>
 					{new Date(order.created_at).toLocaleDateString()}
 				</MemberText>
-				<MemberText role="label" style={styles.orderTotal}>
+				<MemberText textRole="label" style={styles.orderTotal}>
 					{money(order.total)}
 				</MemberText>
 			</View>
-			<MemberText role="label" style={styles.detailHeading}>
+			<MemberText textRole="label" style={styles.detailHeading}>
 				Items
 			</MemberText>
 			{order.lines.map(line => (
@@ -929,53 +1010,10 @@ function OrderDetailView({
 					<MemberText muted>{money(line.line_total)}</MemberText>
 				</View>
 			))}
-			<MemberText role="label" style={styles.detailHeading}>
+			<MemberText textRole="label" style={styles.detailHeading}>
 				Delivery
 			</MemberText>
-			{loading ? (
-				<ActivityIndicator
-					size="small"
-					color={memberTheme.colors.primary}
-				/>
-			) : order.fulfillment_groups.length ? (
-				order.fulfillment_groups.map(group => (
-					<View
-						key={group.fulfillment_group_id}
-						style={styles.fulfillmentCard}
-					>
-						<View style={styles.fulfillmentHeader}>
-							<MemberText role="label">
-								{group.supplier_name || 'Supplier fulfilment'}
-							</MemberText>
-							<MemberStatusPill
-								label={statusLabel(group.status)}
-								status={statusKind(group.status)}
-							/>
-						</View>
-						{group.tracking_number ? (
-							<MemberText muted>
-								Tracking: {group.tracking_number}
-							</MemberText>
-						) : null}
-						{group.tracking_url ? (
-							<Pressable
-								onPress={() =>
-									void Linking.openURL(group.tracking_url!)
-								}
-							>
-								<MemberText
-									role="button"
-									style={styles.trackingLink}
-								>
-									Track shipment
-								</MemberText>
-							</Pressable>
-						) : null}
-					</View>
-				))
-			) : (
-				<MemberText muted>Your order is being prepared.</MemberText>
-			)}
+			{deliveryContent}
 			<View style={styles.orderTotals}>
 				<View style={styles.detailLine}>
 					<MemberText muted>Subtotal</MemberText>
@@ -986,21 +1024,23 @@ function OrderDetailView({
 					<MemberText muted>{money(order.shipping)}</MemberText>
 				</View>
 				<View style={styles.detailLine}>
-					<MemberText role="label">Total</MemberText>
-					<MemberText role="label">{money(order.total)}</MemberText>
+					<MemberText textRole="label">Total</MemberText>
+					<MemberText textRole="label">
+						{money(order.total)}
+					</MemberText>
 				</View>
 			</View>
 		</View>
 	);
-}
+};
 
-function NoticePanel({
+const NoticePanel = ({
 	message,
 	onClose,
 }: {
 	message: string;
 	onClose: () => void;
-}) {
+}) => {
 	return (
 		<View style={styles.noticePanel} accessibilityRole="alert">
 			<MemberText muted style={styles.noticeCopy}>
@@ -1011,27 +1051,27 @@ function NoticePanel({
 				accessibilityRole="button"
 				accessibilityLabel="Dismiss notification"
 			>
-				<MemberText role="button">Close</MemberText>
+				<MemberText textRole="button">Close</MemberText>
 			</Pressable>
 		</View>
 	);
-}
+};
 
-function ConfirmationPanel({
+const ConfirmationPanel = ({
 	confirmation,
 	onClose,
 }: {
 	confirmation: NativeCheckoutResponse;
 	onClose: () => void;
-}) {
+}) => {
 	const simulated =
 		confirmation.simulated || !confirmation.payment_intent_client_secret;
 	return (
 		<View style={styles.confirmationPanel} accessibilityRole="alert">
-			<MemberText role="sectionTitle">
+			<MemberText textRole="sectionTitle">
 				{simulated ? 'Test order recorded' : 'Order received'}
 			</MemberText>
-			<MemberText role="label" style={styles.confirmationNumber}>
+			<MemberText textRole="label" style={styles.confirmationNumber}>
 				Order #{confirmation.order_number}
 			</MemberText>
 			<MemberText muted>
@@ -1053,8 +1093,8 @@ function ConfirmationPanel({
 					</MemberText>
 				</View>
 				<View style={styles.detailLine}>
-					<MemberText role="label">Total</MemberText>
-					<MemberText role="label">
+					<MemberText textRole="label">Total</MemberText>
+					<MemberText textRole="label">
 						{money(confirmation.total)}
 					</MemberText>
 				</View>
@@ -1066,9 +1106,9 @@ function ConfirmationPanel({
 			/>
 		</View>
 	);
-}
+};
 
-function ProductDetailPanel({
+const ProductDetailPanel = ({
 	product,
 	busy,
 	onClose,
@@ -1078,7 +1118,7 @@ function ProductDetailPanel({
 	busy: boolean;
 	onClose: () => void;
 	onAdd: (variantId: string) => void;
-}) {
+}) => {
 	const firstVariant = primaryVariant(product);
 	const [variantId, setVariantId] = useState(firstVariant?.variant_id ?? '');
 	const selectedVariant =
@@ -1090,9 +1130,9 @@ function ProductDetailPanel({
 	return (
 		<View style={styles.productDetailPanel}>
 			<View style={styles.cartHeader}>
-				<MemberText role="sectionTitle">{product.title}</MemberText>
+				<MemberText textRole="sectionTitle">{product.title}</MemberText>
 				<Pressable onPress={onClose}>
-					<MemberText role="button">Close</MemberText>
+					<MemberText textRole="button">Close</MemberText>
 				</Pressable>
 			</View>
 			<ScrollView
@@ -1111,7 +1151,7 @@ function ProductDetailPanel({
 						{product.description}
 					</MemberText>
 				) : null}
-				<MemberText role="label" style={styles.detailHeading}>
+				<MemberText textRole="label" style={styles.detailHeading}>
 					Choose an option
 				</MemberText>
 				<View style={styles.variantList}>
@@ -1124,17 +1164,11 @@ function ProductDetailPanel({
 						/>
 					))}
 				</View>
-				<MemberText role="label" style={styles.detailPrice}>
+				<MemberText textRole="label" style={styles.detailPrice}>
 					{money(selectedVariant?.price ?? product.price)}
 				</MemberText>
 				<MemberButton
-					label={
-						busy
-							? 'Adding…'
-							: unavailable
-								? 'Unavailable'
-								: 'Add to cart'
-					}
+					label={addButtonLabel(busy, unavailable)}
 					disabled={busy || unavailable}
 					onPress={() => {
 						if (selectedVariant) onAdd(selectedVariant.variant_id);
@@ -1144,9 +1178,9 @@ function ProductDetailPanel({
 			</ScrollView>
 		</View>
 	);
-}
+};
 
-function ProductCard({
+const ProductCard = ({
 	product,
 	busy,
 	onAdd,
@@ -1156,7 +1190,7 @@ function ProductCard({
 	busy: boolean;
 	onAdd: () => void;
 	onOpen: () => void;
-}) {
+}) => {
 	const variant = primaryVariant(product);
 	const unavailable = product.stock_status === 'out_of_stock' || !variant;
 	return (
@@ -1178,14 +1212,14 @@ function ProductCard({
 					</View>
 				)}
 				<MemberText
-					role="label"
+					textRole="label"
 					numberOfLines={2}
 					style={styles.productTitle}
 				>
 					{product.title}
 				</MemberText>
 			</Pressable>
-			<MemberText role="meta" muted>
+			<MemberText textRole="meta" muted>
 				{money(variant?.price ?? product.price)}
 			</MemberText>
 			<Pressable
@@ -1194,20 +1228,20 @@ function ProductCard({
 				accessibilityLabel={`View details for ${product.title}`}
 				style={styles.detailsButton}
 			>
-				<MemberText role="button">View details</MemberText>
+				<MemberText textRole="button">View details</MemberText>
 			</Pressable>
 			<MemberButton
 				compact
-				label={busy ? 'Adding…' : unavailable ? 'Unavailable' : 'Add'}
+				label={addButtonLabel(busy, unavailable, 'Add')}
 				disabled={busy || unavailable}
 				onPress={onAdd}
 				style={styles.addButton}
 			/>
 		</MemberCard>
 	);
-}
+};
 
-function CartSummary({
+const CartSummary = ({
 	cart,
 	busyVariantId,
 	onClose,
@@ -1221,13 +1255,13 @@ function CartSummary({
 	onUpdateQuantity: (variantId: string, quantity: number) => void;
 	onRemove: (variantId: string) => void;
 	onCheckout: () => void;
-}) {
+}) => {
 	return (
 		<View style={styles.cartPanel}>
 			<View style={styles.cartHeader}>
-				<MemberText role="sectionTitle">Your cart</MemberText>
+				<MemberText textRole="sectionTitle">Your cart</MemberText>
 				<Pressable onPress={onClose}>
-					<MemberText role="button">Close</MemberText>
+					<MemberText textRole="button">Close</MemberText>
 				</Pressable>
 			</View>
 			{cart?.lines.length ? (
@@ -1263,9 +1297,11 @@ function CartSummary({
 										accessibilityLabel={`Decrease ${line.title}`}
 										style={styles.quantityButton}
 									>
-										<MemberText role="button">−</MemberText>
+										<MemberText textRole="button">
+											−
+										</MemberText>
 									</Pressable>
-									<MemberText role="label">
+									<MemberText textRole="label">
 										{line.quantity}
 									</MemberText>
 									<Pressable
@@ -1282,7 +1318,9 @@ function CartSummary({
 										accessibilityLabel={`Increase ${line.title}`}
 										style={styles.quantityButton}
 									>
-										<MemberText role="button">+</MemberText>
+										<MemberText textRole="button">
+											+
+										</MemberText>
 									</Pressable>
 								</View>
 								<MemberText muted>
@@ -1295,7 +1333,7 @@ function CartSummary({
 									accessibilityLabel={`Remove ${line.title}`}
 								>
 									<MemberText
-										role="button"
+										textRole="button"
 										style={styles.removeLink}
 									>
 										Remove
@@ -1306,7 +1344,7 @@ function CartSummary({
 					))}
 					{cart.shipping_groups?.length ? (
 						<View style={styles.shippingGroups}>
-							<MemberText role="label">Delivery</MemberText>
+							<MemberText textRole="label">Delivery</MemberText>
 							{cart.shipping_groups.map(group => (
 								<View
 									key={group.supplier_key}
@@ -1337,8 +1375,8 @@ function CartSummary({
 						</MemberText>
 					)}
 					<View style={styles.cartTotal}>
-						<MemberText role="label">Subtotal</MemberText>
-						<MemberText role="label">
+						<MemberText textRole="label">Subtotal</MemberText>
+						<MemberText textRole="label">
 							{money(cart.subtotal)}
 						</MemberText>
 					</View>
@@ -1353,9 +1391,9 @@ function CartSummary({
 			)}
 		</View>
 	);
-}
+};
 
-function CheckoutPanel({
+const CheckoutPanel = ({
 	address,
 	busy,
 	error,
@@ -1369,7 +1407,7 @@ function CheckoutPanel({
 	onChange: (field: keyof ShippingAddressForm, value: string) => void;
 	onBack: () => void;
 	onCheckout: () => void;
-}) {
+}) => {
 	const fields: Array<{
 		field: keyof ShippingAddressForm;
 		label: string;
@@ -1394,9 +1432,11 @@ function CheckoutPanel({
 	return (
 		<View style={styles.checkoutPanel}>
 			<View style={styles.cartHeader}>
-				<MemberText role="sectionTitle">Delivery details</MemberText>
+				<MemberText textRole="sectionTitle">
+					Delivery details
+				</MemberText>
 				<Pressable onPress={onBack}>
-					<MemberText role="button">Back</MemberText>
+					<MemberText textRole="button">Back</MemberText>
 				</Pressable>
 			</View>
 			<ScrollView
@@ -1405,7 +1445,7 @@ function CheckoutPanel({
 			>
 				{fields.map(({ field, label, placeholder }) => (
 					<View key={field} style={styles.field}>
-						<MemberText role="meta" muted>
+						<MemberText textRole="meta" muted>
 							{label}
 						</MemberText>
 						<TextInput
@@ -1443,7 +1483,7 @@ function CheckoutPanel({
 			</ScrollView>
 		</View>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	screen: { flex: 1, backgroundColor: memberTheme.colors.background },
