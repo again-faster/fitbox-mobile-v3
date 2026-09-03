@@ -21,6 +21,13 @@ import {
 import DeviceInfo from 'react-native-device-info';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import WebView from 'react-native-webview';
+import NativeStoreScreen from './NativeStoreScreen';
+import {
+	nativeCommerce,
+	type NativeStoreFallbackResponse,
+	type NativeStoreResponse,
+} from '@/services/nativeCommerce';
+import type { NativeCommerceIdentity } from '@/services/nativeCommerce/protocol';
 
 const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 	const ref = useRef<WebView>(null);
@@ -49,6 +56,19 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 	const [hasTriggeredPay, setHasTriggeredPay] = useState(false);
 	const [canGoBack, setCanGoBack] = useState(false);
 	const [showBackButton, setShowBackButton] = useState(false);
+	const [nativeStore, setNativeStore] = useState<NativeStoreResponse | null>(null);
+	const [nativeStoreChecked, setNativeStoreChecked] = useState(false);
+	const nativeIdentity = useMemo<NativeCommerceIdentity | null>(() => {
+		if (!teamId || !user?.user_data.email || !storeSignature || !storeSignatureExpiry) return null;
+		return {
+			email: user.user_data.email,
+			first: user.user_data.first_name ?? '',
+			last: user.user_data.last_name ?? '',
+			expiry: storeSignatureExpiry,
+			signature: storeSignature,
+			gymId: teamId,
+		};
+	}, [storeSignature, storeSignatureExpiry, teamId, user]);
 
 	const storeUrl = useMemo(() => {
 		if (!shopUrl) return '';
@@ -126,6 +146,42 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 	useEffect(() => {
 		setHasTriggeredPay(false);
 	}, [orderKey]);
+
+	useEffect(() => {
+		if (orderKey || !nativeIdentity) {
+			setNativeStoreChecked(true);
+			return;
+		}
+
+		let active = true;
+		setNativeStoreChecked(false);
+		void nativeCommerce.getStore(nativeIdentity)
+			.then(response => {
+				if (!active) return;
+				if (response.store_mode === 'native' || response.store_mode === 'shadow') {
+					setNativeStore(response);
+					return;
+				}
+				// Legacy and paused responses are explicit fallback evidence. The
+				// existing configured WebView remains the safe presentation path.
+				const fallback = response as NativeStoreFallbackResponse;
+				if (fallback.fallback_url && fallback.fallback_url !== shopUrl) {
+					setState('shopUrl', fallback.fallback_url);
+				}
+			})
+			.catch(error => {
+				// A 404 means this gym has not been cut over. Other failures also
+				// retain the legacy WebView so a temporary native outage is safe.
+				if (error?.status !== 404) console.warn('Native store probe failed:', error);
+			})
+			.finally(() => {
+				if (active) setNativeStoreChecked(true);
+			});
+
+		return () => {
+			active = false;
+		};
+	}, [nativeIdentity, orderKey]);
 
 	function cleanShopUrl(url: string) {
 		if (!url) return '';
@@ -260,6 +316,20 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 			setIsLoading(false);
 		}
 	};
+
+	if (!orderKey && nativeIdentity && !nativeStoreChecked) {
+		return (
+			<SafeScreen>
+				<View style={styles.loadingView}>
+					<ActivityIndicator size="large" color={config.colors.brand} />
+				</View>
+			</SafeScreen>
+		);
+	}
+
+	if (!orderKey && nativeIdentity && nativeStore) {
+		return <NativeStoreScreen identity={nativeIdentity} initialStore={nativeStore} countryCode={countryCode} isTestMode={currentApi !== Constant.API_BASE_URLS.PROD} />;
+	}
 
 	return (
 		<SafeScreen>

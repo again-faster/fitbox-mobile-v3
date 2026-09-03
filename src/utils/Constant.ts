@@ -164,6 +164,10 @@ export default {
 		process.env.WS_SUPABASE_URL ??
 		'https://vwubzxjfyfnxabbelcnz.supabase.co',
 	WS_SUPABASE_ANON_KEY: process.env.WS_SUPABASE_ANON_KEY ?? '',
+	COMMERCE_SUPABASE_URL:
+		process.env.COMMERCE_SUPABASE_URL ??
+		'https://wwzotqbvptlppnhogwzz.supabase.co',
+	COMMERCE_SUPABASE_ANON_KEY: process.env.COMMERCE_SUPABASE_ANON_KEY ?? '',
 	WS_BRIDGE_URL:
 		process.env.WS_BRIDGE_URL ??
 		'https://studio.fitbox.iq/api/public/mobile/auth/exchange',
