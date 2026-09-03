@@ -168,7 +168,7 @@ const readNativeCommerceError = (
 	)
 		return {};
 
-	const error = (payload as Record<string, unknown>).error;
+	const { error } = payload as Record<string, unknown>;
 	if (typeof error !== 'object' || error === null || Array.isArray(error))
 		return {};
 
