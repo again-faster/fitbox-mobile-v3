@@ -153,6 +153,36 @@ export class NativeCommerceError extends Error {
 	}
 }
 
+type NativeCommerceErrorDetails = {
+	code?: string;
+	message?: string;
+};
+
+const readNativeCommerceError = (
+	payload: unknown,
+): NativeCommerceErrorDetails => {
+	if (
+		typeof payload !== 'object' ||
+		payload === null ||
+		Array.isArray(payload)
+	)
+		return {};
+
+	const error = (payload as Record<string, unknown>).error;
+	if (typeof error !== 'object' || error === null || Array.isArray(error))
+		return {};
+
+	const errorRecord = error as Record<string, unknown>;
+	return {
+		code:
+			typeof errorRecord.code === 'string' ? errorRecord.code : undefined,
+		message:
+			typeof errorRecord.message === 'string'
+				? errorRecord.message
+				: undefined,
+	};
+};
+
 const request = async <T>(
 	identity: NativeCommerceIdentity,
 	body: Record<string, unknown>,
@@ -169,14 +199,14 @@ const request = async <T>(
 		},
 	);
 
-	let payload: any = null;
+	let payload: unknown = null;
 	try {
-		payload = await response.json();
+		payload = (await response.json()) as unknown;
 	} catch {
 		payload = null;
 	}
 	if (!response.ok) {
-		const error = payload?.error;
+		const error = readNativeCommerceError(payload);
 		throw new NativeCommerceError(
 			error?.code ?? 'internal',
 			error?.message ?? 'The store is temporarily unavailable.',
