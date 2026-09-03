@@ -5,6 +5,7 @@ export type NativeCommerceIdentity = {
 	expiry: number;
 	signature: string;
 	gymId: number;
+	memberToken?: string;
 };
 
 export const nativeCommerceEndpoint = (supabaseUrl: string): string =>
@@ -17,6 +18,9 @@ export const buildNativeCommerceHeaders = (
 	Accept: 'application/json',
 	'Content-Type': 'application/json',
 	...(anonKey ? { apikey: anonKey } : {}),
+	...(identity.memberToken
+		? { Authorization: `Bearer ${identity.memberToken}` }
+		: {}),
 	'x-fitbox-email': identity.email,
 	'x-fitbox-first': identity.first,
 	'x-fitbox-last': identity.last,

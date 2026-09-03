@@ -32,6 +32,25 @@ describe('native commerce mobile protocol', () => {
 		});
 	});
 
+	it('adds the existing member bearer token for the native store bridge', () => {
+		expect(
+			buildNativeCommerceHeaders(
+				{
+					email: 'member@example.com',
+					first: 'Alex',
+					last: 'Member',
+					expiry: 2_000_000_100,
+					signature: 'signature',
+					gymId: 42,
+					memberToken: 'member-token',
+				},
+				'anon-key',
+			),
+		).toMatchObject({
+			Authorization: 'Bearer member-token',
+		});
+	});
+
 	it('normalizes the Supabase Edge Function endpoint', () => {
 		expect(nativeCommerceEndpoint('https://example.supabase.co/')).toBe(
 			'https://example.supabase.co/functions/v1/native-store-member',
