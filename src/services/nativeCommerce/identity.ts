@@ -1,7 +1,7 @@
 import type { NativeCommerceIdentity } from './protocol';
 
 export type NativeCommerceIdentityInput = {
-	teamId?: number | null;
+	teamId?: number | string | null;
 	email?: string | null;
 	first?: string | null;
 	last?: string | null;
@@ -29,10 +29,16 @@ export const buildNativeCommerceIdentity = (
 		storeSignatureExpiry,
 		memberToken,
 	} = input;
+	const gymId = typeof teamId === 'string' ? Number(teamId.trim()) : teamId;
 	const hasLegacySignature = Boolean(storeSignature && storeSignatureExpiry);
 	const hasMemberToken = Boolean(memberToken);
 
-	if (!teamId || !email || (!hasLegacySignature && !hasMemberToken))
+	if (
+		!Number.isInteger(gymId) ||
+		(gymId as number) <= 0 ||
+		!email ||
+		(!hasLegacySignature && !hasMemberToken)
+	)
 		return null;
 
 	return {
@@ -45,7 +51,7 @@ export const buildNativeCommerceIdentity = (
 					signature: storeSignature as string,
 				}
 			: {}),
-		gymId: teamId,
+		gymId: gymId as number,
 		...(hasMemberToken ? { memberToken: memberToken as string } : {}),
 	};
 };

@@ -39,6 +39,24 @@ describe('native commerce identity bootstrap', () => {
 		});
 	});
 
+	it('normalizes a string gym lookup before sending the native request', () => {
+		expect(
+			buildNativeCommerceIdentity({
+				teamId: '231',
+				email: 'member@example.com',
+				first: 'Alex',
+				last: 'Member',
+				memberToken: 'member-token',
+			}),
+		).toEqual({
+			email: 'member@example.com',
+			first: 'Alex',
+			last: 'Member',
+			gymId: 231,
+			memberToken: 'member-token',
+		});
+	});
+
 	it('does not enter the native path without either supported credential', () => {
 		expect(
 			buildNativeCommerceIdentity({
