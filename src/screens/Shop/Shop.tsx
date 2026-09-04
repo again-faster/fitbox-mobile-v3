@@ -28,6 +28,7 @@ import {
 	type NativeStoreFallbackResponse,
 	type NativeStoreResponse,
 } from '@/services/nativeCommerce';
+import { buildNativeCommerceIdentity } from '@/services/nativeCommerce/identity';
 import type { NativeCommerceIdentity } from '@/services/nativeCommerce/protocol';
 import NativeStoreScreen from './NativeStoreScreen';
 
@@ -62,24 +63,18 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 		null,
 	);
 	const [nativeStoreChecked, setNativeStoreChecked] = useState(false);
+	const memberToken = getApiToken();
 	const nativeIdentity = useMemo<NativeCommerceIdentity | null>(() => {
-		if (
-			!teamId ||
-			!user?.user_data.email ||
-			!storeSignature ||
-			!storeSignatureExpiry
-		)
-			return null;
-		return {
-			email: user.user_data.email,
-			first: user.user_data.first_name ?? '',
-			last: user.user_data.last_name ?? '',
-			expiry: storeSignatureExpiry,
-			signature: storeSignature,
-			gymId: teamId,
-			memberToken: getApiToken(),
-		};
-	}, [storeSignature, storeSignatureExpiry, teamId, user]);
+		return buildNativeCommerceIdentity({
+			teamId,
+			email: user?.user_data.email,
+			first: user?.user_data.first_name,
+			last: user?.user_data.last_name,
+			storeSignature,
+			storeSignatureExpiry,
+			memberToken,
+		});
+	}, [memberToken, storeSignature, storeSignatureExpiry, teamId, user]);
 
 	const storeUrl = useMemo(() => {
 		if (!shopUrl) return '';
@@ -160,6 +155,10 @@ const Shop = ({ navigation, route }: ApplicationScreenProps) => {
 
 	useEffect(() => {
 		let active = true;
+		// Never carry a previous gym's catalogue into a new native-store probe.
+		// This also ensures an auth/mode failure cannot leave stale native UI
+		// visible while the legacy WebView takes over.
+		setNativeStore(null);
 		if (orderKey || !nativeIdentity) {
 			setNativeStoreChecked(true);
 		} else {
