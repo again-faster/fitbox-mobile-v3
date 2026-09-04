@@ -2,8 +2,8 @@ export type NativeCommerceIdentity = {
 	email: string;
 	first: string;
 	last: string;
-	expiry: number;
-	signature: string;
+	expiry?: number;
+	signature?: string;
 	gymId: number;
 	memberToken?: string;
 };
@@ -24,9 +24,13 @@ export const buildNativeCommerceHeaders = (
 	'x-fitbox-email': identity.email,
 	'x-fitbox-first': identity.first,
 	'x-fitbox-last': identity.last,
-	'x-fitbox-expiry': String(identity.expiry),
-	'x-fitbox-signature': identity.signature,
 	'x-fitbox-gym': String(identity.gymId),
+	...(identity.expiry !== undefined && identity.signature
+		? {
+				'x-fitbox-expiry': String(identity.expiry),
+				'x-fitbox-signature': identity.signature,
+			}
+		: {}),
 });
 
 type JsonRecord = Record<string, unknown>;

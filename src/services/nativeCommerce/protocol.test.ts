@@ -51,6 +51,26 @@ describe('native commerce mobile protocol', () => {
 		});
 	});
 
+	it('omits legacy signature headers for member-token-only identity', () => {
+		const headers = buildNativeCommerceHeaders(
+			{
+				email: 'member@example.com',
+				first: 'Alex',
+				last: 'Member',
+				gymId: 231,
+				memberToken: 'member-token',
+			},
+			'anon-key',
+		);
+
+		expect(headers).toMatchObject({
+			Authorization: 'Bearer member-token',
+			'x-fitbox-gym': '231',
+		});
+		expect(headers).not.toHaveProperty('x-fitbox-expiry');
+		expect(headers).not.toHaveProperty('x-fitbox-signature');
+	});
+
 	it('normalizes the Supabase Edge Function endpoint', () => {
 		expect(nativeCommerceEndpoint('https://example.supabase.co/')).toBe(
 			'https://example.supabase.co/functions/v1/native-store-member',
